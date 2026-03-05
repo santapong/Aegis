@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aegis-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aegis-backend
+  template:
+    metadata:
+      labels:
+        app: aegis-backend
+    spec:
+      containers:
+        - name: aegis-backend
+          image: aegis/backend:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              value: "postgresql://aegis_user:aegis_password@postgres:5432/aegis_db"
