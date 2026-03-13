@@ -3,9 +3,18 @@ from sqlalchemy.orm import Session
 from datetime import date, timedelta
 
 from ..database import get_db
-from ..models.plan import Plan, PlanStatus
+from ..models.plan import Plan, PlanStatus, Recurrence
+from ..models.budget import Budget
 from ..models.transaction import Transaction, TransactionType
-from ..schemas.dashboard import KPISummary, DashboardCharts, ChartDataPoint
+from ..schemas.dashboard import (
+    KPISummary,
+    DashboardCharts,
+    ChartDataPoint,
+    HealthScoreBreakdown,
+    HealthScoreResponse,
+    CashFlowPoint,
+    CashFlowForecastResponse,
+)
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
@@ -112,3 +121,194 @@ def get_charts(db: Session = Depends(get_db)):
         monthly_trend=monthly_trend,
         budget_progress=[],
     )
+
+
+@router.get("/health-score", response_model=HealthScoreResponse)
+def get_health_score(db: Session = Depends(get_db)):
+    today = date.today()
+    month_start = today.replace(day=1)
+
+    # --- Savings Rate Score (0-30) ---
+    monthly_txns = (
+        db.query(Transaction)
+        .filter(Transaction.date >= month_start, Transaction.date <= today)
+        .all()
+    )
+    monthly_income = sum(float(t.amount) for t in monthly_txns if t.type == TransactionType.income)
+    monthly_expenses = sum(float(t.amount) for t in monthly_txns if t.type == TransactionType.expense)
+    savings_rate = ((monthly_income - monthly_expenses) / monthly_income * 100) if monthly_income > 0 else 0
+    # 20%+ savings = full score
+    savings_score = min(30.0, (savings_rate / 20) * 30) if savings_rate > 0 else 0
+
+    # --- Budget Adherence Score (0-25) ---
+    active_budgets = (
+        db.query(Budget)
+        .filter(Budget.period_start <= today, Budget.period_end >= today)
+        .all()
+    )
+    if active_budgets:
+        adherence_scores = []
+        for b in active_budgets:
+            expenses_in_cat = (
+                db.query(Transaction)
+                .filter(
+                    Transaction.type == TransactionType.expense,
+                    Transaction.category == b.category,
+                    Transaction.date >= b.period_start,
+                    Transaction.date <= today,
+                )
+                .all()
+            )
+            spent = sum(float(t.amount) for t in expenses_in_cat)
+            ratio = spent / float(b.amount) if float(b.amount) > 0 else 0
+            # Under budget = 1.0, over budget reduces score
+            adherence_scores.append(max(0, 1 - max(0, ratio - 1)))
+        avg_adherence = sum(adherence_scores) / len(adherence_scores)
+        budget_score = avg_adherence * 25
+    else:
+        budget_score = 12.5  # neutral if no budgets set
+
+    # --- Expense Consistency Score (0-25) ---
+    three_months_ago = today - timedelta(days=90)
+    recent_expenses = (
+        db.query(Transaction)
+        .filter(
+            Transaction.type == TransactionType.expense,
+            Transaction.date >= three_months_ago,
+        )
+        .all()
+    )
+    monthly_totals: dict[str, float] = {}
+    for t in recent_expenses:
+        key = t.date.strftime("%Y-%m")
+        monthly_totals[key] = monthly_totals.get(key, 0) + float(t.amount)
+
+    if len(monthly_totals) >= 2:
+        values = list(monthly_totals.values())
+        avg_expense = sum(values) / len(values)
+        if avg_expense > 0:
+            variance = sum((v - avg_expense) ** 2 for v in values) / len(values)
+            std_dev = variance ** 0.5
+            cv = std_dev / avg_expense  # coefficient of variation
+            consistency_score = max(0, 25 * (1 - min(cv, 1)))
+        else:
+            consistency_score = 25.0
+    else:
+        consistency_score = 12.5
+
+    # --- Income Stability Score (0-20) ---
+    recent_income = (
+        db.query(Transaction)
+        .filter(
+            Transaction.type == TransactionType.income,
+            Transaction.date >= three_months_ago,
+        )
+        .all()
+    )
+    monthly_income_totals: dict[str, float] = {}
+    for t in recent_income:
+        key = t.date.strftime("%Y-%m")
+        monthly_income_totals[key] = monthly_income_totals.get(key, 0) + float(t.amount)
+
+    if len(monthly_income_totals) >= 2:
+        values = list(monthly_income_totals.values())
+        avg_inc = sum(values) / len(values)
+        if avg_inc > 0:
+            variance = sum((v - avg_inc) ** 2 for v in values) / len(values)
+            std_dev = variance ** 0.5
+            cv = std_dev / avg_inc
+            income_score = max(0, 20 * (1 - min(cv, 1)))
+        else:
+            income_score = 0
+    else:
+        income_score = 10.0
+
+    overall = round(savings_score + budget_score + consistency_score + income_score, 1)
+
+    if overall >= 80:
+        grade = "A"
+    elif overall >= 60:
+        grade = "B"
+    elif overall >= 40:
+        grade = "C"
+    elif overall >= 20:
+        grade = "D"
+    else:
+        grade = "F"
+
+    breakdown = [
+        HealthScoreBreakdown(name="Savings Rate", score=round(savings_score, 1), max_score=30, description="Based on your monthly savings as a percentage of income"),
+        HealthScoreBreakdown(name="Budget Adherence", score=round(budget_score, 1), max_score=25, description="How well you stay within your budget limits"),
+        HealthScoreBreakdown(name="Expense Consistency", score=round(consistency_score, 1), max_score=25, description="Stability of your monthly spending patterns"),
+        HealthScoreBreakdown(name="Income Stability", score=round(income_score, 1), max_score=20, description="Consistency of your income over time"),
+    ]
+
+    return HealthScoreResponse(overall_score=overall, grade=grade, breakdown=breakdown)
+
+
+@router.get("/cashflow-forecast", response_model=CashFlowForecastResponse)
+def get_cashflow_forecast(months: int = 6, db: Session = Depends(get_db)):
+    months = min(months, 12)
+    today = date.today()
+
+    # Current balance
+    all_txns = db.query(Transaction).all()
+    current_balance = sum(
+        float(t.amount) if t.type == TransactionType.income else -float(t.amount)
+        for t in all_txns
+    )
+
+    # Average monthly income & expenses from last 3 months
+    three_months_ago = today - timedelta(days=90)
+    recent = (
+        db.query(Transaction)
+        .filter(Transaction.date >= three_months_ago)
+        .all()
+    )
+
+    monthly_income: dict[str, float] = {}
+    monthly_expense: dict[str, float] = {}
+    for t in recent:
+        key = t.date.strftime("%Y-%m")
+        if t.type == TransactionType.income:
+            monthly_income[key] = monthly_income.get(key, 0) + float(t.amount)
+        else:
+            monthly_expense[key] = monthly_expense.get(key, 0) + float(t.amount)
+
+    num_months = max(len(set(list(monthly_income.keys()) + list(monthly_expense.keys()))), 1)
+    avg_income = sum(monthly_income.values()) / num_months if monthly_income else 0
+    avg_expense = sum(monthly_expense.values()) / num_months if monthly_expense else 0
+
+    # Factor in recurring plans
+    recurring_plans = (
+        db.query(Plan)
+        .filter(
+            Plan.recurrence != Recurrence.once,
+            Plan.status.in_(["planned", "in_progress"]),
+        )
+        .all()
+    )
+    for p in recurring_plans:
+        if p.recurrence == Recurrence.monthly:
+            if p.category.value in ("income",):
+                avg_income += float(p.amount) * 0.3  # blend with historical
+            elif p.category.value in ("expense",):
+                avg_expense += float(p.amount) * 0.3
+
+    forecast = []
+    running_balance = current_balance
+    for i in range(1, months + 1):
+        m = (today.month + i - 1) % 12 + 1
+        y = today.year + (today.month + i - 1) // 12
+        month_label = date(y, m, 1).strftime("%b %Y")
+        running_balance += avg_income - avg_expense
+        forecast.append(
+            CashFlowPoint(
+                month=month_label,
+                projected_income=round(avg_income, 2),
+                projected_expenses=round(avg_expense, 2),
+                projected_balance=round(running_balance, 2),
+            )
+        )
+
+    return CashFlowForecastResponse(current_balance=round(current_balance, 2), forecast=forecast)

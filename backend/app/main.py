@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_settings
 from .database import engine, Base
-from .routers import plans, calendar, gantt, transactions, dashboard, ai
+from .routers import plans, calendar, gantt, transactions, dashboard, ai, budgets, reports
 
 settings = get_settings()
 
@@ -29,6 +29,8 @@ app.include_router(gantt.router)
 app.include_router(transactions.router)
 app.include_router(dashboard.router)
 app.include_router(ai.router)
+app.include_router(budgets.router)
+app.include_router(reports.router)
 
 
 @app.on_event("startup")
