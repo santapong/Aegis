@@ -4,3 +4,7 @@ __pycache__
 .git
 .venv
 *.egg-info
+*.md
+.gitignore
+.pytest_cache
+.mypy_cache
