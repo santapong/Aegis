@@ -1,11 +1,30 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+export class APIError extends Error {
+  status: number;
+  detail?: string;
+
+  constructor(status: number, message: string, detail?: string) {
+    super(message);
+    this.name = "APIError";
+    this.status = status;
+    this.detail = detail;
+  }
+}
+
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${url}`, {
     headers: { "Content-Type": "application/json" },
     ...init,
   });
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  if (!res.ok) {
+    let detail: string | undefined;
+    try {
+      const body = await res.json();
+      detail = body.detail || body.message;
+    } catch {}
+    throw new APIError(res.status, `API error: ${res.status}`, detail);
+  }
   return res.json();
 }
 

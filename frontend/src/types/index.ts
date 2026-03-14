@@ -171,3 +171,12 @@ export interface CategoryComparisonMonth {
   categories: Record<string, number>;
   changes: Record<string, number | null>;
 }
+
+export interface Notification {
+  id: string;
+  type: "budget_alert" | "anomaly" | "milestone" | "info";
+  title: string;
+  message: string;
+  read: boolean;
+  created_at: string;
+}

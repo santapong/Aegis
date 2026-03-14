@@ -1,7 +1,9 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { formatCurrency } from "@/lib/utils";
 import { TrendingUp, TrendingDown, PiggyBank, Target } from "lucide-react";
+import { staggerContainer, staggerItem } from "@/lib/animations";
 import type { KPISummary } from "@/types";
 
 interface KPICardsProps {
@@ -41,11 +43,18 @@ export function KPICards({ data }: KPICardsProps) {
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <motion.div
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+    >
       {cards.map((card) => (
-        <div
+        <motion.div
           key={card.label}
-          className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border)] hover:shadow-lg transition-shadow"
+          variants={staggerItem}
+          whileHover={{ y: -2, transition: { duration: 0.2 } }}
+          className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border)] hover:shadow-lg transition-shadow cursor-default"
         >
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm text-[var(--text-muted)]">{card.label}</span>
@@ -54,8 +63,8 @@ export function KPICards({ data }: KPICardsProps) {
             </div>
           </div>
           <p className="text-2xl font-bold">{card.value}</p>
-        </div>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 }
