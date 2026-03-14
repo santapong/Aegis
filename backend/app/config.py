@@ -6,8 +6,11 @@ class Settings(BaseSettings):
     app_name: str = "Money Management API"
     debug: bool = False
 
-    # Database
-    database_url: str = "postgresql://postgres:postgres@localhost:5432/money_management"
+    # Database — supports PostgreSQL, MySQL, and SQLite
+    # PostgreSQL: postgresql://user:pass@host:5432/dbname
+    # MySQL:      mysql+pymysql://user:pass@host:3306/dbname
+    # SQLite:     sqlite:///./data.db
+    database_url: str = "sqlite:///./money_management.db"
 
     # AI
     anthropic_api_key: str = ""

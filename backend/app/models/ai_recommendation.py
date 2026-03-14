@@ -23,7 +23,7 @@ class AIRecommendation(Base):
     recommendation: Mapped[str] = mapped_column(Text, nullable=False)
     confidence: Mapped[float] = mapped_column(Float, default=0.0)
     category: Mapped[str] = mapped_column(String(100), nullable=False)
-    action_type: Mapped[ActionType] = mapped_column(Enum(ActionType), nullable=False)
+    action_type: Mapped[ActionType] = mapped_column(Enum(ActionType, native_enum=False), nullable=False)
     accepted: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 

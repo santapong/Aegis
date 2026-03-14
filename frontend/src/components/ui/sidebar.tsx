@@ -23,6 +23,7 @@ import {
   Menu,
   X,
   Shield,
+  FileText,
 } from "lucide-react";
 
 const navItems = [
@@ -33,6 +34,7 @@ const navItems = [
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/gantt", label: "Gantt Chart", icon: GanttChart },
   { href: "/reports", label: "Reports", icon: BarChart3 },
+  { href: "/docs", label: "Documents", icon: FileText },
 ];
 
 export function Sidebar() {
