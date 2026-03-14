@@ -9,6 +9,7 @@ import {
   Calendar,
   GanttChart,
   BarChart3,
+  Wallet,
   Bot,
   Moon,
   Sun,
@@ -18,6 +19,7 @@ import {
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/budgets", label: "Budgets", icon: Wallet },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/gantt", label: "Gantt Chart", icon: GanttChart },
   { href: "/reports", label: "Reports", icon: BarChart3 },

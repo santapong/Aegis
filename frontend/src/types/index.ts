@@ -97,3 +97,77 @@ export interface AIForecast {
   months_ahead: number;
   insights: string[];
 }
+
+export interface Budget {
+  id: string;
+  name: string;
+  amount: number;
+  spent: number;
+  category: string;
+  period_start: string;
+  period_end: string;
+  created_at: string;
+}
+
+export interface BudgetComparison {
+  category: string;
+  budget_amount: number;
+  actual_spent: number;
+  remaining: number;
+  usage_percent: number;
+  over_budget: boolean;
+}
+
+export interface BudgetComparisonResponse {
+  period_start: string;
+  period_end: string;
+  comparisons: BudgetComparison[];
+  total_budgeted: number;
+  total_spent: number;
+}
+
+export interface HealthScoreBreakdown {
+  name: string;
+  score: number;
+  max_score: number;
+  description: string;
+}
+
+export interface HealthScoreResponse {
+  overall_score: number;
+  grade: string;
+  breakdown: HealthScoreBreakdown[];
+}
+
+export interface CashFlowPoint {
+  month: string;
+  projected_income: number;
+  projected_expenses: number;
+  projected_balance: number;
+}
+
+export interface CashFlowForecastResponse {
+  current_balance: number;
+  forecast: CashFlowPoint[];
+}
+
+export interface AnomalyItem {
+  transaction_id: string;
+  date: string;
+  category: string;
+  amount: number;
+  average_for_category: number;
+  deviation_ratio: number;
+  description: string | null;
+}
+
+export interface AnomaliesResponse {
+  anomalies: AnomalyItem[];
+  total_count: number;
+}
+
+export interface CategoryComparisonMonth {
+  month: string;
+  categories: Record<string, number>;
+  changes: Record<string, number | null>;
+}

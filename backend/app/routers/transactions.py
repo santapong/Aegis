@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from datetime import date
+from datetime import date, timedelta
 
 from ..database import get_db
 from ..models.transaction import Transaction, TransactionType
 from ..schemas.transaction import TransactionCreate, TransactionResponse, TransactionSummary
+from ..schemas.dashboard import AnomalyItem, AnomaliesResponse
 
 router = APIRouter(prefix="/api/transactions", tags=["transactions"])
 
@@ -68,6 +69,53 @@ def transaction_summary(
         by_category=by_category,
         count=len(transactions),
     )
+
+
+@router.get("/anomalies", response_model=AnomaliesResponse)
+def detect_anomalies(
+    days: int = Query(default=90, ge=7, le=365),
+    threshold: float = Query(default=2.0, ge=1.5),
+    db: Session = Depends(get_db),
+):
+    today = date.today()
+    start = today - timedelta(days=days)
+
+    expenses = (
+        db.query(Transaction)
+        .filter(
+            Transaction.type == TransactionType.expense,
+            Transaction.date >= start,
+        )
+        .order_by(Transaction.date.desc())
+        .all()
+    )
+
+    # Calculate average per category
+    cat_totals: dict[str, list[float]] = {}
+    for t in expenses:
+        cat_totals.setdefault(t.category, []).append(float(t.amount))
+
+    cat_avg = {cat: sum(vals) / len(vals) for cat, vals in cat_totals.items()}
+
+    anomalies = []
+    for t in expenses:
+        avg = cat_avg.get(t.category, 0)
+        if avg > 0 and float(t.amount) > avg * threshold:
+            anomalies.append(
+                AnomalyItem(
+                    transaction_id=t.id,
+                    date=t.date.isoformat(),
+                    category=t.category,
+                    amount=float(t.amount),
+                    average_for_category=round(avg, 2),
+                    deviation_ratio=round(float(t.amount) / avg, 2),
+                    description=t.description,
+                )
+            )
+
+    anomalies.sort(key=lambda a: a.deviation_ratio, reverse=True)
+
+    return AnomaliesResponse(anomalies=anomalies, total_count=len(anomalies))
 
 
 @router.delete("/{txn_id}", status_code=204)

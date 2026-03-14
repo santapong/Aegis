@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { transactionsAPI, dashboardAPI } from "@/lib/api";
+import { transactionsAPI, dashboardAPI, reportsAPI } from "@/lib/api";
 import { SpendingChart } from "@/components/charts/spending-chart";
 import { TrendChart } from "@/components/charts/trend-chart";
 import {
@@ -16,7 +16,13 @@ import {
   Legend,
 } from "recharts";
 import { formatCurrency } from "@/lib/utils";
-import { Download, Filter } from "lucide-react";
+import { Download, ArrowUp, ArrowDown, Minus } from "lucide-react";
+import type { CategoryComparisonMonth } from "@/types";
+
+const CATEGORY_COLORS = [
+  "#EF4444", "#3B82F6", "#22C55E", "#F59E0B", "#8B5CF6",
+  "#EC4899", "#06B6D4", "#6366F1", "#10B981", "#6B7280",
+];
 
 export default function ReportsPage() {
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
@@ -34,6 +40,11 @@ export default function ReportsPage() {
     queryFn: dashboardAPI.charts,
   });
 
+  const { data: categoryComparison } = useQuery<CategoryComparisonMonth[]>({
+    queryKey: ["category-comparison"],
+    queryFn: () => reportsAPI.categoryComparison(6) as Promise<CategoryComparisonMonth[]>,
+  });
+
   const categoryData = summary
     ? Object.entries(summary.by_category).map(([label, value]) => ({
         label,
@@ -41,6 +52,32 @@ export default function ReportsPage() {
         color: null as string | null,
       }))
     : [];
+
+  // Build grouped bar chart data from category comparison
+  const allCategories = useMemo(() => {
+    if (!categoryComparison) return [];
+    const cats = new Set<string>();
+    categoryComparison.forEach((m) => {
+      Object.keys(m.categories).forEach((c) => cats.add(c));
+    });
+    return Array.from(cats);
+  }, [categoryComparison]);
+
+  const comparisonChartData = useMemo(() => {
+    if (!categoryComparison) return [];
+    return categoryComparison.map((m) => {
+      const row: Record<string, string | number> = { month: m.month };
+      allCategories.forEach((cat) => {
+        row[cat] = m.categories[cat] || 0;
+      });
+      return row;
+    });
+  }, [categoryComparison, allCategories]);
+
+  const handleExport = () => {
+    const url = reportsAPI.exportCSV(dateRange.start, dateRange.end);
+    window.open(url as unknown as string, "_blank");
+  };
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -68,8 +105,11 @@ export default function ReportsPage() {
               className="px-3 py-1.5 rounded-lg border border-[var(--border)] bg-[var(--bg-card)] text-sm"
             />
           </div>
-          <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border)] text-sm hover:bg-[var(--bg-secondary)]">
-            <Download size={14} /> Export
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[var(--border)] text-sm hover:bg-[var(--bg-secondary)]"
+          >
+            <Download size={14} /> Export CSV
           </button>
         </div>
       </div>
@@ -105,6 +145,74 @@ export default function ReportsPage() {
           <TrendChart data={charts?.monthly_trend ?? []} />
         </div>
       </div>
+
+      {/* Monthly Category Comparison Chart */}
+      {comparisonChartData.length > 0 && (
+        <div className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border)]">
+          <h2 className="text-lg font-semibold mb-4">Monthly Category Comparison</h2>
+          <ResponsiveContainer width="100%" height={350}>
+            <BarChart data={comparisonChartData}>
+              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+              <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip formatter={(value: number) => formatCurrency(value)} />
+              <Legend />
+              {allCategories.map((cat, i) => (
+                <Bar
+                  key={cat}
+                  dataKey={cat}
+                  fill={CATEGORY_COLORS[i % CATEGORY_COLORS.length]}
+                  radius={[2, 2, 0, 0]}
+                  name={cat.charAt(0).toUpperCase() + cat.slice(1)}
+                />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Month-over-Month Changes Table */}
+      {categoryComparison && categoryComparison.length > 1 && (
+        <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] overflow-hidden">
+          <div className="p-4 border-b border-[var(--border)]">
+            <h2 className="text-lg font-semibold">Month-over-Month Changes</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-[var(--border)] bg-[var(--bg-secondary)]">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Category</th>
+                  {categoryComparison.map((m) => (
+                    <th key={m.month} className="text-right px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">{m.month}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {allCategories.map((cat) => (
+                  <tr key={cat} className="border-b border-[var(--border)] hover:bg-[var(--bg-secondary)]">
+                    <td className="px-4 py-3 text-sm font-medium capitalize">{cat}</td>
+                    {categoryComparison.map((m, i) => {
+                      const amount = m.categories[cat] || 0;
+                      const change = i > 0 ? m.changes?.[cat] : undefined;
+                      return (
+                        <td key={m.month} className="px-4 py-3 text-sm text-right">
+                          <div>{formatCurrency(amount)}</div>
+                          {change !== undefined && change !== null && (
+                            <div className={`flex items-center justify-end gap-0.5 text-xs ${change > 0 ? "text-red-500" : change < 0 ? "text-green-500" : "text-[var(--text-muted)]"}`}>
+                              {change > 0 ? <ArrowUp size={10} /> : change < 0 ? <ArrowDown size={10} /> : <Minus size={10} />}
+                              {Math.abs(change)}%
+                            </div>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Category breakdown table */}
       {summary && Object.keys(summary.by_category).length > 0 && (
