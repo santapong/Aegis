@@ -9,8 +9,11 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
+  ReferenceLine,
 } from "recharts";
 import { formatCurrency } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
+import { TrendingUp } from "lucide-react";
 
 interface TrendChartProps {
   data: { month: string; income: number; expenses: number }[];
@@ -18,12 +21,11 @@ interface TrendChartProps {
 
 export function TrendChart({ data }: TrendChartProps) {
   if (data.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64 text-[var(--text-muted)]">
-        No trend data yet
-      </div>
-    );
+    return <EmptyState icon={TrendingUp} title="No trend data yet" className="h-64" />;
   }
+
+  const avgIncome = data.reduce((sum, d) => sum + d.income, 0) / data.length;
+  const avgExpenses = data.reduce((sum, d) => sum + d.expenses, 0) / data.length;
 
   return (
     <ResponsiveContainer width="100%" height={300}>
@@ -50,8 +52,38 @@ export function TrendChart({ data }: TrendChartProps) {
           }}
         />
         <Legend />
-        <Area type="monotone" dataKey="income" stroke="#22C55E" fill="url(#incomeGrad)" strokeWidth={2} />
-        <Area type="monotone" dataKey="expenses" stroke="#EF4444" fill="url(#expenseGrad)" strokeWidth={2} />
+        <ReferenceLine
+          y={avgIncome}
+          stroke="#22C55E"
+          strokeDasharray="5 5"
+          strokeOpacity={0.5}
+          label={{ value: "Avg Income", position: "right", fontSize: 10, fill: "var(--text-muted)" }}
+        />
+        <ReferenceLine
+          y={avgExpenses}
+          stroke="#EF4444"
+          strokeDasharray="5 5"
+          strokeOpacity={0.5}
+          label={{ value: "Avg Expenses", position: "right", fontSize: 10, fill: "var(--text-muted)" }}
+        />
+        <Area
+          type="monotone"
+          dataKey="income"
+          stroke="#22C55E"
+          fill="url(#incomeGrad)"
+          strokeWidth={2}
+          isAnimationActive
+          animationDuration={1000}
+        />
+        <Area
+          type="monotone"
+          dataKey="expenses"
+          stroke="#EF4444"
+          fill="url(#expenseGrad)"
+          strokeWidth={2}
+          isAnimationActive
+          animationDuration={1000}
+        />
       </AreaChart>
     </ResponsiveContainer>
   );

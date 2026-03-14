@@ -4,14 +4,19 @@
   --bg: #ffffff;
   --bg-secondary: #f8fafc;
   --bg-card: #ffffff;
+  --bg-hover: #f1f5f9;
   --text: #0f172a;
   --text-muted: #64748b;
   --border: #e2e8f0;
   --primary: #3b82f6;
   --primary-hover: #2563eb;
+  --ring: #93bbfd;
   --success: #22c55e;
+  --success-bg: #f0fdf4;
   --danger: #ef4444;
+  --danger-bg: #fef2f2;
   --warning: #f59e0b;
+  --warning-bg: #fffbeb;
   --accent: #6366f1;
   --sidebar-width: 260px;
 }
@@ -20,11 +25,19 @@
   --bg: #0f172a;
   --bg-secondary: #1e293b;
   --bg-card: #1e293b;
+  --bg-hover: #334155;
   --text: #f1f5f9;
   --text-muted: #94a3b8;
   --border: #334155;
   --primary: #60a5fa;
   --primary-hover: #3b82f6;
+  --ring: #3b82f6;
+  --success: #22c55e;
+  --success-bg: #052e16;
+  --danger: #ef4444;
+  --danger-bg: #450a0a;
+  --warning: #f59e0b;
+  --warning-bg: #451a03;
 }
 
 * {
@@ -36,6 +49,7 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: system-ui, -apple-system, sans-serif;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 /* Scrollbar */

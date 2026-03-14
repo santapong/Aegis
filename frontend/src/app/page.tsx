@@ -1,11 +1,18 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { dashboardAPI, transactionsAPI } from "@/lib/api";
 import { KPICards } from "@/components/dashboard/kpi-cards";
 import { SpendingChart } from "@/components/charts/spending-chart";
 import { TrendChart } from "@/components/charts/trend-chart";
 import { AIPanel } from "@/components/ai/ai-panel";
+import { ProgressRing } from "@/components/charts/progress-ring";
+import { Card, CardBody } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader } from "@/components/ui/page-header";
+import { Button } from "@/components/ui/button";
+import { staggerContainer, staggerItem } from "@/lib/animations";
 import { Sparkles, AlertTriangle, Heart, TrendingUp } from "lucide-react";
 import { useAppStore } from "@/stores/app-store";
 import { formatCurrency } from "@/lib/utils";
@@ -19,22 +26,22 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import type { HealthScoreResponse, CashFlowForecastResponse, AnomaliesResponse } from "@/types";
+import type { HealthScoreResponse, CashFlowForecastResponse, AnomaliesResponse, KPISummary, DashboardCharts } from "@/types";
 
 export default function DashboardPage() {
   const { toggleAIPanel } = useAppStore();
 
-  const { data: summary, isLoading: summaryLoading } = useQuery({
+  const { data: summary, isLoading: summaryLoading } = useQuery<KPISummary>({
     queryKey: ["dashboard-summary"],
-    queryFn: dashboardAPI.summary,
+    queryFn: () => dashboardAPI.summary() as Promise<KPISummary>,
   });
 
-  const { data: charts, isLoading: chartsLoading } = useQuery({
+  const { data: charts, isLoading: chartsLoading } = useQuery<DashboardCharts>({
     queryKey: ["dashboard-charts"],
-    queryFn: dashboardAPI.charts,
+    queryFn: () => dashboardAPI.charts() as Promise<DashboardCharts>,
   });
 
-  const { data: healthScore } = useQuery<HealthScoreResponse>({
+  const { data: healthScore, isLoading: healthLoading } = useQuery<HealthScoreResponse>({
     queryKey: ["health-score"],
     queryFn: () => dashboardAPI.healthScore() as Promise<HealthScoreResponse>,
   });
@@ -51,166 +58,190 @@ export default function DashboardPage() {
 
   const gradeColor = (grade: string) => {
     switch (grade) {
-      case "A": return "text-green-500";
-      case "B": return "text-blue-500";
-      case "C": return "text-yellow-500";
-      case "D": return "text-orange-500";
-      default: return "text-red-500";
+      case "A": return "#22C55E";
+      case "B": return "#3B82F6";
+      case "C": return "#EAB308";
+      case "D": return "#F97316";
+      default: return "#EF4444";
     }
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <motion.div
+      className="space-y-6 max-w-7xl mx-auto"
+      variants={staggerContainer}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-[var(--text-muted)] text-sm mt-1">
-            Overview of your financial health
-          </p>
-        </div>
-        <button
-          onClick={toggleAIPanel}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-medium hover:opacity-90 shadow-md"
-        >
-          <Sparkles size={16} /> AI Insights
-        </button>
-      </div>
+      <motion.div variants={staggerItem}>
+        <PageHeader
+          title="Dashboard"
+          subtitle="Overview of your financial health"
+          action={
+            <Button
+              onClick={toggleAIPanel}
+              icon={<Sparkles size={16} />}
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 shadow-md"
+            >
+              AI Insights
+            </Button>
+          }
+        />
+      </motion.div>
 
       {/* KPI Cards */}
-      {summaryLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-28 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] animate-pulse" />
-          ))}
-        </div>
-      ) : summary ? (
-        <KPICards data={summary} />
-      ) : null}
+      <motion.div variants={staggerItem}>
+        {summaryLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} height={112} />
+            ))}
+          </div>
+        ) : summary ? (
+          <KPICards data={summary} />
+        ) : null}
+      </motion.div>
 
       {/* Health Score + Anomaly Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Financial Health Score */}
-        {healthScore && (
-          <div className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border)]">
-            <div className="flex items-center gap-2 mb-4">
-              <Heart size={20} className="text-red-500" />
-              <h2 className="text-lg font-semibold">Financial Health Score</h2>
-            </div>
-            <div className="flex items-center gap-6 mb-4">
-              <div className="relative w-24 h-24">
-                <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                  <circle cx="50" cy="50" r="40" fill="none" stroke="var(--bg-secondary)" strokeWidth="8" />
-                  <circle
-                    cx="50" cy="50" r="40" fill="none"
-                    stroke={healthScore.grade === "A" ? "#22C55E" : healthScore.grade === "B" ? "#3B82F6" : healthScore.grade === "C" ? "#EAB308" : "#EF4444"}
-                    strokeWidth="8" strokeLinecap="round"
-                    strokeDasharray={`${healthScore.overall_score * 2.51} 251`}
-                  />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className={`text-2xl font-bold ${gradeColor(healthScore.grade)}`}>{healthScore.grade}</span>
-                  <span className="text-xs text-[var(--text-muted)]">{healthScore.overall_score}/100</span>
+        {healthLoading ? (
+          <Skeleton height={220} />
+        ) : healthScore ? (
+          <Card>
+            <CardBody>
+              <div className="flex items-center gap-2 mb-4">
+                <Heart size={20} className="text-red-500" />
+                <h2 className="text-lg font-semibold">Financial Health Score</h2>
+              </div>
+              <div className="flex items-center gap-6 mb-4">
+                <ProgressRing
+                  value={healthScore.overall_score}
+                  max={100}
+                  size={96}
+                  strokeWidth={8}
+                  color={gradeColor(healthScore.grade)}
+                  label={healthScore.grade}
+                  sublabel={`${healthScore.overall_score}/100`}
+                />
+                <div className="flex-1 space-y-2">
+                  {healthScore.breakdown.map((b) => (
+                    <div key={b.name}>
+                      <div className="flex justify-between text-xs mb-0.5">
+                        <span>{b.name}</span>
+                        <span className="text-[var(--text-muted)]">{b.score}/{b.max_score}</span>
+                      </div>
+                      <div className="w-full bg-[var(--bg-secondary)] rounded-full h-1.5">
+                        <motion.div
+                          className="h-1.5 rounded-full bg-blue-500"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${(b.score / b.max_score) * 100}%` }}
+                          transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className="flex-1 space-y-2">
-                {healthScore.breakdown.map((b) => (
-                  <div key={b.name}>
-                    <div className="flex justify-between text-xs mb-0.5">
-                      <span>{b.name}</span>
-                      <span className="text-[var(--text-muted)]">{b.score}/{b.max_score}</span>
-                    </div>
-                    <div className="w-full bg-[var(--bg-secondary)] rounded-full h-1.5">
-                      <div
-                        className="h-1.5 rounded-full bg-blue-500"
-                        style={{ width: `${(b.score / b.max_score) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+            </CardBody>
+          </Card>
+        ) : null}
 
         {/* Anomaly Alerts */}
-        <div className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border)]">
-          <div className="flex items-center gap-2 mb-4">
-            <AlertTriangle size={20} className="text-yellow-500" />
-            <h2 className="text-lg font-semibold">Spending Alerts</h2>
-            {anomalies && anomalies.total_count > 0 && (
-              <span className="ml-auto text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
-                {anomalies.total_count} alert{anomalies.total_count > 1 ? "s" : ""}
-              </span>
-            )}
-          </div>
-          {anomalies && anomalies.anomalies.length > 0 ? (
-            <div className="space-y-3 max-h-[200px] overflow-y-auto">
-              {anomalies.anomalies.slice(0, 5).map((a) => (
-                <div key={a.transaction_id} className="flex items-start gap-3 p-3 bg-[var(--bg-secondary)] rounded-lg">
-                  <AlertTriangle size={16} className="text-yellow-500 mt-0.5 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium capitalize">{a.category}</p>
-                    <p className="text-xs text-[var(--text-muted)]">
-                      {formatCurrency(a.amount)} on {a.date} &mdash; {a.deviation_ratio}x the avg ({formatCurrency(a.average_for_category)})
-                    </p>
-                  </div>
-                </div>
-              ))}
+        <Card>
+          <CardBody>
+            <div className="flex items-center gap-2 mb-4">
+              <AlertTriangle size={20} className="text-yellow-500" />
+              <h2 className="text-lg font-semibold">Spending Alerts</h2>
+              {anomalies && anomalies.total_count > 0 && (
+                <span className="ml-auto text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
+                  {anomalies.total_count} alert{anomalies.total_count > 1 ? "s" : ""}
+                </span>
+              )}
             </div>
-          ) : (
-            <p className="text-sm text-[var(--text-muted)] text-center py-6">No unusual spending detected</p>
-          )}
-        </div>
-      </div>
+            {anomalies && anomalies.anomalies.length > 0 ? (
+              <div className="space-y-3 max-h-[200px] overflow-y-auto">
+                {anomalies.anomalies.slice(0, 5).map((a, i) => (
+                  <motion.div
+                    key={a.transaction_id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className="flex items-start gap-3 p-3 bg-[var(--bg-secondary)] rounded-lg"
+                  >
+                    <AlertTriangle size={16} className="text-yellow-500 mt-0.5 shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium capitalize">{a.category}</p>
+                      <p className="text-xs text-[var(--text-muted)]">
+                        {formatCurrency(a.amount)} on {a.date} &mdash; {a.deviation_ratio}x the avg ({formatCurrency(a.average_for_category)})
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-[var(--text-muted)] text-center py-6">No unusual spending detected</p>
+            )}
+          </CardBody>
+        </Card>
+      </motion.div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border)]">
-          <h2 className="text-lg font-semibold mb-4">Spending by Category</h2>
-          {chartsLoading ? (
-            <div className="h-[300px] animate-pulse bg-[var(--bg-secondary)] rounded-lg" />
-          ) : (
-            <SpendingChart data={charts?.spending_by_category ?? []} />
-          )}
-        </div>
-        <div className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border)]">
-          <h2 className="text-lg font-semibold mb-4">Monthly Trend</h2>
-          {chartsLoading ? (
-            <div className="h-[300px] animate-pulse bg-[var(--bg-secondary)] rounded-lg" />
-          ) : (
-            <TrendChart data={charts?.monthly_trend ?? []} />
-          )}
-        </div>
-      </div>
+      <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardBody>
+            <h2 className="text-lg font-semibold mb-4">Spending by Category</h2>
+            {chartsLoading ? (
+              <Skeleton height={300} />
+            ) : (
+              <SpendingChart data={charts?.spending_by_category ?? []} />
+            )}
+          </CardBody>
+        </Card>
+        <Card>
+          <CardBody>
+            <h2 className="text-lg font-semibold mb-4">Monthly Trend</h2>
+            {chartsLoading ? (
+              <Skeleton height={300} />
+            ) : (
+              <TrendChart data={charts?.monthly_trend ?? []} />
+            )}
+          </CardBody>
+        </Card>
+      </motion.div>
 
       {/* Cash Flow Forecast */}
       {cashflow && cashflow.forecast.length > 0 && (
-        <div className="bg-[var(--bg-card)] rounded-xl p-5 border border-[var(--border)]">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp size={20} className="text-indigo-500" />
-            <h2 className="text-lg font-semibold">Cash Flow Forecast</h2>
-            <span className="ml-auto text-sm text-[var(--text-muted)]">
-              Current balance: {formatCurrency(cashflow.current_balance)}
-            </span>
-          </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={cashflow.forecast}>
-              <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-              <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip formatter={(value: number) => formatCurrency(value)} />
-              <Legend />
-              <Line type="monotone" dataKey="projected_balance" stroke="#6366F1" strokeWidth={2} name="Balance" dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="projected_income" stroke="#22C55E" strokeWidth={2} name="Income" dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="projected_expenses" stroke="#EF4444" strokeWidth={2} name="Expenses" dot={{ r: 3 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        <motion.div variants={staggerItem}>
+          <Card>
+            <CardBody>
+              <div className="flex items-center gap-2 mb-4">
+                <TrendingUp size={20} className="text-indigo-500" />
+                <h2 className="text-lg font-semibold">Cash Flow Forecast</h2>
+                <span className="ml-auto text-sm text-[var(--text-muted)]">
+                  Current balance: {formatCurrency(cashflow.current_balance)}
+                </span>
+              </div>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={cashflow.forecast}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
+                  <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                  <Legend />
+                  <Line type="monotone" dataKey="projected_balance" stroke="#6366F1" strokeWidth={2} name="Balance" dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="projected_income" stroke="#22C55E" strokeWidth={2} name="Income" dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="projected_expenses" stroke="#EF4444" strokeWidth={2} name="Expenses" dot={{ r: 3 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardBody>
+          </Card>
+        </motion.div>
       )}
 
       {/* AI Panel */}
       <AIPanel />
-    </div>
+    </motion.div>
   );
 }

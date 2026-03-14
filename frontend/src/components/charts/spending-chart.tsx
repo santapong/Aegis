@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   PieChart,
   Pie,
@@ -7,21 +8,50 @@ import {
   ResponsiveContainer,
   Tooltip,
   Legend,
+  Sector,
 } from "recharts";
 import type { ChartDataPoint } from "@/types";
 import { formatCurrency } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PieChart as PieChartIcon } from "lucide-react";
 
 interface SpendingChartProps {
   data: ChartDataPoint[];
 }
 
+const COLORS = [
+  "#3B82F6", "#EF4444", "#22C55E", "#F59E0B", "#8B5CF6",
+  "#EC4899", "#06B6D4", "#6366F1", "#10B981", "#6B7280",
+];
+
+const renderActiveShape = (props: any) => {
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, value, percent } = props;
+  return (
+    <g>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius - 4}
+        outerRadius={outerRadius + 6}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+      />
+      <text x={cx} y={cy - 8} textAnchor="middle" fill="var(--text)" fontSize={14} fontWeight="bold">
+        {payload.label}
+      </text>
+      <text x={cx} y={cy + 12} textAnchor="middle" fill="var(--text-muted)" fontSize={12}>
+        {formatCurrency(value)} ({(percent * 100).toFixed(0)}%)
+      </text>
+    </g>
+  );
+};
+
 export function SpendingChart({ data }: SpendingChartProps) {
+  const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
+
   if (data.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64 text-[var(--text-muted)]">
-        No spending data yet
-      </div>
-    );
+    return <EmptyState icon={PieChartIcon} title="No spending data yet" className="h-64" />;
   }
 
   return (
@@ -36,9 +66,16 @@ export function SpendingChart({ data }: SpendingChartProps) {
           paddingAngle={4}
           dataKey="value"
           nameKey="label"
+          activeIndex={activeIndex}
+          activeShape={renderActiveShape}
+          onMouseEnter={(_, index) => setActiveIndex(index)}
+          onMouseLeave={() => setActiveIndex(undefined)}
+          isAnimationActive
+          animationDuration={800}
+          animationEasing="ease-out"
         >
           {data.map((entry, i) => (
-            <Cell key={i} fill={entry.color ?? "#6B7280"} />
+            <Cell key={i} fill={entry.color ?? COLORS[i % COLORS.length]} />
           ))}
         </Pie>
         <Tooltip
