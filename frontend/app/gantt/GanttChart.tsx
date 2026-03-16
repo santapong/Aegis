@@ -210,14 +210,14 @@ export default function GanttChart() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-white">
+      <div className="flex flex-1 items-center justify-center text-white">
         <p className="text-zinc-400">Loading goals...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white p-6">
+    <div className="bg-zinc-950 text-white p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>

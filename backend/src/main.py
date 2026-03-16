@@ -4,6 +4,12 @@ from litestar.config.cors import CORSConfig
 from database.models import Base
 from database.connection import engine
 from routes.gantt import GoalController, MilestoneController
+from routes.budget import BudgetController
+from routes.calendar import CalendarController
+from routes.debt import DebtController
+from routes.savings import SavingsController
+from routes.reports import ReportsController
+from routes.bills import BillController
 
 
 @get("/")
@@ -22,7 +28,13 @@ cors_config = CORSConfig(
 )
 
 app = Litestar(
-    route_handlers=[index, GoalController, MilestoneController],
+    route_handlers=[
+        index,
+        GoalController, MilestoneController,
+        BudgetController, CalendarController,
+        DebtController, SavingsController,
+        ReportsController, BillController,
+    ],
     on_startup=[on_startup],
     cors_config=cors_config,
 )

@@ -6,5 +6,9 @@ export const metadata = {
 };
 
 export default function GanttPage() {
-  return <GanttChart />;
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <GanttChart />
+    </div>
+  );
 }
