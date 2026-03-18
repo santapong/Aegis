@@ -1,0 +1,29 @@
+{
+  "name": "@aegis/sdk",
+  "version": "1.0.0",
+  "description": "TypeScript SDK for the Aegis Money Management API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "keywords": [
+    "aegis",
+    "money-management",
+    "finance",
+    "budget",
+    "sdk"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
