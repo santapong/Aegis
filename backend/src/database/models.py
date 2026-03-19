@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, Date, ForeignKey, Text
 from sqlalchemy.orm import declarative_base, relationship
-from datetime import datetime
+from datetime import datetime, date as date_type
+import uuid
 
 Base = declarative_base()
 
@@ -114,4 +115,39 @@ class BillReminder(Base):
     last_paid_date = Column(Date, nullable=True)
     next_due_date = Column(Date, nullable=True)
     notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class AnalysisHistory(Base):
+    __tablename__ = "analysis_history"
+    id = Column(Integer, primary_key=True)
+    analysis_type = Column(String, nullable=False)  # "chat", "auto", "full_analysis"
+    prompt = Column(Text, nullable=True)
+    response = Column(Text, nullable=False)
+    financial_summary = Column(Text, nullable=True)  # JSON string of financial state at time of analysis
+    model_used = Column(String, default="qwen2.5:7b")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class FinancialSnapshot(Base):
+    __tablename__ = "financial_snapshots"
+    id = Column(Integer, primary_key=True)
+    snapshot_date = Column(Date, default=date_type.today)
+    total_income = Column(Float, default=0.0)
+    total_expenses = Column(Float, default=0.0)
+    net_savings = Column(Float, default=0.0)
+    savings_rate = Column(Float, default=0.0)
+    total_debt = Column(Float, default=0.0)
+    total_savings = Column(Float, default=0.0)
+    net_worth = Column(Float, default=0.0)
+    details = Column(Text, nullable=True)  # JSON string with detailed breakdown
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+    id = Column(Integer, primary_key=True)
+    session_id = Column(String, nullable=False, default=lambda: str(uuid.uuid4()))
+    role = Column(String, nullable=False)  # "user" or "assistant"
+    content = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)

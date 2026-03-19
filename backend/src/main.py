@@ -10,6 +10,8 @@ from routes.debt import DebtController
 from routes.savings import SavingsController
 from routes.reports import ReportsController
 from routes.bills import BillController
+from routes.ai import AIController
+from routes.history import HistoryController
 
 
 @get("/")
@@ -34,6 +36,7 @@ app = Litestar(
         BudgetController, CalendarController,
         DebtController, SavingsController,
         ReportsController, BillController,
+        AIController, HistoryController,
     ],
     on_startup=[on_startup],
     cors_config=cors_config,
