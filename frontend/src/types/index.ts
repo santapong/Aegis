@@ -4,6 +4,8 @@ export type Recurrence = "once" | "daily" | "weekly" | "monthly" | "yearly";
 export type Priority = "low" | "medium" | "high" | "critical";
 export type TransactionType = "income" | "expense";
 export type ActionType = "reduce" | "increase" | "reallocate" | "alert";
+export type RecurringInterval = "weekly" | "biweekly" | "monthly" | "quarterly" | "yearly";
+export type DebtType = "credit_card" | "student_loan" | "mortgage" | "car_loan" | "personal_loan" | "medical" | "other";
 
 export interface Plan {
   id: string;
@@ -47,6 +49,12 @@ export interface GanttTask {
   status: PlanStatus;
 }
 
+export interface Tag {
+  id: string;
+  name: string;
+  color: string;
+}
+
 export interface Transaction {
   id: string;
   plan_id: string | null;
@@ -56,6 +64,10 @@ export interface Transaction {
   date: string;
   description: string | null;
   created_at: string;
+  is_recurring: boolean;
+  recurring_interval: RecurringInterval | null;
+  next_due_date: string | null;
+  tags: Tag[];
 }
 
 export interface KPISummary {
@@ -179,4 +191,97 @@ export interface Notification {
   message: string;
   read: boolean;
   created_at: string;
+}
+
+// New types for v0.4.0
+
+export interface RecurringTransactionSummary {
+  total_monthly_recurring: number;
+  recurring_income: number;
+  recurring_expenses: number;
+  subscriptions: Transaction[];
+}
+
+export interface SavingsGoal {
+  id: string;
+  name: string;
+  description: string | null;
+  target_amount: number;
+  current_amount: number;
+  deadline: string | null;
+  category: string;
+  color: string;
+  icon: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Debt {
+  id: string;
+  name: string;
+  description: string | null;
+  balance: number;
+  original_balance: number;
+  interest_rate: number;
+  minimum_payment: number;
+  due_date: string | null;
+  debt_type: DebtType;
+  color: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PayoffStep {
+  month: number;
+  debt_name: string;
+  payment: number;
+  remaining_balance: number;
+  interest_paid: number;
+}
+
+export interface PayoffPlan {
+  strategy: string;
+  total_months: number;
+  total_interest: number;
+  total_paid: number;
+  monthly_steps: PayoffStep[];
+}
+
+export interface WeeklySummary {
+  period_start: string;
+  period_end: string;
+  total_income: number;
+  total_expenses: number;
+  net_savings: number;
+  income_change_percent: number;
+  expense_change_percent: number;
+  top_spending_categories: { category: string; amount: number }[];
+  transaction_count: number;
+}
+
+export interface InsightItem {
+  type: "positive" | "warning" | "info";
+  title: string;
+  message: string;
+  metric: string;
+}
+
+export interface ImportPreviewRow {
+  date: string;
+  description: string | null;
+  amount: number;
+  type: string;
+  category: string;
+}
+
+export interface ImportPreviewResponse {
+  rows: ImportPreviewRow[];
+  total_rows: number;
+  valid_rows: number;
+}
+
+export interface ImportResult {
+  imported: number;
+  skipped: number;
+  errors: string[];
 }

@@ -51,8 +51,34 @@ export const transactionsAPI = {
   },
   anomalies: (days = 90, threshold = 2.0) =>
     fetchJSON(`/api/transactions/anomalies?days=${days}&threshold=${threshold}`),
+  recurring: () => fetchJSON("/api/transactions/recurring"),
   delete: (id: string) =>
     fetch(`${API_BASE}/api/transactions/${id}`, { method: "DELETE" }),
+  importPreview: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch(`${API_BASE}/api/transactions/import/preview`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) throw new APIError(res.status, "Import preview failed");
+    return res.json();
+  },
+  importConfirm: (rows: unknown[]) =>
+    fetchJSON("/api/transactions/import/confirm", {
+      method: "POST",
+      body: JSON.stringify({ rows }),
+    }),
+};
+
+export const tagsAPI = {
+  list: () => fetchJSON("/api/tags/"),
+  create: (data: { name: string; color: string }) =>
+    fetchJSON("/api/tags/", { method: "POST", body: JSON.stringify(data) }),
+  update: (id: string, data: { name?: string; color?: string }) =>
+    fetchJSON(`/api/tags/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  delete: (id: string) =>
+    fetch(`${API_BASE}/api/tags/${id}`, { method: "DELETE" }),
 };
 
 export const plansAPI = {
@@ -123,6 +149,8 @@ export const aiAPI = {
   history: () => fetchJSON("/api/ai/history"),
   accept: (id: string) =>
     fetchJSON(`/api/ai/history/${id}/accept`, { method: "PATCH" }),
+  weeklySummary: () => fetchJSON("/api/ai/weekly-summary"),
+  insights: () => fetchJSON("/api/ai/insights"),
 };
 
 export const reportsAPI = {
@@ -134,4 +162,38 @@ export const reportsAPI = {
     if (end) params.set("end_date", end);
     return `${API_BASE}/api/reports/export?${params}`;
   },
+};
+
+export const savingsGoalsAPI = {
+  list: () => fetchJSON("/api/savings-goals/"),
+  create: (data: Record<string, unknown>) =>
+    fetchJSON("/api/savings-goals/", { method: "POST", body: JSON.stringify(data) }),
+  get: (id: string) => fetchJSON(`/api/savings-goals/${id}`),
+  update: (id: string, data: Record<string, unknown>) =>
+    fetchJSON(`/api/savings-goals/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  contribute: (id: string, amount: number) =>
+    fetchJSON(`/api/savings-goals/${id}/contribute`, {
+      method: "POST",
+      body: JSON.stringify({ amount }),
+    }),
+  delete: (id: string) =>
+    fetch(`${API_BASE}/api/savings-goals/${id}`, { method: "DELETE" }),
+};
+
+export const debtsAPI = {
+  list: () => fetchJSON("/api/debts/"),
+  create: (data: Record<string, unknown>) =>
+    fetchJSON("/api/debts/", { method: "POST", body: JSON.stringify(data) }),
+  get: (id: string) => fetchJSON(`/api/debts/${id}`),
+  update: (id: string, data: Record<string, unknown>) =>
+    fetchJSON(`/api/debts/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  makePayment: (id: string, amount: number) =>
+    fetchJSON(`/api/debts/${id}/payment`, {
+      method: "POST",
+      body: JSON.stringify({ amount }),
+    }),
+  payoffPlan: (strategy = "avalanche", extraPayment = 0) =>
+    fetchJSON(`/api/debts/payoff-plan?strategy=${strategy}&extra_payment=${extraPayment}`),
+  delete: (id: string) =>
+    fetch(`${API_BASE}/api/debts/${id}`, { method: "DELETE" }),
 };

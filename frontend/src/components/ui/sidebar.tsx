@@ -24,6 +24,8 @@ import {
   X,
   Shield,
   FileText,
+  PiggyBank,
+  CreditCard,
 } from "lucide-react";
 
 const navItems = [
@@ -31,6 +33,8 @@ const navItems = [
   { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
   { href: "/plans", label: "Plans & Goals", icon: Target },
   { href: "/budgets", label: "Budgets", icon: Wallet },
+  { href: "/savings", label: "Savings Goals", icon: PiggyBank },
+  { href: "/debts", label: "Debt Tracker", icon: CreditCard },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/gantt", label: "Gantt Chart", icon: GanttChart },
   { href: "/reports", label: "Reports", icon: BarChart3 },

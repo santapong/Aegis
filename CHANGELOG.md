@@ -13,6 +13,48 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.4.0] - 2026-03-30
+
+### Added
+- **Transaction Tags/Labels** — flexible multi-tag categorization for transactions
+  - Tag CRUD endpoints (`GET/POST/PUT/DELETE /api/tags`)
+  - Many-to-many relationship between transactions and tags
+  - Tag chips displayed on transaction rows
+  - Tag picker in transaction creation form
+  - Filter transactions by tags
+- **Recurring Transactions & Subscription Tracker**
+  - `is_recurring`, `recurring_interval`, `next_due_date` fields on transactions
+  - `GET /api/transactions/recurring` endpoint with monthly cost normalization
+  - "Subscriptions" tab on Transactions page with summary cards
+  - Recurring indicator icon on transaction rows
+- **CSV/Bank Statement Import**
+  - `POST /api/transactions/import/preview` — auto-detect CSV column formats
+  - `POST /api/transactions/import/confirm` — bulk import with error handling
+  - File upload with drag-and-drop on Transactions page
+  - Preview table with column mapping before confirming import
+- **Savings Goals with Progress Tracking**
+  - New `SavingsGoal` model with target/current amounts, deadlines, categories
+  - Full CRUD + `POST /api/savings-goals/{id}/contribute`
+  - New `/savings` page with goal cards, progress bars, and contribution modal
+  - Summary cards showing total saved, total target, and overall progress
+- **Debt Payoff Tracker**
+  - New `Debt` model with balance, interest rate, minimum payment, debt type
+  - Full CRUD + `POST /api/debts/{id}/payment` + `GET /api/debts/payoff-plan`
+  - Avalanche and snowball payoff strategy calculator with extra payment support
+  - New `/debts` page with debt cards, payoff plan tab, and monthly breakdown table
+- **Financial Insights & Weekly Summary**
+  - `GET /api/ai/weekly-summary` — 7-day financial summary with week-over-week changes
+  - `GET /api/ai/insights` — auto-generated insights (savings rate, spending trends, category changes)
+  - Insights card on Dashboard with color-coded positive/warning/info indicators
+- Added Savings Goals and Debt Tracker to sidebar navigation
+
+### Changed
+- Updated API version to 0.4.0
+- Enhanced transaction creation form with tag picker and recurring toggle
+- Expanded TypeScript types for all new features
+
+---
+
 ## [0.3.0] - 2026-03-14
 
 ### Added
