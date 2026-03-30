@@ -2,7 +2,7 @@ import uuid
 import enum
 from datetime import date, datetime
 
-from sqlalchemy import String, Text, Numeric, Date, DateTime, Enum, ForeignKey
+from sqlalchemy import String, Text, Numeric, Date, DateTime, Enum, ForeignKey, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -11,6 +11,14 @@ from ..database import Base
 class TransactionType(str, enum.Enum):
     income = "income"
     expense = "expense"
+
+
+class RecurringInterval(str, enum.Enum):
+    weekly = "weekly"
+    biweekly = "biweekly"
+    monthly = "monthly"
+    quarterly = "quarterly"
+    yearly = "yearly"
 
 
 class Transaction(Base):
@@ -25,10 +33,21 @@ class Transaction(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
+    # Recurring transaction fields
+    is_recurring: Mapped[bool] = mapped_column(Boolean, default=False)
+    recurring_interval: Mapped[RecurringInterval | None] = mapped_column(
+        Enum(RecurringInterval, native_enum=False), nullable=True
+    )
+    next_due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+
     plan: Mapped["Plan | None"] = relationship("Plan", back_populates="transactions")
+    tags: Mapped[list["Tag"]] = relationship(
+        "Tag", secondary="transaction_tags", back_populates="transactions"
+    )
 
     def __repr__(self) -> str:
         return f"<Transaction {self.type.value} {self.amount}>"
 
 
 from .plan import Plan  # noqa: E402, F401
+from .tag import Tag  # noqa: E402, F401

@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { dashboardAPI, transactionsAPI } from "@/lib/api";
+import { dashboardAPI, transactionsAPI, aiAPI } from "@/lib/api";
 import { KPICards } from "@/components/dashboard/kpi-cards";
 import { SpendingChart } from "@/components/charts/spending-chart";
 import { TrendChart } from "@/components/charts/trend-chart";
@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { staggerContainer, staggerItem } from "@/lib/animations";
-import { Sparkles, AlertTriangle, Heart, TrendingUp } from "lucide-react";
+import { Sparkles, AlertTriangle, Heart, TrendingUp, Lightbulb, CheckCircle, Info, TriangleAlert } from "lucide-react";
 import { useAppStore } from "@/stores/app-store";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -26,7 +26,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import type { HealthScoreResponse, CashFlowForecastResponse, AnomaliesResponse, KPISummary, DashboardCharts } from "@/types";
+import type { HealthScoreResponse, CashFlowForecastResponse, AnomaliesResponse, KPISummary, DashboardCharts, InsightItem } from "@/types";
 
 export default function DashboardPage() {
   const { toggleAIPanel } = useAppStore();
@@ -54,6 +54,11 @@ export default function DashboardPage() {
   const { data: anomalies } = useQuery<AnomaliesResponse>({
     queryKey: ["anomalies"],
     queryFn: () => transactionsAPI.anomalies() as Promise<AnomaliesResponse>,
+  });
+
+  const { data: insights } = useQuery<InsightItem[]>({
+    queryKey: ["insights"],
+    queryFn: () => aiAPI.insights() as Promise<InsightItem[]>,
   });
 
   const gradeColor = (grade: string) => {
@@ -210,6 +215,52 @@ export default function DashboardPage() {
           </CardBody>
         </Card>
       </motion.div>
+
+      {/* Financial Insights */}
+      {insights && insights.length > 0 && (
+        <motion.div variants={staggerItem}>
+          <Card>
+            <CardBody>
+              <div className="flex items-center gap-2 mb-4">
+                <Lightbulb size={20} className="text-yellow-500" />
+                <h2 className="text-lg font-semibold">Financial Insights</h2>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {insights.map((insight, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    className="flex items-start gap-3 p-3 bg-[var(--bg-secondary)] rounded-lg"
+                  >
+                    {insight.type === "positive" ? (
+                      <CheckCircle size={16} className="text-green-500 mt-0.5 shrink-0" />
+                    ) : insight.type === "warning" ? (
+                      <TriangleAlert size={16} className="text-yellow-500 mt-0.5 shrink-0" />
+                    ) : (
+                      <Info size={16} className="text-blue-500 mt-0.5 shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium">{insight.title}</p>
+                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                          insight.type === "positive" ? "bg-green-500/10 text-green-500" :
+                          insight.type === "warning" ? "bg-yellow-500/10 text-yellow-500" :
+                          "bg-blue-500/10 text-blue-500"
+                        }`}>
+                          {insight.metric}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[var(--text-muted)] mt-0.5">{insight.message}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </CardBody>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Cash Flow Forecast */}
       {cashflow && cashflow.forecast.length > 0 && (

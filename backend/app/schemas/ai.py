@@ -30,3 +30,27 @@ class AIForecastResponse(BaseModel):
     projected_expenses: float
     months_ahead: int
     insights: list[str]
+
+
+class CategorySpending(BaseModel):
+    category: str
+    amount: float
+
+
+class WeeklySummaryResponse(BaseModel):
+    period_start: str
+    period_end: str
+    total_income: float
+    total_expenses: float
+    net_savings: float
+    income_change_percent: float
+    expense_change_percent: float
+    top_spending_categories: list[CategorySpending]
+    transaction_count: int
+
+
+class InsightItem(BaseModel):
+    type: str  # "positive", "warning", "info"
+    title: str
+    message: str
+    metric: str
