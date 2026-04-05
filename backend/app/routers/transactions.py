@@ -176,7 +176,16 @@ async def import_preview(file: UploadFile = File(...)):
     if not file.filename or not file.filename.endswith(".csv"):
         raise HTTPException(status_code=400, detail="Only CSV files are supported")
 
+    # Validate content type
+    if file.content_type and file.content_type not in ("text/csv", "application/vnd.ms-excel", "application/octet-stream"):
+        raise HTTPException(status_code=400, detail="Invalid file type. Only CSV files are supported")
+
     content = await file.read()
+
+    # Enforce 5MB file size limit
+    max_size = 5 * 1024 * 1024  # 5MB
+    if len(content) > max_size:
+        raise HTTPException(status_code=413, detail="File too large. Maximum size is 5MB")
     try:
         df = pd.read_csv(io.BytesIO(content))
     except Exception:

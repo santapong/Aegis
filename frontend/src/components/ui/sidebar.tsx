@@ -35,6 +35,7 @@ const navItems = [
   { href: "/budgets", label: "Budgets", icon: Wallet },
   { href: "/savings", label: "Savings Goals", icon: PiggyBank },
   { href: "/debts", label: "Debt Tracker", icon: CreditCard },
+  { href: "/payments", label: "Payments", icon: Wallet },
   { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/gantt", label: "Gantt Chart", icon: GanttChart },
   { href: "/reports", label: "Reports", icon: BarChart3 },

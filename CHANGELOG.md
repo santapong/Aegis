@@ -13,6 +13,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.5.0] - 2026-04-05
+
+### Added
+- **Security Hardening**
+  - Security headers middleware (X-Content-Type-Options, X-Frame-Options, CSP, Referrer-Policy, Permissions-Policy)
+  - In-memory rate limiting middleware (100 req/min default, 20 req/min for sensitive endpoints)
+  - Request logging with loguru (method, path, status code, response time)
+  - CSV import file size limit (5MB) and content type validation
+  - API documentation hidden in production mode (only accessible when DEBUG=true)
+- **Stripe Test Mode Integration**
+  - Stripe checkout session creation (`POST /api/payments/create-checkout-session`)
+  - Payment listing and detail endpoints (`GET /api/payments/`)
+  - Stripe webhook handler with signature verification (`POST /api/payments/webhook`)
+  - Stripe configuration endpoint (`GET /api/payments/config`)
+  - Payment model with status tracking (pending, succeeded, failed, refunded, cancelled)
+  - Payments page in frontend with test card info, checkout flow, and payment history
+  - Test mode banner with clear visual indicator
+- **User Experience**
+  - Custom 404 page with navigation options
+  - Global error boundary page with retry button
+  - Global loading skeleton state
+  - Payments link in sidebar navigation
+
+### Changed
+- CORS configuration restricted to specific HTTP methods and headers (was wildcard)
+- API version updated to 0.5.0
+- Settings page version updated to 0.5.0
+- Default DEBUG changed to false in .env.example
+
+### Security
+- Fixed overly permissive CORS: restricted `allow_methods` and `allow_headers` from wildcard
+- Added security headers to all API responses
+- Added rate limiting to prevent abuse
+- CSV upload hardened with size and content-type validation
+- Stripe webhook signature verification prevents forged events
+
+---
+
 ## [0.4.0] - 2026-03-30
 
 ### Added

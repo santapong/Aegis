@@ -285,3 +285,31 @@ export interface ImportResult {
   skipped: number;
   errors: string[];
 }
+
+// Stripe / Payments
+
+export type PaymentStatus = "pending" | "succeeded" | "failed" | "refunded" | "cancelled";
+
+export interface Payment {
+  id: string;
+  stripe_payment_id: string | null;
+  stripe_customer_id: string | null;
+  stripe_session_id: string | null;
+  amount: number;
+  currency: string;
+  status: PaymentStatus;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StripeConfig {
+  publishable_key: string;
+  mode: string;
+  configured: boolean;
+}
+
+export interface CheckoutSession {
+  session_id: string;
+  checkout_url: string;
+}

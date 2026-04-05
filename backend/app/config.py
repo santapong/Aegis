@@ -19,6 +19,15 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: list[str] = ["http://localhost:3000"]
 
+    # Rate Limiting
+    rate_limit_per_minute: int = 100
+
+    # Stripe
+    stripe_secret_key: str = ""
+    stripe_publishable_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_mode: str = "test"  # "test" or "live"
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 

@@ -19,7 +19,8 @@
     "framer-motion": "^11.15.0",
     "clsx": "^2.1.1",
     "tailwind-merge": "^2.6.0",
-    "lucide-react": "^0.468.0"
+    "lucide-react": "^0.468.0",
+    "@stripe/stripe-js": "^5.0.0"
   },
   "devDependencies": {
     "typescript": "^5.7.0",

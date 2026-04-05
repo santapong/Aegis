@@ -180,6 +180,20 @@ export const savingsGoalsAPI = {
     fetch(`${API_BASE}/api/savings-goals/${id}`, { method: "DELETE" }),
 };
 
+export const paymentsAPI = {
+  config: () => fetchJSON("/api/payments/config"),
+  list: (params?: Record<string, string>) => {
+    const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+    return fetchJSON(`/api/payments/${qs}`);
+  },
+  get: (id: string) => fetchJSON(`/api/payments/${id}`),
+  createCheckout: (data: { amount: number; currency?: string; description?: string }) =>
+    fetchJSON("/api/payments/create-checkout-session", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+};
+
 export const debtsAPI = {
   list: () => fetchJSON("/api/debts/"),
   create: (data: Record<string, unknown>) =>

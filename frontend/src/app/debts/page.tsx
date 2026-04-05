@@ -196,7 +196,7 @@ export default function DebtsPage() {
                               <div>
                                 <h3 className="font-semibold">{debt.name}</h3>
                                 <div className="flex items-center gap-2 mt-0.5">
-                                  <Badge variant="default">{debtTypeLabels[debt.debt_type] || debt.debt_type}</Badge>
+                                  <Badge variant="neutral">{debtTypeLabels[debt.debt_type] || debt.debt_type}</Badge>
                                   <span className="text-xs text-[var(--text-muted)]">{debt.interest_rate}% APR</span>
                                   {debt.due_date && <span className="text-xs text-[var(--text-muted)]">Due: {debt.due_date}</span>}
                                 </div>
