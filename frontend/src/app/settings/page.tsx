@@ -203,7 +203,7 @@ export default function SettingsPage() {
                   <div className="space-y-3">
                     <div className="flex justify-between py-2 border-b border-[var(--border)]">
                       <span className="text-sm text-[var(--text-muted)]">Version</span>
-                      <span className="text-sm font-medium">1.0.0</span>
+                      <span className="text-sm font-medium">0.5.0</span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-[var(--border)]">
                       <span className="text-sm text-[var(--text-muted)]">Frontend</span>

@@ -5,5 +5,6 @@ from .ai_recommendation import AIRecommendation
 from .tag import Tag
 from .savings_goal import SavingsGoal
 from .debt import Debt
+from .payment import Payment
 
-__all__ = ["Plan", "Transaction", "Budget", "AIRecommendation", "Tag", "SavingsGoal", "Debt"]
+__all__ = ["Plan", "Transaction", "Budget", "AIRecommendation", "Tag", "SavingsGoal", "Debt", "Payment"]

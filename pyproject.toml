@@ -1,6 +1,6 @@
 [project]
 name = "money-management-project"
-version = "0.1.0"
+version = "0.5.0"
 description = "AI-powered money management with calendar planning, Gantt charts, and smart recommendations"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -16,5 +16,6 @@ dependencies = [
     "pydantic-settings>=2.7.0",
     "python-dotenv>=1.2.1",
     "sqlalchemy>=2.0.45",
+    "stripe>=11.0.0",
     "uvicorn>=0.34.0",
 ]

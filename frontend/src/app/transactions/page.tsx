@@ -406,7 +406,7 @@ export default function TransactionsPage() {
                           <div>
                             <p className="text-sm font-medium">{sub.description || sub.category}</p>
                             <div className="flex gap-2 mt-0.5">
-                              <Badge variant="default">{sub.recurring_interval || "monthly"}</Badge>
+                              <Badge variant="neutral">{sub.recurring_interval || "monthly"}</Badge>
                               {sub.next_due_date && (
                                 <span className="text-xs text-[var(--text-muted)]">Next: {sub.next_due_date}</span>
                               )}
