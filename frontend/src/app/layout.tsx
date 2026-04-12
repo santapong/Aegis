@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/ui/sidebar";
 import { Providers } from "@/components/ui/providers";
+import { cn } from "@/lib/utils";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Aegis — AI-Powered Financial Planning",
@@ -11,12 +15,14 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
+      <body className={cn(inter.className, "antialiased")}>
         <Providers>
           <div className="flex h-screen overflow-hidden">
             <Sidebar />
-            <main className="flex-1 overflow-y-auto p-4 md:p-6 pt-16 lg:pt-6 bg-[var(--bg-secondary)]">
-              {children}
+            <main className="flex-1 overflow-y-auto bg-background pt-16 lg:pt-0">
+              <div className="p-4 md:p-6 lg:p-8">
+                {children}
+              </div>
             </main>
           </div>
         </Providers>
