@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/app-store";
+import { useAuthStore } from "@/stores/auth-store";
 import {
   LayoutDashboard,
   ArrowLeftRight,
@@ -25,6 +26,7 @@ import {
   FileText,
   PiggyBank,
   CreditCard,
+  LogOut,
 } from "lucide-react";
 
 const navSections = [
@@ -59,6 +61,7 @@ const navSections = [
 export function Sidebar() {
   const pathname = usePathname();
   const { sidebarOpen, theme, toggleSidebar, toggleTheme, toggleAIPanel } = useAppStore();
+  const { user, logout } = useAuthStore();
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.innerWidth < 1024) {
@@ -185,6 +188,29 @@ export function Sidebar() {
             {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
             {sidebarOpen && (theme === "light" ? "Dark Mode" : "Light Mode")}
           </button>
+          {user && (
+            <>
+              <div className="border-t border-border my-1" />
+              <div className="flex items-center gap-3 px-3 py-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0">
+                  {user.username.charAt(0).toUpperCase()}
+                </div>
+                {sidebarOpen && (
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">{user.username}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={logout}
+                className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
+              >
+                <LogOut size={18} />
+                {sidebarOpen && "Sign out"}
+              </button>
+            </>
+          )}
         </div>
       </aside>
     </>

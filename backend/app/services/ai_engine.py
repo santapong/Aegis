@@ -10,18 +10,107 @@ from ..models.transaction import Transaction, TransactionType
 from ..models.ai_recommendation import AIRecommendation, ActionType
 
 
+# Tool definitions for structured output via Claude tool_use
+
+ANALYZE_TOOL = {
+    "name": "provide_recommendations",
+    "description": "Provide structured financial recommendations based on the user's data",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "recommendations": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "recommendation": {
+                            "type": "string",
+                            "description": "Clear, actionable financial advice",
+                        },
+                        "confidence": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1,
+                            "description": "Confidence level from 0 to 1",
+                        },
+                        "category": {
+                            "type": "string",
+                            "description": "Spending category or 'general'",
+                        },
+                        "action_type": {
+                            "type": "string",
+                            "enum": ["reduce", "increase", "reallocate", "alert"],
+                            "description": "Type of recommended action",
+                        },
+                    },
+                    "required": ["recommendation", "confidence", "category", "action_type"],
+                },
+                "minItems": 3,
+                "maxItems": 5,
+                "description": "List of 3-5 financial recommendations",
+            }
+        },
+        "required": ["recommendations"],
+    },
+}
+
+FORECAST_TOOL = {
+    "name": "provide_forecast",
+    "description": "Provide a structured financial forecast based on historical data",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "projected_balance": {
+                "type": "number",
+                "description": "Estimated balance after the forecast period",
+            },
+            "projected_income": {
+                "type": "number",
+                "description": "Estimated total income over the forecast period",
+            },
+            "projected_expenses": {
+                "type": "number",
+                "description": "Estimated total expenses over the forecast period",
+            },
+            "insights": {
+                "type": "array",
+                "items": {"type": "string"},
+                "minItems": 3,
+                "maxItems": 5,
+                "description": "3-5 key insights about the financial forecast",
+            },
+        },
+        "required": ["projected_balance", "projected_income", "projected_expenses", "insights"],
+    },
+}
+
+
+def _extract_tool_input(response, tool_name: str) -> dict | None:
+    """Extract structured input from a tool_use content block."""
+    for block in response.content:
+        if block.type == "tool_use" and block.name == tool_name:
+            return block.input
+    return None
+
+
 class AIEngine:
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, user_id: str | None = None):
         settings = get_settings()
         self.db = db
+        self.user_id = user_id
         self.client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
         self.model = settings.ai_model
 
     def _gather_context(self, days: int = 90) -> dict:
         cutoff = date.today() - timedelta(days=days)
 
-        plans = self.db.query(Plan).all()
-        transactions = self.db.query(Transaction).filter(Transaction.date >= cutoff).all()
+        plans_q = self.db.query(Plan)
+        txns_q = self.db.query(Transaction).filter(Transaction.date >= cutoff)
+        if self.user_id:
+            plans_q = plans_q.filter(Plan.user_id == self.user_id)
+            txns_q = txns_q.filter(Transaction.user_id == self.user_id)
+        plans = plans_q.all()
+        transactions = txns_q.all()
 
         total_income = sum(float(t.amount) for t in transactions if t.type == TransactionType.income)
         total_expenses = sum(float(t.amount) for t in transactions if t.type == TransactionType.expense)
@@ -50,13 +139,7 @@ class AIEngine:
         context = self._gather_context(days)
 
         system_prompt = """You are a financial advisor AI. Analyze the user's financial data and provide actionable recommendations.
-Always respond with a JSON array of recommendations, each with:
-- "recommendation": string (clear actionable advice)
-- "confidence": float 0-1 (how confident you are)
-- "category": string (spending category or "general")
-- "action_type": one of "reduce", "increase", "reallocate", "alert"
-
-Provide 3-5 recommendations. Be specific with numbers and percentages."""
+Be specific with numbers and percentages. Provide 3-5 recommendations."""
 
         user_message = f"""Here is my financial data for the last {days} days:
 
@@ -64,24 +147,27 @@ Provide 3-5 recommendations. Be specific with numbers and percentages."""
 
 {"Question: " + question if question else "Please analyze my finances and give recommendations."}"""
 
-        response = self.client.messages.create(
-            model=self.model,
-            max_tokens=1024,
-            system=system_prompt,
-            messages=[{"role": "user", "content": user_message}],
-        )
-
         try:
-            text = response.content[0].text
-            # Extract JSON from response
-            start = text.find("[")
-            end = text.rfind("]") + 1
-            if start >= 0 and end > start:
-                recommendations = json.loads(text[start:end])
-            else:
-                recommendations = [{"recommendation": text, "confidence": 0.5, "category": "general", "action_type": "alert"}]
-        except (json.JSONDecodeError, IndexError):
-            recommendations = [{"recommendation": response.content[0].text, "confidence": 0.5, "category": "general", "action_type": "alert"}]
+            response = self.client.messages.create(
+                model=self.model,
+                max_tokens=1024,
+                system=system_prompt,
+                messages=[{"role": "user", "content": user_message}],
+                tools=[ANALYZE_TOOL],
+                tool_choice={"type": "tool", "name": "provide_recommendations"},
+            )
+
+            result = _extract_tool_input(response, "provide_recommendations")
+            recommendations = result["recommendations"] if result else []
+        except anthropic.APIError:
+            recommendations = [
+                {"recommendation": "Unable to generate AI recommendations at this time.", "confidence": 0.5, "category": "general", "action_type": "alert"}
+            ]
+
+        if not recommendations:
+            recommendations = [
+                {"recommendation": "No recommendations could be generated.", "confidence": 0.5, "category": "general", "action_type": "alert"}
+            ]
 
         # Store recommendations
         stored = []
@@ -95,6 +181,7 @@ Provide 3-5 recommendations. Be specific with numbers and percentages."""
                 confidence=rec.get("confidence", 0.5),
                 category=rec.get("category", "general"),
                 action_type=ActionType(action_type),
+                user_id=self.user_id,
             )
             self.db.add(db_rec)
             stored.append(db_rec)
@@ -111,12 +198,7 @@ Provide 3-5 recommendations. Be specific with numbers and percentages."""
         monthly_income = context["total_income"] / (context["period_days"] / 30) if context["period_days"] > 0 else 0
         monthly_expenses = context["total_expenses"] / (context["period_days"] / 30) if context["period_days"] > 0 else 0
 
-        system_prompt = """You are a financial forecasting AI. Based on the user's financial history, provide a forecast.
-Respond with a JSON object:
-- "projected_balance": float (estimated balance after the forecast period)
-- "projected_income": float (estimated total income)
-- "projected_expenses": float (estimated total expenses)
-- "insights": list of strings (3-5 key insights about the forecast)"""
+        system_prompt = """You are a financial forecasting AI. Based on the user's financial history, provide a forecast."""
 
         user_message = f"""Financial data (last {context['period_days']} days):
 {json.dumps(context, indent=2)}
@@ -124,27 +206,21 @@ Respond with a JSON object:
 Monthly averages: income={monthly_income:.2f}, expenses={monthly_expenses:.2f}
 Please forecast my finances for the next {months_ahead} months."""
 
-        response = self.client.messages.create(
-            model=self.model,
-            max_tokens=1024,
-            system=system_prompt,
-            messages=[{"role": "user", "content": user_message}],
-        )
-
         try:
-            text = response.content[0].text
-            start = text.find("{")
-            end = text.rfind("}") + 1
-            if start >= 0 and end > start:
-                forecast = json.loads(text[start:end])
-            else:
-                forecast = {
-                    "projected_balance": (monthly_income - monthly_expenses) * months_ahead,
-                    "projected_income": monthly_income * months_ahead,
-                    "projected_expenses": monthly_expenses * months_ahead,
-                    "insights": [text],
-                }
-        except (json.JSONDecodeError, IndexError):
+            response = self.client.messages.create(
+                model=self.model,
+                max_tokens=1024,
+                system=system_prompt,
+                messages=[{"role": "user", "content": user_message}],
+                tools=[FORECAST_TOOL],
+                tool_choice={"type": "tool", "name": "provide_forecast"},
+            )
+
+            forecast = _extract_tool_input(response, "provide_forecast")
+        except anthropic.APIError:
+            forecast = None
+
+        if not forecast:
             forecast = {
                 "projected_balance": (monthly_income - monthly_expenses) * months_ahead,
                 "projected_income": monthly_income * months_ahead,

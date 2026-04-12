@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Sidebar } from "@/components/ui/sidebar";
 import { Providers } from "@/components/ui/providers";
+import { AuthGate } from "@/components/auth/auth-gate";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -17,14 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body className={cn(inter.className, "antialiased")}>
         <Providers>
-          <div className="flex h-screen overflow-hidden">
-            <Sidebar />
-            <main className="flex-1 overflow-y-auto bg-background pt-16 lg:pt-0">
-              <div className="p-4 md:p-6 lg:p-8">
-                {children}
-              </div>
-            </main>
-          </div>
+          <AuthGate>{children}</AuthGate>
         </Providers>
       </body>
     </html>

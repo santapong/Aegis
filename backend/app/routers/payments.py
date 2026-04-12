@@ -5,12 +5,14 @@ from loguru import logger
 from ..config import get_settings
 from ..database import get_db
 from ..models.payment import Payment, PaymentStatus
+from ..models.user import User
 from ..schemas.payment import (
     CheckoutSessionCreate,
     CheckoutSessionResponse,
     PaymentResponse,
     StripeConfigResponse,
 )
+from ..auth import get_current_user
 
 router = APIRouter(prefix="/api/payments", tags=["payments"])
 settings = get_settings()
@@ -41,6 +43,7 @@ def get_stripe_config():
 def create_checkout_session(
     data: CheckoutSessionCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     stripe = _get_stripe()
 
@@ -75,6 +78,7 @@ def create_checkout_session(
         currency=data.currency,
         status=PaymentStatus.pending,
         description=data.description,
+        user_id=current_user.id,
     )
     db.add(payment)
     db.commit()
@@ -90,21 +94,23 @@ def list_payments(
     limit: int = Query(default=50, le=200),
     status: PaymentStatus | None = None,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    query = db.query(Payment)
+    query = db.query(Payment).filter(Payment.user_id == current_user.id)
     if status:
         query = query.filter(Payment.status == status)
     return query.order_by(Payment.created_at.desc()).limit(limit).all()
 
 
 @router.get("/{payment_id}", response_model=PaymentResponse)
-def get_payment(payment_id: str, db: Session = Depends(get_db)):
-    payment = db.query(Payment).filter(Payment.id == payment_id).first()
+def get_payment(payment_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    payment = db.query(Payment).filter(Payment.id == payment_id, Payment.user_id == current_user.id).first()
     if not payment:
         raise HTTPException(status_code=404, detail="Payment not found")
     return payment
 
 
+# Webhook stays unauthenticated — Stripe calls it with signature verification
 @router.post("/webhook")
 async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     stripe = _get_stripe()

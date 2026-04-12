@@ -5,15 +5,17 @@ from datetime import date, timedelta
 from ..database import get_db
 from ..models.transaction import Transaction, TransactionType
 from ..models.ai_recommendation import AIRecommendation
+from ..models.user import User
 from ..schemas.ai import AIAnalyzeRequest, AIRecommendationResponse, AIForecastResponse, WeeklySummaryResponse, InsightItem
 from ..services.ai_engine import AIEngine
+from ..auth import get_current_user
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
 
 
 @router.post("/analyze", response_model=list[AIRecommendationResponse])
-def analyze_finances(request: AIAnalyzeRequest, db: Session = Depends(get_db)):
-    engine = AIEngine(db)
+def analyze_finances(request: AIAnalyzeRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    engine = AIEngine(db, user_id=current_user.id)
     recommendations = engine.analyze(
         question=request.question,
         days=request.date_range_days,
@@ -22,8 +24,8 @@ def analyze_finances(request: AIAnalyzeRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/recommend", response_model=list[AIRecommendationResponse])
-def get_recommendations(db: Session = Depends(get_db)):
-    engine = AIEngine(db)
+def get_recommendations(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    engine = AIEngine(db, user_id=current_user.id)
     return engine.analyze()
 
 
@@ -31,8 +33,9 @@ def get_recommendations(db: Session = Depends(get_db)):
 def forecast_finances(
     months: int = Query(default=3, ge=1, le=12),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    engine = AIEngine(db)
+    engine = AIEngine(db, user_id=current_user.id)
     return engine.forecast(months_ahead=months)
 
 
@@ -40,9 +43,11 @@ def forecast_finances(
 def get_ai_history(
     limit: int = Query(default=20, le=100),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     return (
         db.query(AIRecommendation)
+        .filter(AIRecommendation.user_id == current_user.id)
         .order_by(AIRecommendation.created_at.desc())
         .limit(limit)
         .all()
@@ -50,8 +55,8 @@ def get_ai_history(
 
 
 @router.patch("/history/{rec_id}/accept")
-def accept_recommendation(rec_id: str, db: Session = Depends(get_db)):
-    rec = db.query(AIRecommendation).filter(AIRecommendation.id == rec_id).first()
+def accept_recommendation(rec_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    rec = db.query(AIRecommendation).filter(AIRecommendation.id == rec_id, AIRecommendation.user_id == current_user.id).first()
     if rec:
         rec.accepted = True
         db.commit()
@@ -59,15 +64,15 @@ def accept_recommendation(rec_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/weekly-summary", response_model=WeeklySummaryResponse)
-def weekly_summary(db: Session = Depends(get_db)):
+def weekly_summary(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     today = date.today()
     week_ago = today - timedelta(days=7)
     two_weeks_ago = today - timedelta(days=14)
 
     # This week's transactions
-    this_week = db.query(Transaction).filter(Transaction.date >= week_ago, Transaction.date <= today).all()
+    this_week = db.query(Transaction).filter(Transaction.user_id == current_user.id, Transaction.date >= week_ago, Transaction.date <= today).all()
     # Last week's transactions
-    last_week = db.query(Transaction).filter(Transaction.date >= two_weeks_ago, Transaction.date < week_ago).all()
+    last_week = db.query(Transaction).filter(Transaction.user_id == current_user.id, Transaction.date >= two_weeks_ago, Transaction.date < week_ago).all()
 
     this_income = sum(float(t.amount) for t in this_week if t.type == TransactionType.income)
     this_expenses = sum(float(t.amount) for t in this_week if t.type == TransactionType.expense)
@@ -99,13 +104,13 @@ def weekly_summary(db: Session = Depends(get_db)):
 
 
 @router.get("/insights", response_model=list[InsightItem])
-def get_insights(db: Session = Depends(get_db)):
+def get_insights(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     today = date.today()
     month_ago = today - timedelta(days=30)
     two_months_ago = today - timedelta(days=60)
 
-    recent = db.query(Transaction).filter(Transaction.date >= month_ago).all()
-    previous = db.query(Transaction).filter(Transaction.date >= two_months_ago, Transaction.date < month_ago).all()
+    recent = db.query(Transaction).filter(Transaction.user_id == current_user.id, Transaction.date >= month_ago).all()
+    previous = db.query(Transaction).filter(Transaction.user_id == current_user.id, Transaction.date >= two_months_ago, Transaction.date < month_ago).all()
 
     insights = []
 

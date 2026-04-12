@@ -8,6 +8,7 @@ import pandas as pd
 from ..database import get_db
 from ..models.transaction import Transaction, TransactionType, RecurringInterval
 from ..models.tag import Tag
+from ..models.user import User
 from ..schemas.transaction import (
     TransactionCreate, TransactionResponse, TransactionSummary,
     RecurringTransactionSummary,
@@ -15,15 +16,16 @@ from ..schemas.transaction import (
     ImportPreviewResponse, ImportPreviewRow, ImportConfirmRequest, ImportResultResponse,
 )
 from ..schemas.dashboard import AnomalyItem, AnomaliesResponse
+from ..auth import get_current_user
 
 router = APIRouter(prefix="/api/transactions", tags=["transactions"])
 
 
 @router.post("/", response_model=TransactionResponse, status_code=201)
-def create_transaction(txn: TransactionCreate, db: Session = Depends(get_db)):
+def create_transaction(txn: TransactionCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     tag_ids = txn.tag_ids
     data = txn.model_dump(exclude={"tag_ids"})
-    db_txn = Transaction(**data)
+    db_txn = Transaction(**data, user_id=current_user.id)
 
     if tag_ids:
         tags = db.query(Tag).filter(Tag.id.in_(tag_ids)).all()
@@ -45,8 +47,9 @@ def list_transactions(
     limit: int = Query(default=100, le=500),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    query = db.query(Transaction)
+    query = db.query(Transaction).filter(Transaction.user_id == current_user.id)
     if type:
         query = query.filter(Transaction.type == type)
     if category:
@@ -66,8 +69,9 @@ def transaction_summary(
     start_date: date | None = None,
     end_date: date | None = None,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    query = db.query(Transaction)
+    query = db.query(Transaction).filter(Transaction.user_id == current_user.id)
     if start_date:
         query = query.filter(Transaction.date >= start_date)
     if end_date:
@@ -91,10 +95,10 @@ def transaction_summary(
 
 
 @router.get("/recurring", response_model=RecurringTransactionSummary)
-def get_recurring_transactions(db: Session = Depends(get_db)):
+def get_recurring_transactions(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     recurring = (
         db.query(Transaction)
-        .filter(Transaction.is_recurring == True)
+        .filter(Transaction.user_id == current_user.id, Transaction.is_recurring == True)
         .order_by(Transaction.next_due_date.asc())
         .all()
     )
@@ -130,6 +134,7 @@ def detect_anomalies(
     days: int = Query(default=90, ge=7, le=365),
     threshold: float = Query(default=2.0, ge=1.5),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     today = date.today()
     start = today - timedelta(days=days)
@@ -137,6 +142,7 @@ def detect_anomalies(
     expenses = (
         db.query(Transaction)
         .filter(
+            Transaction.user_id == current_user.id,
             Transaction.type == TransactionType.expense,
             Transaction.date >= start,
         )
@@ -255,7 +261,7 @@ async def import_preview(file: UploadFile = File(...)):
 
 
 @router.post("/import/confirm", response_model=ImportResultResponse)
-def import_confirm(request: ImportConfirmRequest, db: Session = Depends(get_db)):
+def import_confirm(request: ImportConfirmRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     imported = 0
     errors = []
 
@@ -267,6 +273,7 @@ def import_confirm(request: ImportConfirmRequest, db: Session = Depends(get_db))
                 category=row.category,
                 date=date.fromisoformat(row.date),
                 description=row.description,
+                user_id=current_user.id,
             )
             db.add(txn)
             imported += 1
@@ -282,8 +289,8 @@ def import_confirm(request: ImportConfirmRequest, db: Session = Depends(get_db))
 
 
 @router.delete("/{txn_id}", status_code=204)
-def delete_transaction(txn_id: str, db: Session = Depends(get_db)):
-    txn = db.query(Transaction).filter(Transaction.id == txn_id).first()
+def delete_transaction(txn_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    txn = db.query(Transaction).filter(Transaction.id == txn_id, Transaction.user_id == current_user.id).first()
     if not txn:
         raise HTTPException(status_code=404, detail="Transaction not found")
     db.delete(txn)
@@ -296,16 +303,16 @@ tags_router = APIRouter(prefix="/api/tags", tags=["tags"])
 
 
 @tags_router.get("/", response_model=list[TagResponse])
-def list_tags(db: Session = Depends(get_db)):
-    return db.query(Tag).order_by(Tag.name).all()
+def list_tags(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    return db.query(Tag).filter(Tag.user_id == current_user.id).order_by(Tag.name).all()
 
 
 @tags_router.post("/", response_model=TagResponse, status_code=201)
-def create_tag(tag: TagCreate, db: Session = Depends(get_db)):
-    existing = db.query(Tag).filter(Tag.name == tag.name).first()
+def create_tag(tag: TagCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    existing = db.query(Tag).filter(Tag.name == tag.name, Tag.user_id == current_user.id).first()
     if existing:
         raise HTTPException(status_code=409, detail="Tag already exists")
-    db_tag = Tag(**tag.model_dump())
+    db_tag = Tag(**tag.model_dump(), user_id=current_user.id)
     db.add(db_tag)
     db.commit()
     db.refresh(db_tag)
@@ -313,8 +320,8 @@ def create_tag(tag: TagCreate, db: Session = Depends(get_db)):
 
 
 @tags_router.put("/{tag_id}", response_model=TagResponse)
-def update_tag(tag_id: str, update: TagUpdate, db: Session = Depends(get_db)):
-    tag = db.query(Tag).filter(Tag.id == tag_id).first()
+def update_tag(tag_id: str, update: TagUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    tag = db.query(Tag).filter(Tag.id == tag_id, Tag.user_id == current_user.id).first()
     if not tag:
         raise HTTPException(status_code=404, detail="Tag not found")
     for key, val in update.model_dump(exclude_unset=True).items():
@@ -325,8 +332,8 @@ def update_tag(tag_id: str, update: TagUpdate, db: Session = Depends(get_db)):
 
 
 @tags_router.delete("/{tag_id}", status_code=204)
-def delete_tag(tag_id: str, db: Session = Depends(get_db)):
-    tag = db.query(Tag).filter(Tag.id == tag_id).first()
+def delete_tag(tag_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    tag = db.query(Tag).filter(Tag.id == tag_id, Tag.user_id == current_user.id).first()
     if not tag:
         raise HTTPException(status_code=404, detail="Tag not found")
     db.delete(tag)

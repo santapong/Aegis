@@ -25,6 +25,7 @@ class Transaction(Base):
     __tablename__ = "transactions"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("users.id"), nullable=True, index=True)
     plan_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("plans.id"), nullable=True)
     amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     type: Mapped[TransactionType] = mapped_column(Enum(TransactionType, native_enum=False), nullable=False)

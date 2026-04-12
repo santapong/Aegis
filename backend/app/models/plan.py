@@ -41,6 +41,7 @@ class Plan(Base):
     __tablename__ = "plans"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("users.id"), nullable=True, index=True)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     category: Mapped[PlanCategory] = mapped_column(Enum(PlanCategory, native_enum=False), nullable=False)

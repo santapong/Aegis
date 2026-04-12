@@ -7,6 +7,8 @@ from datetime import date, timedelta
 
 from ..database import get_db
 from ..models.transaction import Transaction, TransactionType
+from ..models.user import User
+from ..auth import get_current_user
 
 
 router = APIRouter(prefix="/api/reports", tags=["reports"])
@@ -16,6 +18,7 @@ router = APIRouter(prefix="/api/reports", tags=["reports"])
 def category_comparison(
     months: int = Query(default=6, ge=2, le=12),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     today = date.today()
     result: list[dict] = []
@@ -32,6 +35,7 @@ def category_comparison(
         expenses = (
             db.query(Transaction)
             .filter(
+                Transaction.user_id == current_user.id,
                 Transaction.type == TransactionType.expense,
                 Transaction.date >= month_start,
                 Transaction.date <= month_end,
@@ -72,8 +76,9 @@ def export_csv(
     start_date: date | None = None,
     end_date: date | None = None,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    query = db.query(Transaction)
+    query = db.query(Transaction).filter(Transaction.user_id == current_user.id)
     if start_date:
         query = query.filter(Transaction.date >= start_date)
     if end_date:
