@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { useAppStore } from "@/stores/app-store";
 import { ToastContainer } from "./toast";
+import { TooltipProvider } from "./tooltip";
 
 function ThemeSync() {
   const theme = useAppStore((s) => s.theme);
@@ -32,9 +33,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeSync />
-      {children}
-      <ToastContainer />
+      <TooltipProvider delayDuration={300}>
+        <ThemeSync />
+        {children}
+        <ToastContainer />
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

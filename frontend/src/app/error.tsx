@@ -26,27 +26,21 @@ export default function Error({
         transition={{ duration: 0.5 }}
       >
         <motion.div
-          className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-500/10 mb-6"
+          className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-destructive/10 mb-6"
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", damping: 10, delay: 0.2 }}
         >
-          <AlertTriangle size={32} className="text-red-500" />
+          <AlertTriangle size={32} className="text-destructive" />
         </motion.div>
-        <h2 className="text-2xl font-semibold mb-2">Something went wrong</h2>
-        <p className="text-[var(--text-muted)] mb-8">
+        <h2 className="text-2xl font-semibold tracking-tight mb-2">Something went wrong</h2>
+        <p className="text-muted-foreground mb-8">
           An unexpected error occurred. Please try again or return to the dashboard.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button onClick={reset}>
-            <RefreshCw size={16} className="mr-2" />
-            Try Again
-          </Button>
+          <Button onClick={reset} icon={<RefreshCw size={16} />}>Try Again</Button>
           <Link href="/">
-            <Button variant="secondary">
-              <Home size={16} className="mr-2" />
-              Dashboard
-            </Button>
+            <Button variant="outline" icon={<Home size={16} />}>Dashboard</Button>
           </Link>
         </div>
       </motion.div>

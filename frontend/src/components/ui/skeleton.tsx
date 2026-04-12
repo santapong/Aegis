@@ -13,7 +13,9 @@ export function Skeleton({ className, variant = "rect", width, height }: Skeleto
   return (
     <div
       className={cn(
-        "animate-pulse bg-[var(--bg-secondary)]",
+        "bg-muted",
+        "bg-[length:200%_100%] animate-[shimmer_1.5s_ease-in-out_infinite]",
+        "bg-gradient-to-r from-muted via-muted-foreground/5 to-muted",
         variant === "circle" && "rounded-full",
         variant === "text" && "rounded h-4",
         variant === "rect" && "rounded-lg",

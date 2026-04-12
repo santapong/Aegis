@@ -35,7 +35,7 @@ export function DropdownMenu({ items, className }: DropdownMenuProps) {
     <div ref={ref} className={cn("relative", className)}>
       <button
         onClick={() => setOpen(!open)}
-        className="p-1.5 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors"
+        className="p-1.5 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
       >
         <MoreVertical size={16} />
       </button>
@@ -45,8 +45,8 @@ export function DropdownMenu({ items, className }: DropdownMenuProps) {
             initial={{ opacity: 0, scale: 0.95, y: -4 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -4 }}
-            transition={{ duration: 0.15 }}
-            className="absolute right-0 top-full mt-1 w-44 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-lg z-40 py-1"
+            transition={{ duration: 0.12 }}
+            className="absolute right-0 top-full mt-1 w-44 bg-card/95 backdrop-blur-xl border border-border rounded-xl shadow-xl z-40 py-1"
           >
             {items.map((item) => (
               <button
@@ -56,10 +56,10 @@ export function DropdownMenu({ items, className }: DropdownMenuProps) {
                   setOpen(false);
                 }}
                 className={cn(
-                  "flex items-center gap-2 w-full px-3 py-2 text-sm transition-colors",
+                  "flex items-center gap-2 w-full px-3 py-2 text-sm transition-colors rounded-md mx-1 w-[calc(100%-0.5rem)]",
                   item.variant === "danger"
-                    ? "text-red-500 hover:bg-red-500/10"
-                    : "text-[var(--text)] hover:bg-[var(--bg-secondary)]"
+                    ? "text-destructive hover:bg-destructive/10"
+                    : "text-foreground hover:bg-accent"
                 )}
               >
                 {item.icon}

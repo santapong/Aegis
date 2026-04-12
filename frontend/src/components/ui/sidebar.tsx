@@ -21,32 +21,45 @@ import {
   PanelLeftClose,
   PanelLeft,
   Menu,
-  X,
   Shield,
   FileText,
   PiggyBank,
   CreditCard,
 } from "lucide-react";
 
-const navItems = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
-  { href: "/plans", label: "Plans & Goals", icon: Target },
-  { href: "/budgets", label: "Budgets", icon: Wallet },
-  { href: "/savings", label: "Savings Goals", icon: PiggyBank },
-  { href: "/debts", label: "Debt Tracker", icon: CreditCard },
-  { href: "/payments", label: "Payments", icon: Wallet },
-  { href: "/calendar", label: "Calendar", icon: Calendar },
-  { href: "/gantt", label: "Gantt Chart", icon: GanttChart },
-  { href: "/reports", label: "Reports", icon: BarChart3 },
-  { href: "/docs", label: "Documents", icon: FileText },
+const navSections = [
+  {
+    label: "Overview",
+    items: [
+      { href: "/", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
+    ],
+  },
+  {
+    label: "Planning",
+    items: [
+      { href: "/plans", label: "Plans & Goals", icon: Target },
+      { href: "/budgets", label: "Budgets", icon: Wallet },
+      { href: "/savings", label: "Savings Goals", icon: PiggyBank },
+      { href: "/debts", label: "Debt Tracker", icon: CreditCard },
+      { href: "/payments", label: "Payments", icon: Wallet },
+    ],
+  },
+  {
+    label: "Visualize",
+    items: [
+      { href: "/calendar", label: "Calendar", icon: Calendar },
+      { href: "/gantt", label: "Gantt Chart", icon: GanttChart },
+      { href: "/reports", label: "Reports", icon: BarChart3 },
+      { href: "/docs", label: "Documents", icon: FileText },
+    ],
+  },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const { sidebarOpen, theme, toggleSidebar, toggleTheme, toggleAIPanel } = useAppStore();
 
-  // Close sidebar on navigation for mobile
   useEffect(() => {
     if (typeof window !== "undefined" && window.innerWidth < 1024) {
       useAppStore.setState({ sidebarOpen: false });
@@ -56,17 +69,17 @@ export function Sidebar() {
   return (
     <>
       {/* Mobile header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 bg-[var(--bg-card)] border-b border-[var(--border)]">
-        <button onClick={toggleSidebar} className="p-2 rounded-lg hover:bg-[var(--bg-secondary)]">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 bg-card/80 backdrop-blur-xl border-b border-border">
+        <button onClick={toggleSidebar} className="p-2 rounded-lg hover:bg-accent transition-colors">
           <Menu size={20} />
         </button>
         <div className="flex items-center gap-2">
-          <Shield size={18} className="text-[var(--primary)]" />
-          <span className="font-bold bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent">
-            Aegis
-          </span>
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
+            <Shield size={14} className="text-primary-foreground" />
+          </div>
+          <span className="font-bold text-foreground">Aegis</span>
         </div>
-        <button onClick={toggleAIPanel} className="p-2 rounded-lg hover:bg-[var(--bg-secondary)]">
+        <button onClick={toggleAIPanel} className="p-2 rounded-lg hover:bg-accent transition-colors">
           <Bot size={20} />
         </button>
       </div>
@@ -75,7 +88,7 @@ export function Sidebar() {
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div
-            className="lg:hidden fixed inset-0 bg-black/50 z-40"
+            className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -87,78 +100,89 @@ export function Sidebar() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "h-screen flex flex-col border-r border-[var(--border)] bg-[var(--bg-card)] transition-all duration-300 z-50",
-          // Mobile: fixed overlay drawer
+          "h-screen flex flex-col border-r border-border bg-card transition-all duration-300 z-50",
           "fixed lg:relative",
           sidebarOpen ? "w-[260px] translate-x-0" : "w-[68px] -translate-x-full lg:translate-x-0"
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           {sidebarOpen && (
-            <div className="flex items-center gap-2">
-              <Shield size={20} className="text-[var(--primary)]" />
-              <h1 className="text-lg font-bold bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent">
-                Aegis
-              </h1>
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-sm">
+                <Shield size={16} className="text-primary-foreground" />
+              </div>
+              <h1 className="text-lg font-bold tracking-tight text-foreground">Aegis</h1>
             </div>
           )}
           <button
             onClick={toggleSidebar}
-            className="p-2 rounded-lg hover:bg-[var(--bg-secondary)] transition-colors"
+            className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
           >
             {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 py-4 space-y-1 px-2 overflow-y-auto">
-          {navItems.map(({ href, label, icon: Icon }) => {
-            const isActive = pathname === href;
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm font-medium",
-                  isActive
-                    ? "bg-[var(--primary)] text-white shadow-md"
-                    : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text)]"
-                )}
-              >
-                <Icon size={20} />
-                {sidebarOpen && label}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 py-2 overflow-y-auto">
+          {navSections.map((section) => (
+            <div key={section.label} className="px-2 mb-1">
+              {sidebarOpen && (
+                <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                  {section.label}
+                </p>
+              )}
+              <div className="space-y-0.5">
+                {section.items.map(({ href, label, icon: Icon }) => {
+                  const isActive = pathname === href;
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      title={!sidebarOpen ? label : undefined}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm font-medium",
+                        isActive
+                          ? "bg-primary/10 text-primary border-l-2 border-primary ml-0.5"
+                          : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                      )}
+                    >
+                      <Icon size={18} className={isActive ? "text-primary" : ""} />
+                      {sidebarOpen && label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* Bottom actions */}
-        <div className="p-2 space-y-1 border-t border-[var(--border)]">
+        <div className="p-2 space-y-0.5 border-t border-border bg-muted/30">
           <button
             onClick={toggleAIPanel}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text)] transition-all"
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
           >
-            <Bot size={20} />
+            <Bot size={18} />
             {sidebarOpen && "AI Advisor"}
           </button>
           <Link
             href="/settings"
             className={cn(
-              "flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
+              "flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium transition-all",
               pathname === "/settings"
-                ? "bg-[var(--primary)] text-white shadow-md"
-                : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text)]"
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground"
             )}
           >
-            <Settings size={20} />
+            <Settings size={18} />
             {sidebarOpen && "Settings"}
           </Link>
           <button
             onClick={toggleTheme}
-            className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium text-[var(--text-muted)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text)] transition-all"
+            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
           >
-            {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
+            {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
             {sidebarOpen && (theme === "light" ? "Dark Mode" : "Light Mode")}
           </button>
         </div>
