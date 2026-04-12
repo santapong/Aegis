@@ -8,10 +8,11 @@ import { SpendingChart } from "@/components/charts/spending-chart";
 import { TrendChart } from "@/components/charts/trend-chart";
 import { AIPanel } from "@/components/ai/ai-panel";
 import { ProgressRing } from "@/components/charts/progress-ring";
-import { Card, CardBody } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 import { Sparkles, AlertTriangle, Heart, TrendingUp, Lightbulb, CheckCircle, Info, TriangleAlert } from "lucide-react";
 import { useAppStore } from "@/stores/app-store";
@@ -27,6 +28,14 @@ import {
   Legend,
 } from "recharts";
 import type { HealthScoreResponse, CashFlowForecastResponse, AnomaliesResponse, KPISummary, DashboardCharts, InsightItem } from "@/types";
+
+const glassTooltipStyle = {
+  background: "var(--card)",
+  border: "1px solid var(--border)",
+  borderRadius: "12px",
+  boxShadow: "0 10px 15px -3px rgba(0,0,0,0.08)",
+  padding: "8px 12px",
+};
 
 export default function DashboardPage() {
   const { toggleAIPanel } = useAppStore();
@@ -63,11 +72,11 @@ export default function DashboardPage() {
 
   const gradeColor = (grade: string) => {
     switch (grade) {
-      case "A": return "#22C55E";
-      case "B": return "#3B82F6";
-      case "C": return "#EAB308";
-      case "D": return "#F97316";
-      default: return "#EF4444";
+      case "A": return "#10b981";
+      case "B": return "#6366f1";
+      case "C": return "#eab308";
+      case "D": return "#f97316";
+      default: return "#ef4444";
     }
   };
 
@@ -87,7 +96,7 @@ export default function DashboardPage() {
             <Button
               onClick={toggleAIPanel}
               icon={<Sparkles size={16} />}
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 shadow-md"
+              className="bg-gradient-to-r from-indigo-500 to-violet-500 shadow-md"
             >
               AI Insights
             </Button>
@@ -110,14 +119,13 @@ export default function DashboardPage() {
 
       {/* Health Score + Anomaly Alerts */}
       <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Financial Health Score */}
         {healthLoading ? (
           <Skeleton height={220} />
         ) : healthScore ? (
           <Card>
-            <CardBody>
+            <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-4">
-                <Heart size={20} className="text-red-500" />
+                <Heart size={20} className="text-rose-500" />
                 <h2 className="text-lg font-semibold">Financial Health Score</h2>
               </div>
               <div className="flex items-center gap-6 mb-4">
@@ -134,12 +142,12 @@ export default function DashboardPage() {
                   {healthScore.breakdown.map((b) => (
                     <div key={b.name}>
                       <div className="flex justify-between text-xs mb-0.5">
-                        <span>{b.name}</span>
-                        <span className="text-[var(--text-muted)]">{b.score}/{b.max_score}</span>
+                        <span className="text-foreground">{b.name}</span>
+                        <span className="text-muted-foreground">{b.score}/{b.max_score}</span>
                       </div>
-                      <div className="w-full bg-[var(--bg-secondary)] rounded-full h-1.5">
+                      <div className="w-full bg-muted rounded-full h-1.5">
                         <motion.div
-                          className="h-1.5 rounded-full bg-blue-500"
+                          className="h-1.5 rounded-full bg-primary"
                           initial={{ width: 0 }}
                           animate={{ width: `${(b.score / b.max_score) * 100}%` }}
                           transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
@@ -149,20 +157,20 @@ export default function DashboardPage() {
                   ))}
                 </div>
               </div>
-            </CardBody>
+            </CardContent>
           </Card>
         ) : null}
 
         {/* Anomaly Alerts */}
         <Card>
-          <CardBody>
+          <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-4">
-              <AlertTriangle size={20} className="text-yellow-500" />
+              <AlertTriangle size={20} className="text-amber-500" />
               <h2 className="text-lg font-semibold">Spending Alerts</h2>
               {anomalies && anomalies.total_count > 0 && (
-                <span className="ml-auto text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded-full font-medium">
+                <Badge variant="danger" className="ml-auto">
                   {anomalies.total_count} alert{anomalies.total_count > 1 ? "s" : ""}
-                </span>
+                </Badge>
               )}
             </div>
             {anomalies && anomalies.anomalies.length > 0 ? (
@@ -173,12 +181,12 @@ export default function DashboardPage() {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: i * 0.1 }}
-                    className="flex items-start gap-3 p-3 bg-[var(--bg-secondary)] rounded-lg"
+                    className="flex items-start gap-3 p-3 bg-muted rounded-lg"
                   >
-                    <AlertTriangle size={16} className="text-yellow-500 mt-0.5 shrink-0" />
+                    <AlertTriangle size={16} className="text-amber-500 mt-0.5 shrink-0" />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium capitalize">{a.category}</p>
-                      <p className="text-xs text-[var(--text-muted)]">
+                      <p className="text-xs text-muted-foreground">
                         {formatCurrency(a.amount)} on {a.date} &mdash; {a.deviation_ratio}x the avg ({formatCurrency(a.average_for_category)})
                       </p>
                     </div>
@@ -186,33 +194,33 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-[var(--text-muted)] text-center py-6">No unusual spending detected</p>
+              <p className="text-sm text-muted-foreground text-center py-6">No unusual spending detected</p>
             )}
-          </CardBody>
+          </CardContent>
         </Card>
       </motion.div>
 
       {/* Charts */}
       <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
-          <CardBody>
+          <CardContent className="p-6">
             <h2 className="text-lg font-semibold mb-4">Spending by Category</h2>
             {chartsLoading ? (
               <Skeleton height={300} />
             ) : (
               <SpendingChart data={charts?.spending_by_category ?? []} />
             )}
-          </CardBody>
+          </CardContent>
         </Card>
         <Card>
-          <CardBody>
+          <CardContent className="p-6">
             <h2 className="text-lg font-semibold mb-4">Monthly Trend</h2>
             {chartsLoading ? (
               <Skeleton height={300} />
             ) : (
               <TrendChart data={charts?.monthly_trend ?? []} />
             )}
-          </CardBody>
+          </CardContent>
         </Card>
       </motion.div>
 
@@ -220,9 +228,9 @@ export default function DashboardPage() {
       {insights && insights.length > 0 && (
         <motion.div variants={staggerItem}>
           <Card>
-            <CardBody>
+            <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-4">
-                <Lightbulb size={20} className="text-yellow-500" />
+                <Lightbulb size={20} className="text-amber-500" />
                 <h2 className="text-lg font-semibold">Financial Insights</h2>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -232,32 +240,31 @@ export default function DashboardPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.1 }}
-                    className="flex items-start gap-3 p-3 bg-[var(--bg-secondary)] rounded-lg"
+                    className="flex items-start gap-3 p-3 bg-muted rounded-lg"
                   >
                     {insight.type === "positive" ? (
-                      <CheckCircle size={16} className="text-green-500 mt-0.5 shrink-0" />
+                      <CheckCircle size={16} className="text-emerald-500 mt-0.5 shrink-0" />
                     ) : insight.type === "warning" ? (
-                      <TriangleAlert size={16} className="text-yellow-500 mt-0.5 shrink-0" />
+                      <TriangleAlert size={16} className="text-amber-500 mt-0.5 shrink-0" />
                     ) : (
-                      <Info size={16} className="text-blue-500 mt-0.5 shrink-0" />
+                      <Info size={16} className="text-indigo-500 mt-0.5 shrink-0" />
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium">{insight.title}</p>
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                          insight.type === "positive" ? "bg-green-500/10 text-green-500" :
-                          insight.type === "warning" ? "bg-yellow-500/10 text-yellow-500" :
-                          "bg-blue-500/10 text-blue-500"
-                        }`}>
+                        <Badge variant={
+                          insight.type === "positive" ? "success" :
+                          insight.type === "warning" ? "warning" : "info"
+                        }>
                           {insight.metric}
-                        </span>
+                        </Badge>
                       </div>
-                      <p className="text-xs text-[var(--text-muted)] mt-0.5">{insight.message}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{insight.message}</p>
                     </div>
                   </motion.div>
                 ))}
               </div>
-            </CardBody>
+            </CardContent>
           </Card>
         </motion.div>
       )}
@@ -266,32 +273,31 @@ export default function DashboardPage() {
       {cashflow && cashflow.forecast.length > 0 && (
         <motion.div variants={staggerItem}>
           <Card>
-            <CardBody>
+            <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-4">
-                <TrendingUp size={20} className="text-indigo-500" />
+                <TrendingUp size={20} className="text-primary" />
                 <h2 className="text-lg font-semibold">Cash Flow Forecast</h2>
-                <span className="ml-auto text-sm text-[var(--text-muted)]">
+                <span className="ml-auto text-sm text-muted-foreground">
                   Current balance: {formatCurrency(cashflow.current_balance)}
                 </span>
               </div>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={cashflow.forecast}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                  <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                  <CartesianGrid strokeDasharray="4 4" stroke="var(--border)" strokeOpacity={0.5} />
+                  <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="var(--muted-foreground)" tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fontSize: 12 }} stroke="var(--muted-foreground)" tickLine={false} axisLine={false} />
+                  <Tooltip formatter={(value: number) => formatCurrency(value)} contentStyle={glassTooltipStyle} />
                   <Legend />
-                  <Line type="monotone" dataKey="projected_balance" stroke="#6366F1" strokeWidth={2} name="Balance" dot={{ r: 3 }} />
-                  <Line type="monotone" dataKey="projected_income" stroke="#22C55E" strokeWidth={2} name="Income" dot={{ r: 3 }} />
-                  <Line type="monotone" dataKey="projected_expenses" stroke="#EF4444" strokeWidth={2} name="Expenses" dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="projected_balance" stroke="#6366f1" strokeWidth={2.5} name="Balance" dot={false} activeDot={{ r: 5, fill: "#6366f1", stroke: "white", strokeWidth: 2 }} />
+                  <Line type="monotone" dataKey="projected_income" stroke="#10b981" strokeWidth={2.5} name="Income" dot={false} activeDot={{ r: 5, fill: "#10b981", stroke: "white", strokeWidth: 2 }} />
+                  <Line type="monotone" dataKey="projected_expenses" stroke="#f43f5e" strokeWidth={2.5} name="Expenses" dot={false} activeDot={{ r: 5, fill: "#f43f5e", stroke: "white", strokeWidth: 2 }} />
                 </LineChart>
               </ResponsiveContainer>
-            </CardBody>
+            </CardContent>
           </Card>
         </motion.div>
       )}
 
-      {/* AI Panel */}
       <AIPanel />
     </motion.div>
   );
