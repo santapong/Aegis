@@ -17,7 +17,7 @@ export function ProgressRing({
   max,
   size = 96,
   strokeWidth = 8,
-  color = "#3B82F6",
+  color = "var(--primary)",
   label,
   sublabel,
 }: ProgressRingProps) {
@@ -34,7 +34,7 @@ export function ProgressRing({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="var(--bg-secondary)"
+          stroke="var(--muted)"
           strokeWidth={strokeWidth}
         />
         <motion.circle
@@ -48,12 +48,13 @@ export function ProgressRing({
           strokeDasharray={circumference}
           initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset }}
-          transition={{ duration: 1, ease: "easeOut" }}
+          transition={{ type: "spring", stiffness: 100, damping: 20 }}
+          style={{ filter: `drop-shadow(0 0 4px ${color}40)` }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        {label && <span className="text-2xl font-bold">{label}</span>}
-        {sublabel && <span className="text-xs text-[var(--text-muted)]">{sublabel}</span>}
+        {label && <span className="text-2xl font-bold tracking-tight text-foreground">{label}</span>}
+        {sublabel && <span className="text-xs text-muted-foreground">{sublabel}</span>}
       </div>
     </div>
   );

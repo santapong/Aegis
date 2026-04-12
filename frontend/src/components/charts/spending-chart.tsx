@@ -20,9 +20,17 @@ interface SpendingChartProps {
 }
 
 const COLORS = [
-  "#3B82F6", "#EF4444", "#22C55E", "#F59E0B", "#8B5CF6",
-  "#EC4899", "#06B6D4", "#6366F1", "#10B981", "#6B7280",
+  "#6366f1", "#8b5cf6", "#ec4899", "#f43f5e", "#f97316",
+  "#eab308", "#22c55e", "#14b8a6", "#06b6d4", "#3b82f6",
 ];
+
+const glassTooltipStyle = {
+  background: "var(--card)",
+  border: "1px solid var(--border)",
+  borderRadius: "12px",
+  boxShadow: "0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04)",
+  padding: "8px 12px",
+};
 
 const renderActiveShape = (props: any) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, value, percent } = props;
@@ -36,11 +44,12 @@ const renderActiveShape = (props: any) => {
         startAngle={startAngle}
         endAngle={endAngle}
         fill={fill}
+        style={{ filter: `drop-shadow(0 0 6px ${fill}40)` }}
       />
-      <text x={cx} y={cy - 8} textAnchor="middle" fill="var(--text)" fontSize={14} fontWeight="bold">
+      <text x={cx} y={cy - 8} textAnchor="middle" fill="var(--foreground)" fontSize={14} fontWeight="bold">
         {payload.label}
       </text>
-      <text x={cx} y={cy + 12} textAnchor="middle" fill="var(--text-muted)" fontSize={12}>
+      <text x={cx} y={cy + 12} textAnchor="middle" fill="var(--muted-foreground)" fontSize={12}>
         {formatCurrency(value)} ({(percent * 100).toFixed(0)}%)
       </text>
     </g>
@@ -80,11 +89,7 @@ export function SpendingChart({ data }: SpendingChartProps) {
         </Pie>
         <Tooltip
           formatter={(value: number) => formatCurrency(value)}
-          contentStyle={{
-            background: "var(--bg-card)",
-            border: "1px solid var(--border)",
-            borderRadius: "8px",
-          }}
+          contentStyle={glassTooltipStyle}
         />
         <Legend />
       </PieChart>
