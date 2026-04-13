@@ -6,7 +6,7 @@ import { useAppStore } from "@/stores/app-store";
 import { useToast } from "@/hooks/use-toast";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 import { PageHeader } from "@/components/ui/page-header";
-import { Card, CardBody } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -51,7 +51,7 @@ export default function SettingsPage() {
             <div className="space-y-6">
               {/* Theme Selection */}
               <Card>
-                <CardBody>
+                <CardContent className="p-6">
                   <h3 className="font-semibold mb-4">Theme</h3>
                   <div className="grid grid-cols-2 gap-3">
                     <button
@@ -59,14 +59,14 @@ export default function SettingsPage() {
                       className={cn(
                         "flex items-center gap-3 p-4 rounded-lg border-2 transition-all",
                         theme === "light"
-                          ? "border-[var(--primary)] bg-blue-500/5"
-                          : "border-[var(--border)] hover:border-[var(--text-muted)]"
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-muted-foreground"
                       )}
                     >
-                      <Sun size={20} className="text-yellow-500" />
+                      <Sun size={20} className="text-amber-500" />
                       <div className="text-left">
                         <p className="text-sm font-medium">Light</p>
-                        <p className="text-xs text-[var(--text-muted)]">Clean and bright</p>
+                        <p className="text-xs text-muted-foreground">Clean and bright</p>
                       </div>
                     </button>
                     <button
@@ -74,23 +74,23 @@ export default function SettingsPage() {
                       className={cn(
                         "flex items-center gap-3 p-4 rounded-lg border-2 transition-all",
                         theme === "dark"
-                          ? "border-[var(--primary)] bg-blue-500/5"
-                          : "border-[var(--border)] hover:border-[var(--text-muted)]"
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-muted-foreground"
                       )}
                     >
                       <Moon size={20} className="text-indigo-500" />
                       <div className="text-left">
                         <p className="text-sm font-medium">Dark</p>
-                        <p className="text-xs text-[var(--text-muted)]">Easy on the eyes</p>
+                        <p className="text-xs text-muted-foreground">Easy on the eyes</p>
                       </div>
                     </button>
                   </div>
-                </CardBody>
+                </CardContent>
               </Card>
 
               {/* Currency */}
               <Card>
-                <CardBody>
+                <CardContent className="p-6">
                   <h3 className="font-semibold mb-4">Currency</h3>
                   <Select
                     value={settings.currency}
@@ -107,7 +107,7 @@ export default function SettingsPage() {
                       { value: "CNY", label: "CNY - Chinese Yuan" },
                     ]}
                   />
-                </CardBody>
+                </CardContent>
               </Card>
             </div>
           </TabPanel>
@@ -116,9 +116,9 @@ export default function SettingsPage() {
             <div className="space-y-6">
               {/* Default Date Range */}
               <Card>
-                <CardBody>
+                <CardContent className="p-6">
                   <h3 className="font-semibold mb-4">Default Date Range</h3>
-                  <p className="text-sm text-[var(--text-muted)] mb-3">
+                  <p className="text-sm text-muted-foreground mb-3">
                     How many days of data to show by default in reports and filters
                   </p>
                   <Select
@@ -134,12 +134,12 @@ export default function SettingsPage() {
                       { value: "365", label: "Last year" },
                     ]}
                   />
-                </CardBody>
+                </CardContent>
               </Card>
 
               {/* Items Per Page */}
               <Card>
-                <CardBody>
+                <CardContent className="p-6">
                   <h3 className="font-semibold mb-4">Items Per Page</h3>
                   <Select
                     value={String(settings.itemsPerPage)}
@@ -151,16 +151,16 @@ export default function SettingsPage() {
                       { value: "100", label: "100 items" },
                     ]}
                   />
-                </CardBody>
+                </CardContent>
               </Card>
 
               {/* AI Auto-Suggestions */}
               <Card>
-                <CardBody>
+                <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-semibold">AI Auto-Suggestions</h3>
-                      <p className="text-sm text-[var(--text-muted)] mt-1">
+                      <p className="text-sm text-muted-foreground mt-1">
                         Automatically analyze spending and provide recommendations
                       </p>
                     </div>
@@ -168,7 +168,7 @@ export default function SettingsPage() {
                       onClick={() => updateSettings({ aiAutoSuggestions: !settings.aiAutoSuggestions })}
                       className={cn(
                         "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
-                        settings.aiAutoSuggestions ? "bg-[var(--primary)]" : "bg-[var(--border)]"
+                        settings.aiAutoSuggestions ? "bg-primary" : "bg-input"
                       )}
                     >
                       <span
@@ -179,7 +179,7 @@ export default function SettingsPage() {
                       />
                     </button>
                   </div>
-                </CardBody>
+                </CardContent>
               </Card>
             </div>
           </TabPanel>
@@ -187,51 +187,51 @@ export default function SettingsPage() {
           <TabPanel value="about">
             <div className="space-y-6">
               <Card>
-                <CardBody>
+                <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600">
+                    <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500">
                       <Shield size={24} className="text-white" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent">
+                      <h2 className="text-xl font-bold bg-gradient-to-r from-indigo-500 to-violet-500 bg-clip-text text-transparent">
                         Aegis
                       </h2>
-                      <p className="text-sm text-[var(--text-muted)]">AI-Powered Financial Planning</p>
+                      <p className="text-sm text-muted-foreground">AI-Powered Financial Planning</p>
                     </div>
                   </div>
 
                   <div className="space-y-3">
-                    <div className="flex justify-between py-2 border-b border-[var(--border)]">
-                      <span className="text-sm text-[var(--text-muted)]">Version</span>
-                      <span className="text-sm font-medium">0.5.0</span>
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-sm text-muted-foreground">Version</span>
+                      <span className="text-sm font-medium">0.6.0</span>
                     </div>
-                    <div className="flex justify-between py-2 border-b border-[var(--border)]">
-                      <span className="text-sm text-[var(--text-muted)]">Frontend</span>
-                      <span className="text-sm font-medium">Next.js 15 + React 19</span>
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-sm text-muted-foreground">Frontend</span>
+                      <span className="text-sm font-medium">Next.js 15 + React 19 + shadcn/ui</span>
                     </div>
-                    <div className="flex justify-between py-2 border-b border-[var(--border)]">
-                      <span className="text-sm text-[var(--text-muted)]">Backend</span>
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-sm text-muted-foreground">Backend</span>
                       <span className="text-sm font-medium">FastAPI + PostgreSQL</span>
                     </div>
-                    <div className="flex justify-between py-2 border-b border-[var(--border)]">
-                      <span className="text-sm text-[var(--text-muted)]">AI Engine</span>
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-sm text-muted-foreground">AI Engine</span>
                       <span className="text-sm font-medium">Claude (Anthropic)</span>
                     </div>
                   </div>
-                </CardBody>
+                </CardContent>
               </Card>
 
               {/* Danger Zone */}
-              <Card className="border-red-500/30">
-                <CardBody>
-                  <h3 className="font-semibold text-red-500 mb-2">Danger Zone</h3>
-                  <p className="text-sm text-[var(--text-muted)] mb-4">
+              <Card className="border-destructive/30">
+                <CardContent className="p-6">
+                  <h3 className="font-semibold text-destructive mb-2">Danger Zone</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
                     Reset all settings to their default values. This cannot be undone.
                   </p>
-                  <Button variant="danger" size="sm" onClick={() => setShowReset(true)}>
+                  <Button variant="destructive" size="sm" onClick={() => setShowReset(true)}>
                     Reset All Settings
                   </Button>
-                </CardBody>
+                </CardContent>
               </Card>
             </div>
           </TabPanel>
@@ -241,13 +241,13 @@ export default function SettingsPage() {
       {/* Reset Confirmation */}
       <Modal open={showReset} onClose={() => setShowReset(false)} title="Reset Settings" size="sm">
         <ModalBody>
-          <p className="text-sm text-[var(--text-muted)]">
+          <p className="text-sm text-muted-foreground">
             Are you sure you want to reset all settings to their default values?
           </p>
         </ModalBody>
         <ModalFooter>
-          <Button variant="secondary" onClick={() => setShowReset(false)}>Cancel</Button>
-          <Button variant="danger" onClick={handleReset}>Reset</Button>
+          <Button variant="outline" onClick={() => setShowReset(false)}>Cancel</Button>
+          <Button variant="destructive" onClick={handleReset}>Reset</Button>
         </ModalFooter>
       </Modal>
     </motion.div>
