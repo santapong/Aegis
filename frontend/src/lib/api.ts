@@ -1,3 +1,5 @@
+import { useAuthStore } from "@/stores/auth-store";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export class APIError extends Error {
@@ -13,10 +15,19 @@ export class APIError extends Error {
 }
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
+  const token = useAuthStore.getState().token;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
   const res = await fetch(`${API_BASE}${url}`, {
-    headers: { "Content-Type": "application/json" },
+    headers,
     ...init,
   });
+  if (res.status === 401) {
+    useAuthStore.getState().logout();
+    throw new APIError(401, "Session expired");
+  }
   if (!res.ok) {
     let detail: string | undefined;
     try {
@@ -27,6 +38,23 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   }
   return res.json();
 }
+
+export const authAPI = {
+  register: (data: { email: string; username: string; password: string }) =>
+    fetchJSON<{ id: string; email: string; username: string; is_active: boolean; created_at: string }>(
+      "/api/auth/register",
+      { method: "POST", body: JSON.stringify(data) }
+    ),
+  login: (data: { email: string; password: string }) =>
+    fetchJSON<{ access_token: string; token_type: string }>(
+      "/api/auth/login",
+      { method: "POST", body: JSON.stringify(data) }
+    ),
+  me: () =>
+    fetchJSON<{ id: string; email: string; username: string; is_active: boolean; created_at: string }>(
+      "/api/auth/me"
+    ),
+};
 
 export const dashboardAPI = {
   summary: () => fetchJSON("/api/dashboard/summary"),
@@ -53,7 +81,12 @@ export const transactionsAPI = {
     fetchJSON(`/api/transactions/anomalies?days=${days}&threshold=${threshold}`),
   recurring: () => fetchJSON("/api/transactions/recurring"),
   delete: (id: string) =>
-    fetch(`${API_BASE}/api/transactions/${id}`, { method: "DELETE" }),
+    fetch(`${API_BASE}/api/transactions/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
+      },
+    }),
   importPreview: async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -78,7 +111,12 @@ export const tagsAPI = {
   update: (id: string, data: { name?: string; color?: string }) =>
     fetchJSON(`/api/tags/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   delete: (id: string) =>
-    fetch(`${API_BASE}/api/tags/${id}`, { method: "DELETE" }),
+    fetch(`${API_BASE}/api/tags/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
+      },
+    }),
 };
 
 export const plansAPI = {
@@ -97,7 +135,12 @@ export const plansAPI = {
       body: JSON.stringify({ progress }),
     }),
   delete: (id: string) =>
-    fetch(`${API_BASE}/api/plans/${id}`, { method: "DELETE" }),
+    fetch(`${API_BASE}/api/plans/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
+      },
+    }),
 };
 
 export const budgetsAPI = {
@@ -110,7 +153,12 @@ export const budgetsAPI = {
   update: (id: string, data: Record<string, unknown>) =>
     fetchJSON(`/api/budgets/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   delete: (id: string) =>
-    fetch(`${API_BASE}/api/budgets/${id}`, { method: "DELETE" }),
+    fetch(`${API_BASE}/api/budgets/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
+      },
+    }),
   comparison: (start?: string, end?: string) => {
     const params = new URLSearchParams();
     if (start) params.set("period_start", start);
@@ -177,7 +225,12 @@ export const savingsGoalsAPI = {
       body: JSON.stringify({ amount }),
     }),
   delete: (id: string) =>
-    fetch(`${API_BASE}/api/savings-goals/${id}`, { method: "DELETE" }),
+    fetch(`${API_BASE}/api/savings-goals/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
+      },
+    }),
 };
 
 export const paymentsAPI = {
@@ -209,5 +262,10 @@ export const debtsAPI = {
   payoffPlan: (strategy = "avalanche", extraPayment = 0) =>
     fetchJSON(`/api/debts/payoff-plan?strategy=${strategy}&extra_payment=${extraPayment}`),
   delete: (id: string) =>
-    fetch(`${API_BASE}/api/debts/${id}`, { method: "DELETE" }),
+    fetch(`${API_BASE}/api/debts/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
+      },
+    }),
 };

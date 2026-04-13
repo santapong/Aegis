@@ -20,6 +20,7 @@ class Tag(Base):
     __tablename__ = "tags"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    user_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("users.id"), nullable=True, index=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     color: Mapped[str] = mapped_column(String(7), default="#6B7280")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

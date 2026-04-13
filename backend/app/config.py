@@ -12,6 +12,11 @@ class Settings(BaseSettings):
     # SQLite:     sqlite:///./data.db
     database_url: str = "sqlite:///./money_management.db"
 
+    # JWT Authentication
+    jwt_secret_key: str = "CHANGE-ME-IN-PRODUCTION"
+    jwt_algorithm: str = "HS256"
+    jwt_expire_minutes: int = 1440  # 24 hours
+
     # AI
     anthropic_api_key: str = ""
     ai_model: str = "claude-sonnet-4-20250514"

@@ -3,16 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
 from .config import get_settings
-from .database import engine, Base
 from .middleware import SecurityHeadersMiddleware, RateLimitMiddleware
-from .routers import plans, calendar, gantt, transactions, dashboard, ai, budgets, reports, savings_goals, debts, payments
+from .routers import auth, plans, calendar, gantt, transactions, dashboard, ai, budgets, reports, savings_goals, debts, payments
 
 settings = get_settings()
 
 # Conditionally expose API docs (hidden in production)
 app = FastAPI(
     title=settings.app_name,
-    version="0.5.0",
+    version="0.6.0",
     docs_url="/api/docs" if settings.debug else None,
     redoc_url="/api/redoc" if settings.debug else None,
 )
@@ -29,6 +28,7 @@ app.add_middleware(
 )
 
 # Register routers
+app.include_router(auth.router)
 app.include_router(plans.router)
 app.include_router(calendar.router)
 app.include_router(gantt.router)
@@ -45,14 +45,15 @@ app.include_router(payments.router)
 
 @app.on_event("startup")
 def on_startup():
-    Base.metadata.create_all(bind=engine)
-    logger.info("Aegis v0.5.0 started (mode={mode})", mode="debug" if settings.debug else "production")
+    # Database tables are managed by Alembic migrations.
+    # Run: cd backend && alembic upgrade head
+    logger.info("Aegis v0.6.0 started (mode={mode})", mode="debug" if settings.debug else "production")
 
 
 @app.get("/api/health")
 def health():
     return {
         "status": "ok",
-        "version": "0.5.0",
+        "version": "0.6.0",
         "stripe_mode": settings.stripe_mode if settings.stripe_secret_key else "not_configured",
     }

@@ -3,10 +3,12 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models.debt import Debt
+from ..models.user import User
 from ..schemas.debt import (
     DebtCreate, DebtUpdate, DebtResponse,
     PayoffPlanResponse, PayoffStep, MakePaymentRequest,
 )
+from ..auth import get_current_user
 
 router = APIRouter(prefix="/api/debts", tags=["debts"])
 
@@ -15,13 +17,14 @@ router = APIRouter(prefix="/api/debts", tags=["debts"])
 def list_debts(
     limit: int = Query(default=50, le=200),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    return db.query(Debt).order_by(Debt.interest_rate.desc()).limit(limit).all()
+    return db.query(Debt).filter(Debt.user_id == current_user.id).order_by(Debt.interest_rate.desc()).limit(limit).all()
 
 
 @router.post("/", response_model=DebtResponse, status_code=201)
-def create_debt(debt: DebtCreate, db: Session = Depends(get_db)):
-    db_debt = Debt(**debt.model_dump())
+def create_debt(debt: DebtCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    db_debt = Debt(**debt.model_dump(), user_id=current_user.id)
     db.add(db_debt)
     db.commit()
     db.refresh(db_debt)
@@ -33,8 +36,9 @@ def get_payoff_plan(
     strategy: str = Query(default="avalanche", regex="^(avalanche|snowball)$"),
     extra_payment: float = Query(default=0, ge=0),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    debts = db.query(Debt).filter(Debt.balance > 0).all()
+    debts = db.query(Debt).filter(Debt.user_id == current_user.id, Debt.balance > 0).all()
     if not debts:
         return PayoffPlanResponse(
             strategy=strategy, total_months=0, total_interest=0, total_paid=0, monthly_steps=[]
@@ -106,16 +110,16 @@ def get_payoff_plan(
 
 
 @router.get("/{debt_id}", response_model=DebtResponse)
-def get_debt(debt_id: str, db: Session = Depends(get_db)):
-    debt = db.query(Debt).filter(Debt.id == debt_id).first()
+def get_debt(debt_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    debt = db.query(Debt).filter(Debt.id == debt_id, Debt.user_id == current_user.id).first()
     if not debt:
         raise HTTPException(status_code=404, detail="Debt not found")
     return debt
 
 
 @router.put("/{debt_id}", response_model=DebtResponse)
-def update_debt(debt_id: str, update: DebtUpdate, db: Session = Depends(get_db)):
-    debt = db.query(Debt).filter(Debt.id == debt_id).first()
+def update_debt(debt_id: str, update: DebtUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    debt = db.query(Debt).filter(Debt.id == debt_id, Debt.user_id == current_user.id).first()
     if not debt:
         raise HTTPException(status_code=404, detail="Debt not found")
     for key, val in update.model_dump(exclude_unset=True).items():
@@ -126,8 +130,8 @@ def update_debt(debt_id: str, update: DebtUpdate, db: Session = Depends(get_db))
 
 
 @router.post("/{debt_id}/payment", response_model=DebtResponse)
-def make_payment(debt_id: str, req: MakePaymentRequest, db: Session = Depends(get_db)):
-    debt = db.query(Debt).filter(Debt.id == debt_id).first()
+def make_payment(debt_id: str, req: MakePaymentRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    debt = db.query(Debt).filter(Debt.id == debt_id, Debt.user_id == current_user.id).first()
     if not debt:
         raise HTTPException(status_code=404, detail="Debt not found")
     debt.balance = max(0, float(debt.balance) - req.amount)
@@ -137,8 +141,8 @@ def make_payment(debt_id: str, req: MakePaymentRequest, db: Session = Depends(ge
 
 
 @router.delete("/{debt_id}", status_code=204)
-def delete_debt(debt_id: str, db: Session = Depends(get_db)):
-    debt = db.query(Debt).filter(Debt.id == debt_id).first()
+def delete_debt(debt_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    debt = db.query(Debt).filter(Debt.id == debt_id, Debt.user_id == current_user.id).first()
     if not debt:
         raise HTTPException(status_code=404, detail="Debt not found")
     db.delete(debt)

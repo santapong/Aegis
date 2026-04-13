@@ -4,7 +4,9 @@ from datetime import date
 
 from ..database import get_db
 from ..models.plan import Plan
+from ..models.user import User
 from ..schemas.plan import GanttTask
+from ..auth import get_current_user
 
 router = APIRouter(prefix="/api/gantt", tags=["gantt"])
 
@@ -14,8 +16,9 @@ def get_gantt_tasks(
     start: date | None = None,
     end: date | None = None,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    query = db.query(Plan).filter(Plan.end_date.isnot(None))
+    query = db.query(Plan).filter(Plan.user_id == current_user.id, Plan.end_date.isnot(None))
     if start:
         query = query.filter(Plan.start_date >= start)
     if end:
@@ -45,8 +48,9 @@ def update_gantt_task(
     end: date | None = Query(default=None),
     progress: int | None = Query(default=None, ge=0, le=100),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    plan = db.query(Plan).filter(Plan.id == task_id).first()
+    plan = db.query(Plan).filter(Plan.id == task_id, Plan.user_id == current_user.id).first()
     if not plan:
         raise HTTPException(status_code=404, detail="Task not found")
     if start:

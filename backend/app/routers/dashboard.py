@@ -6,6 +6,7 @@ from ..database import get_db
 from ..models.plan import Plan, PlanStatus, Recurrence
 from ..models.budget import Budget
 from ..models.transaction import Transaction, TransactionType
+from ..models.user import User
 from ..schemas.dashboard import (
     KPISummary,
     DashboardCharts,
@@ -15,6 +16,7 @@ from ..schemas.dashboard import (
     CashFlowPoint,
     CashFlowForecastResponse,
 )
+from ..auth import get_current_user
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
@@ -33,13 +35,13 @@ CATEGORY_COLORS = {
 
 
 @router.get("/summary", response_model=KPISummary)
-def get_summary(db: Session = Depends(get_db)):
+def get_summary(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     today = date.today()
     month_start = today.replace(day=1)
 
     monthly_txns = (
         db.query(Transaction)
-        .filter(Transaction.date >= month_start, Transaction.date <= today)
+        .filter(Transaction.user_id == current_user.id, Transaction.date >= month_start, Transaction.date <= today)
         .all()
     )
 
@@ -47,14 +49,14 @@ def get_summary(db: Session = Depends(get_db)):
     monthly_expenses = sum(float(t.amount) for t in monthly_txns if t.type == TransactionType.expense)
     savings_rate = ((monthly_income - monthly_expenses) / monthly_income * 100) if monthly_income > 0 else 0
 
-    all_txns = db.query(Transaction).all()
+    all_txns = db.query(Transaction).filter(Transaction.user_id == current_user.id).all()
     total_balance = sum(
         float(t.amount) if t.type == TransactionType.income else -float(t.amount)
         for t in all_txns
     )
 
-    active_plans = db.query(Plan).filter(Plan.status.in_([PlanStatus.planned, PlanStatus.in_progress])).count()
-    completed_plans = db.query(Plan).filter(Plan.status == PlanStatus.completed).count()
+    active_plans = db.query(Plan).filter(Plan.user_id == current_user.id, Plan.status.in_([PlanStatus.planned, PlanStatus.in_progress])).count()
+    completed_plans = db.query(Plan).filter(Plan.user_id == current_user.id, Plan.status == PlanStatus.completed).count()
 
     return KPISummary(
         total_balance=total_balance,
@@ -67,13 +69,14 @@ def get_summary(db: Session = Depends(get_db)):
 
 
 @router.get("/charts", response_model=DashboardCharts)
-def get_charts(db: Session = Depends(get_db)):
+def get_charts(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     today = date.today()
 
     # Spending by category (last 30 days)
     recent_expenses = (
         db.query(Transaction)
         .filter(
+            Transaction.user_id == current_user.id,
             Transaction.type == TransactionType.expense,
             Transaction.date >= today - timedelta(days=30),
         )
@@ -105,7 +108,7 @@ def get_charts(db: Session = Depends(get_db)):
 
         month_txns = (
             db.query(Transaction)
-            .filter(Transaction.date >= month_start, Transaction.date <= month_end)
+            .filter(Transaction.user_id == current_user.id, Transaction.date >= month_start, Transaction.date <= month_end)
             .all()
         )
         income = sum(float(t.amount) for t in month_txns if t.type == TransactionType.income)
@@ -124,14 +127,14 @@ def get_charts(db: Session = Depends(get_db)):
 
 
 @router.get("/health-score", response_model=HealthScoreResponse)
-def get_health_score(db: Session = Depends(get_db)):
+def get_health_score(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     today = date.today()
     month_start = today.replace(day=1)
 
     # --- Savings Rate Score (0-30) ---
     monthly_txns = (
         db.query(Transaction)
-        .filter(Transaction.date >= month_start, Transaction.date <= today)
+        .filter(Transaction.user_id == current_user.id, Transaction.date >= month_start, Transaction.date <= today)
         .all()
     )
     monthly_income = sum(float(t.amount) for t in monthly_txns if t.type == TransactionType.income)
@@ -143,7 +146,7 @@ def get_health_score(db: Session = Depends(get_db)):
     # --- Budget Adherence Score (0-25) ---
     active_budgets = (
         db.query(Budget)
-        .filter(Budget.period_start <= today, Budget.period_end >= today)
+        .filter(Budget.user_id == current_user.id, Budget.period_start <= today, Budget.period_end >= today)
         .all()
     )
     if active_budgets:
@@ -152,6 +155,7 @@ def get_health_score(db: Session = Depends(get_db)):
             expenses_in_cat = (
                 db.query(Transaction)
                 .filter(
+                    Transaction.user_id == current_user.id,
                     Transaction.type == TransactionType.expense,
                     Transaction.category == b.category,
                     Transaction.date >= b.period_start,
@@ -173,6 +177,7 @@ def get_health_score(db: Session = Depends(get_db)):
     recent_expenses = (
         db.query(Transaction)
         .filter(
+            Transaction.user_id == current_user.id,
             Transaction.type == TransactionType.expense,
             Transaction.date >= three_months_ago,
         )
@@ -200,6 +205,7 @@ def get_health_score(db: Session = Depends(get_db)):
     recent_income = (
         db.query(Transaction)
         .filter(
+            Transaction.user_id == current_user.id,
             Transaction.type == TransactionType.income,
             Transaction.date >= three_months_ago,
         )
@@ -247,12 +253,12 @@ def get_health_score(db: Session = Depends(get_db)):
 
 
 @router.get("/cashflow-forecast", response_model=CashFlowForecastResponse)
-def get_cashflow_forecast(months: int = 6, db: Session = Depends(get_db)):
+def get_cashflow_forecast(months: int = 6, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     months = min(months, 12)
     today = date.today()
 
     # Current balance
-    all_txns = db.query(Transaction).all()
+    all_txns = db.query(Transaction).filter(Transaction.user_id == current_user.id).all()
     current_balance = sum(
         float(t.amount) if t.type == TransactionType.income else -float(t.amount)
         for t in all_txns
@@ -262,7 +268,7 @@ def get_cashflow_forecast(months: int = 6, db: Session = Depends(get_db)):
     three_months_ago = today - timedelta(days=90)
     recent = (
         db.query(Transaction)
-        .filter(Transaction.date >= three_months_ago)
+        .filter(Transaction.user_id == current_user.id, Transaction.date >= three_months_ago)
         .all()
     )
 
@@ -283,6 +289,7 @@ def get_cashflow_forecast(months: int = 6, db: Session = Depends(get_db)):
     recurring_plans = (
         db.query(Plan)
         .filter(
+            Plan.user_id == current_user.id,
             Plan.recurrence != Recurrence.once,
             Plan.status.in_(["planned", "in_progress"]),
         )

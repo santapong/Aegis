@@ -4,7 +4,9 @@ from datetime import date
 
 from ..database import get_db
 from ..models.plan import Plan
+from ..models.user import User
 from ..schemas.plan import CalendarEvent
+from ..auth import get_current_user
 
 router = APIRouter(prefix="/api/calendar", tags=["calendar"])
 
@@ -14,9 +16,11 @@ def get_calendar_events(
     start: date = Query(...),
     end: date = Query(...),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     plans = (
         db.query(Plan)
+        .filter(Plan.user_id == current_user.id)
         .filter(Plan.start_date <= end)
         .filter((Plan.end_date >= start) | (Plan.end_date.is_(None)))
         .order_by(Plan.start_date)
@@ -43,8 +47,9 @@ def move_event(
     new_start: date = Query(...),
     new_end: date | None = Query(default=None),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
-    plan = db.query(Plan).filter(Plan.id == event_id).first()
+    plan = db.query(Plan).filter(Plan.id == event_id, Plan.user_id == current_user.id).first()
     if not plan:
         raise HTTPException(status_code=404, detail="Event not found")
     plan.start_date = new_start
