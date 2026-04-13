@@ -20,7 +20,7 @@ import { ChevronLeft, ChevronRight, Plus, Calendar } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardBody } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { staggerContainer, staggerItem, slideUp } from "@/lib/animations";
@@ -92,10 +92,10 @@ export default function CalendarPage() {
       <motion.div variants={staggerItem}>
         <Card>
           {/* Month navigation */}
-          <div className="flex items-center justify-between p-4 border-b border-[var(--border)]">
+          <div className="flex items-center justify-between p-4 border-b border-border">
             <button
               onClick={() => navigateMonth(-1)}
-              className="p-2 rounded-lg hover:bg-[var(--bg-secondary)]"
+              className="p-2 rounded-lg hover:bg-muted"
             >
               <ChevronLeft size={20} />
             </button>
@@ -104,16 +104,16 @@ export default function CalendarPage() {
             </h2>
             <button
               onClick={() => navigateMonth(1)}
-              className="p-2 rounded-lg hover:bg-[var(--bg-secondary)]"
+              className="p-2 rounded-lg hover:bg-muted"
             >
               <ChevronRight size={20} />
             </button>
           </div>
 
           {/* Day headers */}
-          <div className="grid grid-cols-7 border-b border-[var(--border)]">
+          <div className="grid grid-cols-7 border-b border-border">
             {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-              <div key={day} className="p-3 text-center text-xs font-semibold text-[var(--text-muted)] uppercase">
+              <div key={day} className="p-3 text-center text-xs font-semibold text-muted-foreground uppercase">
                 {day}
               </div>
             ))}
@@ -140,16 +140,16 @@ export default function CalendarPage() {
                     key={i}
                     onClick={() => setSelectedDate(day)}
                     className={cn(
-                      "min-h-[100px] p-2 border-b border-r border-[var(--border)] cursor-pointer transition-colors",
+                      "min-h-[100px] p-2 border-b border-r border-border cursor-pointer transition-colors",
                       !isCurrentMonth && "opacity-40",
-                      isSelected && "bg-[var(--primary)]/5",
-                      "hover:bg-[var(--bg-secondary)]"
+                      isSelected && "bg-primary/5",
+                      "hover:bg-muted"
                     )}
                   >
                     <span
                       className={cn(
                         "text-sm font-medium inline-flex items-center justify-center w-7 h-7 rounded-full",
-                        isToday && "bg-[var(--primary)] text-white"
+                        isToday && "bg-primary text-white"
                       )}
                     >
                       {format(day, "d")}
@@ -168,7 +168,7 @@ export default function CalendarPage() {
                         </div>
                       ))}
                       {dayEvents.length > 3 && (
-                        <span className="text-xs text-[var(--text-muted)]">
+                        <span className="text-xs text-muted-foreground">
                           +{dayEvents.length - 3} more
                         </span>
                       )}
@@ -180,7 +180,7 @@ export default function CalendarPage() {
           </AnimatePresence>
 
           {/* Calendar — Mobile list view */}
-          <div className="md:hidden divide-y divide-[var(--border)]">
+          <div className="md:hidden divide-y divide-border">
             {calendarDays
               .filter((day) => isSameMonth(day, currentDate) && getEventsForDay(day).length > 0)
               .map((day, i) => {
@@ -190,7 +190,7 @@ export default function CalendarPage() {
                     <p className="text-sm font-medium mb-2">{format(day, "EEE, MMM d")}</p>
                     <div className="space-y-1.5">
                       {dayEvents.map((event) => (
-                        <div key={event.id} className="flex items-center justify-between p-2 rounded-lg bg-[var(--bg-secondary)]">
+                        <div key={event.id} className="flex items-center justify-between p-2 rounded-lg bg-muted">
                           <div className="flex items-center gap-2">
                             <div className={cn("w-2.5 h-2.5 rounded-full", categoryColors[event.category])} />
                             <span className="text-sm">{event.title}</span>
@@ -219,21 +219,21 @@ export default function CalendarPage() {
             exit="hidden"
           >
             <Card>
-              <CardBody>
+              <CardContent className="p-6">
                 <h3 className="font-semibold mb-3">{format(selectedDate, "EEEE, MMMM d, yyyy")}</h3>
                 {getEventsForDay(selectedDate).length === 0 ? (
-                  <p className="text-sm text-[var(--text-muted)]">No plans for this day</p>
+                  <p className="text-sm text-muted-foreground">No plans for this day</p>
                 ) : (
                   <div className="space-y-2">
                     {getEventsForDay(selectedDate).map((event) => (
-                      <div key={event.id} className="flex items-center justify-between p-3 rounded-lg bg-[var(--bg-secondary)]">
+                      <div key={event.id} className="flex items-center justify-between p-3 rounded-lg bg-muted">
                         <div className="flex items-center gap-3">
                           <div className={cn("w-3 h-3 rounded-full", categoryColors[event.category])} />
                           <div>
                             <p className="font-medium text-sm">{event.title}</p>
                             <div className="flex items-center gap-2 mt-0.5">
                               <Badge variant={categoryBadgeVariant[event.category]}>{event.category}</Badge>
-                              <span className="text-xs text-[var(--text-muted)] capitalize">{event.status}</span>
+                              <span className="text-xs text-muted-foreground capitalize">{event.status}</span>
                             </div>
                           </div>
                         </div>
@@ -242,7 +242,7 @@ export default function CalendarPage() {
                     ))}
                   </div>
                 )}
-              </CardBody>
+              </CardContent>
             </Card>
           </motion.div>
         )}
