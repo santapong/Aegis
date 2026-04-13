@@ -11,7 +11,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal, ModalBody, ModalFooter } from "@/components/ui/modal";
-import { Card, CardHeader, CardBody } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -36,6 +36,14 @@ const defaultForm = {
   period_end: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
     .toISOString()
     .split("T")[0],
+};
+
+const glassTooltipStyle = {
+  background: "var(--card)",
+  border: "1px solid var(--border)",
+  borderRadius: "12px",
+  boxShadow: "0 10px 15px -3px rgba(0,0,0,0.08)",
+  padding: "8px 12px",
 };
 
 export default function BudgetsPage() {
@@ -157,20 +165,20 @@ export default function BudgetsPage() {
       {/* Summary Cards */}
       {comparison && (
         <motion.div variants={staggerItem} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card><CardBody>
-            <p className="text-sm text-[var(--text-muted)]">Total Budgeted</p>
+          <Card><CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">Total Budgeted</p>
             <p className="text-2xl font-bold mt-1">{formatCurrency(comparison.total_budgeted)}</p>
-          </CardBody></Card>
-          <Card><CardBody>
-            <p className="text-sm text-[var(--text-muted)]">Total Spent</p>
+          </CardContent></Card>
+          <Card><CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">Total Spent</p>
             <p className="text-2xl font-bold mt-1">{formatCurrency(comparison.total_spent)}</p>
-          </CardBody></Card>
-          <Card><CardBody>
-            <p className="text-sm text-[var(--text-muted)]">Remaining</p>
+          </CardContent></Card>
+          <Card><CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">Remaining</p>
             <p className={`text-2xl font-bold mt-1 ${comparison.total_budgeted - comparison.total_spent >= 0 ? "text-green-500" : "text-red-500"}`}>
               {formatCurrency(comparison.total_budgeted - comparison.total_spent)}
             </p>
-          </CardBody></Card>
+          </CardContent></Card>
         </motion.div>
       )}
 
@@ -178,16 +186,16 @@ export default function BudgetsPage() {
       {chartData.length > 0 && (
         <motion.div variants={staggerItem}>
           <Card>
-            <CardBody>
+            <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4">Budget vs Actual Spending</h2>
               <ResponsiveContainer width="100%" height={350}>
                 <BarChart data={chartData} barGap={4}>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                   <XAxis dataKey="category" tick={{ fontSize: 12 }} />
                   <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                  <Tooltip formatter={(value: number) => formatCurrency(value)} contentStyle={glassTooltipStyle} />
                   <Legend />
-                  <Bar dataKey="Budget" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Budget" fill="#6366f1" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="Actual" radius={[4, 4, 0, 0]}>
                     {chartData.map((entry, index) => (
                       <Cell key={index} fill={entry.over ? "#EF4444" : "#22C55E"} />
@@ -195,7 +203,7 @@ export default function BudgetsPage() {
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </CardBody>
+            </CardContent>
           </Card>
         </motion.div>
       )}
@@ -205,7 +213,7 @@ export default function BudgetsPage() {
         <motion.div variants={staggerItem}>
           <Card>
             <CardHeader><h2 className="text-lg font-semibold">Budget Details</h2></CardHeader>
-            <div className="divide-y divide-[var(--border)]">
+            <div className="divide-y divide-border">
               {comparison.comparisons.map((c) => (
                 <div key={c.category} className="p-4">
                   <div className="flex items-center justify-between mb-2">
@@ -217,11 +225,11 @@ export default function BudgetsPage() {
                         </span>
                       )}
                     </div>
-                    <span className="text-sm text-[var(--text-muted)]">
+                    <span className="text-sm text-muted-foreground">
                       {formatCurrency(c.actual_spent)} / {formatCurrency(c.budget_amount)}
                     </span>
                   </div>
-                  <div className="w-full bg-[var(--bg-secondary)] rounded-full h-2.5">
+                  <div className="w-full bg-muted rounded-full h-2.5">
                     <motion.div
                       className={`h-2.5 rounded-full transition-all ${c.over_budget ? "bg-red-500" : c.usage_percent > 80 ? "bg-yellow-500" : "bg-green-500"}`}
                       initial={{ width: 0 }}
@@ -230,7 +238,7 @@ export default function BudgetsPage() {
                     />
                   </div>
                   <div className="flex justify-between mt-1">
-                    <span className="text-xs text-[var(--text-muted)]">{c.usage_percent}% used</span>
+                    <span className="text-xs text-muted-foreground">{c.usage_percent}% used</span>
                     <span className={`text-xs font-medium ${c.remaining >= 0 ? "text-green-500" : "text-red-500"}`}>
                       {c.remaining >= 0 ? `${formatCurrency(c.remaining)} left` : `${formatCurrency(Math.abs(c.remaining))} over`}
                     </span>
@@ -251,26 +259,26 @@ export default function BudgetsPage() {
             <div className="hidden sm:block">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-[var(--border)] bg-[var(--bg-secondary)]">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Name</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Category</th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Amount</th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Period</th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Actions</th>
+                  <tr className="border-b border-border bg-muted">
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Name</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Category</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Amount</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Period</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {budgets.map((b) => (
-                    <tr key={b.id} className="border-b border-[var(--border)] hover:bg-[var(--bg-secondary)]">
+                    <tr key={b.id} className="border-b border-border hover:bg-muted">
                       <td className="px-4 py-3 text-sm">{b.name}</td>
                       <td className="px-4 py-3 text-sm capitalize">{b.category}</td>
                       <td className="px-4 py-3 text-sm text-right font-medium">{formatCurrency(b.amount)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--text-muted)]">
+                      <td className="px-4 py-3 text-sm text-right text-muted-foreground">
                         {b.period_start} - {b.period_end}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <button onClick={() => openEdit(b)} className="text-[var(--text-muted)] hover:text-[var(--text)] p-1">
+                          <button onClick={() => openEdit(b)} className="text-muted-foreground hover:text-foreground p-1">
                             <Pencil size={14} />
                           </button>
                           <button onClick={() => setDeleteId(b.id)} className="text-red-500 hover:text-red-700 p-1">
@@ -284,16 +292,16 @@ export default function BudgetsPage() {
               </table>
             </div>
             {/* Mobile */}
-            <div className="sm:hidden divide-y divide-[var(--border)]">
+            <div className="sm:hidden divide-y divide-border">
               {budgets.map((b) => (
                 <div key={b.id} className="p-4 flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium">{b.name}</p>
-                    <p className="text-xs text-[var(--text-muted)] capitalize">{b.category}</p>
+                    <p className="text-xs text-muted-foreground capitalize">{b.category}</p>
                   </div>
                   <div className="text-right flex items-center gap-2">
                     <p className="text-sm font-medium">{formatCurrency(b.amount)}</p>
-                    <button onClick={() => openEdit(b)} className="text-[var(--text-muted)] p-1"><Pencil size={14} /></button>
+                    <button onClick={() => openEdit(b)} className="text-muted-foreground p-1"><Pencil size={14} /></button>
                     <button onClick={() => setDeleteId(b.id)} className="text-red-500 p-1"><Trash2 size={14} /></button>
                   </div>
                 </div>
@@ -359,7 +367,7 @@ export default function BudgetsPage() {
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button variant="secondary" type="button" onClick={closeForm}>Cancel</Button>
+            <Button variant="outline" type="button" onClick={closeForm}>Cancel</Button>
             <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>
               {editingBudget ? "Save Changes" : "Create"}
             </Button>
@@ -370,11 +378,11 @@ export default function BudgetsPage() {
       {/* Delete Confirmation */}
       <Modal open={!!deleteId} onClose={() => setDeleteId(null)} title="Delete Budget" size="sm">
         <ModalBody>
-          <p className="text-sm text-[var(--text-muted)]">Are you sure you want to delete this budget?</p>
+          <p className="text-sm text-muted-foreground">Are you sure you want to delete this budget?</p>
         </ModalBody>
         <ModalFooter>
-          <Button variant="secondary" onClick={() => setDeleteId(null)}>Cancel</Button>
-          <Button variant="danger" loading={deleteMutation.isPending} onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Delete</Button>
+          <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
+          <Button variant="destructive" loading={deleteMutation.isPending} onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Delete</Button>
         </ModalFooter>
       </Modal>
     </motion.div>

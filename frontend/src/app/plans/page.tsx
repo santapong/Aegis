@@ -14,7 +14,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Modal, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardBody } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
@@ -228,8 +228,8 @@ export default function PlansPage() {
               className={cn(
                 "px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
                 categoryFilter === opt.value
-                  ? "bg-[var(--primary)] text-white"
-                  : "bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--bg-hover)]"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-accent"
               )}
             >
               {opt.label}
@@ -237,7 +237,7 @@ export default function PlansPage() {
           ))}
         </div>
 
-        <div className="h-6 w-px bg-[var(--border)] hidden sm:block" />
+        <div className="h-6 w-px bg-input hidden sm:block" />
 
         {/* Status filter pills */}
         <div className="flex gap-1 flex-wrap">
@@ -248,8 +248,8 @@ export default function PlansPage() {
               className={cn(
                 "px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
                 statusFilter === opt.value
-                  ? "bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text)]"
-                  : "text-[var(--text-muted)] hover:bg-[var(--bg-hover)]"
+                  ? "bg-card border border-border text-foreground"
+                  : "text-muted-foreground hover:bg-accent"
               )}
             >
               {opt.label}
@@ -257,12 +257,12 @@ export default function PlansPage() {
           ))}
         </div>
 
-        <div className="ml-auto flex gap-1 border border-[var(--border)] rounded-lg p-0.5">
+        <div className="ml-auto flex gap-1 border border-border rounded-lg p-0.5">
           <button
             onClick={() => setViewMode("grid")}
             className={cn(
               "p-1.5 rounded-md transition-colors",
-              viewMode === "grid" ? "bg-[var(--primary)] text-white" : "text-[var(--text-muted)]"
+              viewMode === "grid" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
             )}
           >
             <LayoutGrid size={16} />
@@ -271,7 +271,7 @@ export default function PlansPage() {
             onClick={() => setViewMode("list")}
             className={cn(
               "p-1.5 rounded-md transition-colors",
-              viewMode === "list" ? "bg-[var(--primary)] text-white" : "text-[var(--text-muted)]"
+              viewMode === "list" ? "bg-primary text-primary-foreground" : "text-muted-foreground"
             )}
           >
             <List size={16} />
@@ -297,7 +297,7 @@ export default function PlansPage() {
             {plans.map((plan) => (
               <motion.div key={plan.id} variants={staggerItem}>
                 <Card className="hover:shadow-lg transition-shadow">
-                  <CardBody>
+                  <CardContent className="p-6">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
@@ -329,17 +329,17 @@ export default function PlansPage() {
                         />
                         <div>
                           <p className="text-xl font-bold">{formatCurrency(plan.amount)}</p>
-                          <p className="text-xs text-[var(--text-muted)] capitalize">{plan.priority} priority</p>
+                          <p className="text-xs text-muted-foreground capitalize">{plan.priority} priority</p>
                         </div>
                       </div>
                     ) : (
                       <>
                         <p className="text-xl font-bold my-3">{formatCurrency(plan.amount)}</p>
                         <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-[var(--text-muted)]">Progress</span>
+                          <span className="text-xs text-muted-foreground">Progress</span>
                           <span className="text-xs font-medium">{plan.progress}%</span>
                         </div>
-                        <div className="w-full bg-[var(--bg-secondary)] rounded-full h-2">
+                        <div className="w-full bg-muted rounded-full h-2">
                           <motion.div
                             className="h-2 rounded-full"
                             style={{ backgroundColor: plan.color }}
@@ -361,16 +361,16 @@ export default function PlansPage() {
                         onChange={(e) =>
                           progressMutation.mutate({ id: plan.id, progress: parseInt(e.target.value) })
                         }
-                        className="w-full h-1 accent-[var(--primary)] cursor-pointer"
+                        className="w-full h-1 accent-primary cursor-pointer"
                       />
                     </div>
 
-                    <div className="flex items-center justify-between mt-3 text-xs text-[var(--text-muted)]">
+                    <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground">
                       <span>{plan.start_date}</span>
                       <span className="capitalize">{plan.recurrence}</span>
                       {plan.end_date && <span>{plan.end_date}</span>}
                     </div>
-                  </CardBody>
+                  </CardContent>
                 </Card>
               </motion.div>
             ))}
@@ -381,19 +381,19 @@ export default function PlansPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-[var(--border)] bg-[var(--bg-secondary)]">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Plan</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Category</th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Amount</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Status</th>
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Priority</th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Progress</th>
-                    <th className="text-right px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Actions</th>
+                  <tr className="border-b border-border bg-muted">
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Plan</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Category</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Amount</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th>
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Priority</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Progress</th>
+                    <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {plans.map((plan) => (
-                    <tr key={plan.id} className="border-b border-[var(--border)] hover:bg-[var(--bg-secondary)] transition-colors">
+                    <tr key={plan.id} className="border-b border-border hover:bg-muted transition-colors">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: plan.color }} />
@@ -523,12 +523,12 @@ export default function PlansPage() {
                 type="color"
                 value={form.color}
                 onChange={(e) => setForm({ ...form, color: e.target.value })}
-                className="w-8 h-8 rounded border border-[var(--border)] cursor-pointer"
+                className="w-8 h-8 rounded border border-border cursor-pointer"
               />
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button variant="secondary" type="button" onClick={closeForm}>
+            <Button variant="outline" type="button" onClick={closeForm}>
               Cancel
             </Button>
             <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>
@@ -541,13 +541,13 @@ export default function PlansPage() {
       {/* Delete Confirmation */}
       <Modal open={!!deleteId} onClose={() => setDeleteId(null)} title="Delete Plan" size="sm">
         <ModalBody>
-          <p className="text-sm text-[var(--text-muted)]">
+          <p className="text-sm text-muted-foreground">
             Are you sure you want to delete this plan? This action cannot be undone.
           </p>
         </ModalBody>
         <ModalFooter>
-          <Button variant="secondary" onClick={() => setDeleteId(null)}>Cancel</Button>
-          <Button variant="danger" loading={deleteMutation.isPending} onClick={() => deleteId && deleteMutation.mutate(deleteId)}>
+          <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
+          <Button variant="destructive" loading={deleteMutation.isPending} onClick={() => deleteId && deleteMutation.mutate(deleteId)}>
             Delete
           </Button>
         </ModalFooter>

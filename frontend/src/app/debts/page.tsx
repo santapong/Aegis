@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Modal, ModalBody, ModalFooter } from "@/components/ui/modal";
-import { Card, CardBody, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -141,28 +141,28 @@ export default function DebtsPage() {
       {/* Summary Cards */}
       <motion.div variants={staggerItem} className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <Card>
-          <CardBody>
-            <p className="text-sm text-[var(--text-muted)]">Total Debt</p>
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">Total Debt</p>
             <p className="text-2xl font-bold text-red-500 mt-1">{formatCurrency(totalDebt)}</p>
-          </CardBody>
+          </CardContent>
         </Card>
         <Card>
-          <CardBody>
-            <p className="text-sm text-[var(--text-muted)]">Monthly Minimum</p>
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">Monthly Minimum</p>
             <p className="text-2xl font-bold mt-1">{formatCurrency(totalMinPayments)}</p>
-          </CardBody>
+          </CardContent>
         </Card>
         <Card>
-          <CardBody>
-            <p className="text-sm text-[var(--text-muted)]">Avg Interest Rate</p>
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">Avg Interest Rate</p>
             <p className="text-2xl font-bold mt-1">{avgRate.toFixed(1)}%</p>
-          </CardBody>
+          </CardContent>
         </Card>
         <Card>
-          <CardBody>
-            <p className="text-sm text-[var(--text-muted)]">Debts Count</p>
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">Debts Count</p>
             <p className="text-2xl font-bold mt-1">{debts?.length ?? 0}</p>
-          </CardBody>
+          </CardContent>
         </Card>
       </motion.div>
 
@@ -187,7 +187,7 @@ export default function DebtsPage() {
                   return (
                     <motion.div key={debt.id} variants={staggerItem}>
                       <Card>
-                        <CardBody>
+                        <CardContent className="p-6">
                           <div className="flex items-start justify-between">
                             <div className="flex items-center gap-3">
                               <div className="p-2 rounded-lg" style={{ backgroundColor: debt.color + "20" }}>
@@ -197,8 +197,8 @@ export default function DebtsPage() {
                                 <h3 className="font-semibold">{debt.name}</h3>
                                 <div className="flex items-center gap-2 mt-0.5">
                                   <Badge variant="neutral">{debtTypeLabels[debt.debt_type] || debt.debt_type}</Badge>
-                                  <span className="text-xs text-[var(--text-muted)]">{debt.interest_rate}% APR</span>
-                                  {debt.due_date && <span className="text-xs text-[var(--text-muted)]">Due: {debt.due_date}</span>}
+                                  <span className="text-xs text-muted-foreground">{debt.interest_rate}% APR</span>
+                                  {debt.due_date && <span className="text-xs text-muted-foreground">Due: {debt.due_date}</span>}
                                 </div>
                               </div>
                             </div>
@@ -215,9 +215,9 @@ export default function DebtsPage() {
                           <div className="mt-4">
                             <div className="flex justify-between text-sm mb-1">
                               <span className="font-medium text-red-500">{formatCurrency(debt.balance)} remaining</span>
-                              <span className="text-[var(--text-muted)]">of {formatCurrency(debt.original_balance)}</span>
+                              <span className="text-muted-foreground">of {formatCurrency(debt.original_balance)}</span>
                             </div>
-                            <div className="w-full bg-[var(--bg-secondary)] rounded-full h-2">
+                            <div className="w-full bg-muted rounded-full h-2">
                               <motion.div
                                 className="h-2 rounded-full bg-green-500"
                                 initial={{ width: 0 }}
@@ -227,10 +227,10 @@ export default function DebtsPage() {
                             </div>
                             <div className="flex justify-between mt-1">
                               <span className="text-xs text-green-500">{paidOff.toFixed(0)}% paid off</span>
-                              <span className="text-xs text-[var(--text-muted)]">Min payment: {formatCurrency(debt.minimum_payment)}/mo</span>
+                              <span className="text-xs text-muted-foreground">Min payment: {formatCurrency(debt.minimum_payment)}/mo</span>
                             </div>
                           </div>
-                        </CardBody>
+                        </CardContent>
                       </Card>
                     </motion.div>
                   );
@@ -249,7 +249,7 @@ export default function DebtsPage() {
           <TabPanel value="payoff">
             <div className="space-y-4">
               <Card>
-                <CardBody>
+                <CardContent className="p-6">
                   <div className="flex flex-wrap items-end gap-4">
                     <Select
                       label="Strategy"
@@ -270,7 +270,7 @@ export default function DebtsPage() {
                       step="50"
                     />
                   </div>
-                </CardBody>
+                </CardContent>
               </Card>
 
               {payoffPlan && (
@@ -281,23 +281,23 @@ export default function DebtsPage() {
                       <h2 className="text-lg font-semibold">Payoff Summary</h2>
                     </div>
                   </CardHeader>
-                  <CardBody>
+                  <CardContent>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                       <div>
-                        <p className="text-sm text-[var(--text-muted)]">Time to Debt Free</p>
+                        <p className="text-sm text-muted-foreground">Time to Debt Free</p>
                         <p className="text-xl font-bold">{payoffPlan.total_months} months</p>
-                        <p className="text-xs text-[var(--text-muted)]">{(payoffPlan.total_months / 12).toFixed(1)} years</p>
+                        <p className="text-xs text-muted-foreground">{(payoffPlan.total_months / 12).toFixed(1)} years</p>
                       </div>
                       <div>
-                        <p className="text-sm text-[var(--text-muted)]">Total Interest</p>
+                        <p className="text-sm text-muted-foreground">Total Interest</p>
                         <p className="text-xl font-bold text-red-500">{formatCurrency(payoffPlan.total_interest)}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-[var(--text-muted)]">Total to Pay</p>
+                        <p className="text-sm text-muted-foreground">Total to Pay</p>
                         <p className="text-xl font-bold">{formatCurrency(payoffPlan.total_paid)}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-[var(--text-muted)]">Strategy</p>
+                        <p className="text-sm text-muted-foreground">Strategy</p>
                         <p className="text-xl font-bold capitalize">{payoffPlan.strategy}</p>
                       </div>
                     </div>
@@ -307,8 +307,8 @@ export default function DebtsPage() {
                         <h3 className="font-medium text-sm mb-2">Monthly Breakdown (first 12 months)</h3>
                         <div className="max-h-[300px] overflow-y-auto">
                           <table className="w-full text-sm">
-                            <thead className="sticky top-0 bg-[var(--bg-card)]">
-                              <tr className="border-b border-[var(--border)]">
+                            <thead className="sticky top-0 bg-card">
+                              <tr className="border-b border-border">
                                 <th className="text-left py-2 px-2">Month</th>
                                 <th className="text-left py-2 px-2">Debt</th>
                                 <th className="text-right py-2 px-2">Payment</th>
@@ -320,7 +320,7 @@ export default function DebtsPage() {
                               {payoffPlan.monthly_steps
                                 .filter((s) => s.month <= 12)
                                 .map((step, i) => (
-                                  <tr key={i} className="border-b border-[var(--border)]">
+                                  <tr key={i} className="border-b border-border">
                                     <td className="py-1.5 px-2">{step.month}</td>
                                     <td className="py-1.5 px-2">{step.debt_name}</td>
                                     <td className="py-1.5 px-2 text-right">{formatCurrency(step.payment)}</td>
@@ -333,7 +333,7 @@ export default function DebtsPage() {
                         </div>
                       </div>
                     )}
-                  </CardBody>
+                  </CardContent>
                 </Card>
               )}
             </div>
@@ -366,7 +366,7 @@ export default function DebtsPage() {
             <Textarea label="Description (optional)" placeholder="Notes..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           </ModalBody>
           <ModalFooter>
-            <Button variant="secondary" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
+            <Button variant="outline" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
             <Button type="submit" loading={createMutation.isPending}>Add Debt</Button>
           </ModalFooter>
         </form>
@@ -377,14 +377,14 @@ export default function DebtsPage() {
         <ModalBody>
           {paymentDebt && (
             <div className="space-y-4">
-              <p className="text-sm text-[var(--text-muted)]">Payment for <strong>{paymentDebt.name}</strong></p>
+              <p className="text-sm text-muted-foreground">Payment for <strong>{paymentDebt.name}</strong></p>
               <p className="text-sm">Current balance: {formatCurrency(paymentDebt.balance)}</p>
               <Input label="Payment Amount" type="number" placeholder={String(paymentDebt.minimum_payment)} value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} min="0" step="0.01" />
             </div>
           )}
         </ModalBody>
         <ModalFooter>
-          <Button variant="secondary" onClick={() => setPaymentDebt(null)}>Cancel</Button>
+          <Button variant="outline" onClick={() => setPaymentDebt(null)}>Cancel</Button>
           <Button loading={paymentMutation.isPending} onClick={() => { if (paymentDebt && paymentAmount) paymentMutation.mutate({ id: paymentDebt.id, amount: parseFloat(paymentAmount) }); }}>
             Record Payment
           </Button>
@@ -394,11 +394,11 @@ export default function DebtsPage() {
       {/* Delete Confirmation */}
       <Modal open={!!deleteId} onClose={() => setDeleteId(null)} title="Delete Debt" size="sm">
         <ModalBody>
-          <p className="text-sm text-[var(--text-muted)]">Are you sure? This action cannot be undone.</p>
+          <p className="text-sm text-muted-foreground">Are you sure? This action cannot be undone.</p>
         </ModalBody>
         <ModalFooter>
-          <Button variant="secondary" onClick={() => setDeleteId(null)}>Cancel</Button>
-          <Button variant="danger" loading={deleteMutation.isPending} onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Delete</Button>
+          <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
+          <Button variant="destructive" loading={deleteMutation.isPending} onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Delete</Button>
         </ModalFooter>
       </Modal>
     </motion.div>

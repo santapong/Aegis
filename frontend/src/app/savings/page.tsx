@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Modal, ModalBody, ModalFooter } from "@/components/ui/modal";
-import { Card, CardBody } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus, PiggyBank, Trash2, DollarSign, Target } from "lucide-react";
@@ -111,22 +111,22 @@ export default function SavingsPage() {
       {/* Summary Cards */}
       <motion.div variants={staggerItem} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
-          <CardBody>
-            <p className="text-sm text-[var(--text-muted)]">Total Saved</p>
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">Total Saved</p>
             <p className="text-2xl font-bold text-green-500 mt-1">{formatCurrency(totalSaved)}</p>
-          </CardBody>
+          </CardContent>
         </Card>
         <Card>
-          <CardBody>
-            <p className="text-sm text-[var(--text-muted)]">Total Target</p>
-            <p className="text-2xl font-bold text-blue-500 mt-1">{formatCurrency(totalTarget)}</p>
-          </CardBody>
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">Total Target</p>
+            <p className="text-2xl font-bold text-primary mt-1">{formatCurrency(totalTarget)}</p>
+          </CardContent>
         </Card>
         <Card>
-          <CardBody>
-            <p className="text-sm text-[var(--text-muted)]">Overall Progress</p>
+          <CardContent className="p-6">
+            <p className="text-sm text-muted-foreground">Overall Progress</p>
             <p className="text-2xl font-bold mt-1">{totalTarget > 0 ? Math.round((totalSaved / totalTarget) * 100) : 0}%</p>
-          </CardBody>
+          </CardContent>
         </Card>
       </motion.div>
 
@@ -144,7 +144,7 @@ export default function SavingsPage() {
               return (
                 <motion.div key={goal.id} variants={staggerItem}>
                   <Card className={isComplete ? "border-green-500/30" : ""}>
-                    <CardBody>
+                    <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2">
                           <div className="p-2 rounded-lg" style={{ backgroundColor: goal.color + "20" }}>
@@ -152,7 +152,7 @@ export default function SavingsPage() {
                           </div>
                           <div>
                             <h3 className="font-semibold text-sm">{goal.name}</h3>
-                            <p className="text-xs text-[var(--text-muted)] capitalize">{goal.category}</p>
+                            <p className="text-xs text-muted-foreground capitalize">{goal.category}</p>
                           </div>
                         </div>
                         <button onClick={() => setDeleteId(goal.id)} className="text-red-500 hover:text-red-700 p-1">
@@ -161,15 +161,15 @@ export default function SavingsPage() {
                       </div>
 
                       {goal.description && (
-                        <p className="text-xs text-[var(--text-muted)] mb-3">{goal.description}</p>
+                        <p className="text-xs text-muted-foreground mb-3">{goal.description}</p>
                       )}
 
                       <div className="mb-3">
                         <div className="flex justify-between text-sm mb-1">
                           <span>{formatCurrency(goal.current_amount)}</span>
-                          <span className="text-[var(--text-muted)]">{formatCurrency(goal.target_amount)}</span>
+                          <span className="text-muted-foreground">{formatCurrency(goal.target_amount)}</span>
                         </div>
-                        <div className="w-full bg-[var(--bg-secondary)] rounded-full h-2.5">
+                        <div className="w-full bg-muted rounded-full h-2.5">
                           <motion.div
                             className="h-2.5 rounded-full"
                             style={{ backgroundColor: isComplete ? "#22C55E" : goal.color }}
@@ -183,7 +183,7 @@ export default function SavingsPage() {
                             {progress.toFixed(0)}%
                           </span>
                           {goal.deadline && (
-                            <span className="text-xs text-[var(--text-muted)]">Due: {goal.deadline}</span>
+                            <span className="text-xs text-muted-foreground">Due: {goal.deadline}</span>
                           )}
                         </div>
                       </div>
@@ -202,7 +202,7 @@ export default function SavingsPage() {
                       {isComplete && (
                         <div className="text-center text-sm font-medium text-green-500 py-1">Goal Reached!</div>
                       )}
-                    </CardBody>
+                    </CardContent>
                   </Card>
                 </motion.div>
               );
@@ -283,7 +283,7 @@ export default function SavingsPage() {
             />
           </ModalBody>
           <ModalFooter>
-            <Button variant="secondary" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
+            <Button variant="outline" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
             <Button type="submit" loading={createMutation.isPending}>Create</Button>
           </ModalFooter>
         </form>
@@ -294,7 +294,7 @@ export default function SavingsPage() {
         <ModalBody>
           {contributeGoal && (
             <div className="space-y-4">
-              <p className="text-sm text-[var(--text-muted)]">
+              <p className="text-sm text-muted-foreground">
                 Contributing to <strong>{contributeGoal.name}</strong>
               </p>
               <p className="text-sm">
@@ -313,7 +313,7 @@ export default function SavingsPage() {
           )}
         </ModalBody>
         <ModalFooter>
-          <Button variant="secondary" onClick={() => setContributeGoal(null)}>Cancel</Button>
+          <Button variant="outline" onClick={() => setContributeGoal(null)}>Cancel</Button>
           <Button
             loading={contributeMutation.isPending}
             onClick={() => {
@@ -330,11 +330,11 @@ export default function SavingsPage() {
       {/* Delete Confirmation */}
       <Modal open={!!deleteId} onClose={() => setDeleteId(null)} title="Delete Savings Goal" size="sm">
         <ModalBody>
-          <p className="text-sm text-[var(--text-muted)]">Are you sure? This action cannot be undone.</p>
+          <p className="text-sm text-muted-foreground">Are you sure? This action cannot be undone.</p>
         </ModalBody>
         <ModalFooter>
-          <Button variant="secondary" onClick={() => setDeleteId(null)}>Cancel</Button>
-          <Button variant="danger" loading={deleteMutation.isPending} onClick={() => deleteId && deleteMutation.mutate(deleteId)}>
+          <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
+          <Button variant="destructive" loading={deleteMutation.isPending} onClick={() => deleteId && deleteMutation.mutate(deleteId)}>
             Delete
           </Button>
         </ModalFooter>

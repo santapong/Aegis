@@ -15,7 +15,7 @@ import {
 import { ChevronLeft, ChevronRight, GanttChart } from "lucide-react";
 import { cn, getPriorityColor, formatCurrency } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
-import { Card, CardBody } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { staggerContainer, staggerItem } from "@/lib/animations";
@@ -80,18 +80,18 @@ export default function GanttPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentDate((d) => addDays(d, -30))}
-                className="p-2 rounded-lg hover:bg-[var(--bg-secondary)] border border-[var(--border)]"
+                className="p-2 rounded-lg hover:bg-muted border border-border"
               >
                 <ChevronLeft size={18} />
               </button>
               <span className="text-sm font-medium px-3">{format(currentDate, "MMMM yyyy")}</span>
               <button
                 onClick={() => setCurrentDate((d) => addDays(d, 30))}
-                className="p-2 rounded-lg hover:bg-[var(--bg-secondary)] border border-[var(--border)]"
+                className="p-2 rounded-lg hover:bg-muted border border-border"
               >
                 <ChevronRight size={18} />
               </button>
-              <div className="ml-2 flex items-center gap-1 border border-[var(--border)] rounded-lg p-0.5">
+              <div className="ml-2 flex items-center gap-1 border border-border rounded-lg p-0.5">
                 {(["day", "week", "month"] as ZoomLevel[]).map((level) => (
                   <button
                     key={level}
@@ -99,8 +99,8 @@ export default function GanttPage() {
                     className={cn(
                       "px-3 py-1 rounded-md text-xs font-medium transition-colors capitalize",
                       zoom === level
-                        ? "bg-[var(--primary)] text-white"
-                        : "text-[var(--text-muted)] hover:bg-[var(--bg-secondary)]"
+                        ? "bg-primary text-white"
+                        : "text-muted-foreground hover:bg-muted"
                     )}
                   >
                     {level}
@@ -117,14 +117,14 @@ export default function GanttPage() {
         <Card className="overflow-hidden">
           <div className="flex">
             {/* Task labels */}
-            <div className="w-[250px] flex-shrink-0 border-r border-[var(--border)]">
-              <div className="h-12 px-4 flex items-center border-b border-[var(--border)] bg-[var(--bg-secondary)]">
-                <span className="text-xs font-semibold text-[var(--text-muted)] uppercase">Task</span>
+            <div className="w-[250px] flex-shrink-0 border-r border-border">
+              <div className="h-12 px-4 flex items-center border-b border-border bg-muted">
+                <span className="text-xs font-semibold text-muted-foreground uppercase">Task</span>
               </div>
               {tasks.map((task) => (
                 <div
                   key={task.id}
-                  className="h-12 px-4 flex items-center border-b border-[var(--border)] hover:bg-[var(--bg-secondary)] transition-colors"
+                  className="h-12 px-4 flex items-center border-b border-border hover:bg-muted transition-colors"
                   onMouseEnter={() => setHoveredTask(task.id)}
                   onMouseLeave={() => setHoveredTask(null)}
                 >
@@ -141,11 +141,11 @@ export default function GanttPage() {
 
             {/* Timeline */}
             <div className="flex-1 overflow-x-auto">
-              <div className="h-12 flex border-b border-[var(--border)] bg-[var(--bg-secondary)]">
+              <div className="h-12 flex border-b border-border bg-muted">
                 {timelineDays.map((day, i) => (
                   <div
                     key={i}
-                    className="flex-shrink-0 flex items-center justify-center border-r border-[var(--border)] text-xs text-[var(--text-muted)]"
+                    className="flex-shrink-0 flex items-center justify-center border-r border-border text-xs text-muted-foreground"
                     style={{ width: dayWidth }}
                   >
                     {zoom === "day"
@@ -166,7 +166,7 @@ export default function GanttPage() {
                   return (
                     <div
                       key={task.id}
-                      className="h-12 relative border-b border-[var(--border)]"
+                      className="h-12 relative border-b border-border"
                       onMouseEnter={() => setHoveredTask(task.id)}
                       onMouseLeave={() => setHoveredTask(null)}
                     >
@@ -174,7 +174,7 @@ export default function GanttPage() {
                         {timelineDays.map((_, i) => (
                           <div
                             key={i}
-                            className="flex-shrink-0 border-r border-[var(--border)]/30"
+                            className="flex-shrink-0 border-r border-border/30"
                             style={{ width: dayWidth }}
                           />
                         ))}
@@ -199,9 +199,9 @@ export default function GanttPage() {
 
                       {/* Hover tooltip */}
                       {isHovered && (
-                        <div className="absolute left-1/2 top-12 -translate-x-1/2 z-30 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg shadow-lg p-3 min-w-[200px]">
+                        <div className="absolute left-1/2 top-12 -translate-x-1/2 z-30 bg-card border border-border rounded-lg shadow-lg p-3 min-w-[200px]">
                           <p className="font-medium text-sm mb-1">{task.title}</p>
-                          <div className="space-y-1 text-xs text-[var(--text-muted)]">
+                          <div className="space-y-1 text-xs text-muted-foreground">
                             <p>Start: {task.start}</p>
                             <p>End: {task.end}</p>
                             <p>Progress: {task.progress}%</p>
@@ -230,7 +230,7 @@ export default function GanttPage() {
         ) : (
           tasks.map((task) => (
             <Card key={task.id}>
-              <CardBody>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: getPriorityColor(task.priority) }} />
@@ -238,11 +238,11 @@ export default function GanttPage() {
                   </div>
                   <Badge variant={statusBadgeVariant[task.status]}>{task.status.replace("_", " ")}</Badge>
                 </div>
-                <div className="flex items-center justify-between text-xs text-[var(--text-muted)] mb-2">
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
                   <span>{task.start} - {task.end}</span>
                   <span>{task.progress}%</span>
                 </div>
-                <div className="w-full bg-[var(--bg-secondary)] rounded-full h-2">
+                <div className="w-full bg-muted rounded-full h-2">
                   <motion.div
                     className={cn("h-2 rounded-full", statusColors[task.status])}
                     initial={{ width: 0 }}
@@ -250,14 +250,14 @@ export default function GanttPage() {
                     transition={{ duration: 0.6 }}
                   />
                 </div>
-              </CardBody>
+              </CardContent>
             </Card>
           ))
         )}
       </motion.div>
 
       {/* Legend */}
-      <motion.div variants={staggerItem} className="flex items-center gap-6 text-xs text-[var(--text-muted)]">
+      <motion.div variants={staggerItem} className="flex items-center gap-6 text-xs text-muted-foreground">
         {Object.entries(statusColors).map(([status, color]) => (
           <div key={status} className="flex items-center gap-1.5">
             <div className={cn("w-3 h-3 rounded", color)} />
