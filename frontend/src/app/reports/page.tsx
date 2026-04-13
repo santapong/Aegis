@@ -8,7 +8,7 @@ import { SpendingChart } from "@/components/charts/spending-chart";
 import { TrendChart } from "@/components/charts/trend-chart";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardBody } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { staggerContainer, staggerItem } from "@/lib/animations";
@@ -27,9 +27,17 @@ import { Download, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import type { CategoryComparisonMonth } from "@/types";
 
 const CATEGORY_COLORS = [
-  "#EF4444", "#3B82F6", "#22C55E", "#F59E0B", "#8B5CF6",
+  "#EF4444", "#6366f1", "#22C55E", "#F59E0B", "#8B5CF6",
   "#EC4899", "#06B6D4", "#6366F1", "#10B981", "#6B7280",
 ];
+
+const glassTooltipStyle = {
+  background: "var(--card)",
+  border: "1px solid var(--border)",
+  borderRadius: "12px",
+  boxShadow: "0 10px 15px -3px rgba(0,0,0,0.08)",
+  padding: "8px 12px",
+};
 
 export default function ReportsPage() {
   const [exporting, setExporting] = useState(false);
@@ -114,7 +122,7 @@ export default function ReportsPage() {
                   value={dateRange.start}
                   onChange={(e) => setDateRange((r) => ({ ...r, start: e.target.value }))}
                 />
-                <span className="text-[var(--text-muted)]">to</span>
+                <span className="text-muted-foreground">to</span>
                 <Input
                   type="date"
                   value={dateRange.end}
@@ -143,47 +151,47 @@ export default function ReportsPage() {
           </div>
         ) : summary ? (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Card><CardBody>
-              <p className="text-sm text-[var(--text-muted)]">Total Income</p>
+            <Card><CardContent className="p-6">
+              <p className="text-sm text-muted-foreground">Total Income</p>
               <p className="text-2xl font-bold text-green-500 mt-1">{formatCurrency(summary.total_income)}</p>
-            </CardBody></Card>
-            <Card><CardBody>
-              <p className="text-sm text-[var(--text-muted)]">Total Expenses</p>
+            </CardContent></Card>
+            <Card><CardContent className="p-6">
+              <p className="text-sm text-muted-foreground">Total Expenses</p>
               <p className="text-2xl font-bold text-red-500 mt-1">{formatCurrency(summary.total_expenses)}</p>
-            </CardBody></Card>
-            <Card><CardBody>
-              <p className="text-sm text-[var(--text-muted)]">Net Savings</p>
+            </CardContent></Card>
+            <Card><CardContent className="p-6">
+              <p className="text-sm text-muted-foreground">Net Savings</p>
               <p className={`text-2xl font-bold mt-1 ${summary.net >= 0 ? "text-green-500" : "text-red-500"}`}>
                 {formatCurrency(summary.net)}
               </p>
-            </CardBody></Card>
+            </CardContent></Card>
           </div>
         ) : null}
       </motion.div>
 
       {/* Charts */}
       <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card><CardBody>
+        <Card><CardContent className="p-6">
           <h2 className="text-lg font-semibold mb-4">Spending by Category</h2>
           {chartsLoading ? <Skeleton height={300} /> : <SpendingChart data={categoryData} />}
-        </CardBody></Card>
-        <Card><CardBody>
+        </CardContent></Card>
+        <Card><CardContent className="p-6">
           <h2 className="text-lg font-semibold mb-4">Income vs Expenses</h2>
           {chartsLoading ? <Skeleton height={300} /> : <TrendChart data={charts?.monthly_trend ?? []} />}
-        </CardBody></Card>
+        </CardContent></Card>
       </motion.div>
 
       {/* Monthly Category Comparison Chart */}
       {comparisonChartData.length > 0 && (
         <motion.div variants={staggerItem}>
-          <Card><CardBody>
+          <Card><CardContent className="p-6">
             <h2 className="text-lg font-semibold mb-4">Monthly Category Comparison</h2>
             <ResponsiveContainer width="100%" height={350}>
               <BarChart data={comparisonChartData}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                 <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                <Tooltip formatter={(value: number) => formatCurrency(value)} contentStyle={glassTooltipStyle} />
                 <Legend />
                 {allCategories.map((cat, i) => (
                   <Bar
@@ -196,7 +204,7 @@ export default function ReportsPage() {
                 ))}
               </BarChart>
             </ResponsiveContainer>
-          </CardBody></Card>
+          </CardContent></Card>
         </motion.div>
       )}
 
@@ -208,16 +216,16 @@ export default function ReportsPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-[var(--border)] bg-[var(--bg-secondary)]">
-                    <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Category</th>
+                  <tr className="border-b border-border bg-muted">
+                    <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Category</th>
                     {categoryComparison.map((m) => (
-                      <th key={m.month} className="text-right px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">{m.month}</th>
+                      <th key={m.month} className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">{m.month}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {allCategories.map((cat) => (
-                    <tr key={cat} className="border-b border-[var(--border)] hover:bg-[var(--bg-secondary)]">
+                    <tr key={cat} className="border-b border-border hover:bg-muted">
                       <td className="px-4 py-3 text-sm font-medium capitalize">{cat}</td>
                       {categoryComparison.map((m, i) => {
                         const amount = m.categories[cat] || 0;
@@ -226,7 +234,7 @@ export default function ReportsPage() {
                           <td key={m.month} className="px-4 py-3 text-sm text-right">
                             <div>{formatCurrency(amount)}</div>
                             {change !== undefined && change !== null && (
-                              <div className={`flex items-center justify-end gap-0.5 text-xs ${change > 0 ? "text-red-500" : change < 0 ? "text-green-500" : "text-[var(--text-muted)]"}`}>
+                              <div className={`flex items-center justify-end gap-0.5 text-xs ${change > 0 ? "text-red-500" : change < 0 ? "text-green-500" : "text-muted-foreground"}`}>
                                 {change > 0 ? <ArrowUp size={10} /> : change < 0 ? <ArrowDown size={10} /> : <Minus size={10} />}
                                 {Math.abs(change)}%
                               </div>
@@ -250,20 +258,20 @@ export default function ReportsPage() {
             <CardHeader><h2 className="text-lg font-semibold">Category Breakdown</h2></CardHeader>
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[var(--border)] bg-[var(--bg-secondary)]">
-                  <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Category</th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Amount</th>
-                  <th className="text-right px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">% of Total</th>
+                <tr className="border-b border-border bg-muted">
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Category</th>
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Amount</th>
+                  <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">% of Total</th>
                 </tr>
               </thead>
               <tbody>
                 {Object.entries(summary.by_category)
                   .sort(([, a], [, b]) => b - a)
                   .map(([category, amount]) => (
-                    <tr key={category} className="border-b border-[var(--border)] hover:bg-[var(--bg-secondary)]">
+                    <tr key={category} className="border-b border-border hover:bg-muted">
                       <td className="px-4 py-3 text-sm capitalize">{category}</td>
                       <td className="px-4 py-3 text-sm text-right font-medium">{formatCurrency(amount)}</td>
-                      <td className="px-4 py-3 text-sm text-right text-[var(--text-muted)]">
+                      <td className="px-4 py-3 text-sm text-right text-muted-foreground">
                         {((amount / (summary.total_income + summary.total_expenses)) * 100).toFixed(1)}%
                       </td>
                     </tr>
