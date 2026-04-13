@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 import { PageHeader } from "@/components/ui/page-header";
-import { Card, CardBody } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabList, Tab, TabPanel } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -125,19 +125,19 @@ export default function DocsPage() {
           <TabPanel value="guide">
             <div className="space-y-6">
               <Card>
-                <CardBody>
+                <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 rounded-lg bg-blue-500/10">
                       <Shield size={20} className="text-blue-500" />
                     </div>
                     <h3 className="text-lg font-semibold">Welcome to Aegis</h3>
                   </div>
-                  <p className="text-sm text-[var(--text-muted)] leading-relaxed">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
                     Aegis is an AI-powered financial planning platform that helps you manage your money
                     with smart budgets, transaction tracking, financial goals, and intelligent recommendations
                     powered by Claude AI.
                   </p>
-                </CardBody>
+                </CardContent>
               </Card>
 
               {[
@@ -173,17 +173,17 @@ export default function DocsPage() {
                 },
               ].map(({ icon: Icon, title, desc }) => (
                 <Card key={title}>
-                  <CardBody>
+                  <CardContent className="p-6">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 rounded-lg bg-[var(--bg-secondary)] shrink-0">
-                        <Icon size={18} className="text-[var(--primary)]" />
+                      <div className="p-2 rounded-lg bg-muted shrink-0">
+                        <Icon size={18} className="text-primary" />
                       </div>
                       <div>
                         <h4 className="font-semibold mb-1">{title}</h4>
-                        <p className="text-sm text-[var(--text-muted)] leading-relaxed">{desc}</p>
+                        <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
                       </div>
                     </div>
-                  </CardBody>
+                  </CardContent>
                 </Card>
               ))}
             </div>
@@ -193,43 +193,43 @@ export default function DocsPage() {
           <TabPanel value="api">
             <div className="space-y-6">
               <Card>
-                <CardBody>
+                <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="p-2 rounded-lg bg-green-500/10">
                       <Server size={20} className="text-green-500" />
                     </div>
                     <h3 className="text-lg font-semibold">REST API</h3>
                   </div>
-                  <p className="text-sm text-[var(--text-muted)]">
-                    Base URL: <code className="px-1.5 py-0.5 rounded bg-[var(--bg-secondary)] text-xs font-mono">http://localhost:8000</code>
+                  <p className="text-sm text-muted-foreground">
+                    Base URL: <code className="px-1.5 py-0.5 rounded bg-muted text-xs font-mono">http://localhost:8000</code>
                     {" · "}
                     Interactive docs at{" "}
-                    <code className="px-1.5 py-0.5 rounded bg-[var(--bg-secondary)] text-xs font-mono">/docs</code>
+                    <code className="px-1.5 py-0.5 rounded bg-muted text-xs font-mono">/docs</code>
                     {" "}(Swagger UI) and{" "}
-                    <code className="px-1.5 py-0.5 rounded bg-[var(--bg-secondary)] text-xs font-mono">/redoc</code>
+                    <code className="px-1.5 py-0.5 rounded bg-muted text-xs font-mono">/redoc</code>
                   </p>
-                </CardBody>
+                </CardContent>
               </Card>
 
               {apiEndpoints.map((group) => (
                 <Card key={group.group}>
-                  <CardBody>
+                  <CardContent className="p-6">
                     <h4 className="font-semibold mb-3">{group.group}</h4>
                     <div className="space-y-2">
                       {group.endpoints.map((ep) => (
                         <div
                           key={`${ep.method}-${ep.path}`}
-                          className="flex items-center gap-3 py-2 px-3 rounded-lg bg-[var(--bg-secondary)]/50 hover:bg-[var(--bg-secondary)] transition-colors"
+                          className="flex items-center gap-3 py-2 px-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
                         >
                           <Badge variant={methodColors[ep.method] as "info" | "success" | "warning" | "danger"}>
                             {ep.method}
                           </Badge>
-                          <code className="text-xs font-mono text-[var(--text)] shrink-0">{ep.path}</code>
-                          <span className="text-xs text-[var(--text-muted)] hidden sm:inline ml-auto">{ep.desc}</span>
+                          <code className="text-xs font-mono text-foreground shrink-0">{ep.path}</code>
+                          <span className="text-xs text-muted-foreground hidden sm:inline ml-auto">{ep.desc}</span>
                         </div>
                       ))}
                     </div>
-                  </CardBody>
+                  </CardContent>
                 </Card>
               ))}
             </div>
@@ -240,7 +240,7 @@ export default function DocsPage() {
             <div className="space-y-6">
               {/* Quick Start */}
               <Card>
-                <CardBody>
+                <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 rounded-lg bg-purple-500/10">
                       <Rocket size={20} className="text-purple-500" />
@@ -255,13 +255,13 @@ export default function DocsPage() {
                       { step: "4", cmd: null, label: "Open http://localhost:3000 in your browser" },
                     ].map(({ step, cmd, label }) => (
                       <div key={step} className="flex items-start gap-3">
-                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-[var(--primary)] text-white text-xs font-bold shrink-0 mt-0.5">
+                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-primary text-white text-xs font-bold shrink-0 mt-0.5">
                           {step}
                         </span>
                         <div>
                           <p className="text-sm font-medium">{label}</p>
                           {cmd && (
-                            <code className="text-xs font-mono text-[var(--text-muted)] bg-[var(--bg-secondary)] px-2 py-1 rounded mt-1 inline-block">
+                            <code className="text-xs font-mono text-muted-foreground bg-muted px-2 py-1 rounded mt-1 inline-block">
                               {cmd}
                             </code>
                           )}
@@ -269,20 +269,20 @@ export default function DocsPage() {
                       </div>
                     ))}
                   </div>
-                </CardBody>
+                </CardContent>
               </Card>
 
               {/* Database Configuration */}
               <Card>
-                <CardBody>
+                <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 rounded-lg bg-orange-500/10">
                       <Database size={20} className="text-orange-500" />
                     </div>
                     <h3 className="text-lg font-semibold">Database Configuration</h3>
                   </div>
-                  <p className="text-sm text-[var(--text-muted)] mb-4">
-                    Aegis supports PostgreSQL, MySQL, and SQLite. Set the <code className="px-1.5 py-0.5 rounded bg-[var(--bg-secondary)] text-xs font-mono">DATABASE_URL</code> environment variable to connect to your preferred database.
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Aegis supports PostgreSQL, MySQL, and SQLite. Set the <code className="px-1.5 py-0.5 rounded bg-muted text-xs font-mono">DATABASE_URL</code> environment variable to connect to your preferred database.
                   </p>
                   <div className="space-y-3">
                     {[
@@ -290,24 +290,24 @@ export default function DocsPage() {
                       { db: "PostgreSQL", url: "postgresql://user:pass@host:5432/dbname", note: "Recommended for production" },
                       { db: "MySQL", url: "mysql+pymysql://user:pass@host:3306/dbname", note: "Full MySQL/MariaDB support" },
                     ].map(({ db, url, note }) => (
-                      <div key={db} className="p-3 rounded-lg bg-[var(--bg-secondary)]">
+                      <div key={db} className="p-3 rounded-lg bg-muted">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-sm font-semibold">{db}</span>
-                          <span className="text-xs text-[var(--text-muted)]">— {note}</span>
+                          <span className="text-xs text-muted-foreground">— {note}</span>
                         </div>
-                        <code className="text-xs font-mono text-[var(--text-muted)] break-all">{url}</code>
+                        <code className="text-xs font-mono text-muted-foreground break-all">{url}</code>
                       </div>
                     ))}
                   </div>
-                  <p className="text-xs text-[var(--text-muted)] mt-3">
-                    If you already have a database, simply set DATABASE_URL in your <code className="px-1 py-0.5 rounded bg-[var(--bg-secondary)] font-mono">.env</code> file to connect to it. Tables are auto-created on first startup.
+                  <p className="text-xs text-muted-foreground mt-3">
+                    If you already have a database, simply set DATABASE_URL in your <code className="px-1 py-0.5 rounded bg-muted font-mono">.env</code> file to connect to it. Tables are auto-created on first startup.
                   </p>
-                </CardBody>
+                </CardContent>
               </Card>
 
               {/* Environment Variables */}
               <Card>
-                <CardBody>
+                <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 rounded-lg bg-green-500/10">
                       <Key size={20} className="text-green-500" />
@@ -322,58 +322,58 @@ export default function DocsPage() {
                       { name: "CORS_ORIGINS", desc: "Allowed CORS origins (JSON array)", required: false },
                       { name: "NEXT_PUBLIC_API_URL", desc: "Backend API URL for frontend", required: false },
                     ].map(({ name, desc, required }) => (
-                      <div key={name} className="flex items-center justify-between py-2 px-3 rounded-lg bg-[var(--bg-secondary)]/50">
+                      <div key={name} className="flex items-center justify-between py-2 px-3 rounded-lg bg-muted/50">
                         <div className="flex items-center gap-2">
                           <code className="text-xs font-mono font-semibold">{name}</code>
                           {required && <Badge variant="danger">Required</Badge>}
                         </div>
-                        <span className="text-xs text-[var(--text-muted)]">{desc}</span>
+                        <span className="text-xs text-muted-foreground">{desc}</span>
                       </div>
                     ))}
                   </div>
-                </CardBody>
+                </CardContent>
               </Card>
 
               {/* Development Mode */}
               <Card>
-                <CardBody>
+                <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 rounded-lg bg-blue-500/10">
                       <Code2 size={20} className="text-blue-500" />
                     </div>
                     <h3 className="text-lg font-semibold">Development Mode</h3>
                   </div>
-                  <p className="text-sm text-[var(--text-muted)] mb-3">
+                  <p className="text-sm text-muted-foreground mb-3">
                     For local development with hot reload, use the dev compose override:
                   </p>
-                  <code className="text-xs font-mono bg-[var(--bg-secondary)] px-3 py-2 rounded-lg block">
+                  <code className="text-xs font-mono bg-muted px-3 py-2 rounded-lg block">
                     docker compose -f docker-compose.yml -f docker-compose.dev.yml up
                   </code>
-                  <p className="text-xs text-[var(--text-muted)] mt-3">
+                  <p className="text-xs text-muted-foreground mt-3">
                     This mounts source code as volumes and enables hot reloading for both frontend and backend.
                   </p>
-                </CardBody>
+                </CardContent>
               </Card>
 
               {/* Tech Stack */}
               <Card>
-                <CardBody>
+                <CardContent className="p-6">
                   <h3 className="font-semibold mb-4">Tech Stack</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {[
-                      { category: "Frontend", items: "Next.js 15, React 19, TypeScript, Tailwind CSS 4, Framer Motion, Recharts, Zustand, TanStack Query" },
+                      { category: "Frontend", items: "Next.js 15, React 19, TypeScript, Tailwind CSS 4, shadcn/ui, Framer Motion, Recharts, Zustand, TanStack Query" },
                       { category: "Backend", items: "FastAPI, SQLAlchemy 2.0, Pydantic, Uvicorn" },
                       { category: "Database", items: "PostgreSQL, MySQL, SQLite" },
                       { category: "AI", items: "Claude API (Anthropic)" },
                       { category: "Infrastructure", items: "Docker, Docker Compose, Multi-stage builds" },
                     ].map(({ category, items }) => (
-                      <div key={category} className="p-3 rounded-lg bg-[var(--bg-secondary)]">
+                      <div key={category} className="p-3 rounded-lg bg-muted">
                         <p className="text-sm font-semibold mb-1">{category}</p>
-                        <p className="text-xs text-[var(--text-muted)]">{items}</p>
+                        <p className="text-xs text-muted-foreground">{items}</p>
                       </div>
                     ))}
                   </div>
-                </CardBody>
+                </CardContent>
               </Card>
             </div>
           </TabPanel>

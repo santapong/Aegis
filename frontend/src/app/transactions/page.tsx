@@ -14,7 +14,7 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Modal, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardHeader, CardBody } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabList, Tab, TabPanel } from "@/components/ui/tabs";
@@ -203,7 +203,7 @@ export default function TransactionsPage() {
             <div className="space-y-6">
               {/* Filters */}
               <Card>
-                <CardBody className="!p-4">
+                <CardContent className="p-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     <Select
                       options={[
@@ -222,31 +222,31 @@ export default function TransactionsPage() {
                     <Input type="date" value={filters.start_date} onChange={(e) => setFilters({ ...filters, start_date: e.target.value })} />
                     <Input type="date" value={filters.end_date} onChange={(e) => setFilters({ ...filters, end_date: e.target.value })} />
                   </div>
-                </CardBody>
+                </CardContent>
               </Card>
 
               {/* Summary Cards */}
               {summary && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <Card>
-                    <CardBody>
-                      <p className="text-sm text-[var(--text-muted)]">Total Income</p>
+                    <CardContent className="p-6">
+                      <p className="text-sm text-muted-foreground">Total Income</p>
                       <p className="text-2xl font-bold text-green-500 mt-1">{formatCurrency(summary.total_income)}</p>
-                    </CardBody>
+                    </CardContent>
                   </Card>
                   <Card>
-                    <CardBody>
-                      <p className="text-sm text-[var(--text-muted)]">Total Expenses</p>
+                    <CardContent className="p-6">
+                      <p className="text-sm text-muted-foreground">Total Expenses</p>
                       <p className="text-2xl font-bold text-red-500 mt-1">{formatCurrency(summary.total_expenses)}</p>
-                    </CardBody>
+                    </CardContent>
                   </Card>
                   <Card>
-                    <CardBody>
-                      <p className="text-sm text-[var(--text-muted)]">Net</p>
+                    <CardContent className="p-6">
+                      <p className="text-sm text-muted-foreground">Net</p>
                       <p className={`text-2xl font-bold mt-1 ${summary.net >= 0 ? "text-green-500" : "text-red-500"}`}>
                         {formatCurrency(summary.net)}
                       </p>
-                    </CardBody>
+                    </CardContent>
                   </Card>
                 </div>
               )}
@@ -265,24 +265,24 @@ export default function TransactionsPage() {
                     <div className="hidden sm:block">
                       <table className="w-full">
                         <thead>
-                          <tr className="border-b border-[var(--border)] bg-[var(--bg-secondary)]">
-                            <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Date</th>
-                            <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Description</th>
-                            <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Category</th>
-                            <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Tags</th>
-                            <th className="text-left px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Type</th>
-                            <th className="text-right px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Amount</th>
-                            <th className="text-right px-4 py-3 text-xs font-semibold text-[var(--text-muted)] uppercase">Actions</th>
+                          <tr className="border-b border-border bg-muted">
+                            <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Date</th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Description</th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Category</th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Tags</th>
+                            <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Type</th>
+                            <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Amount</th>
+                            <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
                           {transactions.map((tx) => (
-                            <tr key={tx.id} className="border-b border-[var(--border)] hover:bg-[var(--bg-secondary)] transition-colors">
+                            <tr key={tx.id} className="border-b border-border hover:bg-muted transition-colors">
                               <td className="px-4 py-3 text-sm">
                                 {tx.date}
-                                {tx.is_recurring && <RefreshCw size={12} className="inline ml-1 text-blue-500" />}
+                                {tx.is_recurring && <RefreshCw size={12} className="inline ml-1 text-primary" />}
                               </td>
-                              <td className="px-4 py-3 text-sm text-[var(--text-muted)]">{tx.description || "\u2014"}</td>
+                              <td className="px-4 py-3 text-sm text-muted-foreground">{tx.description || "\u2014"}</td>
                               <td className="px-4 py-3 text-sm capitalize">{tx.category}</td>
                               <td className="px-4 py-3">
                                 <div className="flex gap-1 flex-wrap">
@@ -320,7 +320,7 @@ export default function TransactionsPage() {
                       </table>
                     </div>
                     {/* Mobile cards */}
-                    <div className="sm:hidden divide-y divide-[var(--border)]">
+                    <div className="sm:hidden divide-y divide-border">
                       {transactions.map((tx) => (
                         <div key={tx.id} className="p-4 flex items-center justify-between">
                           <div className="flex items-center gap-3">
@@ -329,7 +329,7 @@ export default function TransactionsPage() {
                             </div>
                             <div>
                               <p className="text-sm font-medium capitalize">{tx.category}</p>
-                              <p className="text-xs text-[var(--text-muted)]">{tx.date}</p>
+                              <p className="text-xs text-muted-foreground">{tx.date}</p>
                               {tx.tags && tx.tags.length > 0 && (
                                 <div className="flex gap-1 mt-1">
                                   {tx.tags.map((tag) => (
@@ -368,22 +368,22 @@ export default function TransactionsPage() {
               {recurring && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <Card>
-                    <CardBody>
-                      <p className="text-sm text-[var(--text-muted)]">Monthly Recurring Cost</p>
+                    <CardContent className="p-6">
+                      <p className="text-sm text-muted-foreground">Monthly Recurring Cost</p>
                       <p className="text-2xl font-bold text-red-500 mt-1">{formatCurrency(recurring.total_monthly_recurring)}</p>
-                    </CardBody>
+                    </CardContent>
                   </Card>
                   <Card>
-                    <CardBody>
-                      <p className="text-sm text-[var(--text-muted)]">Recurring Income</p>
+                    <CardContent className="p-6">
+                      <p className="text-sm text-muted-foreground">Recurring Income</p>
                       <p className="text-2xl font-bold text-green-500 mt-1">{formatCurrency(recurring.recurring_income)}</p>
-                    </CardBody>
+                    </CardContent>
                   </Card>
                   <Card>
-                    <CardBody>
-                      <p className="text-sm text-[var(--text-muted)]">Active Subscriptions</p>
+                    <CardContent className="p-6">
+                      <p className="text-sm text-muted-foreground">Active Subscriptions</p>
                       <p className="text-2xl font-bold mt-1">{recurring.subscriptions.length}</p>
-                    </CardBody>
+                    </CardContent>
                   </Card>
                 </div>
               )}
@@ -392,11 +392,11 @@ export default function TransactionsPage() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-2">
-                      <RefreshCw size={18} className="text-blue-500" />
+                      <RefreshCw size={18} className="text-primary" />
                       <h2 className="text-lg font-semibold">Recurring Transactions</h2>
                     </div>
                   </CardHeader>
-                  <div className="divide-y divide-[var(--border)]">
+                  <div className="divide-y divide-border">
                     {recurring.subscriptions.map((sub) => (
                       <div key={sub.id} className="p-4 flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -408,7 +408,7 @@ export default function TransactionsPage() {
                             <div className="flex gap-2 mt-0.5">
                               <Badge variant="neutral">{sub.recurring_interval || "monthly"}</Badge>
                               {sub.next_due_date && (
-                                <span className="text-xs text-[var(--text-muted)]">Next: {sub.next_due_date}</span>
+                                <span className="text-xs text-muted-foreground">Next: {sub.next_due_date}</span>
                               )}
                             </div>
                           </div>
@@ -459,7 +459,7 @@ export default function TransactionsPage() {
                       className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all border ${
                         form.tag_ids.includes(tag.id)
                           ? "border-transparent shadow-sm"
-                          : "border-[var(--border)] opacity-60 hover:opacity-100"
+                          : "border-border opacity-60 hover:opacity-100"
                       }`}
                       style={form.tag_ids.includes(tag.id) ? { backgroundColor: tag.color + "30", color: tag.color } : {}}
                     >
@@ -476,7 +476,7 @@ export default function TransactionsPage() {
               <button
                 type="button"
                 onClick={() => setForm({ ...form, is_recurring: !form.is_recurring })}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.is_recurring ? "bg-[var(--primary)]" : "bg-[var(--border)]"}`}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.is_recurring ? "bg-primary" : "bg-input"}`}
               >
                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-sm ${form.is_recurring ? "translate-x-6" : "translate-x-1"}`} />
               </button>
@@ -498,7 +498,7 @@ export default function TransactionsPage() {
             )}
           </ModalBody>
           <ModalFooter>
-            <Button variant="secondary" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
+            <Button variant="outline" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
             <Button type="submit" loading={createMutation.isPending}>Create</Button>
           </ModalFooter>
         </form>
@@ -509,13 +509,13 @@ export default function TransactionsPage() {
         <ModalBody>
           {importPreview && (
             <div className="space-y-3">
-              <p className="text-sm text-[var(--text-muted)]">
+              <p className="text-sm text-muted-foreground">
                 Found <strong>{importPreview.valid_rows}</strong> valid rows out of {importPreview.total_rows} total rows.
               </p>
               <div className="max-h-[300px] overflow-auto">
                 <table className="w-full text-sm">
-                  <thead className="sticky top-0 bg-[var(--bg-card)]">
-                    <tr className="border-b border-[var(--border)]">
+                  <thead className="sticky top-0 bg-card">
+                    <tr className="border-b border-border">
                       <th className="text-left py-2 px-2">Date</th>
                       <th className="text-left py-2 px-2">Description</th>
                       <th className="text-left py-2 px-2">Category</th>
@@ -525,9 +525,9 @@ export default function TransactionsPage() {
                   </thead>
                   <tbody>
                     {importPreview.rows.slice(0, 20).map((row, i) => (
-                      <tr key={i} className="border-b border-[var(--border)]">
+                      <tr key={i} className="border-b border-border">
                         <td className="py-1.5 px-2">{row.date}</td>
-                        <td className="py-1.5 px-2 text-[var(--text-muted)]">{row.description || "\u2014"}</td>
+                        <td className="py-1.5 px-2 text-muted-foreground">{row.description || "\u2014"}</td>
                         <td className="py-1.5 px-2 capitalize">{row.category}</td>
                         <td className="py-1.5 px-2">
                           <Badge variant={row.type === "income" ? "success" : "danger"}>{row.type}</Badge>
@@ -539,13 +539,13 @@ export default function TransactionsPage() {
                 </table>
               </div>
               {importPreview.rows.length > 20 && (
-                <p className="text-xs text-[var(--text-muted)]">Showing first 20 of {importPreview.rows.length} rows...</p>
+                <p className="text-xs text-muted-foreground">Showing first 20 of {importPreview.rows.length} rows...</p>
               )}
             </div>
           )}
         </ModalBody>
         <ModalFooter>
-          <Button variant="secondary" onClick={() => { setShowImport(false); setImportPreview(null); }}>Cancel</Button>
+          <Button variant="outline" onClick={() => { setShowImport(false); setImportPreview(null); }}>Cancel</Button>
           <Button
             loading={importMutation.isPending}
             onClick={() => importPreview && importMutation.mutate(importPreview.rows)}
@@ -558,11 +558,11 @@ export default function TransactionsPage() {
       {/* Delete Confirmation Modal */}
       <Modal open={!!deleteId} onClose={() => setDeleteId(null)} title="Delete Transaction" size="sm">
         <ModalBody>
-          <p className="text-sm text-[var(--text-muted)]">Are you sure you want to delete this transaction? This action cannot be undone.</p>
+          <p className="text-sm text-muted-foreground">Are you sure you want to delete this transaction? This action cannot be undone.</p>
         </ModalBody>
         <ModalFooter>
-          <Button variant="secondary" onClick={() => setDeleteId(null)}>Cancel</Button>
-          <Button variant="danger" loading={deleteMutation.isPending} onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Delete</Button>
+          <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
+          <Button variant="destructive" loading={deleteMutation.isPending} onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Delete</Button>
         </ModalFooter>
       </Modal>
     </motion.div>
