@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -44,4 +46,17 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
 
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@router.post("/onboarded", response_model=UserResponse)
+def mark_onboarded(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Stamp ``onboarded_at`` once the user completes (or dismisses) the onboarding tour."""
+    if current_user.onboarded_at is None:
+        current_user.onboarded_at = datetime.utcnow()
+        db.commit()
+        db.refresh(current_user)
     return current_user
