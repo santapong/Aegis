@@ -1,49 +1,28 @@
-# Plan: Analysis & Good-to-Have Features
+# Plan
 
-## Current State
-The project has: transaction tracking with tags and recurring support, financial plans/goals, dashboard with KPI cards and insights, calendar, Gantt chart, budget management, reports, AI advisor, savings goals, debt tracker, and CSV import.
+Release-by-release scope lives in [ROADMAP.md](ROADMAP.md). Full release
+history is in [CHANGELOG.md](CHANGELOG.md). This file is a short note on how
+the backlog is tracked.
 
----
+## Tracking
 
-## Completed Features (v0.2.0)
+- Each feature in the current release (v0.8.0 and v0.9.0) has a GitHub Issue
+  with a milestone. Progress is visible on the repo's Issues tab.
+- Medium-priority work that is not yet scheduled is listed under
+  "Post-v1.0 backlog" in `ROADMAP.md`.
+- Obsidian wiki mirror: `santapong/obsidian:wiki/plans/aegis-next.md`.
 
-1. Financial Health Score (0-100 gauge on dashboard)
-2. Budget vs Actual Analysis (budgets page)
-3. Spending Anomaly Detection (>2x category average)
-4. Cash Flow Forecast Chart (6-month projection)
-5. Monthly Category Comparison (month-over-month reports)
-6. Export to CSV (reports page)
+## Completed (see CHANGELOG for details)
 
-## Completed Features (v0.4.0)
+- v0.2.0 — financial analysis (health score, anomaly, forecast, CSV export).
+- v0.3.0 — UI overhaul and rename to Aegis.
+- v0.4.0 — tags, recurring transactions, CSV import, savings goals, debt tracker.
+- v0.5.0 — security hardening, Stripe test-mode integration.
+- v0.6.0 — JWT auth, multi-tenant, Alembic migrations, Claude `tool_use`.
+- v0.7.0 — shadcn/ui token migration, pytest smoke harness, README / .env.example polish.
 
-1. Transaction Tags/Labels (multi-tag categorization with CRUD)
-2. Recurring Transactions & Subscription Tracker (with monthly cost normalization)
-3. CSV/Bank Statement Import (auto-detect column formats, preview before import)
-4. Savings Goals with Progress Tracking (CRUD + contributions + progress bars)
-5. Debt Payoff Tracker (snowball/avalanche strategies with payoff calculator)
-6. Financial Insights & Weekly Summary (auto-generated insights on dashboard)
+## Currently planned
 
----
-
-## Future Ideas
-
-### Authentication & Multi-User
-- User registration and login (JWT)
-- Per-user data isolation
-- Shared budgets between users
-
-### Enhanced AI
-- WebSocket streaming for real-time AI responses
-- Natural language transaction queries
-- AI-powered automatic categorization of imported transactions
-
-### Data & Integrations
-- Plaid/bank API integration for auto-importing transactions
-- Receipt/attachment upload for transactions (image storage)
-- Multi-currency support with exchange rate conversion
-
-### UX Improvements
-- Onboarding tour for first-time users
-- Keyboard shortcuts (N = new plan, / = search)
-- Virtual scrolling for large transaction lists
-- Push notifications for budget alerts and bill reminders
+- **v0.8.0** — onboarding tour, keyboard shortcuts, transaction full-text search, in-app notifications.
+- **v0.9.0** — virtual scrolling, mobile polish, PDF export, empty-state / skeleton / 404 polish.
+- **v1.0.0** — demo seed, landing page, GHCR image, final docs.
