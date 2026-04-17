@@ -8,6 +8,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [1.0.0] - 2026-04-17
+
+**General availability.**
+
+### Added
+- **Demo seed data** — `backend/app/seeds/demo.py` creates a `demo@aegis.local`
+  user with 120 days of deterministic transactions, three active budgets, two
+  savings goals, a credit-card debt, and two seed notifications. Idempotent per
+  demo user: re-running wipes only that user's rows. Entry point:
+  `python -m backend.app.seeds.demo`.
+- **Makefile** with `migrate`, `seed`, `test`, `backend`, `frontend`, `dev`
+  targets wrapping the most common commands.
+- **Public landing page** at `/welcome` — chrome-less marketing page with
+  feature grid, live gradient, and CTAs to register / sign in. `AuthGate` now
+  treats `/welcome` as a public route alongside `/login` and `/register`.
+- **GHCR release workflow** — `.github/workflows/release.yml` builds
+  multi-arch (`amd64` + `arm64`) images of `aegis-backend` and
+  `aegis-frontend` and pushes to `ghcr.io/<owner>/...` on every `v*.*.*` tag
+  (also dispatchable manually). Uses Docker Buildx + GitHub Actions cache.
+
+### Changed
+- Version bumped to `1.0.0` in `pyproject.toml`, `backend/app/main.py`,
+  `frontend/package.json`, Settings → About, and the landing page footer.
+- `ROADMAP.md` rewritten to reflect GA plus the post-v1 backlog (smart AI &
+  real-time, feature expansion, integrations, ops & SRE).
+- `README.md` "Status" line updated to GA; feature list references the
+  landing page.
+
+---
+
 ## [0.9.0] - 2026-04-17
 
 **Theme:** Scale & export.
