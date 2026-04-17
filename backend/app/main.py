@@ -22,7 +22,7 @@ from .routers import (
 
 settings = get_settings()
 
-APP_VERSION = "0.9.0"
+APP_VERSION = "1.0.0"
 
 app = FastAPI(
     title=settings.app_name,
