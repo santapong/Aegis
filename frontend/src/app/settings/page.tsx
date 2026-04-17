@@ -114,7 +114,6 @@ export default function SettingsPage() {
 
           <TabPanel value="preferences">
             <div className="space-y-6">
-              {/* Default Date Range */}
               <Card>
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-4">Default Date Range</h3>
@@ -137,7 +136,6 @@ export default function SettingsPage() {
                 </CardContent>
               </Card>
 
-              {/* Items Per Page */}
               <Card>
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-4">Items Per Page</h3>
@@ -154,7 +152,6 @@ export default function SettingsPage() {
                 </CardContent>
               </Card>
 
-              {/* AI Auto-Suggestions */}
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
@@ -203,7 +200,7 @@ export default function SettingsPage() {
                   <div className="space-y-3">
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-sm text-muted-foreground">Version</span>
-                      <span className="text-sm font-medium">0.6.0</span>
+                      <span className="text-sm font-medium">0.7.0</span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-sm text-muted-foreground">Frontend</span>
@@ -211,7 +208,7 @@ export default function SettingsPage() {
                     </div>
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-sm text-muted-foreground">Backend</span>
-                      <span className="text-sm font-medium">FastAPI + PostgreSQL</span>
+                      <span className="text-sm font-medium">FastAPI + SQLAlchemy (SQLite / PostgreSQL / MySQL)</span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-sm text-muted-foreground">AI Engine</span>
@@ -221,7 +218,6 @@ export default function SettingsPage() {
                 </CardContent>
               </Card>
 
-              {/* Danger Zone */}
               <Card className="border-destructive/30">
                 <CardContent className="p-6">
                   <h3 className="font-semibold text-destructive mb-2">Danger Zone</h3>
@@ -238,7 +234,6 @@ export default function SettingsPage() {
         </Tabs>
       </motion.div>
 
-      {/* Reset Confirmation */}
       <Modal open={showReset} onClose={() => setShowReset(false)} title="Reset Settings" size="sm">
         <ModalBody>
           <p className="text-sm text-muted-foreground">

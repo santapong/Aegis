@@ -1,4 +1,7 @@
-# Development overrides — use with: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+# Development overrides. Use together with docker-compose.yml:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+# This enables hot-reload (uvicorn --reload, bun run dev) and mounts your
+# working tree into the containers. Do NOT use this file alone.
 services:
   backend:
     build:

@@ -8,10 +8,12 @@ from .routers import auth, plans, calendar, gantt, transactions, dashboard, ai, 
 
 settings = get_settings()
 
+APP_VERSION = "0.7.0"
+
 # Conditionally expose API docs (hidden in production)
 app = FastAPI(
     title=settings.app_name,
-    version="0.6.0",
+    version=APP_VERSION,
     docs_url="/api/docs" if settings.debug else None,
     redoc_url="/api/redoc" if settings.debug else None,
 )
@@ -47,13 +49,17 @@ app.include_router(payments.router)
 def on_startup():
     # Database tables are managed by Alembic migrations.
     # Run: cd backend && alembic upgrade head
-    logger.info("Aegis v0.6.0 started (mode={mode})", mode="debug" if settings.debug else "production")
+    logger.info(
+        "Aegis v{version} started (mode={mode})",
+        version=APP_VERSION,
+        mode="debug" if settings.debug else "production",
+    )
 
 
 @app.get("/api/health")
 def health():
     return {
         "status": "ok",
-        "version": "0.6.0",
+        "version": APP_VERSION,
         "stripe_mode": settings.stripe_mode if settings.stripe_secret_key else "not_configured",
     }
