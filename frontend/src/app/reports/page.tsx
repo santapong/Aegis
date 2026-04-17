@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 import {
   BarChart,
@@ -23,7 +24,7 @@ import {
   Legend,
 } from "recharts";
 import { formatCurrency } from "@/lib/utils";
-import { Download, ArrowUp, ArrowDown, Minus } from "lucide-react";
+import { Download, FileText, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import type { CategoryComparisonMonth } from "@/types";
 
 const CATEGORY_COLORS = [
@@ -40,7 +41,9 @@ const glassTooltipStyle = {
 };
 
 export default function ReportsPage() {
-  const [exporting, setExporting] = useState(false);
+  const [exportingCsv, setExportingCsv] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const { toast } = useToast();
   const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
     start: new Date(new Date().setMonth(new Date().getMonth() - 6)).toISOString().split("T")[0],
     end: new Date().toISOString().split("T")[0],
@@ -96,11 +99,22 @@ export default function ReportsPage() {
     });
   }, [categoryComparison, allCategories]);
 
-  const handleExport = () => {
-    setExporting(true);
+  const handleExportCsv = () => {
+    setExportingCsv(true);
     const url = reportsAPI.exportCSV(dateRange.start, dateRange.end);
     window.open(url as unknown as string, "_blank");
-    setTimeout(() => setExporting(false), 1000);
+    setTimeout(() => setExportingCsv(false), 1000);
+  };
+
+  const handleExportPdf = async () => {
+    setExportingPdf(true);
+    try {
+      await reportsAPI.exportPDF(dateRange.start, dateRange.end);
+    } catch {
+      toast.error("PDF export failed. Check server logs.");
+    } finally {
+      setExportingPdf(false);
+    }
   };
 
   return (
@@ -130,13 +144,22 @@ export default function ReportsPage() {
                 />
               </div>
               <Button
-                variant="secondary"
+                variant="outline"
                 size="sm"
                 icon={<Download size={14} />}
-                onClick={handleExport}
-                loading={exporting}
+                onClick={handleExportCsv}
+                loading={exportingCsv}
               >
-                Export CSV
+                CSV
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={<FileText size={14} />}
+                onClick={handleExportPdf}
+                loading={exportingPdf}
+              >
+                PDF
               </Button>
             </div>
           }
