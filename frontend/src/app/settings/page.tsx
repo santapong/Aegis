@@ -8,15 +8,14 @@ import { staggerContainer, staggerItem } from "@/lib/animations";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Tabs, TabList, Tab, TabPanel } from "@/components/ui/tabs";
 import { Modal, ModalBody, ModalFooter } from "@/components/ui/modal";
-import { Sun, Moon, Monitor, Shield } from "lucide-react";
+import { Sun, Moon, Shield, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
-  const { theme, setTheme, settings, updateSettings, resetSettings } = useAppStore();
+  const { theme, setTheme, settings, updateSettings, resetSettings, restartTour } = useAppStore();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("appearance");
   const [showReset, setShowReset] = useState(false);
@@ -26,6 +25,11 @@ export default function SettingsPage() {
     setTheme("light");
     setShowReset(false);
     toast.success("Settings reset to defaults");
+  };
+
+  const handleRestartTour = () => {
+    restartTour();
+    toast.success("Onboarding tour will replay on your next visit");
   };
 
   return (
@@ -49,7 +53,6 @@ export default function SettingsPage() {
 
           <TabPanel value="appearance">
             <div className="space-y-6">
-              {/* Theme Selection */}
               <Card>
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-4">Theme</h3>
@@ -88,7 +91,6 @@ export default function SettingsPage() {
                 </CardContent>
               </Card>
 
-              {/* Currency */}
               <Card>
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-4">Currency</h3>
@@ -178,6 +180,25 @@ export default function SettingsPage() {
                   </div>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <h3 className="font-semibold flex items-center gap-2">
+                        <Sparkles size={16} className="text-primary" />
+                        Onboarding tour
+                      </h3>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Replay the first-run walkthrough on your next visit.
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={handleRestartTour}>
+                      Restart tour
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </TabPanel>
 
@@ -200,7 +221,7 @@ export default function SettingsPage() {
                   <div className="space-y-3">
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-sm text-muted-foreground">Version</span>
-                      <span className="text-sm font-medium">0.7.0</span>
+                      <span className="text-sm font-medium">0.9.0</span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-sm text-muted-foreground">Frontend</span>
@@ -212,7 +233,7 @@ export default function SettingsPage() {
                     </div>
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-sm text-muted-foreground">AI Engine</span>
-                      <span className="text-sm font-medium">Claude (Anthropic)</span>
+                      <span className="text-sm font-medium">Claude (Anthropic) + tool_use</span>
                     </div>
                   </div>
                 </CardContent>
