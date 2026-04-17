@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/stores/auth-store";
+import type { NotificationListResponse, Notification, Transaction } from "@/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -36,24 +37,29 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
     } catch {}
     throw new APIError(res.status, `API error: ${res.status}`, detail);
   }
+  if (res.status === 204) return undefined as T;
   return res.json();
+}
+
+interface AuthUser {
+  id: string;
+  email: string;
+  username: string;
+  is_active: boolean;
+  onboarded_at: string | null;
+  created_at: string;
 }
 
 export const authAPI = {
   register: (data: { email: string; username: string; password: string }) =>
-    fetchJSON<{ id: string; email: string; username: string; is_active: boolean; created_at: string }>(
-      "/api/auth/register",
-      { method: "POST", body: JSON.stringify(data) }
-    ),
+    fetchJSON<AuthUser>("/api/auth/register", { method: "POST", body: JSON.stringify(data) }),
   login: (data: { email: string; password: string }) =>
     fetchJSON<{ access_token: string; token_type: string }>(
       "/api/auth/login",
       { method: "POST", body: JSON.stringify(data) }
     ),
-  me: () =>
-    fetchJSON<{ id: string; email: string; username: string; is_active: boolean; created_at: string }>(
-      "/api/auth/me"
-    ),
+  me: () => fetchJSON<AuthUser>("/api/auth/me"),
+  markOnboarded: () => fetchJSON<AuthUser>("/api/auth/onboarded", { method: "POST" }),
 };
 
 export const dashboardAPI = {
@@ -67,8 +73,12 @@ export const dashboardAPI = {
 export const transactionsAPI = {
   list: (params?: Record<string, string>) => {
     const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-    return fetchJSON(`/api/transactions/${qs}`);
+    return fetchJSON<Transaction[]>(`/api/transactions/${qs}`);
   },
+  search: (q: string, limit = 20) =>
+    fetchJSON<Transaction[]>(
+      `/api/transactions/?q=${encodeURIComponent(q)}&limit=${limit}`
+    ),
   create: (data: Record<string, unknown>) =>
     fetchJSON("/api/transactions/", { method: "POST", body: JSON.stringify(data) }),
   summary: (start?: string, end?: string) => {
@@ -210,6 +220,42 @@ export const reportsAPI = {
     if (end) params.set("end_date", end);
     return `${API_BASE}/api/reports/export?${params}`;
   },
+  exportPDF: async (start?: string, end?: string) => {
+    const params = new URLSearchParams();
+    if (start) params.set("start_date", start);
+    if (end) params.set("end_date", end);
+    const res = await fetch(`${API_BASE}/api/reports/export.pdf?${params}`, {
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
+      },
+    });
+    if (!res.ok) throw new APIError(res.status, "PDF export failed");
+    const blob = await res.blob();
+    const filename =
+      res.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1] ||
+      "aegis-report.pdf";
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  },
+};
+
+export const notificationsAPI = {
+  list: (unreadOnly = false, limit = 50) =>
+    fetchJSON<NotificationListResponse>(
+      `/api/notifications/?unread_only=${unreadOnly}&limit=${limit}`
+    ),
+  markRead: (id: string) =>
+    fetchJSON<Notification>(`/api/notifications/${id}/read`, { method: "POST" }),
+  markAllRead: () =>
+    fetchJSON<void>("/api/notifications/read-all", { method: "POST" }),
+  clearAll: () =>
+    fetchJSON<void>("/api/notifications/", { method: "DELETE" }),
 };
 
 export const savingsGoalsAPI = {
