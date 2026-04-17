@@ -184,16 +184,27 @@ export interface CategoryComparisonMonth {
   changes: Record<string, number | null>;
 }
 
+export type NotificationType =
+  | "budget_alert"
+  | "anomaly"
+  | "milestone"
+  | "bill_reminder"
+  | "info";
+
 export interface Notification {
   id: string;
-  type: "budget_alert" | "anomaly" | "milestone" | "info";
+  type: NotificationType;
   title: string;
   message: string;
-  read: boolean;
+  link: string | null;
+  read_at: string | null;
   created_at: string;
 }
 
-// New types for v0.4.0
+export interface NotificationListResponse {
+  items: Notification[];
+  unread_count: number;
+}
 
 export interface RecurringTransactionSummary {
   total_monthly_recurring: number;
@@ -285,8 +296,6 @@ export interface ImportResult {
   skipped: number;
   errors: string[];
 }
-
-// Stripe / Payments
 
 export type PaymentStatus = "pending" | "succeeded" | "failed" | "refunded" | "cancelled";
 
