@@ -139,6 +139,31 @@ body {
   color: var(--primary-foreground);
 }
 
+/* ===== v0.9 mobile polish =====
+ * Gantt timelines need horizontal scroll without stealing swipe-back gestures.
+ * Reports + Calendar wrappers clamp children to prevent horizontal page-level
+ * scroll leaks on narrow viewports.
+ */
+.gantt-scroll {
+  touch-action: pan-x;
+  overscroll-behavior-x: contain;
+}
+
+.chart-responsive {
+  min-width: 0;
+  width: 100%;
+}
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Animations */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
