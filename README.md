@@ -1,8 +1,10 @@
 # Aegis — AI-Powered Money Management
 
-AI-powered financial planning with calendar, Gantt charts, JWT auth, Stripe test-mode payments, keyboard-first navigation, and smart recommendations powered by Claude.
+AI-powered financial planning with calendar, Gantt charts, JWT auth, Stripe test-mode payments, keyboard-first navigation, PDF reports, and smart recommendations powered by Claude.
 
-Status: **v0.9.0** — launch-ready. See [CHANGELOG.md](CHANGELOG.md) for release history and [ROADMAP.md](ROADMAP.md) for the path to v1.0.
+Status: **v1.0.0 — generally available.** See [CHANGELOG.md](CHANGELOG.md) for release history and [ROADMAP.md](ROADMAP.md) for the post-v1 direction.
+
+Public landing page: [`/welcome`](http://localhost:3000/welcome).
 
 ## Tech Stack
 
@@ -21,6 +23,7 @@ Status: **v0.9.0** — launch-ready. See [CHANGELOG.md](CHANGELOG.md) for releas
 | State      | Zustand + TanStack React Query v5                                |
 | Perf       | `@tanstack/react-virtual` for long lists                         |
 | UX         | `driver.js` onboarding tour + `react-hotkeys-hook` shortcuts     |
+| CI/CD      | GitHub Actions → GHCR multi-arch (`amd64` + `arm64`)             |
 
 ## Quick Start
 
@@ -42,43 +45,55 @@ WeasyPrint needs Cairo / Pango. On Debian / Ubuntu:
 sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libcairo2 libgdk-pixbuf-2.0-0 libffi-dev
 ```
 
-On macOS: `brew install pango cairo gdk-pixbuf libffi`. The provided Docker image bakes these in.
+On macOS: `brew install pango cairo gdk-pixbuf libffi`. The GHCR image bakes these in.
 
 ### 3. Run with Docker Compose
 
 ```bash
 docker compose up -d        # production-ish
 # or, for hot reload:
-docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+make dev
 ```
 
 Frontend: http://localhost:3000 • Backend: http://localhost:8000
 
-### 4. Or run manually
+### 4. Or run manually via `make`
 
 ```bash
-# Backend
-cd backend
-uv pip install -e .
-alembic upgrade head
-uvicorn app.main:app --reload --port 8000
+make migrate      # alembic upgrade head
+make seed         # populate with demo@aegis.local + 120 days of data
+make backend      # uvicorn --reload
+make frontend     # bun run dev
+make test         # backend pytest
+```
 
-# Frontend
-cd frontend
-bun install
-bun run dev
+### 5. Published images (GHCR)
+
+After `git tag v1.0.0 && git push --tags`, the `release.yml` workflow publishes:
+
+```
+ghcr.io/santapong/aegis-backend:1.0.0
+ghcr.io/santapong/aegis-frontend:1.0.0
 ```
 
 ## First-time user flow
 
-1. Open http://localhost:3000 — you'll be redirected to `/register`.
+1. Open http://localhost:3000/welcome for the landing page, or jump straight to `/register`.
 2. Register with email + username + password (≥8 chars).
 3. Log in — the JWT is stored in the Zustand auth store.
 4. The **onboarding tour** walks you through Dashboard → Transactions → Budgets → AI Advisor on first login. Skip it or replay it from **Settings → Preferences → Restart tour**.
 5. Press <kbd>?</kbd> anytime for the shortcut cheatsheet; <kbd>/</kbd> opens the global command palette.
 
+Or, to explore with pre-loaded data:
+
+```bash
+make seed
+# then log in with: demo@aegis.local / demo-password-123
+```
+
 ## Features
 
+- **Landing** — public `/welcome` marketing page (chrome-less, CTA to register).
 - **Dashboard** — KPI cards, spending charts, financial health score, cash-flow forecast, AI-generated insights.
 - **Transactions** — CRUD, CSV import with preview, recurring / subscription tracker, multi-tag categorization, free-text search (`?q=`).
 - **Budgets** — period-based limits with budget-vs-actual comparison.
@@ -121,9 +136,9 @@ In production (`DEBUG=false`) these are disabled.
 ## Testing
 
 ```bash
-cd backend
-uv pip install -e '.[test]'
-pytest
+make test
+# or:
+cd backend && uv pip install -e '.[test]' && pytest
 ```
 
 Smoke tests live in `backend/tests/test_smoke.py` and cover `/api/health` plus the register → login → authorized-request flow.
@@ -132,22 +147,26 @@ Smoke tests live in `backend/tests/test_smoke.py` and cover `/api/health` plus t
 
 ```
 aegis/
+├── .github/workflows/
+│   └── release.yml             GHCR multi-arch publish on version tag
 ├── backend/
-│   ├── app/              FastAPI app (routers, models, schemas, services)
-│   │   ├── services/     notification_service.py, pdf_renderer.py, ai_engine.py
-│   │   └── templates/    report.html (WeasyPrint)
-│   ├── alembic/          Database migrations
-│   └── tests/            Backend tests
+│   ├── app/
+│   │   ├── services/           notification_service.py, pdf_renderer.py, ai_engine.py
+│   │   ├── seeds/              demo.py (seed fixture)
+│   │   └── templates/          report.html (WeasyPrint)
+│   ├── alembic/                Database migrations
+│   └── tests/                  Backend tests
 ├── frontend/
 │   └── src/
-│       ├── app/          Next.js App Router pages (each with loading.tsx)
+│       ├── app/                Next.js App Router (welcome, login, register, dashboard, …)
 │       ├── components/
-│       │   ├── ui/       shadcn/ui + custom primitives (virtual-list, cheatsheet-dialog)
-│       │   ├── search/   command-palette
+│       │   ├── ui/             shadcn/ui + custom (virtual-list, cheatsheet-dialog)
+│       │   ├── search/         command-palette
 │       │   ├── global-shortcuts.tsx
 │       │   └── onboarding-tour.tsx
-│       ├── stores/       zustand (auth, app, notification)
-│       └── lib/          API client, utilities
+│       ├── stores/             zustand (auth, app, notification)
+│       └── lib/                API client, utilities
+├── Makefile
 ├── docker-compose.yml
 ├── docker-compose.dev.yml
 ├── CHANGELOG.md
