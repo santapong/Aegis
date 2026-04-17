@@ -7,5 +7,10 @@ from .tag import Tag
 from .savings_goal import SavingsGoal
 from .debt import Debt
 from .payment import Payment
+from .notification import Notification, NotificationType
 
-__all__ = ["User", "Plan", "Transaction", "Budget", "AIRecommendation", "Tag", "SavingsGoal", "Debt", "Payment"]
+__all__ = [
+    "User", "Plan", "Transaction", "Budget", "AIRecommendation",
+    "Tag", "SavingsGoal", "Debt", "Payment",
+    "Notification", "NotificationType",
+]

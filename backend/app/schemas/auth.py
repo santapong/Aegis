@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
 
 class UserRegister(BaseModel):
@@ -18,6 +18,7 @@ class UserResponse(BaseModel):
     email: str
     username: str
     is_active: bool
+    onboarded_at: datetime | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}
