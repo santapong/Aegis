@@ -8,6 +8,86 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.9.0] - 2026-04-17
+
+**Theme:** Scale & export.
+
+### Added
+- **Virtual scrolling primitive** — new `frontend/src/components/ui/virtual-list.tsx`
+  (TanStack `@tanstack/react-virtual` v3) for rendering long transaction /
+  payment lists without frame drops. Uses dynamic `measureElement` so variable
+  row heights work out of the box.
+- **PDF export of reports** — new `GET /api/reports/export.pdf?start_date=&end_date=`
+  rendered server-side via **WeasyPrint**. HTML + print CSS template at
+  `backend/app/templates/report.html`; server-side matplotlib chart inlined
+  as base64 PNG. "PDF" button sits beside the existing CSV export on `/reports`.
+- **Mobile polish** — `.gantt-scroll` helper (`touch-action: pan-x`,
+  `overscroll-behavior-x: contain`) prevents swipe-back conflict on
+  horizontally-scrolling timelines; `.chart-responsive` helper clamps Recharts
+  containers on narrow viewports; `prefers-reduced-motion` is now honored
+  globally.
+- **Empty-state / skeleton / 404 polish** — `EmptyState` now accepts an
+  `illustration` slot; `Skeleton` ships with `SkeletonRows` and `SkeletonCard`
+  helpers. Every app route now has a dedicated `loading.tsx`
+  (`budgets`, `debts`, `savings`, `plans`, `payments`, `calendar`, `gantt`,
+  `settings`, `reports`, `transactions`).
+
+### Changed
+- Version bumped to `0.9.0` in `pyproject.toml`, `backend/app/main.py`,
+  `frontend/package.json`, and the in-app Settings → About panel.
+- Backend dependencies add `jinja2`, `matplotlib`, `weasyprint`, `python-multipart`.
+
+---
+
+## [0.8.0] - 2026-04-17
+
+**Theme:** First-run & discoverability.
+
+### Added
+- **Onboarding tour** (`driver.js`) — first-run walkthrough of
+  Dashboard → Transactions → Budgets → AI Advisor. Skippable, replayable from
+  Settings → Preferences → "Restart tour". Server-persisted via new
+  `users.onboarded_at` column (Alembic migration `a1c8f3b4e501`) with a local
+  zustand fallback (`hasSeenTour`). `data-tour-id` anchors added to the sidebar
+  and AI Advisor trigger.
+- **Keyboard shortcuts** (`react-hotkeys-hook`) — `N` new transaction, `/`
+  command palette, `?` cheatsheet, `g d` / `g t` / `g b` / `g c` / `g r`
+  navigation, `Esc` to close. Scoped to non-editable focus so it never fights
+  form inputs.
+- **Command palette** — global `/` spotlight composed from shadcn primitives
+  (`ScrollArea`, popover surface, plain input). Page jumps plus live transaction
+  search (`GET /api/transactions/?q=`, 250 ms debounce via `useDeferredValue`
+  and React Query caching).
+- **Transaction full-text search** — `?q=` query parameter added to
+  `GET /api/transactions`. Server-side `ILIKE` match across `description` and
+  `category`. (Postgres `tsvector` upgrade path documented for a future
+  release.)
+- **Server-backed notification center** — new `notifications` table with
+  `(user_id, dedupe_key)` unique index, endpoints under `/api/notifications/`
+  (`GET`, `POST /{id}/read`, `POST /read-all`, `DELETE /`), and a
+  `notification_service.py` emitter for budget overruns, bill reminders, goal
+  milestones, and anomalies. The existing `NotificationCenter` component now
+  polls every 60 s and syncs state via the rewritten `notification-store.ts`.
+- **New endpoint** `POST /api/auth/onboarded` stamps `users.onboarded_at`
+  idempotently.
+- **Cheatsheet dialog** (`?`) listing every shortcut.
+
+### Changed
+- `NotificationCenter` + `notification-store` switched from client-only
+  persistence to server-authoritative state (`read_at` replaces boolean `read`;
+  `bill_reminder` added to `NotificationType`).
+- `Providers` now mounts `GlobalShortcuts` and `OnboardingTour` alongside the
+  existing React Query + theme providers.
+- `app-store` persists `hasSeenTour` and exposes `restartTour()`.
+- Version bumped to `0.8.0` in the relevant surfaces.
+
+### Migrations
+- `a1c8f3b4e501_v080_onboarded_and_notifications.py` — adds `users.onboarded_at`
+  and the `notifications` table with indexes and a unique `(user_id,
+  dedupe_key)` constraint. Safe on SQLite (batch mode) and PostgreSQL.
+
+---
+
 ## [0.7.0] - 2026-04-17
 
 ### Added
