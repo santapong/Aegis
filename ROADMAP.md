@@ -1,58 +1,54 @@
 # Aegis — Roadmap
 
-This roadmap reflects the project state after **v0.7.0** (2026-04-17). The
-original week-by-week scaffold plan that lived here has been archived — every
-Phase 1–4 item is shipped. See [CHANGELOG.md](CHANGELOG.md) for release
-history.
+This roadmap reflects the project state as of **v1.0.0** (2026-04-17). See
+[CHANGELOG.md](CHANGELOG.md) for the full release history.
 
-Current status: **production-ready for beta**.
+Current status: **generally available**.
 
 ---
 
 ## Release map
 
-| Release | Theme | Target | Status |
-|---------|-------|--------|--------|
-| v0.8.0 | First-run & discoverability | Next | Planned |
-| v0.9.0 | Scale & export | After v0.8 | Planned |
-| v1.0.0 | General Availability | After v0.9 | Planned |
+| Release | Theme | Status |
+|---------|-------|--------|
+| v0.1 – v0.6 | Scaffold → auth → multi-db → AI tool_use | ✅ Shipped |
+| v0.7.0 | shadcn/ui tokens + smoke tests | ✅ Shipped |
+| v0.8.0 | First-run & discoverability | ✅ Shipped |
+| v0.9.0 | Scale & export | ✅ Shipped |
+| **v1.0.0** | **General availability** | ✅ **Shipped** |
 
 ---
 
-## v0.8.0 — First-run & discoverability
+## Post-v1.0 direction
 
-Help new users find the product's value on day one.
+Captured here for continuity; not scoped.
 
-- **Onboarding tour** — first-run walkthrough (dashboard → transactions → budgets → AI advisor). Skippable, re-openable from Settings. Persists `users.onboarded_at`. Library: `driver.js`.
-- **Keyboard shortcuts** — `N` (new transaction), `/` (focus search), `?` (cheatsheet), `g d` / `g t` / `g b` (jump to dashboard / transactions / budgets). Library: `react-hotkeys-hook`.
-- **Transaction full-text search** — `ILIKE` search across `description`, `category`, `notes`. Global `/` spotlight (command palette) plus in-page search on `/transactions`. Postgres `tsvector` upgrade path deferred.
-- **In-app notification center** — server-backed notifications for budget overruns, upcoming recurring bills, goal milestones, and AI anomalies. New `notifications` table with `dedupe_key` unique index. Wires into the existing `notification-center.tsx`.
+### Smart AI & real-time
+- WebSocket streaming for the AI advisor (replace current request/response).
+- Natural-language transaction queries ("how much did I spend on food last month?").
+- AI auto-categorization of imported CSV rows.
+- Tax optimization suggestions based on transaction categories.
+- Live dashboard updates when transactions are added from another session.
 
-## v0.9.0 — Scale & export
+### Feature expansion
+- Investment portfolio (stocks / ETF / crypto) with price feeds.
+- Budget templates (50/30/20, zero-based) that users can adopt with one click.
+- Multi-currency with daily FX conversion.
+- Receipt / attachment upload per transaction (image storage).
+- Shared budgets between users (household mode).
 
-Make the app feel fast and printable.
+### Integrations & data
+- Plaid / bank-API auto-import.
+- Receipt OCR from uploaded images.
+- Email / push notifications (SMTP + Web Push).
+- Additional CSV connectors for common Thai / UK / EU banks.
+- Postgres `tsvector` + GIN index upgrade for transaction search (replaces the v0.8 `ILIKE` MVP).
 
-- **Virtual scrolling** for large transaction / payment lists. Library: `@tanstack/react-virtual`.
-- **Mobile-responsive polish** for Gantt and charts. Tailwind v4 `@container` queries, Recharts responsive mode, `touch-action: pan-x` on Gantt.
-- **PDF export of reports** — new `GET /api/reports/export.pdf?start=&end=` using **WeasyPrint** server-side (HTML + print CSS, matplotlib PNG charts). No browser headless dependency.
-- **Empty-state / skeleton / 404 polish** — extend existing `empty-state.tsx` + `skeleton.tsx`, add per-route `loading.tsx` to every app page.
-
-## v1.0.0 — General Availability
-
-- Demo seed data (`backend/app/seeds/demo.py`) + `make seed` target.
-- Public landing page at `frontend/src/app/(marketing)/page.tsx`.
-- GHCR image published on version tag via `.github/workflows/release.yml`.
-- Final polish of `README.md`, `/docs`, and `CHANGELOG.md`.
-
----
-
-## Post-v1.0 backlog
-
-Captured here for continuity; not scoped yet.
-
-- **Smart AI & real-time** — WebSocket streaming for the AI advisor, natural-language transaction queries, AI auto-categorization of imported CSV rows, tax optimization suggestions, live dashboard updates.
-- **Feature expansion** — investment portfolio (stocks / ETF / crypto), budget templates (50/30/20, zero-based), multi-currency with FX conversion, receipt / attachment upload, shared budgets between users.
-- **Integrations & data** — Plaid / bank API auto-import, receipt OCR, email / push notifications, additional CSV connectors.
+### Ops & SRE
+- Horizontal scale via async workers (RQ or Celery) for heavy AI / PDF jobs.
+- Prometheus `/metrics` endpoint.
+- Structured error tracking (Sentry).
+- Automated load testing against a seeded demo DB.
 
 ---
 
@@ -61,16 +57,20 @@ Captured here for continuity; not scoped yet.
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                FRONTEND (Next.js 15 + React 19 + Bun)           │
-│  Dashboard • Calendar • Gantt • Reports • Transactions •         │
-│  Budgets • Debts • Savings • Plans • Payments • AI Advisor       │
+│  Landing • Dashboard • Calendar • Gantt • Reports •              │
+│  Transactions • Budgets • Debts • Savings • Plans • Payments •   │
+│  AI Advisor • Onboarding tour • Command palette • Cheatsheet     │
 │  Tailwind v4 • shadcn/ui • Recharts • Zustand • React Query v5   │
+│  @tanstack/react-virtual • react-hotkeys-hook • driver.js        │
 └──────────────────────────┬──────────────────────────────────────┘
                            │ REST / JWT
 ┌──────────────────────────┴──────────────────────────────────────┐
 │                BACKEND (Python 3.11+ + FastAPI)                  │
-│  Auth • Plans • Transactions • Budgets • Savings • Debts •       │
-│  Payments (Stripe) • Reports • AI (Claude tool_use)              │
-│  SQLAlchemy 2.0 • Alembic • Pydantic v2 • Pandas                 │
+│  Auth • Plans • Transactions (+search) • Budgets • Savings •     │
+│  Debts • Payments (Stripe) • Reports (CSV + PDF) •               │
+│  Notifications • AI (Claude tool_use)                            │
+│  SQLAlchemy 2.0 • Alembic • Pydantic v2 • Pandas •               │
+│  WeasyPrint + matplotlib • Jinja2                                │
 └──────────────────────────┬──────────────────────────────────────┘
                            │
               ┌────────────┴────────────┐
@@ -88,8 +88,11 @@ Captured here for continuity; not scoped yet.
 | Auth       | JWT (HS256) + bcrypt                                             |
 | AI         | Claude API (`tool_use` structured output)                        |
 | Payments   | Stripe test mode                                                 |
+| Reports    | WeasyPrint (PDF) + matplotlib + Jinja2                           |
 | Frontend   | Next.js 15, React 19, TypeScript, Bun                            |
 | Styling    | Tailwind CSS v4, shadcn/ui (Radix primitives)                    |
 | State      | Zustand + TanStack React Query v5                                |
+| Perf       | `@tanstack/react-virtual`                                        |
+| UX         | `driver.js` + `react-hotkeys-hook`                               |
 | Charts     | Recharts                                                         |
-| DevOps     | Docker Compose, GitHub Actions                                   |
+| DevOps     | Docker Compose, GitHub Actions (GHCR multi-arch release)         |
