@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import { useAppStore } from "@/stores/app-store";
 import { ToastContainer } from "./toast";
 import { TooltipProvider } from "./tooltip";
+import { GlobalShortcuts } from "@/components/global-shortcuts";
+import { OnboardingTour } from "@/components/onboarding-tour";
 
 function ThemeSync() {
   const theme = useAppStore((s) => s.theme);
@@ -35,6 +37,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider delayDuration={300}>
         <ThemeSync />
+        <GlobalShortcuts />
+        <OnboardingTour />
         {children}
         <ToastContainer />
       </TooltipProvider>

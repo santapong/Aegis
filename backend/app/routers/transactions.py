@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile, File
 from sqlalchemy.orm import Session
-from sqlalchemy import func
+from sqlalchemy import or_
 from datetime import date, timedelta
 import io
 import pandas as pd
@@ -44,6 +44,7 @@ def list_transactions(
     start_date: date | None = None,
     end_date: date | None = None,
     tags: str | None = Query(default=None, description="Comma-separated tag names"),
+    q: str | None = Query(default=None, description="Free-text search over description + category"),
     limit: int = Query(default=100, le=500),
     offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
@@ -61,6 +62,14 @@ def list_transactions(
     if tags:
         tag_names = [t.strip() for t in tags.split(",")]
         query = query.filter(Transaction.tags.any(Tag.name.in_(tag_names)))
+    if q:
+        needle = f"%{q.strip()}%"
+        query = query.filter(
+            or_(
+                Transaction.description.ilike(needle),
+                Transaction.category.ilike(needle),
+            )
+        )
     return query.order_by(Transaction.date.desc()).offset(offset).limit(limit).all()
 
 
@@ -106,7 +115,6 @@ def get_recurring_transactions(db: Session = Depends(get_db), current_user: User
     recurring_income = sum(float(t.amount) for t in recurring if t.type == TransactionType.income)
     recurring_expenses = sum(float(t.amount) for t in recurring if t.type == TransactionType.expense)
 
-    # Normalize to monthly amounts
     def to_monthly(amount: float, interval: RecurringInterval | None) -> float:
         if not interval:
             return amount
@@ -182,14 +190,12 @@ async def import_preview(file: UploadFile = File(...)):
     if not file.filename or not file.filename.endswith(".csv"):
         raise HTTPException(status_code=400, detail="Only CSV files are supported")
 
-    # Validate content type
     if file.content_type and file.content_type not in ("text/csv", "application/vnd.ms-excel", "application/octet-stream"):
         raise HTTPException(status_code=400, detail="Invalid file type. Only CSV files are supported")
 
     content = await file.read()
 
-    # Enforce 5MB file size limit
-    max_size = 5 * 1024 * 1024  # 5MB
+    max_size = 5 * 1024 * 1024
     if len(content) > max_size:
         raise HTTPException(status_code=413, detail="File too large. Maximum size is 5MB")
     try:
@@ -197,7 +203,6 @@ async def import_preview(file: UploadFile = File(...)):
     except Exception:
         raise HTTPException(status_code=400, detail="Failed to parse CSV file")
 
-    # Auto-detect columns
     col_map = {}
     for col in df.columns:
         lower = col.lower().strip()
@@ -213,7 +218,6 @@ async def import_preview(file: UploadFile = File(...)):
             col_map["category"] = col
 
     if "amount" not in col_map:
-        # Try debit/credit columns
         for col in df.columns:
             lower = col.lower().strip()
             if lower in ("debit", "withdrawal"):
@@ -296,8 +300,6 @@ def delete_transaction(txn_id: str, db: Session = Depends(get_db), current_user:
     db.delete(txn)
     db.commit()
 
-
-# --- Tag Endpoints ---
 
 tags_router = APIRouter(prefix="/api/tags", tags=["tags"])
 

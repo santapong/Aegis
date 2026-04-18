@@ -4,13 +4,26 @@ from loguru import logger
 
 from .config import get_settings
 from .middleware import SecurityHeadersMiddleware, RateLimitMiddleware
-from .routers import auth, plans, calendar, gantt, transactions, dashboard, ai, budgets, reports, savings_goals, debts, payments
+from .routers import (
+    auth,
+    plans,
+    calendar,
+    gantt,
+    transactions,
+    dashboard,
+    ai,
+    budgets,
+    reports,
+    savings_goals,
+    debts,
+    payments,
+    notifications,
+)
 
 settings = get_settings()
 
-APP_VERSION = "0.7.0"
+APP_VERSION = "1.0.0"
 
-# Conditionally expose API docs (hidden in production)
 app = FastAPI(
     title=settings.app_name,
     version=APP_VERSION,
@@ -18,7 +31,6 @@ app = FastAPI(
     redoc_url="/api/redoc" if settings.debug else None,
 )
 
-# Middleware stack (order matters — outermost first)
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware, requests_per_minute=settings.rate_limit_per_minute)
 app.add_middleware(
@@ -29,7 +41,6 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization"],
 )
 
-# Register routers
 app.include_router(auth.router)
 app.include_router(plans.router)
 app.include_router(calendar.router)
@@ -43,12 +54,11 @@ app.include_router(reports.router)
 app.include_router(savings_goals.router)
 app.include_router(debts.router)
 app.include_router(payments.router)
+app.include_router(notifications.router)
 
 
 @app.on_event("startup")
 def on_startup():
-    # Database tables are managed by Alembic migrations.
-    # Run: cd backend && alembic upgrade head
     logger.info(
         "Aegis v{version} started (mode={mode})",
         version=APP_VERSION,

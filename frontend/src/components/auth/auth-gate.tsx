@@ -6,6 +6,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { Sidebar } from "@/components/ui/sidebar";
 
 const AUTH_PAGES = ["/login", "/register"];
+const PUBLIC_PAGES = ["/welcome"];
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore();
@@ -17,14 +18,18 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
-  // Avoid hydration mismatch — show nothing until mounted
   if (!mounted) {
     return null;
   }
 
   const isAuthPage = AUTH_PAGES.includes(pathname);
+  const isPublicPage = PUBLIC_PAGES.includes(pathname);
 
-  // Auth pages render without sidebar
+  // Public pages (marketing / landing) render chrome-less and bypass auth entirely.
+  if (isPublicPage) {
+    return <>{children}</>;
+  }
+
   if (isAuthPage) {
     if (isAuthenticated) {
       router.push("/");
@@ -33,7 +38,6 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  // Protected pages require auth
   if (!isAuthenticated) {
     router.push("/login");
     return null;

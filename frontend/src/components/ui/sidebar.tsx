@@ -33,15 +33,15 @@ const navSections = [
   {
     label: "Overview",
     items: [
-      { href: "/", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
+      { href: "/", label: "Dashboard", icon: LayoutDashboard, tourId: "sidebar-dashboard" },
+      { href: "/transactions", label: "Transactions", icon: ArrowLeftRight, tourId: "sidebar-transactions" },
     ],
   },
   {
     label: "Planning",
     items: [
       { href: "/plans", label: "Plans & Goals", icon: Target },
-      { href: "/budgets", label: "Budgets", icon: Wallet },
+      { href: "/budgets", label: "Budgets", icon: Wallet, tourId: "sidebar-budgets" },
       { href: "/savings", label: "Savings Goals", icon: PiggyBank },
       { href: "/debts", label: "Debt Tracker", icon: CreditCard },
       { href: "/payments", label: "Payments", icon: Wallet },
@@ -82,12 +82,11 @@ export function Sidebar() {
           </div>
           <span className="font-bold text-foreground">Aegis</span>
         </div>
-        <button onClick={toggleAIPanel} className="p-2 rounded-lg hover:bg-accent transition-colors">
+        <button onClick={toggleAIPanel} data-tour-id="ai-advisor" className="p-2 rounded-lg hover:bg-accent transition-colors">
           <Bot size={20} />
         </button>
       </div>
 
-      {/* Mobile overlay */}
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div
@@ -100,7 +99,6 @@ export function Sidebar() {
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
       <aside
         className={cn(
           "h-screen flex flex-col border-r border-border bg-card transition-all duration-300 z-50",
@@ -108,7 +106,6 @@ export function Sidebar() {
           sidebarOpen ? "w-[260px] translate-x-0" : "w-[68px] -translate-x-full lg:translate-x-0"
         )}
       >
-        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           {sidebarOpen && (
             <div className="flex items-center gap-2.5">
@@ -126,7 +123,6 @@ export function Sidebar() {
           </button>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 py-2 overflow-y-auto">
           {navSections.map((section) => (
             <div key={section.label} className="px-2 mb-1">
@@ -136,12 +132,15 @@ export function Sidebar() {
                 </p>
               )}
               <div className="space-y-0.5">
-                {section.items.map(({ href, label, icon: Icon }) => {
+                {section.items.map((item) => {
+                  const { href, label, icon: Icon } = item;
+                  const tourId = (item as { tourId?: string }).tourId;
                   const isActive = pathname === href;
                   return (
                     <Link
                       key={href}
                       href={href}
+                      data-tour-id={tourId}
                       title={!sidebarOpen ? label : undefined}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm font-medium",
@@ -160,10 +159,10 @@ export function Sidebar() {
           ))}
         </nav>
 
-        {/* Bottom actions */}
         <div className="p-2 space-y-0.5 border-t border-border bg-muted/30">
           <button
             onClick={toggleAIPanel}
+            data-tour-id="ai-advisor"
             className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
           >
             <Bot size={18} />
