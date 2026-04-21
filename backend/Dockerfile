@@ -13,11 +13,10 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install curl for healthcheck
-RUN apt-get update && apt-get install -y --no-install-recommends curl \
-    && rm -rf /var/lib/apt/lists/*
-
 # Copy installed packages from builder
+# (Healthcheck uses python stdlib — no curl/apt needed, so the image stays slim
+# and the build doesn't depend on the Debian apt mirrors being reachable.)
+
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
