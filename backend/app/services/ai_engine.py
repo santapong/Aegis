@@ -2,6 +2,7 @@ import json
 from datetime import date, timedelta
 
 import anthropic
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from ..config import get_settings
@@ -96,6 +97,14 @@ def _extract_tool_input(response, tool_name: str) -> dict | None:
 class AIEngine:
     def __init__(self, db: Session, user_id: str | None = None):
         settings = get_settings()
+        if not settings.anthropic_api_key:
+            raise HTTPException(
+                status_code=503,
+                detail={
+                    "error": "ai_not_configured",
+                    "message": "ANTHROPIC_API_KEY is not set. Add it to .env to enable AI routes.",
+                },
+            )
         self.db = db
         self.user_id = user_id
         self.client = anthropic.Anthropic(api_key=settings.anthropic_api_key)

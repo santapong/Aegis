@@ -24,7 +24,13 @@ def _build_engine(url: str):
         return eng
 
     # PostgreSQL and MySQL
-    return create_engine(url, pool_pre_ping=True)
+    return create_engine(
+        url,
+        pool_size=10,
+        max_overflow=20,
+        pool_pre_ping=True,
+        pool_recycle=1800,
+    )
 
 
 engine = _build_engine(settings.database_url)

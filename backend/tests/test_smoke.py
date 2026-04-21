@@ -3,7 +3,10 @@ def test_health(client):
     assert r.status_code == 200
     body = r.json()
     assert body["status"] == "ok"
-    assert body["version"] == "0.7.0"
+    assert body["db"] == "ok"
+    assert body["version"]
+    assert body["features"]["ai"] in {"configured", "not_configured"}
+    assert body["features"]["stripe"] in {"configured", "not_configured"}
 
 
 def test_me_requires_auth(client):

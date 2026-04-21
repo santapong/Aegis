@@ -25,13 +25,18 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
+    stop_grace_period: 30s
     ports:
       - "${BACKEND_PORT:-8000}:8000"
+    env_file:
+      - .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/money_management
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-}
+      LOG_FORMAT: ${LOG_FORMAT:-json}
       DEBUG: ${DEBUG:-false}
-      CORS_ORIGINS: '["http://localhost:3000","http://frontend:3000"]'
+      CORS_ORIGINS: ${CORS_ORIGINS:-'["http://localhost:3000","http://frontend:3000","https://localhost"]'}
     depends_on:
       db:
         condition: service_healthy
@@ -53,6 +58,7 @@ services:
       args:
         NEXT_PUBLIC_API_URL: http://localhost:8000
     restart: unless-stopped
+    stop_grace_period: 30s
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     environment:

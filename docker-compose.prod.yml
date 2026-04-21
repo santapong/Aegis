@@ -1,0 +1,47 @@
+# Prod overlay: adds Caddy on https://localhost in front of frontend + backend,
+# rebuilds the frontend with NEXT_PUBLIC_API_URL=https://localhost, and drops
+# the direct host port bindings on frontend (Caddy is the only entry point).
+#
+# Usage: make up-prod
+#   -> docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    stop_grace_period: 30s
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      backend:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  backend:
+    # Keep BACKEND_PORT binding for direct debugging; remove the block below if
+    # you want Caddy to be the only way in.
+    expose:
+      - "8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://localhost
+    # Frontend no longer publishes a host port — go through Caddy.
+    ports: !reset []
+    expose:
+      - "3000"
+
+volumes:
+  caddy_data:
+  caddy_config:

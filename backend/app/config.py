@@ -1,5 +1,11 @@
-from pydantic_settings import BaseSettings
 from functools import lru_cache
+
+from loguru import logger
+from pydantic import model_validator
+from pydantic_settings import BaseSettings
+
+PLACEHOLDER_JWT_SECRET = "CHANGE-ME-IN-PRODUCTION"
+MIN_JWT_SECRET_LEN = 32
 
 
 class Settings(BaseSettings):
@@ -13,7 +19,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./money_management.db"
 
     # JWT Authentication
-    jwt_secret_key: str = "CHANGE-ME-IN-PRODUCTION"
+    jwt_secret_key: str = PLACEHOLDER_JWT_SECRET
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440  # 24 hours
 
@@ -33,7 +39,38 @@ class Settings(BaseSettings):
     stripe_webhook_secret: str = ""
     stripe_mode: str = "test"  # "test" or "live"
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
+    # Logging: "text" (human-readable, colorized) or "json" (structured).
+    log_format: str = "text"
+
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "extra": "ignore",
+    }
+
+    @model_validator(mode="after")
+    def _validate_production_secrets(self):
+        if not self.database_url:
+            raise ValueError("DATABASE_URL must be set.")
+
+        secret_is_placeholder = self.jwt_secret_key == PLACEHOLDER_JWT_SECRET
+        secret_too_short = len(self.jwt_secret_key) < MIN_JWT_SECRET_LEN
+
+        if secret_is_placeholder or secret_too_short:
+            msg = (
+                "JWT_SECRET_KEY is insecure: "
+                f"{'placeholder value' if secret_is_placeholder else f'len {len(self.jwt_secret_key)} < {MIN_JWT_SECRET_LEN}'}. "
+                "Run `make setup` or set it to `openssl rand -hex 32`."
+            )
+            if self.debug:
+                logger.warning(msg + " (DEBUG=true — continuing.)")
+            else:
+                raise ValueError(msg)
+
+        if self.log_format not in ("text", "json"):
+            raise ValueError("LOG_FORMAT must be 'text' or 'json'.")
+
+        return self
 
 
 @lru_cache
