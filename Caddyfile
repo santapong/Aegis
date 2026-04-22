@@ -1,0 +1,27 @@
+# Aegis local HTTPS via Caddy's internal CA.
+#
+# Usage: `make up-prod` starts this alongside the base compose file.
+# Visit https://localhost — first load shows a browser cert warning because
+# Caddy's local CA isn't in your system trust store. For permanent trust:
+#   docker compose exec caddy cat /data/caddy/pki/authorities/local/root.crt > caddy-local-ca.crt
+# and import caddy-local-ca.crt into your OS keychain.
+
+{
+    # Skip ACME for localhost; use Caddy's built-in local CA.
+    local_certs
+    admin off
+}
+
+localhost {
+    encode gzip zstd
+
+    # API routes go to FastAPI.
+    handle /api/* {
+        reverse_proxy backend:8000
+    }
+
+    # Everything else (Next.js pages, static assets, _next/*) goes to the frontend.
+    handle {
+        reverse_proxy frontend:3000
+    }
+}

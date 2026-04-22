@@ -2,7 +2,10 @@ import os
 
 # Env must be set before importing the app so Pydantic BaseSettings picks it up.
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
-os.environ.setdefault("JWT_SECRET_KEY", "test-secret-not-for-production")
+os.environ.setdefault(
+    "JWT_SECRET_KEY",
+    "test-secret-not-for-production-0000000000000000000000000000000000",
+)
 os.environ.setdefault("ANTHROPIC_API_KEY", "")
 os.environ.setdefault("DEBUG", "true")
 
