@@ -8,13 +8,6 @@ import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/app-store";
 import { useAuthStore } from "@/stores/auth-store";
 import {
-  LayoutDashboard,
-  ArrowLeftRight,
-  Target,
-  Calendar,
-  GanttChart,
-  BarChart3,
-  Wallet,
   Bot,
   Moon,
   Sun,
@@ -22,38 +15,89 @@ import {
   PanelLeftClose,
   PanelLeft,
   Menu,
-  Shield,
-  FileText,
-  PiggyBank,
-  CreditCard,
   LogOut,
 } from "lucide-react";
 
-const navSections = [
+/* Aegis monogram — shield-ish hex glyph, all vector primitives. */
+function AegisMark({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M12 2 L21 6 V13 C21 17.5 16.5 21.2 12 22 C7.5 21.2 3 17.5 3 13 V6 Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      <path d="M8 12 H16 M12 8 V16" stroke="currentColor" strokeWidth="1.25" strokeLinecap="square" />
+    </svg>
+  );
+}
+
+/* Inline sparkline — used in the PULSE section of the sidebar. */
+function Sparkline({
+  data,
+  w = 96,
+  h = 20,
+  stroke = "currentColor",
+}: {
+  data: number[];
+  w?: number;
+  h?: number;
+  stroke?: string;
+}) {
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const span = Math.max(1, max - min);
+  const stepX = data.length > 1 ? w / (data.length - 1) : w;
+  const points = data.map((v, i) => {
+    const x = i * stepX;
+    const y = h - ((v - min) / span) * (h - 2) - 1;
+    return [x, y] as const;
+  });
+  const d = points
+    .map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)} ${y.toFixed(1)}`)
+    .join(" ");
+  const last = points[points.length - 1];
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ display: "block", overflow: "visible" }}>
+      <path d={d} fill="none" stroke={stroke} strokeWidth={1.25} strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={last[0]} cy={last[1]} r={1.8} fill={stroke} />
+    </svg>
+  );
+}
+
+interface NavItem {
+  href: string;
+  label: string;
+  code: string;
+  k: string;
+  tourId?: string;
+}
+
+interface NavSection {
+  label: string;
+  items: NavItem[];
+}
+
+/**
+ * Sidebar nav — 3-column rows: monospace code · sans label · keyboard hint.
+ * Codes are pulled directly from the design handoff (DSH/TXN/BDG/...).
+ */
+const navSections: NavSection[] = [
   {
-    label: "Overview",
+    label: "CHANNELS",
     items: [
-      { href: "/", label: "Dashboard", icon: LayoutDashboard, tourId: "sidebar-dashboard" },
-      { href: "/transactions", label: "Transactions", icon: ArrowLeftRight, tourId: "sidebar-transactions" },
-    ],
-  },
-  {
-    label: "Planning",
-    items: [
-      { href: "/plans", label: "Plans & Goals", icon: Target },
-      { href: "/budgets", label: "Budgets", icon: Wallet, tourId: "sidebar-budgets" },
-      { href: "/savings", label: "Savings Goals", icon: PiggyBank },
-      { href: "/debts", label: "Debt Tracker", icon: CreditCard },
-      { href: "/payments", label: "Payments", icon: Wallet },
-    ],
-  },
-  {
-    label: "Visualize",
-    items: [
-      { href: "/calendar", label: "Calendar", icon: Calendar },
-      { href: "/gantt", label: "Gantt Chart", icon: GanttChart },
-      { href: "/reports", label: "Reports", icon: BarChart3 },
-      { href: "/docs", label: "Documents", icon: FileText },
+      { href: "/", label: "Dashboard", code: "DSH", k: "g d", tourId: "sidebar-dashboard" },
+      { href: "/transactions", label: "Transactions", code: "TXN", k: "g t", tourId: "sidebar-transactions" },
+      { href: "/budgets", label: "Budgets", code: "BDG", k: "g b", tourId: "sidebar-budgets" },
+      { href: "/savings", label: "Savings", code: "SAV", k: "g s" },
+      { href: "/debts", label: "Debt", code: "DBT", k: "g x" },
+      { href: "/plans", label: "Plans", code: "PLN", k: "g p" },
+      { href: "/calendar", label: "Calendar", code: "CAL", k: "g c" },
+      { href: "/gantt", label: "Gantt", code: "GNT", k: "g g" },
+      { href: "/reports", label: "Reports", code: "RPT", k: "g r" },
+      { href: "/payments", label: "Payments", code: "PAY", k: "g y" },
+      { href: "/docs", label: "Documents", code: "DOC", k: "g o" },
     ],
   },
 ];
@@ -69,20 +113,27 @@ export function Sidebar() {
     }
   }, [pathname]);
 
+  // PULSE sparkline data — placeholder shape; the live values come from the
+  // status bar/dashboard summary endpoint in production.
+  const sparkA = [3, 4, 3, 5, 4, 6, 5, 7, 6, 8, 7, 9, 8];
+  const sparkB = [9, 8, 9, 7, 8, 6, 7, 5, 6, 4, 5, 3, 4];
+
   return (
     <>
       {/* Mobile header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 bg-card/80 backdrop-blur-xl border-b border-border">
-        <button onClick={toggleSidebar} className="p-2 rounded-lg hover:bg-accent transition-colors">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 bg-card/90 backdrop-blur-xl border-b border-border">
+        <button onClick={toggleSidebar} className="p-2 rounded hover:bg-accent transition-colors">
           <Menu size={20} />
         </button>
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
-            <Shield size={14} className="text-primary-foreground" />
-          </div>
-          <span className="font-bold text-foreground">Aegis</span>
+          <span className="text-primary"><AegisMark size={18} /></span>
+          <span className="font-mono text-sm font-semibold tracking-[0.2em] text-foreground">AEGIS</span>
         </div>
-        <button onClick={toggleAIPanel} data-tour-id="ai-advisor" className="p-2 rounded-lg hover:bg-accent transition-colors">
+        <button
+          onClick={toggleAIPanel}
+          data-tour-id="ai-advisor"
+          className="p-2 rounded hover:bg-accent transition-colors"
+        >
           <Bot size={20} />
         </button>
       </div>
@@ -105,108 +156,224 @@ export function Sidebar() {
           "fixed lg:relative",
           sidebarOpen ? "w-[260px] translate-x-0" : "w-[68px] -translate-x-full lg:translate-x-0"
         )}
+        style={{ background: "var(--aegis-panel)" }}
       >
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          {sidebarOpen && (
+        {/* Brand block — monogram + AEGIS lockup + sub-tag, dashed-border footer. */}
+        <div className="flex items-center justify-between p-4 pb-3.5 border-b border-border">
+          {sidebarOpen ? (
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-sm">
-                <Shield size={16} className="text-primary-foreground" />
+              <span className="text-primary"><AegisMark size={20} /></span>
+              <div className="leading-tight">
+                <div className="font-mono text-[13px] font-semibold tracking-[0.22em] text-foreground">AEGIS</div>
+                <div className="font-mono text-[10px] tracking-[0.04em]" style={{ color: "var(--aegis-dim)" }}>
+                  money / terminal
+                </div>
               </div>
-              <h1 className="text-lg font-bold tracking-tight text-foreground">Aegis</h1>
             </div>
+          ) : (
+            <span className="text-primary mx-auto"><AegisMark size={20} /></span>
           )}
-          <button
-            onClick={toggleSidebar}
-            className="p-2 rounded-lg hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
-          >
-            {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
-          </button>
+          {sidebarOpen && (
+            <button
+              onClick={toggleSidebar}
+              className="p-1.5 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+            >
+              <PanelLeftClose size={16} />
+            </button>
+          )}
         </div>
 
-        <nav className="flex-1 py-2 overflow-y-auto">
+        {!sidebarOpen && (
+          <button
+            onClick={toggleSidebar}
+            className="mx-auto my-2 p-1.5 rounded hover:bg-accent transition-colors text-muted-foreground hover:text-foreground"
+          >
+            <PanelLeft size={16} />
+          </button>
+        )}
+
+        <nav className="flex-1 px-2.5 py-4 overflow-y-auto flex flex-col gap-5">
           {navSections.map((section) => (
-            <div key={section.label} className="px-2 mb-1">
+            <div key={section.label} className="flex flex-col gap-1.5">
               {sidebarOpen && (
-                <p className="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/60">
+                <p
+                  className="px-1 font-mono text-[10px] tracking-[1.4px]"
+                  style={{ color: "var(--aegis-dim)" }}
+                >
                   {section.label}
                 </p>
               )}
-              <div className="space-y-0.5">
+              <div className="flex flex-col gap-0.5">
                 {section.items.map((item) => {
-                  const { href, label, icon: Icon } = item;
-                  const tourId = (item as { tourId?: string }).tourId;
-                  const isActive = pathname === href;
+                  const isActive = pathname === item.href;
                   return (
                     <Link
-                      key={href}
-                      href={href}
-                      data-tour-id={tourId}
-                      title={!sidebarOpen ? label : undefined}
+                      key={item.href}
+                      href={item.href}
+                      data-tour-id={item.tourId}
+                      title={!sidebarOpen ? item.label : undefined}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm font-medium",
+                        "group grid items-center gap-2.5 px-2 py-1.5 rounded transition-all border border-transparent",
+                        sidebarOpen
+                          ? "grid-cols-[36px_1fr_auto] text-left"
+                          : "grid-cols-1 justify-items-center",
                         isActive
-                          ? "bg-primary/10 text-primary border-l-2 border-primary ml-0.5"
-                          : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                          ? "bg-[color:var(--aegis-panel-2)] border-[color:var(--aegis-line-2)]"
+                          : "hover:bg-[color:var(--aegis-panel-2)]"
                       )}
+                      style={
+                        isActive
+                          ? { boxShadow: "inset 2px 0 0 var(--primary)" }
+                          : undefined
+                      }
                     >
-                      <Icon size={18} className={isActive ? "text-primary" : ""} />
-                      {sidebarOpen && label}
+                      <span
+                        className={cn(
+                          "font-mono text-[10px] tracking-[1.2px]",
+                          isActive ? "text-primary" : "text-muted-foreground"
+                        )}
+                      >
+                        {item.code}
+                      </span>
+                      {sidebarOpen && (
+                        <>
+                          <span
+                            className={cn(
+                              "text-[13px]",
+                              isActive ? "text-foreground" : "text-foreground/75"
+                            )}
+                          >
+                            {item.label}
+                          </span>
+                          <span
+                            className="font-mono text-[10px]"
+                            style={{ color: "var(--aegis-dim-2)" }}
+                          >
+                            {item.k}
+                          </span>
+                        </>
+                      )}
                     </Link>
                   );
                 })}
               </div>
             </div>
           ))}
+
+          {sidebarOpen && (
+            <div className="flex flex-col gap-1.5">
+              <p
+                className="px-1 font-mono text-[10px] tracking-[1.4px]"
+                style={{ color: "var(--aegis-dim)" }}
+              >
+                PULSE — 30D
+              </p>
+              <div className="px-1 grid grid-cols-[1fr_auto_auto] items-center gap-2 py-1.5 font-mono text-[11px]">
+                <span style={{ color: "var(--aegis-dim)" }}>Net worth</span>
+                <span style={{ color: "var(--aegis-ok)" }}>
+                  <Sparkline data={sparkA} stroke="currentColor" />
+                </span>
+                <span className="tabular-nums" style={{ color: "var(--aegis-ok)" }}>+8.4%</span>
+              </div>
+              <div className="px-1 grid grid-cols-[1fr_auto_auto] items-center gap-2 py-1.5 font-mono text-[11px]">
+                <span style={{ color: "var(--aegis-dim)" }}>Burn rate</span>
+                <span style={{ color: "var(--aegis-warn)" }}>
+                  <Sparkline data={sparkB} stroke="currentColor" />
+                </span>
+                <span className="tabular-nums" style={{ color: "var(--aegis-warn)" }}>−4.2%</span>
+              </div>
+            </div>
+          )}
         </nav>
 
-        <div className="p-2 space-y-0.5 border-t border-border bg-muted/30">
+        <div className="p-2 space-y-0.5 border-t border-border">
           <button
             onClick={toggleAIPanel}
             data-tour-id="ai-advisor"
-            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
+            className="grid w-full grid-cols-[36px_1fr_auto] items-center gap-2.5 px-2 py-1.5 rounded text-left transition-all hover:bg-[color:var(--aegis-panel-2)]"
           >
-            <Bot size={18} />
-            {sidebarOpen && "AI Advisor"}
+            <span className="font-mono text-[10px] tracking-[1.2px] text-primary">AI</span>
+            {sidebarOpen && (
+              <>
+                <span className="text-[13px] text-foreground/75">AI Advisor</span>
+                <span className="font-mono text-[10px]" style={{ color: "var(--aegis-dim-2)" }}>
+                  ⌘ A
+                </span>
+              </>
+            )}
           </button>
           <Link
             href="/settings"
             className={cn(
-              "flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium transition-all",
+              "grid w-full grid-cols-[36px_1fr_auto] items-center gap-2.5 px-2 py-1.5 rounded text-left transition-all",
               pathname === "/settings"
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                ? "bg-[color:var(--aegis-panel-2)] text-foreground"
+                : "hover:bg-[color:var(--aegis-panel-2)]"
             )}
           >
-            <Settings size={18} />
-            {sidebarOpen && "Settings"}
+            <span className="font-mono text-[10px] tracking-[1.2px]" style={{ color: "var(--aegis-dim)" }}>SET</span>
+            {sidebarOpen && (
+              <>
+                <span className="text-[13px] text-foreground/75">Settings</span>
+                <Settings size={12} className="text-muted-foreground" />
+              </>
+            )}
           </Link>
           <button
             onClick={toggleTheme}
-            className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-all"
+            className="grid w-full grid-cols-[36px_1fr_auto] items-center gap-2.5 px-2 py-1.5 rounded text-left transition-all hover:bg-[color:var(--aegis-panel-2)]"
           >
-            {theme === "light" ? <Moon size={18} /> : <Sun size={18} />}
-            {sidebarOpen && (theme === "light" ? "Dark Mode" : "Light Mode")}
+            <span className="font-mono text-[10px] tracking-[1.2px]" style={{ color: "var(--aegis-dim)" }}>
+              {theme === "light" ? "DRK" : "LGT"}
+            </span>
+            {sidebarOpen && (
+              <>
+                <span className="text-[13px] text-foreground/75">
+                  {theme === "light" ? "Dark Mode" : "Light Mode"}
+                </span>
+                {theme === "light" ? (
+                  <Moon size={12} className="text-muted-foreground" />
+                ) : (
+                  <Sun size={12} className="text-muted-foreground" />
+                )}
+              </>
+            )}
           </button>
+
           {user && (
             <>
-              <div className="border-t border-border my-1" />
-              <div className="flex items-center gap-3 px-3 py-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold shrink-0">
+              <div className="my-1.5 border-t border-border" />
+              <div className="flex items-center gap-2.5 px-2 py-1.5">
+                <div
+                  className="flex h-8 w-8 items-center justify-center rounded font-mono text-[11px] font-semibold shrink-0"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--primary) 70%, var(--background)))",
+                    color: "var(--primary-foreground)",
+                  }}
+                >
                   {user.username.charAt(0).toUpperCase()}
                 </div>
                 {sidebarOpen && (
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{user.username}</p>
-                    <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
+                  <div className="flex-1 min-w-0 leading-tight">
+                    <p className="font-mono text-[11px] text-foreground truncate">{user.username}</p>
+                    <p className="font-mono text-[10px] truncate" style={{ color: "var(--aegis-dim)" }}>
+                      {user.email}
+                    </p>
                   </div>
                 )}
               </div>
               <button
                 onClick={logout}
-                className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
+                className="grid w-full grid-cols-[36px_1fr_auto] items-center gap-2.5 px-2 py-1.5 rounded text-left transition-all hover:bg-destructive/10 hover:text-destructive"
               >
-                <LogOut size={18} />
-                {sidebarOpen && "Sign out"}
+                <span className="font-mono text-[10px] tracking-[1.2px]" style={{ color: "var(--aegis-dim)" }}>OUT</span>
+                {sidebarOpen && (
+                  <>
+                    <span className="text-[13px]">Sign out</span>
+                    <LogOut size={12} className="text-muted-foreground" />
+                  </>
+                )}
               </button>
             </>
           )}

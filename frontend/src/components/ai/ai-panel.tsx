@@ -6,9 +6,8 @@ import { useAppStore } from "@/stores/app-store";
 import { aiAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { slideInRight } from "@/lib/animations";
-import { Bot, X, Send, Sparkles, TrendingUp, Check, XCircle } from "lucide-react";
+import { X, TrendingUp, Check, XCircle, CornerDownLeft } from "lucide-react";
 import type { AIRecommendation } from "@/types";
-import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -23,7 +22,7 @@ export function AIPanel() {
   const handleAnalyze = async () => {
     setLoading(true);
     try {
-      const results = await aiAPI.analyze(question || undefined) as AIRecommendation[];
+      const results = (await aiAPI.analyze(question || undefined)) as AIRecommendation[];
       setRecommendations(results);
       setQuestion("");
     } catch {
@@ -37,9 +36,7 @@ export function AIPanel() {
     try {
       await aiAPI.accept(id);
       toast.success("Recommendation accepted");
-      setRecommendations((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, accepted: true } : r))
-      );
+      setRecommendations((prev) => prev.map((r) => (r.id === id ? { ...r, accepted: true } : r)));
     } catch {
       toast.error("Failed to accept recommendation");
     }
@@ -69,32 +66,52 @@ export function AIPanel() {
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="fixed right-0 top-0 h-screen w-full sm:w-[420px] bg-card/95 backdrop-blur-xl border-l border-border shadow-2xl z-50 flex flex-col"
+            className="fixed right-0 top-0 h-screen w-full sm:w-[440px] backdrop-blur-xl border-l border-border shadow-2xl z-50 flex flex-col"
+            style={{ background: "color-mix(in oklab, var(--card) 96%, transparent)" }}
           >
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-border">
+            {/* Header — magenta CLAUDE / live badge + transmission marker */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-                  <Bot size={18} className="text-primary" />
-                </div>
-                <div>
-                  <h2 className="font-semibold text-sm">AI Financial Advisor</h2>
-                  <p className="text-[11px] text-muted-foreground">Powered by Claude</p>
-                </div>
+                <span className="aegis-ai-badge">
+                  <span className="aegis-dot" style={{ color: "var(--primary)" }}>
+                    <span className="aegis-dot-pulse" />
+                    <span className="aegis-dot-core" />
+                  </span>
+                  CLAUDE · live
+                </span>
               </div>
-              <button onClick={toggleAIPanel} className="p-1.5 rounded-lg hover:bg-accent transition-colors text-muted-foreground">
-                <X size={18} />
+              <button
+                onClick={toggleAIPanel}
+                className="p-1.5 rounded hover:bg-accent transition-colors text-muted-foreground"
+                aria-label="Close advisor"
+              >
+                <X size={16} />
               </button>
             </div>
 
-            {/* Quick actions */}
-            <div className="p-4 border-b border-border flex gap-2">
+            {/* Italic serif lede — "playful but grown-up" twist on a Bloomberg terminal. */}
+            <div className="px-5 py-5 border-b border-border">
+              <h2 className="aegis-display text-[24px] leading-[1.15] text-foreground">
+                <span style={{ color: "var(--aegis-dim)" }}>›</span> three things
+                <span style={{ color: "var(--primary)" }}> worth your attention </span>
+                this week.
+              </h2>
+              <p className="mt-2 font-mono text-[10px] tracking-wider" style={{ color: "var(--aegis-dim)" }}>
+                ADVISOR · POWERED BY CLAUDE
+              </p>
+            </div>
+
+            {/* Quick actions — auto-analyze + forecast */}
+            <div className="px-4 py-3 border-b border-border flex gap-2">
               <Button
                 size="sm"
-                onClick={() => { setQuestion(""); handleAnalyze(); }}
-                className="gap-1.5"
+                onClick={() => {
+                  setQuestion("");
+                  handleAnalyze();
+                }}
+                className="font-mono text-[11px] tracking-wide gap-1.5"
               >
-                <Sparkles size={14} /> Auto-Analyze
+                AUTO-ANALYZE
               </Button>
               <Button
                 variant="outline"
@@ -110,9 +127,9 @@ export function AIPanel() {
                     setLoading(false);
                   }
                 }}
-                className="gap-1.5"
+                className="font-mono text-[11px] tracking-wide gap-1.5"
               >
-                <TrendingUp size={14} /> Forecast
+                <TrendingUp size={12} /> FORECAST
               </Button>
             </div>
 
@@ -120,96 +137,128 @@ export function AIPanel() {
             <ScrollArea className="flex-1">
               <div className="p-4 space-y-3">
                 {loading && (
-                  <div className="flex flex-col items-center justify-center py-8 gap-3">
-                    <div className="relative h-10 w-10">
-                      <div className="absolute inset-0 rounded-full border-2 border-primary/20" />
-                      <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-primary animate-spin" />
+                  <div className="flex flex-col items-center justify-center py-10 gap-3">
+                    <div className="flex gap-1.5">
+                      <span
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{ background: "var(--primary)", animation: "aegisBounce 1.2s infinite ease-in-out" }}
+                      />
+                      <span
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{
+                          background: "var(--primary)",
+                          animation: "aegisBounce 1.2s infinite ease-in-out",
+                          animationDelay: "0.2s",
+                        }}
+                      />
+                      <span
+                        className="w-1.5 h-1.5 rounded-full"
+                        style={{
+                          background: "var(--primary)",
+                          animation: "aegisBounce 1.2s infinite ease-in-out",
+                          animationDelay: "0.4s",
+                        }}
+                      />
                     </div>
-                    <div className="flex gap-1">
-                      <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                      <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                      <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                    </div>
-                    <p className="text-sm text-muted-foreground">Analyzing your finances...</p>
+                    <p className="font-mono text-[11px] tracking-wider" style={{ color: "var(--aegis-dim)" }}>
+                      ANALYZING TRANSMISSION…
+                    </p>
                   </div>
                 )}
                 <AnimatePresence>
-                  {!loading && recommendations.map((rec, i) => {
-                    const config = actionTypeConfig[rec.action_type] ?? actionTypeConfig.alert;
-                    return (
-                      <motion.div
-                        key={rec.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ delay: i * 0.08 }}
-                        className="p-4 rounded-xl border border-border bg-card hover:shadow-md transition-all"
-                      >
-                        <div className="flex items-center justify-between mb-2.5">
-                          <Badge variant={config.variant}>{config.label}</Badge>
-                          <span className="text-[11px] text-muted-foreground font-medium">
-                            {Math.round(rec.confidence * 100)}% confidence
-                          </span>
-                        </div>
-                        <p className="text-sm text-foreground leading-relaxed">{rec.recommendation}</p>
-                        <div className="flex gap-2 mt-3">
-                          {!rec.accepted ? (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleAccept(rec.id)}
-                                className="text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10 gap-1"
-                              >
-                                <Check size={14} /> Accept
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-muted-foreground gap-1"
-                              >
-                                <XCircle size={14} /> Dismiss
-                              </Button>
-                            </>
-                          ) : (
-                            <Badge variant="success">Accepted</Badge>
-                          )}
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+                  {!loading &&
+                    recommendations.map((rec, i) => {
+                      const config = actionTypeConfig[rec.action_type] ?? actionTypeConfig.alert;
+                      const tint =
+                        config.variant === "success"
+                          ? "var(--aegis-ok)"
+                          : config.variant === "warning"
+                            ? "var(--aegis-warn)"
+                            : config.variant === "danger"
+                              ? "var(--aegis-bad)"
+                              : "var(--primary)";
+                      return (
+                        <motion.div
+                          key={rec.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0 }}
+                          transition={{ delay: i * 0.08 }}
+                          className="aegis-insight"
+                          style={{ "--insight-tint": tint } as React.CSSProperties}
+                        >
+                          <div className="aegis-insight-kicker">
+                            {String(i + 1).padStart(2, "0")} · {config.label.toUpperCase()}
+                          </div>
+                          <p className="text-sm text-foreground leading-relaxed">{rec.recommendation}</p>
+                          <div className="flex items-center justify-between gap-2 mt-3 font-mono text-[11px]">
+                            <span className="tabular-nums" style={{ color: tint }}>
+                              {Math.round(rec.confidence * 100)}% confidence
+                            </span>
+                            {!rec.accepted ? (
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleAccept(rec.id)}
+                                  className="h-7 px-2 gap-1 text-xs"
+                                  style={{ color: "var(--aegis-ok)" }}
+                                >
+                                  <Check size={12} /> Accept
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 px-2 gap-1 text-xs text-muted-foreground"
+                                >
+                                  <XCircle size={12} /> Dismiss
+                                </Button>
+                              </div>
+                            ) : (
+                              <Badge variant="success">Accepted</Badge>
+                            )}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                 </AnimatePresence>
                 {!loading && recommendations.length === 0 && (
-                  <div className="text-center py-12">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted mx-auto mb-4">
-                      <Bot size={24} className="text-muted-foreground" />
-                    </div>
-                    <p className="text-sm text-muted-foreground max-w-[240px] mx-auto">
-                      Ask a question or click Auto-Analyze to get AI-powered financial insights.
+                  <div className="text-center py-10 px-4">
+                    <p className="font-mono text-[10px] tracking-[1.4px] mb-3" style={{ color: "var(--aegis-dim)" }}>
+                      TRANSMISSION · IDLE
+                    </p>
+                    <p className="text-sm text-muted-foreground max-w-[260px] mx-auto leading-relaxed">
+                      Ask Claude a question or run AUTO-ANALYZE to surface insights from your last 90 days.
                     </p>
                   </div>
                 )}
               </div>
             </ScrollArea>
 
-            {/* Input */}
-            <div className="p-4 border-t border-border bg-muted/30">
-              <div className="flex gap-2">
+            {/* Input — magenta prompt arrow + blinking caret while empty */}
+            <div
+              className="px-4 py-3 border-t border-border flex items-center gap-2"
+              style={{ background: "var(--aegis-panel)" }}
+            >
+              <span className="font-mono text-primary">›</span>
+              <div className="flex-1 flex items-center min-w-0">
                 <input
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
-                  placeholder="Ask about your finances..."
-                  className="flex-1 px-3.5 py-2 rounded-lg bg-card border border-border text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring placeholder:text-muted-foreground"
+                  placeholder="ask claude — try “how do I save more?”"
+                  className="flex-1 bg-transparent outline-none border-0 font-mono text-[12px] text-foreground placeholder:text-muted-foreground"
                 />
-                <Button
-                  size="icon"
-                  onClick={handleAnalyze}
-                  disabled={loading}
-                >
-                  <Send size={16} />
-                </Button>
+                {!question && <span className="aegis-caret" aria-hidden />}
               </div>
+              <Button
+                size="sm"
+                onClick={handleAnalyze}
+                disabled={loading}
+                className="font-mono text-[11px] gap-1"
+              >
+                send <CornerDownLeft size={12} />
+              </Button>
             </div>
           </motion.div>
         </>

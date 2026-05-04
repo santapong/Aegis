@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
-/* ===== Aegis Design System — shadcn/ui + Premium Fintech ===== */
+/* ===== AEGIS · TERMINAL — design tokens, fonts, signature elements =====
+ * Aesthetic: dark terminal / pro-trader, playful but grown-up.
+ * Source: design-ref/styles.css (Aegis Frontend.html handoff bundle).
+ */
 
 @theme inline {
   --color-background: var(--background);
@@ -29,37 +32,53 @@
   --color-chart-5: var(--chart-5);
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
 }
 
 :root {
-  --background: #fafbfc;
-  --foreground: #09090b;
-  --card: #ffffff;
-  --card-foreground: #09090b;
-  --popover: #ffffff;
-  --popover-foreground: #09090b;
-  --primary: #6366f1;
-  --primary-foreground: #ffffff;
-  --secondary: #f4f4f5;
-  --secondary-foreground: #18181b;
-  --muted: #f4f4f5;
-  --muted-foreground: #71717a;
-  --accent: #f4f4f5;
-  --accent-foreground: #18181b;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --border: #e4e4e7;
-  --input: #e4e4e7;
-  --ring: #6366f1;
+  --background: #F4F2EC;            /* bone */
+  --foreground: #14161A;
+  --card: #FBFAF6;
+  --card-foreground: #14161A;
+  --popover: #FBFAF6;
+  --popover-foreground: #14161A;
+  --primary: oklch(0.55 0.18 305);   /* magenta — claude/AI */
+  --primary-foreground: #FBFAF6;
+  --secondary: #EFEDE6;
+  --secondary-foreground: #14161A;
+  --muted: #EFEDE6;
+  --muted-foreground: #6A6F78;
+  --accent: #EFEDE6;
+  --accent-foreground: #14161A;
+  --destructive: oklch(0.55 0.2 25);
+  --destructive-foreground: #FBFAF6;
+  --border: #DDD8CC;
+  --input: #DDD8CC;
+  --ring: oklch(0.55 0.18 305);
 
-  --chart-1: #6366f1;
-  --chart-2: #10b981;
-  --chart-3: #f43f5e;
-  --chart-4: #f59e0b;
-  --chart-5: #8b5cf6;
+  --chart-1: oklch(0.55 0.18 305);
+  --chart-2: oklch(0.55 0.16 145);
+  --chart-3: oklch(0.55 0.2 25);
+  --chart-4: oklch(0.6 0.18 60);
+  --chart-5: oklch(0.55 0.15 250);
 
-  --success: #10b981;
-  --warning: #f59e0b;
+  --success: oklch(0.55 0.16 145);
+  --warning: oklch(0.6 0.18 60);
+
+  /* Aegis terminal aliases — used by sidebar, status bar, signature surfaces */
+  --aegis-panel: #FBFAF6;
+  --aegis-panel-2: #EFEDE6;
+  --aegis-line: #DDD8CC;
+  --aegis-line-2: #C7C2B5;
+  --aegis-fg-2: #2C2F35;
+  --aegis-dim: #6A6F78;
+  --aegis-dim-2: #999A93;
+  --aegis-ok: oklch(0.55 0.16 145);
+  --aegis-warn: oklch(0.6 0.18 60);
+  --aegis-bad: oklch(0.55 0.2 25);
+  --aegis-grid: rgba(0, 0, 0, 0.025);
 
   --sidebar-width: 260px;
   --sidebar-collapsed: 68px;
@@ -74,48 +93,74 @@
 }
 
 .dark {
-  --background: #09090b;
-  --foreground: #fafafa;
-  --card: #111113;
-  --card-foreground: #fafafa;
-  --popover: #111113;
-  --popover-foreground: #fafafa;
-  --primary: #818cf8;
-  --primary-foreground: #09090b;
-  --secondary: #1a1a1f;
-  --secondary-foreground: #fafafa;
-  --muted: #1a1a1f;
-  --muted-foreground: #a1a1aa;
-  --accent: #1a1a1f;
-  --accent-foreground: #fafafa;
-  --destructive: #f87171;
-  --destructive-foreground: #09090b;
-  --border: #27272a;
-  --input: #27272a;
-  --ring: #818cf8;
+  --background: #0A0B0D;             /* ink */
+  --foreground: #E6E8EB;
+  --card: #111317;
+  --card-foreground: #E6E8EB;
+  --popover: #111317;
+  --popover-foreground: #E6E8EB;
+  --primary: oklch(0.78 0.16 305);
+  --primary-foreground: #0A0B0D;
+  --secondary: #15181D;
+  --secondary-foreground: #E6E8EB;
+  --muted: #15181D;
+  --muted-foreground: #6F7680;
+  --accent: #15181D;
+  --accent-foreground: #E6E8EB;
+  --destructive: oklch(0.72 0.18 25);
+  --destructive-foreground: #0A0B0D;
+  --border: #21252C;
+  --input: #21252C;
+  --ring: oklch(0.78 0.16 305);
 
-  --chart-1: #818cf8;
-  --chart-2: #34d399;
-  --chart-3: #fb7185;
-  --chart-4: #fbbf24;
-  --chart-5: #a78bfa;
+  --chart-1: oklch(0.78 0.16 305);
+  --chart-2: oklch(0.78 0.14 145);
+  --chart-3: oklch(0.72 0.18 25);
+  --chart-4: oklch(0.78 0.16 75);
+  --chart-5: oklch(0.7 0.14 250);
 
-  --success: #34d399;
-  --warning: #fbbf24;
+  --success: oklch(0.78 0.14 145);
+  --warning: oklch(0.78 0.16 75);
+
+  --aegis-panel: #111317;
+  --aegis-panel-2: #15181D;
+  --aegis-line: #21252C;
+  --aegis-line-2: #2A2F38;
+  --aegis-fg-2: #C5C9CF;
+  --aegis-dim: #6F7680;
+  --aegis-dim-2: #4A5058;
+  --aegis-ok: oklch(0.78 0.14 145);
+  --aegis-warn: oklch(0.78 0.16 75);
+  --aegis-bad: oklch(0.72 0.18 25);
+  --aegis-grid: rgba(255, 255, 255, 0.025);
 }
 
 * {
   border-color: var(--border);
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-sans);
   font-feature-settings: "rlig" 1, "calt" 1;
+  font-variant-ligatures: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Subtle terminal grid background — 32px lattice, ultra-low contrast. */
+  background-image:
+    linear-gradient(var(--aegis-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--aegis-grid) 1px, transparent 1px);
+  background-size: 32px 32px;
 }
+
+/* ===== Type utility classes — used in components for the terminal aesthetic ===== */
+.font-mono { font-family: var(--font-mono); }
+.font-serif { font-family: var(--font-serif); }
+.tabular-nums { font-variant-numeric: tabular-nums; }
 
 /* Scrollbar */
 ::-webkit-scrollbar {
@@ -137,6 +182,168 @@ body {
 ::selection {
   background: var(--primary);
   color: var(--primary-foreground);
+}
+
+/* ===== Aegis signature components ===== */
+
+/* 3-letter code badge — magenta, bordered, monospace. Goes top-left on cards. */
+.aegis-code {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  color: var(--primary);
+  padding: 2px 6px;
+  border: 1px solid var(--aegis-line-2);
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+/* Card head with dashed-bottom divider — used across all dashboard cards. */
+.aegis-card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--aegis-line);
+}
+
+/* Keyboard chip — used in sidebar nav, palette, status bar. */
+.aegis-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 6px;
+  border: 1px solid var(--aegis-line-2);
+  border-radius: 3px;
+  background: var(--aegis-panel-2);
+  color: var(--aegis-dim);
+}
+
+/* Blinking caret — used in AI input and "transmission" UI. */
+.aegis-caret {
+  display: inline-block;
+  width: 8px;
+  height: 14px;
+  background: var(--primary);
+  margin-left: 2px;
+  vertical-align: -2px;
+  animation: aegisBlink 1.05s steps(2) infinite;
+}
+
+/* Status bar — bottom of the app shell, monospace readouts. */
+.aegis-status {
+  height: 26px;
+  padding: 0 16px;
+  background: var(--aegis-panel);
+  border-top: 1px solid var(--aegis-line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--aegis-dim);
+}
+.aegis-status b {
+  color: var(--aegis-fg-2);
+  font-weight: 500;
+}
+.aegis-status-sep {
+  color: var(--aegis-dim-2);
+}
+
+/* Pulsing dot — "connected" status, AI live badge. */
+.aegis-dot {
+  display: inline-flex;
+  position: relative;
+  width: 6px;
+  height: 6px;
+  align-items: center;
+  justify-content: center;
+}
+.aegis-dot-core {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.aegis-dot-pulse {
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.35;
+  animation: aegisPulse 1.6s ease-out infinite;
+}
+
+/* Hero AI badge — magenta pill with pulsing dot. */
+.aegis-ai-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border: 1px solid var(--aegis-line-2);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  color: var(--primary);
+}
+
+/* AI insight card — left-tinted border, body copy. */
+.aegis-insight {
+  border: 1px solid var(--aegis-line);
+  border-left: 3px solid var(--insight-tint, var(--primary));
+  border-radius: 4px;
+  padding: 14px 16px;
+  background: var(--aegis-panel-2);
+}
+.aegis-insight-kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  color: var(--insight-tint, var(--primary));
+  margin-bottom: 8px;
+}
+
+/* Hero opener — italic Instrument Serif headline + monospace eyebrow. */
+.aegis-opener-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  color: var(--aegis-dim);
+  margin-bottom: 14px;
+}
+.aegis-opener-title {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-style: italic;
+  font-size: clamp(32px, 4vw, 44px);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--foreground);
+  margin: 0 0 12px;
+}
+.aegis-opener-sub {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--aegis-dim);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.aegis-opener-sub b {
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+/* Italic display numerals — KPI hero values. */
+.aegis-display {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 /* ===== v0.9 mobile polish =====
@@ -190,6 +397,18 @@ body {
   to { height: 0; }
 }
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
-  50% { box-shadow: 0 0 16px 4px rgba(99, 102, 241, 0.15); }
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 0%, transparent); }
+  50% { box-shadow: 0 0 16px 4px color-mix(in oklab, var(--primary) 25%, transparent); }
+}
+@keyframes aegisBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+@keyframes aegisPulse {
+  0% { transform: scale(1); opacity: 0.55; }
+  100% { transform: scale(2); opacity: 0; }
+}
+@keyframes aegisBounce {
+  0%, 100% { opacity: 0.25; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-3px); }
 }

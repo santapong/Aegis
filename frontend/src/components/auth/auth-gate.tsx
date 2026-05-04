@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { Sidebar } from "@/components/ui/sidebar";
+import { StatusBar } from "@/components/ui/status-bar";
 
 const AUTH_PAGES = ["/login", "/register"];
 const PUBLIC_PAGES = ["/welcome"];
@@ -46,9 +47,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <main className="flex-1 overflow-y-auto bg-background pt-16 lg:pt-0">
-        <div className="p-4 md:p-6 lg:p-8">{children}</div>
-      </main>
+      <div className="flex flex-1 flex-col min-w-0">
+        <main className="flex-1 overflow-y-auto bg-background pt-16 lg:pt-0">
+          <div className="p-4 md:p-6 lg:p-8">{children}</div>
+        </main>
+        <StatusBar />
+      </div>
     </div>
   );
 }

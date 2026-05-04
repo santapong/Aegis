@@ -1,18 +1,32 @@
 "use client";
 
+import { ReactNode } from "react";
+
 interface PageHeaderProps {
+  /** Optional 3-letter monospace code (DSH, TXN, BDG…). */
+  code?: string;
+  /** Optional eyebrow line — e.g. "DSH · 2026-04-27 · Mon". Falls back to <code> alone. */
+  eyebrow?: string;
   title: string;
-  subtitle?: string;
-  action?: React.ReactNode;
+  subtitle?: ReactNode;
+  action?: ReactNode;
 }
 
-export function PageHeader({ title, subtitle, action }: PageHeaderProps) {
+/**
+ * PageHeader — italic Instrument Serif title with monospace eyebrow + sub.
+ * Mirrors the `<PageOpener>` pattern from the design handoff.
+ */
+export function PageHeader({ code, eyebrow, title, subtitle, action }: PageHeaderProps) {
+  const eyebrowText = eyebrow ?? code;
   return (
-    <div className="flex items-center justify-between">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">{title}</h1>
+    <div className="flex items-end justify-between gap-4 mb-2">
+      <div className="min-w-0">
+        {eyebrowText && (
+          <div className="aegis-opener-eyebrow">{eyebrowText}</div>
+        )}
+        <h1 className="aegis-opener-title">{title}</h1>
         {subtitle && (
-          <p className="text-muted-foreground text-sm mt-1">{subtitle}</p>
+          <p className="aegis-opener-sub">{subtitle}</p>
         )}
       </div>
       {action}

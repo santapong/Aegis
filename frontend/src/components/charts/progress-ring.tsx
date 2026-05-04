@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import type { ReactNode } from "react";
 
 interface ProgressRingProps {
   value: number;
@@ -8,8 +9,8 @@ interface ProgressRingProps {
   size?: number;
   strokeWidth?: number;
   color?: string;
-  label?: string;
-  sublabel?: string;
+  label?: ReactNode;
+  sublabel?: ReactNode;
 }
 
 export function ProgressRing({
@@ -53,8 +54,18 @@ export function ProgressRing({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        {label && <span className="text-2xl font-bold tracking-tight text-foreground">{label}</span>}
-        {sublabel && <span className="text-xs text-muted-foreground">{sublabel}</span>}
+        {label &&
+          (typeof label === "string" ? (
+            <span className="text-2xl font-bold tracking-tight text-foreground">{label}</span>
+          ) : (
+            label
+          ))}
+        {sublabel &&
+          (typeof sublabel === "string" ? (
+            <span className="text-xs text-muted-foreground">{sublabel}</span>
+          ) : (
+            sublabel
+          ))}
       </div>
     </div>
   );
