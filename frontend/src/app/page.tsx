@@ -12,9 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { staggerContainer, staggerItem } from "@/lib/animations";
-import { Sparkles, AlertTriangle, Heart, TrendingUp, Lightbulb, CheckCircle, Info, TriangleAlert } from "lucide-react";
 import { useAppStore } from "@/stores/app-store";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -27,15 +25,46 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import type { HealthScoreResponse, CashFlowForecastResponse, AnomaliesResponse, KPISummary, DashboardCharts, InsightItem } from "@/types";
+import type {
+  HealthScoreResponse,
+  CashFlowForecastResponse,
+  AnomaliesResponse,
+  KPISummary,
+  DashboardCharts,
+  InsightItem,
+} from "@/types";
 
 const glassTooltipStyle = {
   background: "var(--card)",
   border: "1px solid var(--border)",
-  borderRadius: "12px",
-  boxShadow: "0 10px 15px -3px rgba(0,0,0,0.08)",
+  borderRadius: "6px",
+  fontFamily: "var(--font-mono)",
+  fontSize: "11px",
   padding: "8px 12px",
 };
+
+/** Card head — magenta 3-letter code badge + sans title + optional action. */
+function CardHead({
+  code,
+  title,
+  action,
+}: {
+  code: string;
+  title: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="aegis-card-head">
+      <span className="aegis-code">{code}</span>
+      <h3 className="text-[14px] font-medium text-foreground m-0">{title}</h3>
+      {action && (
+        <span className="ml-auto font-mono text-[11px] flex items-center gap-1.5" style={{ color: "var(--aegis-dim)" }}>
+          {action}
+        </span>
+      )}
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const { toggleAIPanel } = useAppStore();
@@ -72,44 +101,65 @@ export default function DashboardPage() {
 
   const gradeColor = (grade: string) => {
     switch (grade) {
-      case "A": return "#10b981";
-      case "B": return "#6366f1";
-      case "C": return "#eab308";
-      case "D": return "#f97316";
-      default: return "#ef4444";
+      case "A":
+        return "var(--aegis-ok)";
+      case "B":
+        return "var(--primary)";
+      case "C":
+        return "var(--aegis-warn)";
+      case "D":
+        return "var(--aegis-warn)";
+      default:
+        return "var(--aegis-bad)";
     }
   };
 
+  // Eyebrow date — kept stable across SSR / hydration.
+  const today = new Date();
+  const eyebrow = `DSH · ${today.toISOString().slice(0, 10)} · ${today.toLocaleDateString("en-US", { weekday: "short" })}`;
+
   return (
     <motion.div
-      className="space-y-6 max-w-7xl mx-auto"
+      className="space-y-7 max-w-7xl mx-auto"
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
     >
-      {/* Header */}
+      {/* Hero opener — italic serif headline + monospace eyebrow + sub. */}
       <motion.div variants={staggerItem}>
         <PageHeader
-          title="Dashboard"
-          subtitle="Overview of your financial health"
+          eyebrow={eyebrow}
+          title="Good morning."
+          subtitle={
+            summary ? (
+              <>
+                Net worth <b>{formatCurrency(summary.total_balance)}</b> · monthly net{" "}
+                <b style={{ color: "var(--aegis-ok)" }}>
+                  {formatCurrency(summary.monthly_income - summary.monthly_expenses)}
+                </b>{" "}
+                · all systems nominal.
+              </>
+            ) : (
+              <>Loading the latest read on your finances…</>
+            )
+          }
           action={
             <Button
               onClick={toggleAIPanel}
-              icon={<Sparkles size={16} />}
-              className="bg-gradient-to-r from-indigo-500 to-violet-500 shadow-md"
+              className="font-mono text-[11px] tracking-wide"
             >
-              AI Insights
+              ASK CLAUDE
             </Button>
           }
         />
       </motion.div>
 
-      {/* KPI Cards */}
+      {/* KPI rail — single grid, hairline dividers, italic serif numerals. */}
       <motion.div variants={staggerItem}>
         {summaryLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} height={112} />
+              <Skeleton key={i} height={120} />
             ))}
           </div>
         ) : summary ? (
@@ -118,41 +168,54 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Health Score + Anomaly Alerts */}
-      <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {healthLoading ? (
-          <Skeleton height={220} />
+          <Skeleton height={240} />
         ) : healthScore ? (
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Heart size={20} className="text-rose-500" />
-                <h2 className="text-lg font-semibold">Financial Health Score</h2>
-              </div>
-              <div className="flex items-center gap-6 mb-4">
-                <ProgressRing
-                  value={healthScore.overall_score}
-                  max={100}
-                  size={96}
-                  strokeWidth={8}
-                  color={gradeColor(healthScore.grade)}
-                  label={healthScore.grade}
-                  sublabel={`${healthScore.overall_score}/100`}
-                />
-                <div className="flex-1 space-y-2">
+              <CardHead code="HLT" title="Financial health" action={<>overall · {healthScore.grade}</>} />
+              <div className="grid grid-cols-[140px_1fr] gap-6 items-center">
+                <div className="flex flex-col items-center gap-1 p-3 rounded-md" style={{ border: "1px dashed var(--aegis-line)" }}>
+                  <ProgressRing
+                    value={healthScore.overall_score}
+                    max={100}
+                    size={96}
+                    strokeWidth={6}
+                    color={gradeColor(healthScore.grade)}
+                    label={
+                      <span className="aegis-display" style={{ fontSize: 48, lineHeight: 1, color: gradeColor(healthScore.grade) }}>
+                        {healthScore.grade}
+                      </span>
+                    }
+                    sublabel={
+                      <span className="font-mono text-[11px] tabular-nums" style={{ color: "var(--foreground)" }}>
+                        {healthScore.overall_score}
+                        <span style={{ color: "var(--aegis-dim)" }}>/100</span>
+                      </span>
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
                   {healthScore.breakdown.map((b) => (
-                    <div key={b.name}>
-                      <div className="flex justify-between text-xs mb-0.5">
-                        <span className="text-foreground">{b.name}</span>
-                        <span className="text-muted-foreground">{b.score}/{b.max_score}</span>
-                      </div>
-                      <div className="w-full bg-muted rounded-full h-1.5">
+                    <div
+                      key={b.name}
+                      className="grid items-center gap-2.5 font-mono text-[11px]"
+                      style={{ gridTemplateColumns: "130px 1fr 50px" }}
+                    >
+                      <span style={{ color: "var(--aegis-fg-2)" }}>{b.name}</span>
+                      <div className="h-1 overflow-hidden rounded" style={{ background: "var(--aegis-panel-2)" }}>
                         <motion.div
-                          className="h-1.5 rounded-full bg-primary"
+                          className="h-full"
+                          style={{ background: "var(--aegis-ok)" }}
                           initial={{ width: 0 }}
                           animate={{ width: `${(b.score / b.max_score) * 100}%` }}
                           transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
                         />
                       </div>
+                      <span className="text-right tabular-nums" style={{ color: "var(--aegis-dim)" }}>
+                        {b.score}/{b.max_score}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -161,35 +224,65 @@ export default function DashboardPage() {
           </Card>
         ) : null}
 
-        {/* Anomaly Alerts */}
+        {/* Anomaly Alerts — dashed-bottom row dividers, no zebra. */}
         <Card>
           <CardContent className="p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <AlertTriangle size={20} className="text-amber-500" />
-              <h2 className="text-lg font-semibold">Spending Alerts</h2>
-              {anomalies && anomalies.total_count > 0 && (
-                <Badge variant="danger" className="ml-auto">
-                  {anomalies.total_count} alert{anomalies.total_count > 1 ? "s" : ""}
-                </Badge>
-              )}
-            </div>
+            <CardHead
+              code="ALT"
+              title="Anomalies"
+              action={
+                <>
+                  <span
+                    className="aegis-dot"
+                    style={{ color: "var(--aegis-warn)" }}
+                  >
+                    <span className="aegis-dot-core" />
+                  </span>
+                  {anomalies?.total_count ?? 0} signals
+                </>
+              }
+            />
             {anomalies && anomalies.anomalies.length > 0 ? (
-              <div className="space-y-3 max-h-[200px] overflow-y-auto">
+              <div className="flex flex-col">
                 {anomalies.anomalies.slice(0, 5).map((a, i) => (
                   <motion.div
                     key={a.transaction_id}
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="flex items-start gap-3 p-3 bg-muted rounded-lg"
+                    transition={{ delay: i * 0.06 }}
+                    className="grid items-start gap-3.5 py-2.5"
+                    style={{
+                      gridTemplateColumns: "70px 1fr auto",
+                      borderBottom: i < anomalies.anomalies.slice(0, 5).length - 1 ? "1px dashed var(--aegis-line)" : "none",
+                    }}
                   >
-                    <AlertTriangle size={16} className="text-amber-500 mt-0.5 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium capitalize">{a.category}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatCurrency(a.amount)} on {a.date} &mdash; {a.deviation_ratio}x the avg ({formatCurrency(a.average_for_category)})
+                    <span className="font-mono text-[11px] pt-0.5" style={{ color: "var(--aegis-dim)" }}>
+                      {a.date.slice(5)}
+                    </span>
+                    <div>
+                      <div className="flex items-baseline gap-3 font-mono text-[12px] text-foreground">
+                        <span className="capitalize">{a.category}</span>
+                        <span className="tabular-nums" style={{ color: "var(--aegis-warn)" }}>
+                          {formatCurrency(a.amount)}
+                        </span>
+                        <span className="ml-auto tabular-nums" style={{ color: "var(--aegis-warn)" }}>
+                          {a.deviation_ratio.toFixed(1)}×
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[12px]" style={{ color: "var(--aegis-fg-2)" }}>
+                        {a.description ?? `${a.deviation_ratio.toFixed(1)}× the average for this category (${formatCurrency(a.average_for_category)}).`}
                       </p>
                     </div>
+                    <button
+                      className="font-mono text-[10px] px-2 py-1 rounded transition-colors hover:text-foreground"
+                      style={{
+                        color: "var(--aegis-dim)",
+                        border: "1px solid var(--aegis-line-2)",
+                        background: "transparent",
+                      }}
+                    >
+                      review
+                    </button>
                   </motion.div>
                 ))}
               </div>
@@ -201,10 +294,10 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Charts */}
-      <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <Card>
           <CardContent className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Spending by Category</h2>
+            <CardHead code="SPD" title="Spending · this month" action={<>by category</>} />
             {chartsLoading ? (
               <Skeleton height={300} />
             ) : (
@@ -214,7 +307,7 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardContent className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Monthly Trend</h2>
+            <CardHead code="TRD" title="Monthly trend" action={<>income vs expenses</>} />
             {chartsLoading ? (
               <Skeleton height={300} />
             ) : (
@@ -229,40 +322,44 @@ export default function DashboardPage() {
         <motion.div variants={staggerItem}>
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <Lightbulb size={20} className="text-amber-500" />
-                <h2 className="text-lg font-semibold">Financial Insights</h2>
-              </div>
+              <CardHead
+                code="INS"
+                title="Insights"
+                action={<>auto-generated · last refresh just now</>}
+              />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {insights.map((insight, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
-                    className="flex items-start gap-3 p-3 bg-muted rounded-lg"
-                  >
-                    {insight.type === "positive" ? (
-                      <CheckCircle size={16} className="text-emerald-500 mt-0.5 shrink-0" />
-                    ) : insight.type === "warning" ? (
-                      <TriangleAlert size={16} className="text-amber-500 mt-0.5 shrink-0" />
-                    ) : (
-                      <Info size={16} className="text-indigo-500 mt-0.5 shrink-0" />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium">{insight.title}</p>
-                        <Badge variant={
-                          insight.type === "positive" ? "success" :
-                          insight.type === "warning" ? "warning" : "info"
-                        }>
-                          {insight.metric}
-                        </Badge>
+                {insights.map((insight, i) => {
+                  const tint =
+                    insight.type === "positive"
+                      ? "var(--aegis-ok)"
+                      : insight.type === "warning"
+                        ? "var(--aegis-warn)"
+                        : "var(--primary)";
+                  return (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.08 }}
+                      className="aegis-insight"
+                      style={{ "--insight-tint": tint } as React.CSSProperties}
+                    >
+                      <div className="aegis-insight-kicker">
+                        {String(i + 1).padStart(2, "0")} · {insight.type.toUpperCase()}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">{insight.message}</p>
-                    </div>
-                  </motion.div>
-                ))}
+                      <div className="text-sm font-medium text-foreground mb-1.5">{insight.title}</div>
+                      <div className="text-[13px] leading-relaxed" style={{ color: "var(--aegis-fg-2)" }}>
+                        {insight.message}
+                      </div>
+                      <div className="flex items-center justify-between font-mono text-[11px] mt-2.5">
+                        <span className="tabular-nums" style={{ color: tint }}>
+                          {insight.metric}
+                        </span>
+                        <span style={{ color: "var(--aegis-dim)" }}>act on this →</span>
+                      </div>
+                    </motion.div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -274,23 +371,67 @@ export default function DashboardPage() {
         <motion.div variants={staggerItem}>
           <Card>
             <CardContent className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <TrendingUp size={20} className="text-primary" />
-                <h2 className="text-lg font-semibold">Cash Flow Forecast</h2>
-                <span className="ml-auto text-sm text-muted-foreground">
-                  Current balance: {formatCurrency(cashflow.current_balance)}
-                </span>
-              </div>
+              <CardHead
+                code="CFL"
+                title="Cash flow forecast"
+                action={
+                  <>
+                    current balance ·{" "}
+                    <span style={{ color: "var(--foreground)" }} className="tabular-nums">
+                      {formatCurrency(cashflow.current_balance)}
+                    </span>
+                  </>
+                }
+              />
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={cashflow.forecast}>
-                  <CartesianGrid strokeDasharray="4 4" stroke="var(--border)" strokeOpacity={0.5} />
-                  <XAxis dataKey="month" tick={{ fontSize: 12 }} stroke="var(--muted-foreground)" tickLine={false} axisLine={false} />
-                  <YAxis tick={{ fontSize: 12 }} stroke="var(--muted-foreground)" tickLine={false} axisLine={false} />
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} contentStyle={glassTooltipStyle} />
-                  <Legend />
-                  <Line type="monotone" dataKey="projected_balance" stroke="#6366f1" strokeWidth={2.5} name="Balance" dot={false} activeDot={{ r: 5, fill: "#6366f1", stroke: "white", strokeWidth: 2 }} />
-                  <Line type="monotone" dataKey="projected_income" stroke="#10b981" strokeWidth={2.5} name="Income" dot={false} activeDot={{ r: 5, fill: "#10b981", stroke: "white", strokeWidth: 2 }} />
-                  <Line type="monotone" dataKey="projected_expenses" stroke="#f43f5e" strokeWidth={2.5} name="Expenses" dot={false} activeDot={{ r: 5, fill: "#f43f5e", stroke: "white", strokeWidth: 2 }} />
+                  <CartesianGrid strokeDasharray="2 4" stroke="var(--border)" strokeOpacity={0.6} />
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fontSize: 10, fontFamily: "var(--font-mono)", fill: "var(--aegis-dim)" }}
+                    stroke="var(--border)"
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    tick={{ fontSize: 10, fontFamily: "var(--font-mono)", fill: "var(--aegis-dim)" }}
+                    stroke="var(--border)"
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <Tooltip
+                    formatter={(value: number) => formatCurrency(value)}
+                    contentStyle={glassTooltipStyle}
+                    cursor={{ stroke: "var(--aegis-line-2)", strokeDasharray: "2 4" }}
+                  />
+                  <Legend wrapperStyle={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: 1 }} />
+                  <Line
+                    type="monotone"
+                    dataKey="projected_balance"
+                    stroke="var(--primary)"
+                    strokeWidth={1.75}
+                    name="balance"
+                    dot={false}
+                    activeDot={{ r: 4, fill: "var(--primary)" }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="projected_income"
+                    stroke="var(--aegis-ok)"
+                    strokeWidth={1.5}
+                    name="income"
+                    dot={false}
+                    activeDot={{ r: 4, fill: "var(--aegis-ok)" }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="projected_expenses"
+                    stroke="var(--aegis-warn)"
+                    strokeWidth={1.5}
+                    name="expenses"
+                    dot={false}
+                    activeDot={{ r: 4, fill: "var(--aegis-warn)" }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>

@@ -19,16 +19,26 @@ interface SpendingChartProps {
   data: ChartDataPoint[];
 }
 
+/* Terminal-aesthetic palette — magenta, phosphor green, amber, claret. */
 const COLORS = [
-  "#6366f1", "#8b5cf6", "#ec4899", "#f43f5e", "#f97316",
-  "#eab308", "#22c55e", "#14b8a6", "#06b6d4", "#3b82f6",
+  "oklch(0.78 0.16 305)", // magenta — primary
+  "oklch(0.78 0.14 145)", // phosphor green
+  "oklch(0.78 0.16 75)",  // amber
+  "oklch(0.72 0.18 25)",  // claret
+  "oklch(0.7 0.14 250)",  // dim blue
+  "oklch(0.68 0.16 200)", // teal
+  "oklch(0.7 0.14 340)",  // pink
+  "oklch(0.65 0.14 110)", // olive
+  "oklch(0.72 0.12 280)", // lavender
+  "oklch(0.75 0.12 50)",  // sand
 ];
 
 const glassTooltipStyle = {
   background: "var(--card)",
   border: "1px solid var(--border)",
-  borderRadius: "12px",
-  boxShadow: "0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04)",
+  borderRadius: "6px",
+  fontFamily: "var(--font-mono)",
+  fontSize: "11px",
   padding: "8px 12px",
 };
 
