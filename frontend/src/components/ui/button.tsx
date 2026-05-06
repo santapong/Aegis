@@ -43,11 +43,17 @@ interface ButtonProps
   asChild?: boolean;
   loading?: boolean;
   icon?: React.ReactNode;
+  iconPosition?: "left" | "right";
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, loading, icon, children, disabled, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, loading, icon, iconPosition = "left", children, disabled, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
+    const renderedIcon = loading ? (
+      <Loader2 size={size === "sm" ? 14 : 16} className="animate-spin" />
+    ) : (
+      icon
+    );
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
@@ -55,12 +61,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled || loading}
         {...props}
       >
-        {loading ? (
-          <Loader2 size={size === "sm" ? 14 : 16} className="animate-spin" />
-        ) : (
-          icon
-        )}
+        {iconPosition === "left" && renderedIcon}
         {children}
+        {iconPosition === "right" && renderedIcon}
       </Comp>
     );
   }

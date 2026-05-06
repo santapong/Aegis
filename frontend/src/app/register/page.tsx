@@ -10,6 +10,7 @@ import { useAuthStore } from "@/stores/auth-store";
 export default function RegisterPage() {
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
+  const setToken = useAuthStore((s) => s.setToken);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -35,6 +36,7 @@ export default function RegisterPage() {
       await authAPI.register({ email, username, password });
       // Auto-login after registration
       const tokenRes = await authAPI.login({ email, password });
+      setToken(tokenRes.access_token);
       const userRes = await authAPI.me();
       login(tokenRes.access_token, userRes);
       router.push("/");

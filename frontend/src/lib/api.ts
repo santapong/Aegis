@@ -15,8 +15,11 @@ export class APIError extends Error {
   }
 }
 
+const PUBLIC_ENDPOINTS = ["/api/auth/login", "/api/auth/register"];
+
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
-  const token = useAuthStore.getState().token;
+  const isPublic = PUBLIC_ENDPOINTS.some((p) => url.startsWith(p));
+  const token = isPublic ? null : useAuthStore.getState().token;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -26,6 +29,14 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
     ...init,
   });
   if (res.status === 401) {
+    if (isPublic) {
+      let detail: string | undefined;
+      try {
+        const body = await res.json();
+        detail = body.detail || body.message;
+      } catch {}
+      throw new APIError(401, "Invalid credentials", detail);
+    }
     useAuthStore.getState().logout();
     throw new APIError(401, "Session expired");
   }

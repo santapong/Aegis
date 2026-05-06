@@ -10,6 +10,7 @@ import { useAuthStore } from "@/stores/auth-store";
 export default function LoginPage() {
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
+  const setToken = useAuthStore((s) => s.setToken);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -22,6 +23,7 @@ export default function LoginPage() {
 
     try {
       const tokenRes = await authAPI.login({ email, password });
+      setToken(tokenRes.access_token);
       const userRes = await authAPI.me();
       login(tokenRes.access_token, userRes);
       router.push("/");

@@ -16,6 +16,7 @@ interface AuthState {
   login: (token: string, user: AuthUser) => void;
   logout: () => void;
   setUser: (user: AuthUser) => void;
+  setToken: (token: string) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -29,6 +30,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () =>
         set({ token: null, user: null, isAuthenticated: false }),
       setUser: (user) => set({ user }),
+      setToken: (token) => set({ token }),
     }),
     {
       name: "aegis-auth",

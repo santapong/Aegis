@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import "driver.js/dist/driver.css";
 import { useAuthStore } from "@/stores/auth-store";
 import { useAppStore } from "@/stores/app-store";
 import { authAPI } from "@/lib/api";
@@ -72,7 +73,6 @@ export function OnboardingTour() {
 
     (async () => {
       const mod = await import("driver.js");
-      await import("driver.js/dist/driver.css");
       if (cancelled) return;
 
       const driverObj = mod.driver({

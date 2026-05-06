@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { plansAPI } from "@/lib/api";
@@ -82,6 +83,8 @@ const defaultForm = {
 export default function PlansPage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [showForm, setShowForm] = useState(false);
   const [editingPlan, setEditingPlan] = useState<Plan | null>(null);
@@ -91,6 +94,18 @@ export default function PlansPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [form, setForm] = useState(defaultForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (searchParams.get("new") !== "1") return;
+    const date = searchParams.get("date");
+    setForm({
+      ...defaultForm,
+      start_date: date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : defaultForm.start_date,
+    });
+    setEditingPlan(null);
+    setShowForm(true);
+    router.replace("/plans");
+  }, [searchParams, router]);
 
   const queryParams: Record<string, string> = {};
   if (categoryFilter !== "all") queryParams.category = categoryFilter;

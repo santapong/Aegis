@@ -3,6 +3,8 @@ from datetime import date, timedelta
 
 import anthropic
 from fastapi import HTTPException
+from loguru import logger
+from openai import OpenAI
 from sqlalchemy.orm import Session
 
 from ..config import get_settings
@@ -11,7 +13,8 @@ from ..models.transaction import Transaction, TransactionType
 from ..models.ai_recommendation import AIRecommendation, ActionType
 
 
-# Tool definitions for structured output via Claude tool_use
+# Tool definitions — JSON Schema is identical across Anthropic and OpenAI.
+# Each provider wraps the schema differently, but `_call_tool` handles that.
 
 ANALYZE_TOOL = {
     "name": "provide_recommendations",
@@ -86,8 +89,7 @@ FORECAST_TOOL = {
 }
 
 
-def _extract_tool_input(response, tool_name: str) -> dict | None:
-    """Extract structured input from a tool_use content block."""
+def _extract_anthropic_tool_input(response, tool_name: str) -> dict | None:
     for block in response.content:
         if block.type == "tool_use" and block.name == tool_name:
             return block.input
@@ -95,20 +97,99 @@ def _extract_tool_input(response, tool_name: str) -> dict | None:
 
 
 class AIEngine:
+    """Provider-agnostic AI engine.
+
+    Selects between `anthropic`, `typhoon`, and `groq` via settings.ai_provider.
+    Typhoon and Groq both use the OpenAI-compatible chat-completions API; only
+    the base_url, api key, and default model differ.
+    """
+
     def __init__(self, db: Session, user_id: str | None = None):
         settings = get_settings()
-        if not settings.anthropic_api_key:
-            raise HTTPException(
-                status_code=503,
-                detail={
-                    "error": "ai_not_configured",
-                    "message": "ANTHROPIC_API_KEY is not set. Add it to .env to enable AI routes.",
-                },
-            )
         self.db = db
         self.user_id = user_id
-        self.client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-        self.model = settings.ai_model
+        self.provider = settings.ai_provider
+
+        if self.provider == "anthropic":
+            if not settings.anthropic_api_key:
+                self._raise_unconfigured("ANTHROPIC_API_KEY")
+            self._anthropic = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+            self._openai = None
+            self.model = settings.ai_model
+        elif self.provider == "typhoon":
+            if not settings.typhoon_api_key:
+                self._raise_unconfigured("TYPHOON_API_KEY")
+            self._anthropic = None
+            self._openai = OpenAI(api_key=settings.typhoon_api_key, base_url=settings.typhoon_base_url)
+            self.model = settings.typhoon_model
+        elif self.provider == "groq":
+            if not settings.groq_api_key:
+                self._raise_unconfigured("GROQ_API_KEY")
+            self._anthropic = None
+            self._openai = OpenAI(api_key=settings.groq_api_key, base_url=settings.groq_base_url)
+            self.model = settings.groq_model
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail={"error": "ai_provider_invalid", "message": f"Unknown AI_PROVIDER {self.provider!r}."},
+            )
+
+    @staticmethod
+    def _raise_unconfigured(env_var: str) -> None:
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "ai_not_configured",
+                "message": f"{env_var} is not set. Add it to .env to enable AI routes.",
+            },
+        )
+
+    def _call_tool(self, system_prompt: str, user_message: str, tool: dict) -> dict | None:
+        """Force a single tool call and return its parsed input dict, or None on failure."""
+        if self.provider == "anthropic":
+            try:
+                response = self._anthropic.messages.create(
+                    model=self.model,
+                    max_tokens=1024,
+                    system=system_prompt,
+                    messages=[{"role": "user", "content": user_message}],
+                    tools=[tool],
+                    tool_choice={"type": "tool", "name": tool["name"]},
+                )
+                return _extract_anthropic_tool_input(response, tool["name"])
+            except Exception as e:
+                logger.warning("anthropic tool call failed: {}", e)
+                return None
+
+        # OpenAI-compatible (typhoon, groq) — function calling
+        openai_tool = {
+            "type": "function",
+            "function": {
+                "name": tool["name"],
+                "description": tool.get("description", ""),
+                "parameters": tool["input_schema"],
+            },
+        }
+        try:
+            response = self._openai.chat.completions.create(
+                model=self.model,
+                max_tokens=1024,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_message},
+                ],
+                tools=[openai_tool],
+                tool_choice={"type": "function", "function": {"name": tool["name"]}},
+            )
+            choice = response.choices[0]
+            tool_calls = getattr(choice.message, "tool_calls", None) or []
+            for tc in tool_calls:
+                if tc.function.name == tool["name"]:
+                    return json.loads(tc.function.arguments)
+            return None
+        except Exception as e:
+            logger.warning("{} tool call failed: {}", self.provider, e)
+            return None
 
     def _gather_context(self, days: int = 90) -> dict:
         cutoff = date.today() - timedelta(days=days)
@@ -156,27 +237,10 @@ Be specific with numbers and percentages. Provide 3-5 recommendations."""
 
 {"Question: " + question if question else "Please analyze my finances and give recommendations."}"""
 
-        try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=1024,
-                system=system_prompt,
-                messages=[{"role": "user", "content": user_message}],
-                tools=[ANALYZE_TOOL],
-                tool_choice={"type": "tool", "name": "provide_recommendations"},
-            )
-
-            result = _extract_tool_input(response, "provide_recommendations")
-            recommendations = result["recommendations"] if result else []
-        except anthropic.APIError:
-            recommendations = [
-                {"recommendation": "Unable to generate AI recommendations at this time.", "confidence": 0.5, "category": "general", "action_type": "alert"}
-            ]
-
-        if not recommendations:
-            recommendations = [
-                {"recommendation": "No recommendations could be generated.", "confidence": 0.5, "category": "general", "action_type": "alert"}
-            ]
+        result = self._call_tool(system_prompt, user_message, ANALYZE_TOOL)
+        recommendations = (result or {}).get("recommendations") or [
+            {"recommendation": "Unable to generate AI recommendations at this time.", "confidence": 0.5, "category": "general", "action_type": "alert"}
+        ]
 
         # Store recommendations
         stored = []
@@ -215,20 +279,7 @@ Be specific with numbers and percentages. Provide 3-5 recommendations."""
 Monthly averages: income={monthly_income:.2f}, expenses={monthly_expenses:.2f}
 Please forecast my finances for the next {months_ahead} months."""
 
-        try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=1024,
-                system=system_prompt,
-                messages=[{"role": "user", "content": user_message}],
-                tools=[FORECAST_TOOL],
-                tool_choice={"type": "tool", "name": "provide_forecast"},
-            )
-
-            forecast = _extract_tool_input(response, "provide_forecast")
-        except anthropic.APIError:
-            forecast = None
-
+        forecast = self._call_tool(system_prompt, user_message, FORECAST_TOOL)
         if not forecast:
             forecast = {
                 "projected_balance": (monthly_income - monthly_expenses) * months_ahead,

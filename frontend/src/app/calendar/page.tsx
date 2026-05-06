@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { calendarAPI } from "@/lib/api";
@@ -27,9 +28,15 @@ import { staggerContainer, staggerItem, slideUp } from "@/lib/animations";
 import type { CalendarEvent } from "@/types";
 
 export default function CalendarPage() {
+  const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [direction, setDirection] = useState(0);
+
+  const openNewPlan = (day?: Date | null) => {
+    const d = day ?? selectedDate ?? new Date();
+    router.push(`/plans?new=1&date=${format(d, "yyyy-MM-dd")}`);
+  };
 
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
@@ -84,7 +91,7 @@ export default function CalendarPage() {
         <PageHeader
           title="Calendar Planner"
           subtitle="Plan and schedule your financial activities"
-          action={<Button icon={<Plus size={16} />}>New Plan</Button>}
+          action={<Button icon={<Plus size={16} />} onClick={() => openNewPlan()}>New Plan</Button>}
         />
       </motion.div>
 

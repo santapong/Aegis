@@ -78,6 +78,16 @@ def _db_backend(url: str) -> str:
     return scheme or "unknown"
 
 
+def _ai_configured(s) -> bool:
+    if s.ai_provider == "anthropic":
+        return bool(s.anthropic_api_key)
+    if s.ai_provider == "typhoon":
+        return bool(s.typhoon_api_key)
+    if s.ai_provider == "groq":
+        return bool(s.groq_api_key)
+    return False
+
+
 @app.on_event("startup")
 def on_startup():
     logger.info(
@@ -85,10 +95,11 @@ def on_startup():
         version=APP_VERSION,
     )
     logger.info(
-        "config: debug={debug} db={db} ai={ai} stripe={stripe} log_format={fmt}",
+        "config: debug={debug} db={db} ai_provider={prov} ai={ai} stripe={stripe} log_format={fmt}",
         debug=settings.debug,
         db=_db_backend(settings.database_url),
-        ai="configured" if settings.anthropic_api_key else "not_configured",
+        prov=settings.ai_provider,
+        ai="configured" if _ai_configured(settings) else "not_configured",
         stripe="configured" if settings.stripe_secret_key else "not_configured",
         fmt=settings.log_format,
     )
@@ -110,7 +121,8 @@ def health():
         "version": APP_VERSION,
         "db": "ok" if db_ok else "error",
         "features": {
-            "ai": "configured" if settings.anthropic_api_key else "not_configured",
+            "ai": "configured" if _ai_configured(settings) else "not_configured",
+            "ai_provider": settings.ai_provider,
             "stripe": "configured" if settings.stripe_secret_key else "not_configured",
         },
         "stripe_mode": settings.stripe_mode if settings.stripe_secret_key else "not_configured",

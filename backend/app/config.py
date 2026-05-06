@@ -23,9 +23,19 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440  # 24 hours
 
-    # AI
+    # AI provider — "anthropic" | "typhoon" | "groq"
+    ai_provider: str = "anthropic"
+    # Anthropic
     anthropic_api_key: str = ""
     ai_model: str = "claude-sonnet-4-20250514"
+    # Typhoon (OpenAI-compatible — https://api.opentyphoon.ai/v1)
+    typhoon_api_key: str = ""
+    typhoon_base_url: str = "https://api.opentyphoon.ai/v1"
+    typhoon_model: str = "typhoon-v2.1-12b-instruct"
+    # Groq (OpenAI-compatible — https://api.groq.com/openai/v1)
+    groq_api_key: str = ""
+    groq_base_url: str = "https://api.groq.com/openai/v1"
+    groq_model: str = "llama-3.3-70b-versatile"
 
     # CORS
     cors_origins: list[str] = ["http://localhost:3000"]
@@ -69,6 +79,11 @@ class Settings(BaseSettings):
 
         if self.log_format not in ("text", "json"):
             raise ValueError("LOG_FORMAT must be 'text' or 'json'.")
+
+        if self.ai_provider not in ("anthropic", "typhoon", "groq"):
+            raise ValueError(
+                f"AI_PROVIDER must be one of 'anthropic', 'typhoon', 'groq' (got {self.ai_provider!r})."
+            )
 
         return self
 
