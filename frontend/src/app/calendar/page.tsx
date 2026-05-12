@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { calendarAPI } from "@/lib/api";
+import { calendarAPI, plansAPI } from "@/lib/api";
 import {
   format,
   startOfMonth,
@@ -19,23 +18,84 @@ import {
 } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus, Calendar } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Modal, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { EmptyState } from "@/components/ui/empty-state";
 import { staggerContainer, staggerItem, slideUp } from "@/lib/animations";
-import type { CalendarEvent } from "@/types";
+import type { CalendarEvent, PlanCategory, PlanStatus, Priority, Recurrence } from "@/types";
+
+const categoryOptions = [
+  { value: "income", label: "Income" },
+  { value: "expense", label: "Expense" },
+  { value: "investment", label: "Investment" },
+  { value: "savings", label: "Savings" },
+];
+
+const statusOptions = [
+  { value: "planned", label: "Planned" },
+  { value: "in_progress", label: "In Progress" },
+  { value: "completed", label: "Completed" },
+  { value: "cancelled", label: "Cancelled" },
+];
+
+const priorityOptions = [
+  { value: "low", label: "Low" },
+  { value: "medium", label: "Medium" },
+  { value: "high", label: "High" },
+  { value: "critical", label: "Critical" },
+];
+
+const recurrenceOptions = [
+  { value: "once", label: "Once" },
+  { value: "daily", label: "Daily" },
+  { value: "weekly", label: "Weekly" },
+  { value: "monthly", label: "Monthly" },
+  { value: "yearly", label: "Yearly" },
+];
+
+const buildDefaultForm = (date: Date) => ({
+  title: "",
+  description: "",
+  category: "expense" as PlanCategory,
+  amount: "",
+  currency: "USD",
+  start_date: format(date, "yyyy-MM-dd"),
+  end_date: "",
+  recurrence: "once" as Recurrence,
+  status: "planned" as PlanStatus,
+  priority: "medium" as Priority,
+  color: "#3B82F6",
+});
 
 export default function CalendarPage() {
-  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [direction, setDirection] = useState(0);
 
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState(() => buildDefaultForm(new Date()));
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   const openNewPlan = (day?: Date | null) => {
     const d = day ?? selectedDate ?? new Date();
-    router.push(`/plans?new=1&date=${format(d, "yyyy-MM-dd")}`);
+    setSelectedDate(d);
+    setForm(buildDefaultForm(d));
+    setErrors({});
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
+    setShowForm(false);
+    setErrors({});
   };
 
   const monthStart = startOfMonth(currentDate);
@@ -45,6 +105,44 @@ export default function CalendarPage() {
     queryKey: ["calendar-events", format(monthStart, "yyyy-MM-dd"), format(monthEnd, "yyyy-MM-dd")],
     queryFn: () => calendarAPI.events(format(monthStart, "yyyy-MM-dd"), format(monthEnd, "yyyy-MM-dd")) as Promise<CalendarEvent[]>,
   });
+
+  const createMutation = useMutation({
+    mutationFn: (data: Record<string, unknown>) => plansAPI.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
+      queryClient.invalidateQueries({ queryKey: ["plans"] });
+      closeForm();
+      toast.success("Plan created successfully");
+    },
+    onError: () => toast.error("Failed to create plan"),
+  });
+
+  const validate = () => {
+    const errs: Record<string, string> = {};
+    if (!form.title.trim()) errs.title = "Title is required";
+    if (!form.amount || parseFloat(form.amount) <= 0) errs.amount = "Amount must be greater than 0";
+    if (!form.start_date) errs.start_date = "Start date is required";
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    createMutation.mutate({
+      title: form.title,
+      description: form.description || null,
+      category: form.category,
+      amount: parseFloat(form.amount),
+      currency: form.currency,
+      start_date: form.start_date,
+      end_date: form.end_date || null,
+      recurrence: form.recurrence,
+      status: form.status,
+      priority: form.priority,
+      color: form.color,
+    });
+  };
 
   const calendarDays = useMemo(() => {
     const start = startOfWeek(monthStart);
@@ -227,7 +325,16 @@ export default function CalendarPage() {
           >
             <Card>
               <CardContent className="p-6">
-                <h3 className="font-semibold mb-3">{format(selectedDate, "EEEE, MMMM d, yyyy")}</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold">{format(selectedDate, "EEEE, MMMM d, yyyy")}</h3>
+                  <Button
+                    size="sm"
+                    icon={<Plus size={14} />}
+                    onClick={() => openNewPlan(selectedDate)}
+                  >
+                    Add plan
+                  </Button>
+                </div>
                 {getEventsForDay(selectedDate).length === 0 ? (
                   <p className="text-sm text-muted-foreground">No plans for this day</p>
                 ) : (
@@ -254,6 +361,101 @@ export default function CalendarPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <Modal
+        open={showForm}
+        onClose={closeForm}
+        title={`Create plan for ${format(new Date(form.start_date), "MMM d, yyyy")}`}
+        size="lg"
+      >
+        <form onSubmit={handleSubmit}>
+          <ModalBody className="space-y-4">
+            <Input
+              label="Title"
+              placeholder="e.g. Rent payment"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              error={errors.title}
+            />
+            <Textarea
+              label="Description (optional)"
+              placeholder="Describe your plan..."
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+            <div className="grid grid-cols-2 gap-4">
+              <Select
+                label="Category"
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value as PlanCategory })}
+                options={categoryOptions}
+              />
+              <Input
+                label="Amount"
+                type="number"
+                placeholder="0.00"
+                value={form.amount}
+                onChange={(e) => setForm({ ...form, amount: e.target.value })}
+                error={errors.amount}
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Start Date"
+                type="date"
+                value={form.start_date}
+                onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                error={errors.start_date}
+              />
+              <Input
+                label="End Date (optional)"
+                type="date"
+                value={form.end_date}
+                onChange={(e) => setForm({ ...form, end_date: e.target.value })}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <Select
+                label="Recurrence"
+                value={form.recurrence}
+                onChange={(e) => setForm({ ...form, recurrence: e.target.value as Recurrence })}
+                options={recurrenceOptions}
+              />
+              <Select
+                label="Status"
+                value={form.status}
+                onChange={(e) => setForm({ ...form, status: e.target.value as PlanStatus })}
+                options={statusOptions}
+              />
+              <Select
+                label="Priority"
+                value={form.priority}
+                onChange={(e) => setForm({ ...form, priority: e.target.value as Priority })}
+                options={priorityOptions}
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium">Color</label>
+              <input
+                type="color"
+                value={form.color}
+                onChange={(e) => setForm({ ...form, color: e.target.value })}
+                className="w-8 h-8 rounded border border-border cursor-pointer"
+              />
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="outline" type="button" onClick={closeForm}>
+              Cancel
+            </Button>
+            <Button type="submit" loading={createMutation.isPending}>
+              Create Plan
+            </Button>
+          </ModalFooter>
+        </form>
+      </Modal>
     </motion.div>
   );
 }
