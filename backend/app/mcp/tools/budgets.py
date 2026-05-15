@@ -6,12 +6,26 @@ from datetime import date
 from typing import Any
 
 from mcp import types
+from sqlalchemy.orm import Session
 
 from ...models.budget import Budget
 from ...models.transaction import Transaction, TransactionType
+from ...models.trip import Trip
 from ...schemas.budget import BudgetCreate, BudgetResponse, BudgetUpdate
 from ..schemas import pydantic_to_mcp_schema
 from ..session import resolve_user_id, session_scope
+
+
+def _check_trip_owner(db: Session, trip_id: str | None, user_id: str) -> None:
+    if not trip_id:
+        return
+    owned = (
+        db.query(Trip.id)
+        .filter(Trip.id == trip_id, Trip.user_id == user_id)
+        .first()
+    )
+    if not owned:
+        raise ValueError(f"Trip {trip_id} not found")
 
 
 def _serialize(budget: Budget) -> dict[str, Any]:
@@ -35,6 +49,7 @@ async def create_budget(args: dict[str, Any]) -> str:
     payload = BudgetCreate.model_validate(args)
     user_id = resolve_user_id()
     with session_scope() as db:
+        _check_trip_owner(db, payload.trip_id, user_id)
         db_budget = Budget(**payload.model_dump(), user_id=user_id)
         db.add(db_budget)
         db.commit()
@@ -56,7 +71,10 @@ async def update_budget(args: dict[str, Any]) -> str:
         )
         if not b:
             raise ValueError(f"Budget {budget_id} not found")
-        for key, val in update.model_dump(exclude_unset=True).items():
+        data = update.model_dump(exclude_unset=True)
+        if "trip_id" in data:
+            _check_trip_owner(db, data["trip_id"], user_id)
+        for key, val in data.items():
             setattr(b, key, val)
         db.commit()
         db.refresh(b)

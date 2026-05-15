@@ -113,11 +113,16 @@ def trip_summary(
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
 
-    budgets = db.query(Budget).filter(Budget.trip_id == trip_id).all()
+    budgets = (
+        db.query(Budget)
+        .filter(Budget.trip_id == trip_id, Budget.user_id == current_user.id)
+        .all()
+    )
     transactions = (
         db.query(Transaction)
         .filter(
             Transaction.trip_id == trip_id,
+            Transaction.user_id == current_user.id,
             Transaction.type == TransactionType.expense,
         )
         .all()

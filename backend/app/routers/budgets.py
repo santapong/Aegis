@@ -5,6 +5,7 @@ from datetime import date
 from ..database import get_db
 from ..models.budget import Budget
 from ..models.transaction import Transaction, TransactionType
+from ..models.trip import Trip
 from ..models.user import User
 from ..schemas.budget import (
     BudgetCreate,
@@ -18,8 +19,21 @@ from ..auth import get_current_user
 router = APIRouter(prefix="/api/budgets", tags=["budgets"])
 
 
+def _validate_trip_ownership(db: Session, trip_id: str | None, user_id: str) -> None:
+    if not trip_id:
+        return
+    exists = (
+        db.query(Trip.id)
+        .filter(Trip.id == trip_id, Trip.user_id == user_id)
+        .first()
+    )
+    if not exists:
+        raise HTTPException(status_code=404, detail="Trip not found")
+
+
 @router.post("/", response_model=BudgetResponse, status_code=201)
 def create_budget(budget: BudgetCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    _validate_trip_ownership(db, budget.trip_id, current_user.id)
     db_budget = Budget(**budget.model_dump(), user_id=current_user.id)
     db.add(db_budget)
     db.commit()
@@ -119,7 +133,10 @@ def update_budget(budget_id: str, data: BudgetUpdate, db: Session = Depends(get_
     budget = db.query(Budget).filter(Budget.id == budget_id, Budget.user_id == current_user.id).first()
     if not budget:
         raise HTTPException(status_code=404, detail="Budget not found")
-    for key, val in data.model_dump(exclude_unset=True).items():
+    update_data = data.model_dump(exclude_unset=True)
+    if "trip_id" in update_data:
+        _validate_trip_ownership(db, update_data["trip_id"], current_user.id)
+    for key, val in update_data.items():
         setattr(budget, key, val)
     db.commit()
     db.refresh(budget)

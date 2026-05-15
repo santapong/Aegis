@@ -8,6 +8,7 @@ import pandas as pd
 from ..database import get_db
 from ..models.transaction import Transaction, TransactionType, RecurringInterval
 from ..models.tag import Tag
+from ..models.trip import Trip
 from ..models.user import User
 from ..schemas.transaction import (
     TransactionCreate, TransactionUpdate, TransactionResponse, TransactionSummary,
@@ -22,8 +23,23 @@ from ..auth import get_current_user
 router = APIRouter(prefix="/api/transactions", tags=["transactions"])
 
 
+def _validate_trip_ownership(db: Session, trip_id: str | None, user_id: str) -> None:
+    """Reject trip_id values that don't belong to the caller, preventing
+    cross-user trip linkage."""
+    if not trip_id:
+        return
+    exists = (
+        db.query(Trip.id)
+        .filter(Trip.id == trip_id, Trip.user_id == user_id)
+        .first()
+    )
+    if not exists:
+        raise HTTPException(status_code=404, detail="Trip not found")
+
+
 @router.post("/", response_model=TransactionResponse, status_code=201)
 def create_transaction(txn: TransactionCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    _validate_trip_ownership(db, txn.trip_id, current_user.id)
     tag_ids = txn.tag_ids
     data = txn.model_dump(exclude={"tag_ids"})
     db_txn = Transaction(**data, user_id=current_user.id)
@@ -55,6 +71,8 @@ def update_transaction(
         raise HTTPException(status_code=404, detail="Transaction not found")
 
     data = update.model_dump(exclude_unset=True)
+    if "trip_id" in data:
+        _validate_trip_ownership(db, data["trip_id"], current_user.id)
     tag_ids = data.pop("tag_ids", None)
     for key, val in data.items():
         setattr(db_txn, key, val)

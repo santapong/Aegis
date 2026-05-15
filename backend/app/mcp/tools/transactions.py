@@ -8,8 +8,11 @@ from typing import Any
 from mcp import types
 from sqlalchemy import or_
 
+from sqlalchemy.orm import Session
+
 from ...models.tag import Tag
 from ...models.transaction import Transaction, TransactionType
+from ...models.trip import Trip
 from ...schemas.transaction import (
     TransactionCreate,
     TransactionResponse,
@@ -18,6 +21,18 @@ from ...schemas.transaction import (
 from ...services.notification_service import evaluate_budget_thresholds
 from ..schemas import pydantic_to_mcp_schema
 from ..session import resolve_user_id, session_scope
+
+
+def _check_trip_owner(db: Session, trip_id: str | None, user_id: str) -> None:
+    if not trip_id:
+        return
+    owned = (
+        db.query(Trip.id)
+        .filter(Trip.id == trip_id, Trip.user_id == user_id)
+        .first()
+    )
+    if not owned:
+        raise ValueError(f"Trip {trip_id} not found")
 
 
 def _serialize(txn: Transaction) -> dict[str, Any]:
@@ -53,6 +68,7 @@ async def create_transaction(args: dict[str, Any]) -> str:
     payload = TransactionCreate.model_validate(args)
     user_id = resolve_user_id()
     with session_scope() as db:
+        _check_trip_owner(db, payload.trip_id, user_id)
         tag_ids = payload.tag_ids
         data = payload.model_dump(exclude={"tag_ids"})
         db_txn = Transaction(**data, user_id=user_id)
@@ -80,6 +96,8 @@ async def update_transaction(args: dict[str, Any]) -> str:
         if not db_txn:
             raise ValueError(f"Transaction {txn_id} not found")
         data = update.model_dump(exclude_unset=True)
+        if "trip_id" in data:
+            _check_trip_owner(db, data["trip_id"], user_id)
         tag_ids = data.pop("tag_ids", None)
         for key, val in data.items():
             setattr(db_txn, key, val)

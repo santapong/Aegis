@@ -142,3 +142,66 @@ def test_trip_rejects_end_before_start(client):
         headers=headers,
     )
     assert r.status_code == 422
+
+
+def test_cross_user_trip_id_rejected_on_transaction_create(client):
+    h1, _ = _register(client, email="t-own@example.com", username="towner")
+    h2, _ = _register(client, email="t-attack@example.com", username="tattack")
+    r = client.post(
+        "/api/trips/",
+        json={"title": "Owned", "start_date": "2026-09-01", "end_date": "2026-09-05"},
+        headers=h1,
+    )
+    trip_id = r.json()["id"]
+
+    # User 2 tries to attach a transaction to user 1's trip
+    r = client.post(
+        "/api/transactions/",
+        json={"amount": 50, "type": "expense", "category": "food", "date": "2026-09-02", "trip_id": trip_id},
+        headers=h2,
+    )
+    assert r.status_code == 404, r.text
+
+
+def test_cross_user_trip_id_rejected_on_transaction_update(client):
+    h1, _ = _register(client, email="tu-own@example.com", username="tuowner")
+    h2, _ = _register(client, email="tu-attack@example.com", username="tuattack")
+    trip = client.post(
+        "/api/trips/",
+        json={"title": "Owned", "start_date": "2026-09-01", "end_date": "2026-09-05"},
+        headers=h1,
+    ).json()
+    txn = client.post(
+        "/api/transactions/",
+        json={"amount": 50, "type": "expense", "category": "food", "date": "2026-09-02"},
+        headers=h2,
+    ).json()
+    r = client.put(
+        f"/api/transactions/{txn['id']}",
+        json={"trip_id": trip["id"]},
+        headers=h2,
+    )
+    assert r.status_code == 404
+
+
+def test_cross_user_trip_id_rejected_on_budget_create(client):
+    h1, _ = _register(client, email="bt-own@example.com", username="btowner")
+    h2, _ = _register(client, email="bt-attack@example.com", username="btattack")
+    trip = client.post(
+        "/api/trips/",
+        json={"title": "Owned", "start_date": "2026-09-01", "end_date": "2026-09-05"},
+        headers=h1,
+    ).json()
+    r = client.post(
+        "/api/budgets/",
+        json={
+            "name": "Sneaky",
+            "amount": 100,
+            "category": "food",
+            "period_start": "2026-09-01",
+            "period_end": "2026-09-05",
+            "trip_id": trip["id"],
+        },
+        headers=h2,
+    )
+    assert r.status_code == 404

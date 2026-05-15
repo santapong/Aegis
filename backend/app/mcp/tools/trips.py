@@ -79,11 +79,16 @@ async def get_trip_summary(args: dict[str, Any]) -> str:
         )
         if not trip:
             raise ValueError(f"Trip {trip_id} not found")
-        budgets = db.query(Budget).filter(Budget.trip_id == trip_id).all()
+        budgets = (
+            db.query(Budget)
+            .filter(Budget.trip_id == trip_id, Budget.user_id == user_id)
+            .all()
+        )
         transactions = (
             db.query(Transaction)
             .filter(
                 Transaction.trip_id == trip_id,
+                Transaction.user_id == user_id,
                 Transaction.type == TransactionType.expense,
             )
             .all()
