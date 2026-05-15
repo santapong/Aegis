@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { preferencesAPI, type PreferencesPayload } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth-store";
+import { setActiveCurrency } from "@/lib/utils";
 
 interface AppSettings {
   currency: string;
@@ -90,6 +91,7 @@ export const useAppStore = create<AppState>()(
       updateSettings: (partial) => {
         // 1. Optimistic local update — UI re-renders synchronously.
         set((s) => ({ settings: { ...s.settings, ...partial } }));
+        if (partial.currency) setActiveCurrency(partial.currency);
         // 2. Best-effort background sync. Failure is swallowed; the user's
         //    next successful update or page reload reconciles via
         //    hydrateSettingsFromServer.
@@ -99,12 +101,15 @@ export const useAppStore = create<AppState>()(
       },
       resetSettings: () => {
         set({ settings: { ...defaultSettings } });
+        setActiveCurrency(defaultSettings.currency);
         void preferencesAPI.update(toWire(defaultSettings)).catch(() => {});
       },
       hydrateSettingsFromServer: async () => {
         try {
           const server = await preferencesAPI.get();
-          set({ settings: fromWire(server), settingsHydrated: true });
+          const settings = fromWire(server);
+          set({ settings, settingsHydrated: true });
+          setActiveCurrency(settings.currency);
         } catch {
           // Likely unauthenticated or offline — leave the persisted copy
           // in place. The next call after login will retry.
@@ -127,6 +132,11 @@ export const useAppStore = create<AppState>()(
 // Subscribing here (rather than wiring an effect in AuthGate) keeps the
 // "settings sync" concern fully inside the store that owns it.
 if (typeof window !== "undefined") {
+  // Seed the format-currency util from the persisted store so the first paint
+  // already uses the user's preferred currency (server hydration happens
+  // asynchronously below).
+  setActiveCurrency(useAppStore.getState().settings.currency);
+
   // If we're already authenticated at module-load time (token in localStorage),
   // fire one hydration immediately so the UI shows server values on refresh.
   if (useAuthStore.getState().isAuthenticated) {
