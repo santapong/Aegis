@@ -88,35 +88,38 @@ def evaluate_budget_thresholds(
 ) -> list[Notification]:
     """Look up budgets that the given transaction belongs to and emit threshold alerts.
 
-    A transaction "belongs to" a budget when either (a) the budget is linked to
-    the same trip, or (b) the budget's category matches and the transaction's
-    date falls inside the budget's period. Only expense transactions count.
-    Idempotent via the (budget_id, period_start, threshold) dedupe key.
+    A transaction belongs to a budget when (a) the budget is linked to the same
+    trip, OR (b) the budget's category matches and the transaction's date falls
+    inside the budget's period. Both apply independently — a trip-tagged
+    transaction in a category that also has a non-trip monthly budget evaluates
+    both. Only expense transactions count. Idempotent via the
+    ``(budget_id, period_start, threshold)`` dedupe key.
     """
     if transaction.type != TransactionType.expense:
         return []
 
-    candidates: list[Budget] = []
+    candidates: dict[str, Budget] = {}
     if transaction.trip_id is not None:
-        candidates = (
+        for b in (
             db.query(Budget)
             .filter(Budget.user_id == user_id, Budget.trip_id == transaction.trip_id)
             .all()
+        ):
+            candidates[b.id] = b
+    for b in (
+        db.query(Budget)
+        .filter(
+            Budget.user_id == user_id,
+            Budget.category == transaction.category,
+            Budget.period_start <= transaction.date,
+            Budget.period_end >= transaction.date,
         )
-    if not candidates:
-        candidates = (
-            db.query(Budget)
-            .filter(
-                Budget.user_id == user_id,
-                Budget.category == transaction.category,
-                Budget.period_start <= transaction.date,
-                Budget.period_end >= transaction.date,
-            )
-            .all()
-        )
+        .all()
+    ):
+        candidates.setdefault(b.id, b)
 
     fired: list[Notification] = []
-    for budget in candidates:
+    for budget in candidates.values():
         cap = float(budget.amount or 0)
         if cap <= 0:
             continue

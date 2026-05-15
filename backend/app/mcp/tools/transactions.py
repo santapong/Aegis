@@ -73,7 +73,9 @@ async def create_transaction(args: dict[str, Any]) -> str:
         data = payload.model_dump(exclude={"tag_ids"})
         db_txn = Transaction(**data, user_id=user_id)
         if tag_ids:
-            db_txn.tags = db.query(Tag).filter(Tag.id.in_(tag_ids)).all()
+            db_txn.tags = (
+                db.query(Tag).filter(Tag.id.in_(tag_ids), Tag.user_id == user_id).all()
+            )
         db.add(db_txn)
         db.commit()
         db.refresh(db_txn)
@@ -102,7 +104,10 @@ async def update_transaction(args: dict[str, Any]) -> str:
         for key, val in data.items():
             setattr(db_txn, key, val)
         if tag_ids is not None:
-            db_txn.tags = db.query(Tag).filter(Tag.id.in_(tag_ids)).all() if tag_ids else []
+            db_txn.tags = (
+                db.query(Tag).filter(Tag.id.in_(tag_ids), Tag.user_id == user_id).all()
+                if tag_ids else []
+            )
         db.commit()
         db.refresh(db_txn)
         evaluate_budget_thresholds(db, user_id=user_id, transaction=db_txn)

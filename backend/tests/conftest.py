@@ -8,6 +8,9 @@ os.environ.setdefault(
 )
 os.environ.setdefault("ANTHROPIC_API_KEY", "")
 os.environ.setdefault("DEBUG", "true")
+# Tests fire many requests in quick succession; the default 100/min throttle
+# would otherwise return 429s once the suite grows past ~50 requests.
+os.environ.setdefault("RATE_LIMIT_PER_MINUTE", "10000")
 
 import pytest
 from fastapi.testclient import TestClient

@@ -35,9 +35,9 @@ class Trip(Base):
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
-    budgets: Mapped[list["Budget"]] = relationship(
-        "Budget", back_populates="trip", cascade="all, delete-orphan"
-    )
+    # Matches the FK `ondelete="SET NULL"` on Budget/Transaction: deleting a
+    # trip preserves audit history; the linked rows just lose their trip_id.
+    budgets: Mapped[list["Budget"]] = relationship("Budget", back_populates="trip")
     transactions: Mapped[list["Transaction"]] = relationship(
         "Transaction", back_populates="trip"
     )

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { tripsAPI, budgetsAPI, transactionsAPI } from "@/lib/api";
+import { APIError, tripsAPI, budgetsAPI, transactionsAPI } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { staggerContainer, staggerItem } from "@/lib/animations";
@@ -13,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { ArrowLeft, Plus, Wallet, Receipt, Trash2 } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ArrowLeft, Plus, Wallet, Receipt, Trash2, Plane } from "lucide-react";
 import type { TripSummary, TripStatus } from "@/types";
 
 const statusStyles: Record<TripStatus, string> = {
@@ -31,6 +32,7 @@ export default function TripDetailPage() {
 
   const [showBudget, setShowBudget] = useState(false);
   const [showTxn, setShowTxn] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const [budgetForm, setBudgetForm] = useState({ name: "", amount: "", category: "" });
   const [txnForm, setTxnForm] = useState({
     amount: "",
@@ -39,9 +41,14 @@ export default function TripDetailPage() {
     description: "",
   });
 
-  const { data: summary } = useQuery<TripSummary>({
+  const { data: summary, isLoading, error } = useQuery<TripSummary>({
     queryKey: ["trip-summary", tripId],
     queryFn: () => tripsAPI.summary(tripId) as Promise<TripSummary>,
+    retry: (failureCount, err) => {
+      // Don't retry 404 — the trip is gone.
+      if (err instanceof APIError && err.status === 404) return false;
+      return failureCount < 2;
+    },
   });
 
   const invalidate = () => {
@@ -86,8 +93,23 @@ export default function TripDetailPage() {
     onError: () => toast.error("Failed to delete trip"),
   });
 
-  if (!summary) {
-    return <div className="text-sm text-muted-foreground">Loading…</div>;
+  if (error instanceof APIError && error.status === 404) {
+    return (
+      <EmptyState
+        icon={Plane}
+        title="Trip not found"
+        description="This trip has been deleted or you don't have access."
+        action={
+          <Button size="sm" onClick={() => router.push("/trips")} icon={<ArrowLeft size={14} />}>
+            Back to trips
+          </Button>
+        }
+      />
+    );
+  }
+
+  if (isLoading || !summary) {
+    return null; // Next.js serves frontend/src/app/trips/[id]/loading.tsx during suspense.
   }
 
   const { trip } = summary;
@@ -212,16 +234,32 @@ export default function TripDetailPage() {
           variant="destructive"
           size="sm"
           icon={<Trash2 size={14} />}
-          loading={deleteTrip.isPending}
-          onClick={() => {
-            if (confirm("Delete this trip? Budget lines linked to it will also be removed.")) {
-              deleteTrip.mutate();
-            }
-          }}
+          onClick={() => setShowDelete(true)}
         >
           Delete Trip
         </Button>
       </motion.div>
+
+      <Modal open={showDelete} onClose={() => setShowDelete(false)} title="Delete Trip" size="sm">
+        <ModalBody>
+          <p className="text-sm text-muted-foreground">
+            Delete <span className="font-medium text-foreground">{trip.title}</span>? Linked
+            budgets and transactions will be kept but unlinked from this trip.
+          </p>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="outline" onClick={() => setShowDelete(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            loading={deleteTrip.isPending}
+            onClick={() => deleteTrip.mutate()}
+          >
+            Delete
+          </Button>
+        </ModalFooter>
+      </Modal>
 
       <Modal open={showBudget} onClose={() => setShowBudget(false)} title="Add Trip Budget" size="md">
         <form

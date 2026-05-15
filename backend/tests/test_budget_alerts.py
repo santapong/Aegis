@@ -75,6 +75,60 @@ def test_budget_alerts_ignore_other_category(client):
     assert _notifications(client, headers) == []
 
 
+def test_income_transaction_does_not_fire_budget_alert(client):
+    headers, _ = _register(client, email="income@example.com", username="income")
+    _category_budget(
+        client, headers,
+        name="Food", amount=100, category="food",
+        start="2026-05-01", end="2026-05-31",
+    )
+    r = client.post(
+        "/api/transactions/",
+        json={"amount": 500, "type": "income", "category": "food", "date": "2026-05-05"},
+        headers=headers,
+    )
+    assert r.status_code == 201, r.text
+    assert _notifications(client, headers) == []
+
+
+def test_trip_txn_evaluates_both_trip_and_monthly_budgets(client):
+    """A transaction tagged with trip_id but in a category that has a separate
+    monthly budget must still trip the monthly budget."""
+    headers, _ = _register(client, email="both@example.com", username="bothbudgets")
+
+    # Create a trip with a trip-budget for "lodging" only.
+    r = client.post(
+        "/api/trips/",
+        json={"title": "Paris", "start_date": "2026-06-01", "end_date": "2026-06-07"},
+        headers=headers,
+    )
+    trip_id = r.json()["id"]
+    _category_budget(
+        client, headers,
+        name="Trip lodging", amount=500, category="lodging",
+        start="2026-06-01", end="2026-06-07", trip_id=trip_id,
+    )
+
+    # Separately the user has a tight monthly "dining" budget.
+    _category_budget(
+        client, headers,
+        name="Dining", amount=100, category="dining",
+        start="2026-06-01", end="2026-06-30",
+    )
+
+    # Trip-tagged dining expense at 90% of the monthly dining cap should fire
+    # the dining budget alert (this regressed in v1.1 where trip-tagged txns
+    # short-circuited the category lookup).
+    r = client.post(
+        "/api/transactions/",
+        json={"amount": 90, "type": "expense", "category": "dining", "date": "2026-06-02", "trip_id": trip_id},
+        headers=headers,
+    )
+    assert r.status_code == 201
+    titles = [n["title"] for n in _notifications(client, headers)]
+    assert any("80% used: Dining" in t for t in titles), titles
+
+
 def test_budget_alerts_for_trip_budget(client):
     """Trip-linked budgets dedupe by their actual period, not the calendar month."""
     headers, _ = _register(client, email="trip-alerts@example.com", username="tripalerts")

@@ -45,7 +45,7 @@ def create_transaction(txn: TransactionCreate, db: Session = Depends(get_db), cu
     db_txn = Transaction(**data, user_id=current_user.id)
 
     if tag_ids:
-        tags = db.query(Tag).filter(Tag.id.in_(tag_ids)).all()
+        tags = db.query(Tag).filter(Tag.id.in_(tag_ids), Tag.user_id == current_user.id).all()
         db_txn.tags = tags
 
     db.add(db_txn)
@@ -77,7 +77,10 @@ def update_transaction(
     for key, val in data.items():
         setattr(db_txn, key, val)
     if tag_ids is not None:
-        db_txn.tags = db.query(Tag).filter(Tag.id.in_(tag_ids)).all() if tag_ids else []
+        db_txn.tags = (
+            db.query(Tag).filter(Tag.id.in_(tag_ids), Tag.user_id == current_user.id).all()
+            if tag_ids else []
+        )
 
     db.commit()
     db.refresh(db_txn)
