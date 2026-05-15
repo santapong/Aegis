@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/stores/auth-store";
+import { useToastStore } from "@/stores/toast-store";
 import type { NotificationListResponse, Notification, Transaction } from "@/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -16,6 +17,25 @@ export class APIError extends Error {
 }
 
 const PUBLIC_ENDPOINTS = ["/api/auth/login", "/api/auth/register"];
+
+// Dedupe the session-expired toast: when a token expires, multiple in-flight
+// requests fire 401 at once. Only surface one user-facing toast per minute.
+let lastSessionExpiredToastAt = 0;
+
+function notifySessionExpired() {
+  const now = Date.now();
+  if (now - lastSessionExpiredToastAt < 60_000) return;
+  lastSessionExpiredToastAt = now;
+  try {
+    useToastStore.getState().addToast({
+      type: "warning",
+      message: "Your session expired",
+      description: "Please sign in again to continue.",
+    });
+  } catch {
+    // Toast store not initialised yet — drop quietly.
+  }
+}
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const isPublic = PUBLIC_ENDPOINTS.some((p) => url.startsWith(p));
@@ -37,6 +57,7 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
       } catch {}
       throw new APIError(401, "Invalid credentials", detail);
     }
+    notifySessionExpired();
     useAuthStore.getState().logout();
     throw new APIError(401, "Session expired");
   }
@@ -329,6 +350,27 @@ export const paymentsAPI = {
   createCheckout: (data: { amount: number; currency?: string; description?: string }) =>
     fetchJSON("/api/payments/create-checkout-session", {
       method: "POST",
+      body: JSON.stringify(data),
+    }),
+};
+
+/**
+ * Wire shape for /api/preferences. Field names mirror the backend's
+ * snake_case schema; the app store translates to its camelCase `AppSettings`
+ * shape at the persistence boundary.
+ */
+export interface PreferencesPayload {
+  currency: string;
+  default_date_range_days: number;
+  items_per_page: number;
+  ai_auto_suggestions: boolean;
+}
+
+export const preferencesAPI = {
+  get: () => fetchJSON<PreferencesPayload>("/api/preferences"),
+  update: (data: Partial<PreferencesPayload>) =>
+    fetchJSON<PreferencesPayload>("/api/preferences", {
+      method: "PUT",
       body: JSON.stringify(data),
     }),
 };

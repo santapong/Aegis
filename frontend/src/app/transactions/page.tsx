@@ -18,7 +18,7 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabList, Tab, TabPanel } from "@/components/ui/tabs";
-import { Plus, Trash2, Pencil, ArrowUpRight, ArrowDownRight, Receipt, Upload, RefreshCw, Tag as TagIcon } from "lucide-react";
+import { Plus, Trash2, Pencil, ArrowUpRight, ArrowDownRight, Receipt, Upload, RefreshCw, Tag as TagIcon, Settings, Check, X } from "lucide-react";
 import type { Transaction, Tag, Trip, RecurringTransactionSummary, ImportPreviewResponse, ImportResult } from "@/types";
 
 interface TransactionSummary {
@@ -39,6 +39,12 @@ export default function TransactionsPage() {
   const [showImport, setShowImport] = useState(false);
   const [importPreview, setImportPreview] = useState<ImportPreviewResponse | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showManageTags, setShowManageTags] = useState(false);
+  const [editingTagId, setEditingTagId] = useState<string | null>(null);
+  const [tagEditDraft, setTagEditDraft] = useState<{ name: string; color: string }>({ name: "", color: "#6366f1" });
+  const [newTagDraft, setNewTagDraft] = useState<{ name: string; color: string }>({ name: "", color: "#6366f1" });
+  const [tagErrors, setTagErrors] = useState<Record<string, string>>({});
+  const [deleteTagId, setDeleteTagId] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     type: "",
     category: "",
@@ -165,6 +171,101 @@ export default function TransactionsPage() {
     onError: () => toast.error("Import failed"),
   });
 
+  const invalidateTagsAndTransactions = () => {
+    queryClient.invalidateQueries({ queryKey: ["tags"] });
+    queryClient.invalidateQueries({ queryKey: ["transactions"] });
+  };
+
+  const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
+
+  const createTagMutation = useMutation({
+    mutationFn: (data: { name: string; color: string }) => tagsAPI.create(data),
+    onSuccess: () => {
+      invalidateTagsAndTransactions();
+      setNewTagDraft({ name: "", color: "#6366f1" });
+      setTagErrors({});
+      toast.success("Tag created");
+    },
+    onError: () => toast.error("Failed to create tag"),
+  });
+
+  const updateTagMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { name: string; color: string } }) => tagsAPI.update(id, data),
+    onSuccess: () => {
+      invalidateTagsAndTransactions();
+      setEditingTagId(null);
+      setTagErrors({});
+      toast.success("Tag renamed");
+    },
+    onError: () => toast.error("Failed to update tag"),
+  });
+
+  const deleteTagMutation = useMutation({
+    mutationFn: (id: string) => tagsAPI.delete(id),
+    onSuccess: () => {
+      invalidateTagsAndTransactions();
+      // If user was editing the tag we just deleted, exit edit mode
+      if (editingTagId && editingTagId === deleteTagId) setEditingTagId(null);
+      setDeleteTagId(null);
+      toast.success("Tag deleted");
+    },
+    onError: () => toast.error("Failed to delete tag"),
+  });
+
+  const validateTagDraft = (draft: { name: string; color: string }, scope: "new" | "edit"): boolean => {
+    const errs: Record<string, string> = {};
+    const name = draft.name.trim();
+    if (!name) {
+      errs[`${scope}_name`] = "Name is required";
+    } else {
+      // Duplicate check (case-insensitive). When editing, allow keeping the same name on the same tag.
+      const duplicate = tags?.some(
+        (t) =>
+          t.name.toLowerCase() === name.toLowerCase() &&
+          !(scope === "edit" && t.id === editingTagId)
+      );
+      if (duplicate) errs[`${scope}_name`] = "A tag with this name already exists";
+    }
+    if (!HEX_COLOR_RE.test(draft.color)) {
+      errs[`${scope}_color`] = "Color must be a 7-char hex (#RRGGBB)";
+    }
+    setTagErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const startEditTag = (tag: Tag) => {
+    setEditingTagId(tag.id);
+    setTagEditDraft({ name: tag.name, color: tag.color });
+    setTagErrors({});
+  };
+
+  const cancelEditTag = () => {
+    setEditingTagId(null);
+    setTagErrors({});
+  };
+
+  const submitEditTag = () => {
+    if (!editingTagId) return;
+    if (!validateTagDraft(tagEditDraft, "edit")) return;
+    updateTagMutation.mutate({
+      id: editingTagId,
+      data: { name: tagEditDraft.name.trim(), color: tagEditDraft.color },
+    });
+  };
+
+  const submitNewTag = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateTagDraft(newTagDraft, "new")) return;
+    createTagMutation.mutate({ name: newTagDraft.name.trim(), color: newTagDraft.color });
+  };
+
+  const closeManageTags = () => {
+    setShowManageTags(false);
+    setEditingTagId(null);
+    setTagErrors({});
+    setNewTagDraft({ name: "", color: "#6366f1" });
+  };
+
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!form.amount || parseFloat(form.amount) <= 0) errs.amount = "Amount must be greater than 0";
@@ -231,6 +332,9 @@ export default function TransactionsPage() {
           action={
             <div className="flex gap-2">
               <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
+              <Button variant="secondary" icon={<Settings size={16} />} onClick={() => setShowManageTags(true)}>
+                Manage Tags
+              </Button>
               <Button variant="secondary" icon={<Upload size={16} />} onClick={() => fileInputRef.current?.click()}>
                 Import CSV
               </Button>
@@ -640,6 +744,149 @@ export default function TransactionsPage() {
         <ModalFooter>
           <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
           <Button variant="destructive" loading={deleteMutation.isPending} onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Delete</Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Manage Tags Modal */}
+      <Modal open={showManageTags} onClose={closeManageTags} title="Manage Tags" size="md">
+        <ModalBody className="space-y-4">
+          {tags && tags.length > 0 ? (
+            <div className="divide-y divide-border rounded-lg border border-border">
+              {tags.map((tag) => {
+                const usage = transactions?.filter((tx) => tx.tags?.some((t) => t.id === tag.id)).length ?? 0;
+                const isEditing = editingTagId === tag.id;
+                return (
+                  <div key={tag.id} className="p-3 flex items-center gap-3">
+                    {isEditing ? (
+                      <>
+                        <input
+                          type="color"
+                          value={tagEditDraft.color}
+                          onChange={(e) => setTagEditDraft({ ...tagEditDraft, color: e.target.value })}
+                          className="h-9 w-10 rounded-lg border border-input bg-muted/50 cursor-pointer flex-shrink-0"
+                          aria-label="Tag color"
+                        />
+                        <div className="flex-1">
+                          <Input
+                            value={tagEditDraft.name}
+                            onChange={(e) => setTagEditDraft({ ...tagEditDraft, name: e.target.value })}
+                            error={tagErrors.edit_name || tagErrors.edit_color}
+                            placeholder="Tag name"
+                          />
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <button
+                            type="button"
+                            onClick={submitEditTag}
+                            disabled={updateTagMutation.isPending}
+                            className="text-green-600 hover:text-green-700 p-1 disabled:opacity-50"
+                            aria-label="Save tag"
+                          >
+                            <Check size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelEditTag}
+                            className="text-muted-foreground hover:text-foreground p-1"
+                            aria-label="Cancel edit"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <span
+                          className="h-5 w-5 rounded-full border border-border flex-shrink-0"
+                          style={{ backgroundColor: tag.color }}
+                          aria-hidden
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{tag.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {usage === 0 ? "Not used" : `Used on ${usage} transaction${usage === 1 ? "" : "s"}`}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <button
+                            onClick={() => startEditTag(tag)}
+                            className="text-muted-foreground hover:text-foreground p-1"
+                            aria-label={`Edit ${tag.name}`}
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button
+                            onClick={() => setDeleteTagId(tag.id)}
+                            className="text-red-500 hover:text-red-700 p-1"
+                            aria-label={`Delete ${tag.name}`}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed border-border p-6 text-center">
+              <TagIcon size={20} className="mx-auto text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">No tags yet. Create one below.</p>
+            </div>
+          )}
+
+          {/* Create tag form */}
+          <form onSubmit={submitNewTag} className="space-y-2 pt-2 border-t border-border">
+            <p className="text-sm font-medium">Create tag</p>
+            <div className="flex items-start gap-2">
+              <input
+                type="color"
+                value={newTagDraft.color}
+                onChange={(e) => setNewTagDraft({ ...newTagDraft, color: e.target.value })}
+                className="h-9 w-10 rounded-lg border border-input bg-muted/50 cursor-pointer flex-shrink-0 mt-[2px]"
+                aria-label="New tag color"
+              />
+              <div className="flex-1">
+                <Input
+                  placeholder="e.g. groceries"
+                  value={newTagDraft.name}
+                  onChange={(e) => setNewTagDraft({ ...newTagDraft, name: e.target.value })}
+                  error={tagErrors.new_name || tagErrors.new_color}
+                />
+              </div>
+              <Button
+                type="submit"
+                size="sm"
+                loading={createTagMutation.isPending}
+                icon={<Plus size={14} />}
+              >
+                Add
+              </Button>
+            </div>
+          </form>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="outline" onClick={closeManageTags}>Close</Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Delete Tag Confirmation Sub-modal */}
+      <Modal open={!!deleteTagId} onClose={() => setDeleteTagId(null)} title="Delete Tag" size="sm">
+        <ModalBody>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete this tag? It will be detached from any transactions it&apos;s currently attached to. This action cannot be undone.
+          </p>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="outline" onClick={() => setDeleteTagId(null)}>Cancel</Button>
+          <Button
+            variant="destructive"
+            loading={deleteTagMutation.isPending}
+            onClick={() => deleteTagId && deleteTagMutation.mutate(deleteTagId)}
+          >
+            Delete
+          </Button>
         </ModalFooter>
       </Modal>
     </motion.div>

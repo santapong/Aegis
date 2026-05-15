@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 import { useAppStore } from "@/stores/app-store";
 import { formatCurrency } from "@/lib/utils";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 import {
   LineChart,
   Line,
@@ -66,35 +67,94 @@ function CardHead({
   );
 }
 
+/** Inline error state shown inside a dashboard card when a query fails. */
+function QueryErrorCard({
+  message,
+  onRetry,
+}: {
+  message: string;
+  onRetry: () => void;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center text-center gap-3 py-8 px-4">
+      <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-destructive/10">
+        <AlertTriangle size={20} className="text-destructive" />
+      </div>
+      <div className="text-sm font-medium text-foreground">Failed to load</div>
+      <p
+        className="text-[12px] leading-relaxed max-w-sm"
+        style={{ color: "var(--aegis-fg-2)" }}
+      >
+        {message}
+      </p>
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={onRetry}
+        icon={<RefreshCw size={14} />}
+      >
+        Retry
+      </Button>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const { toggleAIPanel } = useAppStore();
 
-  const { data: summary, isLoading: summaryLoading } = useQuery<KPISummary>({
+  const {
+    data: summary,
+    isLoading: summaryLoading,
+    error: summaryError,
+    refetch: refetchSummary,
+  } = useQuery<KPISummary>({
     queryKey: ["dashboard-summary"],
     queryFn: () => dashboardAPI.summary() as Promise<KPISummary>,
   });
 
-  const { data: charts, isLoading: chartsLoading } = useQuery<DashboardCharts>({
+  const {
+    data: charts,
+    isLoading: chartsLoading,
+    error: chartsError,
+    refetch: refetchCharts,
+  } = useQuery<DashboardCharts>({
     queryKey: ["dashboard-charts"],
     queryFn: () => dashboardAPI.charts() as Promise<DashboardCharts>,
   });
 
-  const { data: healthScore, isLoading: healthLoading } = useQuery<HealthScoreResponse>({
+  const {
+    data: healthScore,
+    isLoading: healthLoading,
+    error: healthError,
+    refetch: refetchHealth,
+  } = useQuery<HealthScoreResponse>({
     queryKey: ["health-score"],
     queryFn: () => dashboardAPI.healthScore() as Promise<HealthScoreResponse>,
   });
 
-  const { data: cashflow } = useQuery<CashFlowForecastResponse>({
+  const {
+    data: cashflow,
+    error: cashflowError,
+    refetch: refetchCashflow,
+  } = useQuery<CashFlowForecastResponse>({
     queryKey: ["cashflow-forecast"],
     queryFn: () => dashboardAPI.cashflowForecast() as Promise<CashFlowForecastResponse>,
   });
 
-  const { data: anomalies } = useQuery<AnomaliesResponse>({
+  const {
+    data: anomalies,
+    error: anomaliesError,
+    refetch: refetchAnomalies,
+  } = useQuery<AnomaliesResponse>({
     queryKey: ["anomalies"],
     queryFn: () => transactionsAPI.anomalies() as Promise<AnomaliesResponse>,
   });
 
-  const { data: insights } = useQuery<InsightItem[]>({
+  const {
+    data: insights,
+    error: insightsError,
+    refetch: refetchInsights,
+  } = useQuery<InsightItem[]>({
     queryKey: ["insights"],
     queryFn: () => aiAPI.insights() as Promise<InsightItem[]>,
   });
@@ -156,7 +216,16 @@ export default function DashboardPage() {
 
       {/* KPI rail — single grid, hairline dividers, italic serif numerals. */}
       <motion.div variants={staggerItem}>
-        {summaryLoading ? (
+        {summaryError ? (
+          <Card>
+            <CardContent className="p-6">
+              <QueryErrorCard
+                message={summaryError.message || "Failed to load summary."}
+                onRetry={() => refetchSummary()}
+              />
+            </CardContent>
+          </Card>
+        ) : summaryLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
               <Skeleton key={i} height={120} />
@@ -169,7 +238,17 @@ export default function DashboardPage() {
 
       {/* Health Score + Anomaly Alerts */}
       <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {healthLoading ? (
+        {healthError ? (
+          <Card>
+            <CardContent className="p-6">
+              <CardHead code="HLT" title="Financial health" />
+              <QueryErrorCard
+                message={healthError.message || "Failed to load health score."}
+                onRetry={() => refetchHealth()}
+              />
+            </CardContent>
+          </Card>
+        ) : healthLoading ? (
           <Skeleton height={240} />
         ) : healthScore ? (
           <Card>
@@ -242,7 +321,12 @@ export default function DashboardPage() {
                 </>
               }
             />
-            {anomalies && anomalies.anomalies.length > 0 ? (
+            {anomaliesError ? (
+              <QueryErrorCard
+                message={anomaliesError.message || "Failed to load anomalies."}
+                onRetry={() => refetchAnomalies()}
+              />
+            ) : anomalies && anomalies.anomalies.length > 0 ? (
               <div className="flex flex-col">
                 {anomalies.anomalies.slice(0, 5).map((a, i) => (
                   <motion.div
@@ -288,7 +372,12 @@ export default function DashboardPage() {
         <Card>
           <CardContent className="p-6">
             <CardHead code="SPD" title="Spending · this month" action={<>by category</>} />
-            {chartsLoading ? (
+            {chartsError ? (
+              <QueryErrorCard
+                message={chartsError.message || "Failed to load spending chart."}
+                onRetry={() => refetchCharts()}
+              />
+            ) : chartsLoading ? (
               <Skeleton height={300} />
             ) : (
               <SpendingChart data={charts?.spending_by_category ?? []} />
@@ -298,7 +387,12 @@ export default function DashboardPage() {
         <Card>
           <CardContent className="p-6">
             <CardHead code="TRD" title="Monthly trend" action={<>income vs expenses</>} />
-            {chartsLoading ? (
+            {chartsError ? (
+              <QueryErrorCard
+                message={chartsError.message || "Failed to load trend chart."}
+                onRetry={() => refetchCharts()}
+              />
+            ) : chartsLoading ? (
               <Skeleton height={300} />
             ) : (
               <TrendChart data={charts?.monthly_trend ?? []} />
@@ -308,7 +402,19 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* Financial Insights */}
-      {insights && insights.length > 0 && (
+      {insightsError ? (
+        <motion.div variants={staggerItem}>
+          <Card>
+            <CardContent className="p-6">
+              <CardHead code="INS" title="Insights" />
+              <QueryErrorCard
+                message={insightsError.message || "Failed to load insights."}
+                onRetry={() => refetchInsights()}
+              />
+            </CardContent>
+          </Card>
+        </motion.div>
+      ) : insights && insights.length > 0 && (
         <motion.div variants={staggerItem}>
           <Card>
             <CardContent className="p-6">
@@ -357,7 +463,19 @@ export default function DashboardPage() {
       )}
 
       {/* Cash Flow Forecast */}
-      {cashflow && cashflow.forecast.length > 0 && (
+      {cashflowError ? (
+        <motion.div variants={staggerItem}>
+          <Card>
+            <CardContent className="p-6">
+              <CardHead code="CFL" title="Cash flow forecast" />
+              <QueryErrorCard
+                message={cashflowError.message || "Failed to load cash flow forecast."}
+                onRetry={() => refetchCashflow()}
+              />
+            </CardContent>
+          </Card>
+        </motion.div>
+      ) : cashflow && cashflow.forecast.length > 0 && (
         <motion.div variants={staggerItem}>
           <Card>
             <CardContent className="p-6">
