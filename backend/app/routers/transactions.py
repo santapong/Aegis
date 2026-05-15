@@ -15,9 +15,11 @@ from ..schemas.transaction import (
     RecurringTransactionSummary,
     TagCreate, TagUpdate, TagResponse,
     ImportPreviewResponse, ImportPreviewRow, ImportConfirmRequest, ImportResultResponse,
+    UpcomingOccurrence, UpcomingOccurrencesResponse,
 )
 from ..schemas.dashboard import AnomalyItem, AnomaliesResponse
 from ..services.notification_service import evaluate_budget_thresholds
+from ..services.recurrence import expand_occurrences, monthly_equivalent
 from ..auth import get_current_user
 
 router = APIRouter(prefix="/api/transactions", tags=["transactions"])
@@ -163,29 +165,53 @@ def get_recurring_transactions(db: Session = Depends(get_db), current_user: User
         .all()
     )
 
-    recurring_income = sum(float(t.amount) for t in recurring if t.type == TransactionType.income)
-    recurring_expenses = sum(float(t.amount) for t in recurring if t.type == TransactionType.expense)
-
-    def to_monthly(amount: float, interval: RecurringInterval | None) -> float:
-        if not interval:
-            return amount
-        multipliers = {
-            RecurringInterval.weekly: 4.33,
-            RecurringInterval.biweekly: 2.17,
-            RecurringInterval.monthly: 1.0,
-            RecurringInterval.quarterly: 1 / 3,
-            RecurringInterval.yearly: 1 / 12,
-        }
-        return amount * multipliers.get(interval, 1.0)
-
-    total_monthly = sum(to_monthly(float(t.amount), t.recurring_interval) for t in recurring if t.type == TransactionType.expense)
+    recurring_income = sum(
+        monthly_equivalent(t) for t in recurring if t.type == TransactionType.income
+    )
+    recurring_expenses = sum(
+        monthly_equivalent(t) for t in recurring if t.type == TransactionType.expense
+    )
+    total_monthly = sum(
+        monthly_equivalent(t) for t in recurring if t.type == TransactionType.expense
+    )
 
     return RecurringTransactionSummary(
         total_monthly_recurring=round(total_monthly, 2),
-        recurring_income=recurring_income,
-        recurring_expenses=recurring_expenses,
+        recurring_income=round(recurring_income, 2),
+        recurring_expenses=round(recurring_expenses, 2),
         subscriptions=recurring,
     )
+
+
+@router.get("/upcoming", response_model=UpcomingOccurrencesResponse)
+def upcoming_occurrences(
+    days: int = Query(default=30, ge=1, le=365),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Materialize the next `days` of recurring occurrences without writing rows."""
+    recurring = (
+        db.query(Transaction)
+        .filter(Transaction.user_id == current_user.id, Transaction.is_recurring == True)
+        .all()
+    )
+    today = date.today()
+    end = today + timedelta(days=days)
+    items: list[UpcomingOccurrence] = []
+    for tx in recurring:
+        for occ_date in expand_occurrences(tx, today, end):
+            items.append(
+                UpcomingOccurrence(
+                    transaction_id=tx.id,
+                    date=occ_date,
+                    amount=float(tx.amount),
+                    type=tx.type,
+                    category=tx.category,
+                    description=tx.description,
+                )
+            )
+    items.sort(key=lambda x: x.date)
+    return UpcomingOccurrencesResponse(occurrences=items, window_days=days)
 
 
 @router.get("/anomalies", response_model=AnomaliesResponse)

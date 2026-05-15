@@ -129,6 +129,7 @@ export const transactionsAPI = {
   anomalies: (days = 90, threshold = 2.0) =>
     fetchJSON(`/api/transactions/anomalies?days=${days}&threshold=${threshold}`),
   recurring: () => fetchJSON("/api/transactions/recurring"),
+  upcoming: (days = 30) => fetchJSON(`/api/transactions/upcoming?days=${days}`),
   delete: (id: string) => fetchDELETE(`/api/transactions/${id}`),
   importPreview: async (file: File) => {
     const formData = new FormData();
@@ -373,6 +374,20 @@ export const preferencesAPI = {
       method: "PUT",
       body: JSON.stringify(data),
     }),
+};
+
+export const investmentsAPI = {
+  list: () => fetchJSON("/api/investments/"),
+  get: (id: string) => fetchJSON(`/api/investments/${id}`),
+  create: (data: Record<string, unknown>) =>
+    fetchJSON("/api/investments/", { method: "POST", body: JSON.stringify(data) }),
+  update: (id: string, data: Record<string, unknown>) =>
+    fetchJSON(`/api/investments/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  summary: () => fetchJSON("/api/investments/summary"),
+  delete: (id: string) => fetchDELETE(`/api/investments/${id}`),
 };
 
 export const debtsAPI = {

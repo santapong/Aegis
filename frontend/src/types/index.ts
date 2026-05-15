@@ -5,6 +5,7 @@ export type Priority = "low" | "medium" | "high" | "critical";
 export type TransactionType = "income" | "expense";
 export type ActionType = "reduce" | "increase" | "reallocate" | "alert";
 export type RecurringInterval = "weekly" | "biweekly" | "monthly" | "quarterly" | "yearly";
+export type WeekendRule = "strict" | "roll_back" | "roll_forward";
 export type DebtType = "credit_card" | "student_loan" | "mortgage" | "car_loan" | "personal_loan" | "medical" | "other";
 
 export interface Plan {
@@ -68,7 +69,57 @@ export interface Transaction {
   is_recurring: boolean;
   recurring_interval: RecurringInterval | null;
   next_due_date: string | null;
+  recurrence_dates: number[] | null;
+  recurrence_weekend_rule: WeekendRule | null;
   tags: Tag[];
+}
+
+export interface UpcomingOccurrence {
+  transaction_id: string;
+  date: string;
+  amount: number;
+  type: TransactionType;
+  category: string;
+  description: string | null;
+}
+
+export interface UpcomingOccurrencesResponse {
+  occurrences: UpcomingOccurrence[];
+  window_days: number;
+}
+
+export interface Investment {
+  id: string;
+  name: string;
+  tradingview_symbol: string;
+  units: number;
+  cost_basis: number;
+  current_price: number;
+  currency: string;
+  notes: string | null;
+  last_priced_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HoldingSummary {
+  id: string;
+  name: string;
+  tradingview_symbol: string;
+  units: number;
+  cost_basis: number;
+  current_value: number;
+  pl: number;
+  pl_percent: number;
+}
+
+export interface PortfolioSummary {
+  total_cost_basis: number;
+  total_current_value: number;
+  total_pl: number;
+  total_pl_percent: number;
+  holding_count: number;
+  by_holding: HoldingSummary[];
 }
 
 export interface KPISummary {

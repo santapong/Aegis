@@ -25,6 +25,7 @@ from app.main import app
 from app.models import (  # noqa: F401
     user, plan, transaction, budget, savings_goal, debt, payment,
     ai_recommendation, notification, trip, tag, user_preferences,
+    investment,
 )
 
 

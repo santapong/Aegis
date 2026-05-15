@@ -19,7 +19,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabList, Tab, TabPanel } from "@/components/ui/tabs";
 import { Plus, Trash2, Pencil, ArrowUpRight, ArrowDownRight, Receipt, Upload, RefreshCw, Tag as TagIcon, Settings, Check, X } from "lucide-react";
-import type { Transaction, Tag, Trip, RecurringTransactionSummary, ImportPreviewResponse, ImportResult } from "@/types";
+import type { Transaction, Tag, Trip, RecurringTransactionSummary, ImportPreviewResponse, ImportResult, UpcomingOccurrencesResponse } from "@/types";
 
 interface TransactionSummary {
   total_income: number;
@@ -51,6 +51,7 @@ export default function TransactionsPage() {
     start_date: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split("T")[0],
     end_date: new Date().toISOString().split("T")[0],
   });
+  type RecurrenceMode = "interval" | "dates";
   const defaultForm = {
     amount: "",
     type: "expense" as "income" | "expense",
@@ -59,6 +60,9 @@ export default function TransactionsPage() {
     description: "",
     is_recurring: false,
     recurring_interval: "",
+    recurrence_mode: "interval" as RecurrenceMode,
+    recurrence_dates: [] as number[],
+    recurrence_weekend_rule: "strict" as "strict" | "roll_back" | "roll_forward",
     tag_ids: [] as string[],
     trip_id: "",
   };
@@ -86,6 +90,11 @@ export default function TransactionsPage() {
     queryFn: () => transactionsAPI.recurring() as Promise<RecurringTransactionSummary>,
   });
 
+  const { data: upcoming } = useQuery<UpcomingOccurrencesResponse>({
+    queryKey: ["upcoming-occurrences"],
+    queryFn: () => transactionsAPI.upcoming(30) as Promise<UpcomingOccurrencesResponse>,
+  });
+
   const { data: tags } = useQuery<Tag[]>({
     queryKey: ["tags"],
     queryFn: () => tagsAPI.list() as Promise<Tag[]>,
@@ -101,6 +110,7 @@ export default function TransactionsPage() {
     queryClient.invalidateQueries({ queryKey: ["transaction-summary"] });
     queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
     queryClient.invalidateQueries({ queryKey: ["recurring-transactions"] });
+    queryClient.invalidateQueries({ queryKey: ["upcoming-occurrences"] });
   };
 
   const closeForm = () => {
@@ -112,6 +122,7 @@ export default function TransactionsPage() {
 
   const openEdit = (tx: Transaction) => {
     setEditingTxn(tx);
+    const usesDates = Array.isArray(tx.recurrence_dates) && tx.recurrence_dates.length > 0;
     setForm({
       amount: String(tx.amount),
       type: tx.type as "income" | "expense",
@@ -120,10 +131,26 @@ export default function TransactionsPage() {
       description: tx.description ?? "",
       is_recurring: tx.is_recurring,
       recurring_interval: tx.recurring_interval ?? "",
+      recurrence_mode: usesDates ? "dates" : "interval",
+      recurrence_dates: tx.recurrence_dates ?? [],
+      recurrence_weekend_rule:
+        (tx.recurrence_weekend_rule as "strict" | "roll_back" | "roll_forward") ?? "strict",
       tag_ids: tx.tags?.map((t) => t.id) ?? [],
       trip_id: tx.trip_id ?? "",
     });
     setShowCreate(true);
+  };
+
+  const toggleRecurrenceDay = (day: number) => {
+    setForm((prev) => {
+      const has = prev.recurrence_dates.includes(day);
+      return {
+        ...prev,
+        recurrence_dates: has
+          ? prev.recurrence_dates.filter((d) => d !== day)
+          : [...prev.recurrence_dates, day].sort((a, b) => a - b),
+      };
+    });
   };
 
   const createMutation = useMutation({
@@ -278,6 +305,8 @@ export default function TransactionsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+    const usesCustomDates =
+      form.is_recurring && form.recurrence_mode === "dates" && form.recurrence_dates.length > 0;
     const payload = {
       amount: parseFloat(form.amount),
       type: form.type,
@@ -285,7 +314,12 @@ export default function TransactionsPage() {
       date: form.date,
       description: form.description || null,
       is_recurring: form.is_recurring,
-      recurring_interval: form.is_recurring && form.recurring_interval ? form.recurring_interval : null,
+      recurring_interval:
+        form.is_recurring && form.recurrence_mode === "interval" && form.recurring_interval
+          ? form.recurring_interval
+          : null,
+      recurrence_dates: usesCustomDates ? form.recurrence_dates : null,
+      recurrence_weekend_rule: usesCustomDates ? form.recurrence_weekend_rule : null,
       tag_ids: form.tag_ids,
       trip_id: form.trip_id || null,
     };
@@ -564,27 +598,33 @@ export default function TransactionsPage() {
                     </div>
                   </CardHeader>
                   <div className="divide-y divide-border">
-                    {recurring.subscriptions.map((sub) => (
-                      <div key={sub.id} className="p-4 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`p-2 rounded-lg ${sub.type === "income" ? "bg-green-500/10" : "bg-red-500/10"}`}>
-                            <RefreshCw size={16} className={sub.type === "income" ? "text-green-500" : "text-red-500"} />
-                          </div>
-                          <div>
-                            <p className="text-sm font-medium">{sub.description || sub.category}</p>
-                            <div className="flex gap-2 mt-0.5">
-                              <Badge variant="neutral">{sub.recurring_interval || "monthly"}</Badge>
-                              {sub.next_due_date && (
-                                <span className="text-xs text-muted-foreground">Next: {sub.next_due_date}</span>
-                              )}
+                    {recurring.subscriptions.map((sub) => {
+                      const cadenceLabel =
+                        sub.recurrence_dates && sub.recurrence_dates.length > 0
+                          ? `Days ${sub.recurrence_dates.join(", ")}`
+                          : sub.recurring_interval || "monthly";
+                      return (
+                        <div key={sub.id} className="p-4 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className={`p-2 rounded-lg ${sub.type === "income" ? "bg-green-500/10" : "bg-red-500/10"}`}>
+                              <RefreshCw size={16} className={sub.type === "income" ? "text-green-500" : "text-red-500"} />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">{sub.description || sub.category}</p>
+                              <div className="flex gap-2 mt-0.5 items-center">
+                                <Badge variant="neutral">{cadenceLabel}</Badge>
+                                {sub.next_due_date && (
+                                  <span className="text-xs text-muted-foreground">Next: {sub.next_due_date}</span>
+                                )}
+                              </div>
                             </div>
                           </div>
+                          <p className={`text-sm font-medium ${sub.type === "income" ? "text-green-500" : "text-red-500"}`}>
+                            {sub.type === "income" ? "+" : "-"}{formatCurrency(sub.amount)}
+                          </p>
                         </div>
-                        <p className={`text-sm font-medium ${sub.type === "income" ? "text-green-500" : "text-red-500"}`}>
-                          {sub.type === "income" ? "+" : "-"}{formatCurrency(sub.amount)}
-                        </p>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </Card>
               ) : (
@@ -593,6 +633,44 @@ export default function TransactionsPage() {
                   title="No recurring transactions"
                   description="Mark transactions as recurring when creating them to track subscriptions."
                 />
+              )}
+
+              {upcoming && upcoming.occurrences.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center gap-2">
+                      <RefreshCw size={18} className="text-primary" />
+                      <h2 className="text-lg font-semibold">
+                        Next {upcoming.window_days} Days
+                      </h2>
+                    </div>
+                  </CardHeader>
+                  <div className="divide-y divide-border">
+                    {upcoming.occurrences.map((occ, i) => (
+                      <div
+                        key={`${occ.transaction_id}-${occ.date}-${i}`}
+                        className="p-3 flex items-center justify-between text-sm"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-mono text-muted-foreground w-24">
+                            {occ.date}
+                          </span>
+                          <span className="font-medium">
+                            {occ.description || occ.category}
+                          </span>
+                        </div>
+                        <span
+                          className={`font-medium ${
+                            occ.type === "income" ? "text-green-500" : "text-red-500"
+                          }`}
+                        >
+                          {occ.type === "income" ? "+" : "-"}
+                          {formatCurrency(occ.amount)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
               )}
             </div>
           </TabPanel>
@@ -662,18 +740,81 @@ export default function TransactionsPage() {
               <span className="text-sm font-medium">Recurring transaction</span>
             </div>
             {form.is_recurring && (
-              <Select
-                label="Frequency"
-                value={form.recurring_interval}
-                onChange={(e) => setForm({ ...form, recurring_interval: e.target.value })}
-                options={[
-                  { value: "weekly", label: "Weekly" },
-                  { value: "biweekly", label: "Bi-weekly" },
-                  { value: "monthly", label: "Monthly" },
-                  { value: "quarterly", label: "Quarterly" },
-                  { value: "yearly", label: "Yearly" },
-                ]}
-              />
+              <div className="space-y-3">
+                <Select
+                  label="Recurrence type"
+                  value={form.recurrence_mode}
+                  onChange={(e) =>
+                    setForm({ ...form, recurrence_mode: e.target.value as "interval" | "dates" })
+                  }
+                  options={[
+                    { value: "interval", label: "Standard interval" },
+                    { value: "dates", label: "Custom days of month (e.g. salary on 1 & 15)" },
+                  ]}
+                />
+                {form.recurrence_mode === "interval" ? (
+                  <Select
+                    label="Frequency"
+                    value={form.recurring_interval}
+                    onChange={(e) => setForm({ ...form, recurring_interval: e.target.value })}
+                    options={[
+                      { value: "weekly", label: "Weekly" },
+                      { value: "biweekly", label: "Bi-weekly" },
+                      { value: "monthly", label: "Monthly" },
+                      { value: "quarterly", label: "Quarterly" },
+                      { value: "yearly", label: "Yearly" },
+                    ]}
+                  />
+                ) : (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium block mb-2">
+                        Days of the month
+                      </label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => {
+                          const selected = form.recurrence_dates.includes(day);
+                          return (
+                            <button
+                              key={day}
+                              type="button"
+                              onClick={() => toggleRecurrenceDay(day)}
+                              className={`h-8 w-8 rounded-md text-xs font-medium transition-colors border ${
+                                selected
+                                  ? "bg-primary text-primary-foreground border-primary"
+                                  : "border-border hover:bg-muted"
+                              }`}
+                            >
+                              {day}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Day 29–31 will clamp to the last day of shorter months.
+                      </p>
+                    </div>
+                    <Select
+                      label="If a payday falls on a weekend"
+                      value={form.recurrence_weekend_rule}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          recurrence_weekend_rule: e.target.value as
+                            | "strict"
+                            | "roll_back"
+                            | "roll_forward",
+                        })
+                      }
+                      options={[
+                        { value: "strict", label: "Keep the literal day (strict)" },
+                        { value: "roll_back", label: "Roll back to previous weekday" },
+                        { value: "roll_forward", label: "Roll forward to next weekday" },
+                      ]}
+                    />
+                  </div>
+                )}
+              </div>
             )}
           </ModalBody>
           <ModalFooter>

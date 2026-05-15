@@ -10,6 +10,7 @@ from .payment import Payment
 from .notification import Notification, NotificationType
 from .trip import Trip, TripStatus
 from .user_preferences import UserPreferences
+from .investment import Investment
 
 __all__ = [
     "User", "Plan", "Transaction", "Budget", "AIRecommendation",
@@ -17,4 +18,5 @@ __all__ = [
     "Notification", "NotificationType",
     "Trip", "TripStatus",
     "UserPreferences",
+    "Investment",
 ]

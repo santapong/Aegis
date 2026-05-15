@@ -2,7 +2,7 @@ import uuid
 import enum
 from datetime import date, datetime
 
-from sqlalchemy import String, Text, Numeric, Date, DateTime, Enum, ForeignKey, Boolean
+from sqlalchemy import String, Text, Numeric, Date, DateTime, Enum, ForeignKey, Boolean, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -19,6 +19,17 @@ class RecurringInterval(str, enum.Enum):
     monthly = "monthly"
     quarterly = "quarterly"
     yearly = "yearly"
+
+
+class WeekendRule(str, enum.Enum):
+    """How to shift a payday that falls on Sat/Sun.
+
+    `strict` keeps the literal day; `roll_back`/`roll_forward` move to the
+    nearest weekday. Days that already fall on a weekday are unaffected.
+    """
+    strict = "strict"
+    roll_back = "roll_back"
+    roll_forward = "roll_forward"
 
 
 class Transaction(Base):
@@ -43,6 +54,12 @@ class Transaction(Base):
         Enum(RecurringInterval, native_enum=False), nullable=True
     )
     next_due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    # When set, overrides `recurring_interval`: a list of days-of-month (1-31)
+    # the transaction recurs on each month, e.g. [1, 15] for a split salary.
+    recurrence_dates: Mapped[list[int] | None] = mapped_column(JSON, nullable=True)
+    recurrence_weekend_rule: Mapped[WeekendRule | None] = mapped_column(
+        Enum(WeekendRule, native_enum=False), nullable=True
+    )
 
     plan: Mapped["Plan | None"] = relationship("Plan", back_populates="transactions")
     trip: Mapped["Trip | None"] = relationship("Trip", back_populates="transactions")

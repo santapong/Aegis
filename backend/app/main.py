@@ -30,6 +30,7 @@ from .routers import (
     notifications,
     trips,
     preferences,
+    investments,
 )
 
 settings = get_settings()
@@ -75,6 +76,7 @@ app.include_router(payments.router)
 app.include_router(notifications.router)
 app.include_router(trips.router)
 app.include_router(preferences.router)
+app.include_router(investments.router)
 
 
 def _db_backend(url: str) -> str:
