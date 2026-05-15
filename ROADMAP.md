@@ -16,6 +16,7 @@ Current status: **generally available**.
 | v0.8.0 | First-run & discoverability | ✅ Shipped |
 | v0.9.0 | Scale & export | ✅ Shipped |
 | **v1.0.0** | **General availability** | ✅ **Shipped** |
+| v1.1.0 | MCP server + Trip entity + budget overrun alerts | 🚧 In progress |
 
 ---
 
@@ -41,6 +42,9 @@ Captured here for continuity; not scoped.
 - Plaid / bank-API auto-import.
 - Receipt OCR from uploaded images.
 - Email / push notifications (SMTP + Web Push).
+- **Outbound webhooks** — generic delivery channel for budget/anomaly/bill events (follow-up to v1.1 MCP work).
+- **LINE Messaging API** — push notifications and a chat-driven expense logger (requires user-settings token storage + background task system).
+- **AI auto-categorization with review queue** — the "correct useful data" loop on top of the CSV importer.
 - Additional CSV connectors for common Thai / UK / EU banks.
 - Postgres `tsvector` + GIN index upgrade for transaction search (replaces the v0.8 `ILIKE` MVP).
 

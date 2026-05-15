@@ -38,7 +38,9 @@ export default function DebtsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [paymentDebt, setPaymentDebt] = useState<Debt | null>(null);
   const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentError, setPaymentError] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [activeTab, setActiveTab] = useState("overview");
   const [strategy, setStrategy] = useState("avalanche");
   const [extraPayment, setExtraPayment] = useState("0");
@@ -101,13 +103,24 @@ export default function DebtsPage() {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.balance) return;
+    const errs: Record<string, string> = {};
+    if (!form.name.trim()) errs.name = "Name is required";
+    const balance = parseFloat(form.balance);
+    if (!form.balance || Number.isNaN(balance) || balance < 0) {
+      errs.balance = "Balance must be 0 or greater";
+    }
+    const rate = parseFloat(form.interest_rate);
+    if (form.interest_rate && (Number.isNaN(rate) || rate < 0 || rate > 100)) {
+      errs.interest_rate = "Rate must be between 0 and 100";
+    }
+    setErrors(errs);
+    if (Object.keys(errs).length > 0) return;
     createMutation.mutate({
       name: form.name,
       description: form.description || null,
-      balance: parseFloat(form.balance),
-      original_balance: parseFloat(form.original_balance) || parseFloat(form.balance),
-      interest_rate: parseFloat(form.interest_rate) || 0,
+      balance,
+      original_balance: parseFloat(form.original_balance) || balance,
+      interest_rate: rate || 0,
       minimum_payment: parseFloat(form.minimum_payment) || 0,
       due_date: form.due_date || null,
       debt_type: form.debt_type,
@@ -345,13 +358,13 @@ export default function DebtsPage() {
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add Debt" size="md">
         <form onSubmit={handleCreate}>
           <ModalBody className="space-y-4">
-            <Input label="Name" placeholder="e.g. Chase Credit Card" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            <Input label="Name" placeholder="e.g. Chase Credit Card" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} error={errors.name} />
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Current Balance" type="number" placeholder="5000" value={form.balance} onChange={(e) => setForm({ ...form, balance: e.target.value })} min="0" step="0.01" />
+              <Input label="Current Balance" type="number" placeholder="5000" value={form.balance} onChange={(e) => setForm({ ...form, balance: e.target.value })} min="0" step="0.01" error={errors.balance} />
               <Input label="Original Balance" type="number" placeholder="10000" value={form.original_balance} onChange={(e) => setForm({ ...form, original_balance: e.target.value })} min="0" step="0.01" />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <Input label="Interest Rate (%)" type="number" placeholder="18.99" value={form.interest_rate} onChange={(e) => setForm({ ...form, interest_rate: e.target.value })} min="0" max="100" step="0.01" />
+              <Input label="Interest Rate (%)" type="number" placeholder="18.99" value={form.interest_rate} onChange={(e) => setForm({ ...form, interest_rate: e.target.value })} min="0" max="100" step="0.01" error={errors.interest_rate} />
               <Input label="Minimum Payment" type="number" placeholder="150" value={form.minimum_payment} onChange={(e) => setForm({ ...form, minimum_payment: e.target.value })} min="0" step="0.01" />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -373,19 +386,43 @@ export default function DebtsPage() {
       </Modal>
 
       {/* Payment Modal */}
-      <Modal open={!!paymentDebt} onClose={() => setPaymentDebt(null)} title="Make Payment" size="sm">
+      <Modal open={!!paymentDebt} onClose={() => { setPaymentDebt(null); setPaymentError(""); }} title="Make Payment" size="sm">
         <ModalBody>
           {paymentDebt && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">Payment for <strong>{paymentDebt.name}</strong></p>
               <p className="text-sm">Current balance: {formatCurrency(paymentDebt.balance)}</p>
-              <Input label="Payment Amount" type="number" placeholder={String(paymentDebt.minimum_payment)} value={paymentAmount} onChange={(e) => setPaymentAmount(e.target.value)} min="0" step="0.01" />
+              <Input
+                label="Payment Amount"
+                type="number"
+                placeholder={String(paymentDebt.minimum_payment)}
+                value={paymentAmount}
+                onChange={(e) => { setPaymentAmount(e.target.value); setPaymentError(""); }}
+                min="0"
+                step="0.01"
+                error={paymentError}
+              />
             </div>
           )}
         </ModalBody>
         <ModalFooter>
-          <Button variant="outline" onClick={() => setPaymentDebt(null)}>Cancel</Button>
-          <Button loading={paymentMutation.isPending} onClick={() => { if (paymentDebt && paymentAmount) paymentMutation.mutate({ id: paymentDebt.id, amount: parseFloat(paymentAmount) }); }}>
+          <Button variant="outline" onClick={() => { setPaymentDebt(null); setPaymentError(""); }}>Cancel</Button>
+          <Button
+            loading={paymentMutation.isPending}
+            onClick={() => {
+              if (!paymentDebt) return;
+              const amount = parseFloat(paymentAmount);
+              if (!paymentAmount || Number.isNaN(amount) || amount <= 0) {
+                setPaymentError("Enter an amount greater than 0");
+                return;
+              }
+              if (amount > paymentDebt.balance) {
+                setPaymentError(`Payment exceeds remaining balance of ${formatCurrency(paymentDebt.balance)}`);
+                return;
+              }
+              paymentMutation.mutate({ id: paymentDebt.id, amount });
+            }}
+          >
             Record Payment
           </Button>
         </ModalFooter>

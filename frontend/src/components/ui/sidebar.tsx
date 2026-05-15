@@ -90,6 +90,7 @@ const navSections: NavSection[] = [
       { href: "/", label: "Dashboard", code: "DSH", k: "g d", tourId: "sidebar-dashboard" },
       { href: "/transactions", label: "Transactions", code: "TXN", k: "g t", tourId: "sidebar-transactions" },
       { href: "/budgets", label: "Budgets", code: "BDG", k: "g b", tourId: "sidebar-budgets" },
+      { href: "/trips", label: "Trips", code: "TRP", k: "g i" },
       { href: "/savings", label: "Savings", code: "SAV", k: "g s" },
       { href: "/debts", label: "Debt", code: "DBT", k: "g x" },
       { href: "/plans", label: "Plans", code: "PLN", k: "g p" },

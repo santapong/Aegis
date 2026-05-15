@@ -35,6 +35,8 @@ export default function SavingsPage() {
     category: "general",
     color: "#3B82F6",
   });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [contributeError, setContributeError] = useState<string>("");
 
   const { data: goals, isLoading } = useQuery<SavingsGoal[]>({
     queryKey: ["savings-goals"],
@@ -74,12 +76,23 @@ export default function SavingsPage() {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.target_amount) return;
+    const errs: Record<string, string> = {};
+    if (!form.name.trim()) errs.name = "Name is required";
+    const target = parseFloat(form.target_amount);
+    if (!form.target_amount || Number.isNaN(target) || target <= 0) {
+      errs.target_amount = "Target must be greater than 0";
+    }
+    const current = parseFloat(form.current_amount);
+    if (form.current_amount && (Number.isNaN(current) || current < 0)) {
+      errs.current_amount = "Current amount cannot be negative";
+    }
+    setErrors(errs);
+    if (Object.keys(errs).length > 0) return;
     createMutation.mutate({
       name: form.name,
       description: form.description || null,
-      target_amount: parseFloat(form.target_amount),
-      current_amount: parseFloat(form.current_amount) || 0,
+      target_amount: target,
+      current_amount: current || 0,
       deadline: form.deadline || null,
       category: form.category,
       color: form.color,
@@ -231,6 +244,7 @@ export default function SavingsPage() {
               placeholder="e.g. Emergency Fund"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
+              error={errors.name}
             />
             <div className="grid grid-cols-2 gap-4">
               <Input
@@ -241,6 +255,7 @@ export default function SavingsPage() {
                 onChange={(e) => setForm({ ...form, target_amount: e.target.value })}
                 min="0"
                 step="0.01"
+                error={errors.target_amount}
               />
               <Input
                 label="Current Amount"
@@ -250,6 +265,7 @@ export default function SavingsPage() {
                 onChange={(e) => setForm({ ...form, current_amount: e.target.value })}
                 min="0"
                 step="0.01"
+                error={errors.current_amount}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -305,21 +321,26 @@ export default function SavingsPage() {
                 type="number"
                 placeholder="100"
                 value={contributeAmount}
-                onChange={(e) => setContributeAmount(e.target.value)}
+                onChange={(e) => { setContributeAmount(e.target.value); setContributeError(""); }}
                 min="0"
                 step="0.01"
+                error={contributeError}
               />
             </div>
           )}
         </ModalBody>
         <ModalFooter>
-          <Button variant="outline" onClick={() => setContributeGoal(null)}>Cancel</Button>
+          <Button variant="outline" onClick={() => { setContributeGoal(null); setContributeError(""); }}>Cancel</Button>
           <Button
             loading={contributeMutation.isPending}
             onClick={() => {
-              if (contributeGoal && contributeAmount) {
-                contributeMutation.mutate({ id: contributeGoal.id, amount: parseFloat(contributeAmount) });
+              if (!contributeGoal) return;
+              const amount = parseFloat(contributeAmount);
+              if (!contributeAmount || Number.isNaN(amount) || amount <= 0) {
+                setContributeError("Enter an amount greater than 0");
+                return;
               }
+              contributeMutation.mutate({ id: contributeGoal.id, amount });
             }}
           >
             Contribute

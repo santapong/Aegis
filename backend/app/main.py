@@ -28,6 +28,8 @@ from .routers import (
     debts,
     payments,
     notifications,
+    trips,
+    preferences,
 )
 
 settings = get_settings()
@@ -71,6 +73,8 @@ app.include_router(savings_goals.router)
 app.include_router(debts.router)
 app.include_router(payments.router)
 app.include_router(notifications.router)
+app.include_router(trips.router)
+app.include_router(preferences.router)
 
 
 def _db_backend(url: str) -> str:

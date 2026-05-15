@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -152,7 +152,26 @@ export default function PlansPage() {
       queryClient.invalidateQueries({ queryKey: ["plans"] });
       toast.success("Progress updated");
     },
+    onError: () => toast.error("Failed to update progress"),
   });
+
+  // Debounce the progress-slider mutation. A drag from 0% → 100% used to fire
+  // ~100 requests; we now batch into a single call ~250ms after the user
+  // pauses. Per-plan timers so two simultaneous drags don't trample each other.
+  const progressTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const queueProgressUpdate = (id: string, progress: number) => {
+    if (progressTimers.current[id]) clearTimeout(progressTimers.current[id]);
+    progressTimers.current[id] = setTimeout(() => {
+      progressMutation.mutate({ id, progress });
+      delete progressTimers.current[id];
+    }, 250);
+  };
+  // Optimistic in-cache update so the bar moves immediately while we wait.
+  const setProgressOptimistic = (id: string, progress: number) => {
+    queryClient.setQueryData<Plan[]>(["plans"], (prev) =>
+      prev?.map((p) => (p.id === id ? { ...p, progress } : p)) ?? prev
+    );
+  };
 
   const closeForm = () => {
     setShowForm(false);
@@ -184,6 +203,9 @@ export default function PlansPage() {
     if (!form.title.trim()) errs.title = "Title is required";
     if (!form.amount || parseFloat(form.amount) <= 0) errs.amount = "Amount must be greater than 0";
     if (!form.start_date) errs.start_date = "Start date is required";
+    if (form.end_date && form.start_date && form.end_date < form.start_date) {
+      errs.end_date = "End date must be on or after start date";
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -366,16 +388,18 @@ export default function PlansPage() {
                       </>
                     )}
 
-                    {/* Progress slider */}
+                    {/* Progress slider — optimistic update + debounced PATCH */}
                     <div className="mt-3">
                       <input
                         type="range"
                         min="0"
                         max="100"
                         value={plan.progress}
-                        onChange={(e) =>
-                          progressMutation.mutate({ id: plan.id, progress: parseInt(e.target.value) })
-                        }
+                        onChange={(e) => {
+                          const progress = parseInt(e.target.value);
+                          setProgressOptimistic(plan.id, progress);
+                          queueProgressUpdate(plan.id, progress);
+                        }}
                         className="w-full h-1 accent-primary cursor-pointer"
                       />
                     </div>

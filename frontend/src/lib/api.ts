@@ -1,4 +1,5 @@
 import { useAuthStore } from "@/stores/auth-store";
+import { useToastStore } from "@/stores/toast-store";
 import type { NotificationListResponse, Notification, Transaction } from "@/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -16,6 +17,25 @@ export class APIError extends Error {
 }
 
 const PUBLIC_ENDPOINTS = ["/api/auth/login", "/api/auth/register"];
+
+// Dedupe the session-expired toast: when a token expires, multiple in-flight
+// requests fire 401 at once. Only surface one user-facing toast per minute.
+let lastSessionExpiredToastAt = 0;
+
+function notifySessionExpired() {
+  const now = Date.now();
+  if (now - lastSessionExpiredToastAt < 60_000) return;
+  lastSessionExpiredToastAt = now;
+  try {
+    useToastStore.getState().addToast({
+      type: "warning",
+      message: "Your session expired",
+      description: "Please sign in again to continue.",
+    });
+  } catch {
+    // Toast store not initialised yet — drop quietly.
+  }
+}
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const isPublic = PUBLIC_ENDPOINTS.some((p) => url.startsWith(p));
@@ -37,6 +57,7 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
       } catch {}
       throw new APIError(401, "Invalid credentials", detail);
     }
+    notifySessionExpired();
     useAuthStore.getState().logout();
     throw new APIError(401, "Session expired");
   }
@@ -50,6 +71,11 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   }
   if (res.status === 204) return undefined as T;
   return res.json();
+}
+
+/** DELETE helper that runs through fetchJSON's auth + error pipeline. */
+function fetchDELETE(path: string): Promise<void> {
+  return fetchJSON<void>(path, { method: "DELETE" });
 }
 
 interface AuthUser {
@@ -92,6 +118,8 @@ export const transactionsAPI = {
     ),
   create: (data: Record<string, unknown>) =>
     fetchJSON("/api/transactions/", { method: "POST", body: JSON.stringify(data) }),
+  update: (id: string, data: Record<string, unknown>) =>
+    fetchJSON(`/api/transactions/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   summary: (start?: string, end?: string) => {
     const params = new URLSearchParams();
     if (start) params.set("start_date", start);
@@ -101,13 +129,7 @@ export const transactionsAPI = {
   anomalies: (days = 90, threshold = 2.0) =>
     fetchJSON(`/api/transactions/anomalies?days=${days}&threshold=${threshold}`),
   recurring: () => fetchJSON("/api/transactions/recurring"),
-  delete: (id: string) =>
-    fetch(`${API_BASE}/api/transactions/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
-      },
-    }),
+  delete: (id: string) => fetchDELETE(`/api/transactions/${id}`),
   importPreview: async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -131,13 +153,7 @@ export const tagsAPI = {
     fetchJSON("/api/tags/", { method: "POST", body: JSON.stringify(data) }),
   update: (id: string, data: { name?: string; color?: string }) =>
     fetchJSON(`/api/tags/${id}`, { method: "PUT", body: JSON.stringify(data) }),
-  delete: (id: string) =>
-    fetch(`${API_BASE}/api/tags/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
-      },
-    }),
+  delete: (id: string) => fetchDELETE(`/api/tags/${id}`),
 };
 
 export const plansAPI = {
@@ -155,13 +171,7 @@ export const plansAPI = {
       method: "PATCH",
       body: JSON.stringify({ progress }),
     }),
-  delete: (id: string) =>
-    fetch(`${API_BASE}/api/plans/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
-      },
-    }),
+  delete: (id: string) => fetchDELETE(`/api/plans/${id}`),
 };
 
 export const budgetsAPI = {
@@ -173,13 +183,7 @@ export const budgetsAPI = {
     fetchJSON("/api/budgets/", { method: "POST", body: JSON.stringify(data) }),
   update: (id: string, data: Record<string, unknown>) =>
     fetchJSON(`/api/budgets/${id}`, { method: "PUT", body: JSON.stringify(data) }),
-  delete: (id: string) =>
-    fetch(`${API_BASE}/api/budgets/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
-      },
-    }),
+  delete: (id: string) => fetchDELETE(`/api/budgets/${id}`),
   comparison: (start?: string, end?: string) => {
     const params = new URLSearchParams();
     if (start) params.set("period_start", start);
@@ -188,20 +192,50 @@ export const budgetsAPI = {
   },
 };
 
+export const tripsAPI = {
+  list: (params?: Record<string, string>) => {
+    const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+    return fetchJSON(`/api/trips/${qs}`);
+  },
+  get: (id: string) => fetchJSON(`/api/trips/${id}`),
+  create: (data: Record<string, unknown>) =>
+    fetchJSON("/api/trips/", { method: "POST", body: JSON.stringify(data) }),
+  update: (id: string, data: Record<string, unknown>) =>
+    fetchJSON(`/api/trips/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  delete: (id: string) => fetchDELETE(`/api/trips/${id}`),
+  summary: (id: string) => fetchJSON(`/api/trips/${id}/summary`),
+};
+
 export const calendarAPI = {
   events: (start: string, end: string) =>
     fetchJSON(`/api/calendar/events?start=${start}&end=${end}`),
-  moveEvent: (id: string, data: Record<string, unknown>) =>
-    fetchJSON(`/api/calendar/events/${id}/move`, {
+  moveEvent: (
+    id: string,
+    data: { new_start: string; new_end?: string | null }
+  ) => {
+    const params = new URLSearchParams();
+    params.set("new_start", data.new_start);
+    if (data.new_end) params.set("new_end", data.new_end);
+    return fetchJSON(`/api/calendar/events/${id}/move?${params.toString()}`, {
       method: "PUT",
-      body: JSON.stringify(data),
-    }),
+    });
+  },
 };
 
 export const ganttAPI = {
   tasks: () => fetchJSON("/api/gantt/tasks"),
-  update: (id: string, data: Record<string, unknown>) =>
-    fetchJSON(`/api/gantt/tasks/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  update: (
+    id: string,
+    data: { start?: string; end?: string; progress?: number }
+  ) => {
+    const params = new URLSearchParams();
+    if (data.start) params.set("start", data.start);
+    if (data.end) params.set("end", data.end);
+    if (data.progress !== undefined) params.set("progress", String(data.progress));
+    return fetchJSON(`/api/gantt/tasks/${id}?${params.toString()}`, {
+      method: "PUT",
+    });
+  },
 };
 
 export const aiAPI = {
@@ -225,11 +259,33 @@ export const aiAPI = {
 export const reportsAPI = {
   categoryComparison: (months = 6) =>
     fetchJSON(`/api/reports/category-comparison?months=${months}`),
-  exportCSV: (start?: string, end?: string) => {
+  /**
+   * Download the CSV export through an authenticated fetch, then trigger a
+   * client-side `&lt;a download&gt;` click. Mirrors `exportPDF` so a token-less
+   * `window.open` doesn't 401 in a popup.
+   */
+  exportCSV: async (start?: string, end?: string) => {
     const params = new URLSearchParams();
     if (start) params.set("start_date", start);
     if (end) params.set("end_date", end);
-    return `${API_BASE}/api/reports/export?${params}`;
+    const res = await fetch(`${API_BASE}/api/reports/export?${params}`, {
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
+      },
+    });
+    if (!res.ok) throw new APIError(res.status, "CSV export failed");
+    const blob = await res.blob();
+    const filename =
+      res.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1] ||
+      "aegis-transactions.csv";
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   },
   exportPDF: async (start?: string, end?: string) => {
     const params = new URLSearchParams();
@@ -281,13 +337,7 @@ export const savingsGoalsAPI = {
       method: "POST",
       body: JSON.stringify({ amount }),
     }),
-  delete: (id: string) =>
-    fetch(`${API_BASE}/api/savings-goals/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
-      },
-    }),
+  delete: (id: string) => fetchDELETE(`/api/savings-goals/${id}`),
 };
 
 export const paymentsAPI = {
@@ -300,6 +350,27 @@ export const paymentsAPI = {
   createCheckout: (data: { amount: number; currency?: string; description?: string }) =>
     fetchJSON("/api/payments/create-checkout-session", {
       method: "POST",
+      body: JSON.stringify(data),
+    }),
+};
+
+/**
+ * Wire shape for /api/preferences. Field names mirror the backend's
+ * snake_case schema; the app store translates to its camelCase `AppSettings`
+ * shape at the persistence boundary.
+ */
+export interface PreferencesPayload {
+  currency: string;
+  default_date_range_days: number;
+  items_per_page: number;
+  ai_auto_suggestions: boolean;
+}
+
+export const preferencesAPI = {
+  get: () => fetchJSON<PreferencesPayload>("/api/preferences"),
+  update: (data: Partial<PreferencesPayload>) =>
+    fetchJSON<PreferencesPayload>("/api/preferences", {
+      method: "PUT",
       body: JSON.stringify(data),
     }),
 };
@@ -318,11 +389,5 @@ export const debtsAPI = {
     }),
   payoffPlan: (strategy = "avalanche", extraPayment = 0) =>
     fetchJSON(`/api/debts/payoff-plan?strategy=${strategy}&extra_payment=${extraPayment}`),
-  delete: (id: string) =>
-    fetch(`${API_BASE}/api/debts/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
-      },
-    }),
+  delete: (id: string) => fetchDELETE(`/api/debts/${id}`),
 };

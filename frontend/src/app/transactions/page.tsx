@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { transactionsAPI, tagsAPI } from "@/lib/api";
+import { transactionsAPI, tagsAPI, tripsAPI } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { staggerContainer, staggerItem } from "@/lib/animations";
@@ -18,8 +18,8 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabList, Tab, TabPanel } from "@/components/ui/tabs";
-import { Plus, Trash2, ArrowUpRight, ArrowDownRight, Receipt, Upload, RefreshCw, Tag as TagIcon } from "lucide-react";
-import type { Transaction, Tag, RecurringTransactionSummary, ImportPreviewResponse, ImportResult } from "@/types";
+import { Plus, Trash2, Pencil, ArrowUpRight, ArrowDownRight, Receipt, Upload, RefreshCw, Tag as TagIcon, Settings, Check, X } from "lucide-react";
+import type { Transaction, Tag, Trip, RecurringTransactionSummary, ImportPreviewResponse, ImportResult } from "@/types";
 
 interface TransactionSummary {
   total_income: number;
@@ -35,16 +35,23 @@ export default function TransactionsPage() {
 
   const [activeTab, setActiveTab] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
+  const [editingTxn, setEditingTxn] = useState<Transaction | null>(null);
   const [showImport, setShowImport] = useState(false);
   const [importPreview, setImportPreview] = useState<ImportPreviewResponse | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showManageTags, setShowManageTags] = useState(false);
+  const [editingTagId, setEditingTagId] = useState<string | null>(null);
+  const [tagEditDraft, setTagEditDraft] = useState<{ name: string; color: string }>({ name: "", color: "#6366f1" });
+  const [newTagDraft, setNewTagDraft] = useState<{ name: string; color: string }>({ name: "", color: "#6366f1" });
+  const [tagErrors, setTagErrors] = useState<Record<string, string>>({});
+  const [deleteTagId, setDeleteTagId] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     type: "",
     category: "",
     start_date: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split("T")[0],
     end_date: new Date().toISOString().split("T")[0],
   });
-  const [form, setForm] = useState({
+  const defaultForm = {
     amount: "",
     type: "expense" as "income" | "expense",
     category: "",
@@ -53,7 +60,9 @@ export default function TransactionsPage() {
     is_recurring: false,
     recurring_interval: "",
     tag_ids: [] as string[],
-  });
+    trip_id: "",
+  };
+  const [form, setForm] = useState(defaultForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const queryParams: Record<string, string> = {};
@@ -82,18 +91,60 @@ export default function TransactionsPage() {
     queryFn: () => tagsAPI.list() as Promise<Tag[]>,
   });
 
+  const { data: trips } = useQuery<Trip[]>({
+    queryKey: ["trips"],
+    queryFn: () => tripsAPI.list() as Promise<Trip[]>,
+  });
+
+  const invalidateAfterMutation = () => {
+    queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    queryClient.invalidateQueries({ queryKey: ["transaction-summary"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+    queryClient.invalidateQueries({ queryKey: ["recurring-transactions"] });
+  };
+
+  const closeForm = () => {
+    setShowCreate(false);
+    setEditingTxn(null);
+    setForm(defaultForm);
+    setErrors({});
+  };
+
+  const openEdit = (tx: Transaction) => {
+    setEditingTxn(tx);
+    setForm({
+      amount: String(tx.amount),
+      type: tx.type as "income" | "expense",
+      category: tx.category,
+      date: tx.date,
+      description: tx.description ?? "",
+      is_recurring: tx.is_recurring,
+      recurring_interval: tx.recurring_interval ?? "",
+      tag_ids: tx.tags?.map((t) => t.id) ?? [],
+      trip_id: tx.trip_id ?? "",
+    });
+    setShowCreate(true);
+  };
+
   const createMutation = useMutation({
     mutationFn: (data: Record<string, unknown>) => transactionsAPI.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["transaction-summary"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
-      queryClient.invalidateQueries({ queryKey: ["recurring-transactions"] });
-      setShowCreate(false);
-      setForm({ amount: "", type: "expense", category: "", date: new Date().toISOString().split("T")[0], description: "", is_recurring: false, recurring_interval: "", tag_ids: [] });
+      invalidateAfterMutation();
+      closeForm();
       toast.success("Transaction created successfully");
     },
     onError: () => toast.error("Failed to create transaction"),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) =>
+      transactionsAPI.update(id, data),
+    onSuccess: () => {
+      invalidateAfterMutation();
+      closeForm();
+      toast.success("Transaction updated");
+    },
+    onError: () => toast.error("Failed to update transaction"),
   });
 
   const deleteMutation = useMutation({
@@ -120,6 +171,101 @@ export default function TransactionsPage() {
     onError: () => toast.error("Import failed"),
   });
 
+  const invalidateTagsAndTransactions = () => {
+    queryClient.invalidateQueries({ queryKey: ["tags"] });
+    queryClient.invalidateQueries({ queryKey: ["transactions"] });
+  };
+
+  const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
+
+  const createTagMutation = useMutation({
+    mutationFn: (data: { name: string; color: string }) => tagsAPI.create(data),
+    onSuccess: () => {
+      invalidateTagsAndTransactions();
+      setNewTagDraft({ name: "", color: "#6366f1" });
+      setTagErrors({});
+      toast.success("Tag created");
+    },
+    onError: () => toast.error("Failed to create tag"),
+  });
+
+  const updateTagMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { name: string; color: string } }) => tagsAPI.update(id, data),
+    onSuccess: () => {
+      invalidateTagsAndTransactions();
+      setEditingTagId(null);
+      setTagErrors({});
+      toast.success("Tag renamed");
+    },
+    onError: () => toast.error("Failed to update tag"),
+  });
+
+  const deleteTagMutation = useMutation({
+    mutationFn: (id: string) => tagsAPI.delete(id),
+    onSuccess: () => {
+      invalidateTagsAndTransactions();
+      // If user was editing the tag we just deleted, exit edit mode
+      if (editingTagId && editingTagId === deleteTagId) setEditingTagId(null);
+      setDeleteTagId(null);
+      toast.success("Tag deleted");
+    },
+    onError: () => toast.error("Failed to delete tag"),
+  });
+
+  const validateTagDraft = (draft: { name: string; color: string }, scope: "new" | "edit"): boolean => {
+    const errs: Record<string, string> = {};
+    const name = draft.name.trim();
+    if (!name) {
+      errs[`${scope}_name`] = "Name is required";
+    } else {
+      // Duplicate check (case-insensitive). When editing, allow keeping the same name on the same tag.
+      const duplicate = tags?.some(
+        (t) =>
+          t.name.toLowerCase() === name.toLowerCase() &&
+          !(scope === "edit" && t.id === editingTagId)
+      );
+      if (duplicate) errs[`${scope}_name`] = "A tag with this name already exists";
+    }
+    if (!HEX_COLOR_RE.test(draft.color)) {
+      errs[`${scope}_color`] = "Color must be a 7-char hex (#RRGGBB)";
+    }
+    setTagErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const startEditTag = (tag: Tag) => {
+    setEditingTagId(tag.id);
+    setTagEditDraft({ name: tag.name, color: tag.color });
+    setTagErrors({});
+  };
+
+  const cancelEditTag = () => {
+    setEditingTagId(null);
+    setTagErrors({});
+  };
+
+  const submitEditTag = () => {
+    if (!editingTagId) return;
+    if (!validateTagDraft(tagEditDraft, "edit")) return;
+    updateTagMutation.mutate({
+      id: editingTagId,
+      data: { name: tagEditDraft.name.trim(), color: tagEditDraft.color },
+    });
+  };
+
+  const submitNewTag = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateTagDraft(newTagDraft, "new")) return;
+    createTagMutation.mutate({ name: newTagDraft.name.trim(), color: newTagDraft.color });
+  };
+
+  const closeManageTags = () => {
+    setShowManageTags(false);
+    setEditingTagId(null);
+    setTagErrors({});
+    setNewTagDraft({ name: "", color: "#6366f1" });
+  };
+
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!form.amount || parseFloat(form.amount) <= 0) errs.amount = "Amount must be greater than 0";
@@ -132,7 +278,7 @@ export default function TransactionsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    createMutation.mutate({
+    const payload = {
       amount: parseFloat(form.amount),
       type: form.type,
       category: form.category,
@@ -141,7 +287,13 @@ export default function TransactionsPage() {
       is_recurring: form.is_recurring,
       recurring_interval: form.is_recurring && form.recurring_interval ? form.recurring_interval : null,
       tag_ids: form.tag_ids,
-    });
+      trip_id: form.trip_id || null,
+    };
+    if (editingTxn) {
+      updateMutation.mutate({ id: editingTxn.id, data: payload });
+    } else {
+      createMutation.mutate(payload);
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -180,6 +332,9 @@ export default function TransactionsPage() {
           action={
             <div className="flex gap-2">
               <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
+              <Button variant="secondary" icon={<Settings size={16} />} onClick={() => setShowManageTags(true)}>
+                Manage Tags
+              </Button>
               <Button variant="secondary" icon={<Upload size={16} />} onClick={() => fileInputRef.current?.click()}>
                 Import CSV
               </Button>
@@ -310,9 +465,14 @@ export default function TransactionsPage() {
                                 {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                               </td>
                               <td className="px-4 py-3 text-right">
-                                <button onClick={() => setDeleteId(tx.id)} className="text-red-500 hover:text-red-700 p-1">
-                                  <Trash2 size={14} />
-                                </button>
+                                <div className="flex items-center justify-end gap-1">
+                                  <button onClick={() => openEdit(tx)} className="text-muted-foreground hover:text-foreground p-1">
+                                    <Pencil size={14} />
+                                  </button>
+                                  <button onClick={() => setDeleteId(tx.id)} className="text-red-500 hover:text-red-700 p-1">
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))}
@@ -345,7 +505,14 @@ export default function TransactionsPage() {
                             <p className={`text-sm font-medium ${tx.type === "income" ? "text-green-500" : "text-red-500"}`}>
                               {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                             </p>
-                            <button onClick={() => setDeleteId(tx.id)} className="text-red-500 text-xs mt-1">Delete</button>
+                            <div className="flex items-center justify-end gap-2 mt-1">
+                              <button onClick={() => openEdit(tx)} className="text-muted-foreground p-1">
+                                <Pencil size={14} />
+                              </button>
+                              <button onClick={() => setDeleteId(tx.id)} className="text-red-500 p-1">
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -432,8 +599,8 @@ export default function TransactionsPage() {
         </Tabs>
       </motion.div>
 
-      {/* Create Transaction Modal */}
-      <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add Transaction" size="md">
+      {/* Create / Edit Transaction Modal */}
+      <Modal open={showCreate} onClose={closeForm} title={editingTxn ? "Edit Transaction" : "Add Transaction"} size="md">
         <form onSubmit={handleSubmit}>
           <ModalBody className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -445,6 +612,18 @@ export default function TransactionsPage() {
               <Input label="Date" type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} error={errors.date} />
             </div>
             <Textarea label="Description (optional)" placeholder="Add a note..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+
+            {trips && trips.length > 0 && (
+              <Select
+                label="Trip (optional)"
+                value={form.trip_id}
+                onChange={(e) => setForm({ ...form, trip_id: e.target.value })}
+                options={[
+                  { value: "", label: "None" },
+                  ...trips.map((t) => ({ value: t.id, label: t.title })),
+                ]}
+              />
+            )}
 
             {/* Tags */}
             {tags && tags.length > 0 && (
@@ -498,8 +677,10 @@ export default function TransactionsPage() {
             )}
           </ModalBody>
           <ModalFooter>
-            <Button variant="outline" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
-            <Button type="submit" loading={createMutation.isPending}>Create</Button>
+            <Button variant="outline" type="button" onClick={closeForm}>Cancel</Button>
+            <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>
+              {editingTxn ? "Save Changes" : "Create"}
+            </Button>
           </ModalFooter>
         </form>
       </Modal>
@@ -563,6 +744,149 @@ export default function TransactionsPage() {
         <ModalFooter>
           <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
           <Button variant="destructive" loading={deleteMutation.isPending} onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Delete</Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Manage Tags Modal */}
+      <Modal open={showManageTags} onClose={closeManageTags} title="Manage Tags" size="md">
+        <ModalBody className="space-y-4">
+          {tags && tags.length > 0 ? (
+            <div className="divide-y divide-border rounded-lg border border-border">
+              {tags.map((tag) => {
+                const usage = transactions?.filter((tx) => tx.tags?.some((t) => t.id === tag.id)).length ?? 0;
+                const isEditing = editingTagId === tag.id;
+                return (
+                  <div key={tag.id} className="p-3 flex items-center gap-3">
+                    {isEditing ? (
+                      <>
+                        <input
+                          type="color"
+                          value={tagEditDraft.color}
+                          onChange={(e) => setTagEditDraft({ ...tagEditDraft, color: e.target.value })}
+                          className="h-9 w-10 rounded-lg border border-input bg-muted/50 cursor-pointer flex-shrink-0"
+                          aria-label="Tag color"
+                        />
+                        <div className="flex-1">
+                          <Input
+                            value={tagEditDraft.name}
+                            onChange={(e) => setTagEditDraft({ ...tagEditDraft, name: e.target.value })}
+                            error={tagErrors.edit_name || tagErrors.edit_color}
+                            placeholder="Tag name"
+                          />
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <button
+                            type="button"
+                            onClick={submitEditTag}
+                            disabled={updateTagMutation.isPending}
+                            className="text-green-600 hover:text-green-700 p-1 disabled:opacity-50"
+                            aria-label="Save tag"
+                          >
+                            <Check size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelEditTag}
+                            className="text-muted-foreground hover:text-foreground p-1"
+                            aria-label="Cancel edit"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <span
+                          className="h-5 w-5 rounded-full border border-border flex-shrink-0"
+                          style={{ backgroundColor: tag.color }}
+                          aria-hidden
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{tag.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {usage === 0 ? "Not used" : `Used on ${usage} transaction${usage === 1 ? "" : "s"}`}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <button
+                            onClick={() => startEditTag(tag)}
+                            className="text-muted-foreground hover:text-foreground p-1"
+                            aria-label={`Edit ${tag.name}`}
+                          >
+                            <Pencil size={14} />
+                          </button>
+                          <button
+                            onClick={() => setDeleteTagId(tag.id)}
+                            className="text-red-500 hover:text-red-700 p-1"
+                            aria-label={`Delete ${tag.name}`}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-lg border border-dashed border-border p-6 text-center">
+              <TagIcon size={20} className="mx-auto text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground">No tags yet. Create one below.</p>
+            </div>
+          )}
+
+          {/* Create tag form */}
+          <form onSubmit={submitNewTag} className="space-y-2 pt-2 border-t border-border">
+            <p className="text-sm font-medium">Create tag</p>
+            <div className="flex items-start gap-2">
+              <input
+                type="color"
+                value={newTagDraft.color}
+                onChange={(e) => setNewTagDraft({ ...newTagDraft, color: e.target.value })}
+                className="h-9 w-10 rounded-lg border border-input bg-muted/50 cursor-pointer flex-shrink-0 mt-[2px]"
+                aria-label="New tag color"
+              />
+              <div className="flex-1">
+                <Input
+                  placeholder="e.g. groceries"
+                  value={newTagDraft.name}
+                  onChange={(e) => setNewTagDraft({ ...newTagDraft, name: e.target.value })}
+                  error={tagErrors.new_name || tagErrors.new_color}
+                />
+              </div>
+              <Button
+                type="submit"
+                size="sm"
+                loading={createTagMutation.isPending}
+                icon={<Plus size={14} />}
+              >
+                Add
+              </Button>
+            </div>
+          </form>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="outline" onClick={closeManageTags}>Close</Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Delete Tag Confirmation Sub-modal */}
+      <Modal open={!!deleteTagId} onClose={() => setDeleteTagId(null)} title="Delete Tag" size="sm">
+        <ModalBody>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete this tag? It will be detached from any transactions it&apos;s currently attached to. This action cannot be undone.
+          </p>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="outline" onClick={() => setDeleteTagId(null)}>Cancel</Button>
+          <Button
+            variant="destructive"
+            loading={deleteTagMutation.isPending}
+            onClick={() => deleteTagId && deleteTagMutation.mutate(deleteTagId)}
+          >
+            Delete
+          </Button>
         </ModalFooter>
       </Modal>
     </motion.div>

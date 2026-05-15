@@ -58,6 +58,7 @@ export interface Tag {
 export interface Transaction {
   id: string;
   plan_id: string | null;
+  trip_id?: string | null;
   amount: number;
   type: TransactionType;
   category: string;
@@ -119,6 +120,35 @@ export interface Budget {
   period_start: string;
   period_end: string;
   created_at: string;
+  trip_id?: string | null;
+}
+
+export type TripStatus = "planned" | "active" | "completed";
+
+export interface Trip {
+  id: string;
+  title: string;
+  destination: string | null;
+  start_date: string;
+  end_date: string;
+  total_budget: number | null;
+  status: TripStatus;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface TripCategoryRollup {
+  category: string;
+  budgeted: number;
+  spent: number;
+}
+
+export interface TripSummary {
+  trip: Trip;
+  total_budgeted: number;
+  total_spent: number;
+  by_category: TripCategoryRollup[];
+  transaction_count: number;
 }
 
 export interface BudgetComparison {

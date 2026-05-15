@@ -1,7 +1,11 @@
-from datetime import date, datetime
+from datetime import date as _Date, datetime
 from pydantic import BaseModel, Field
 
 from ..models.transaction import TransactionType, RecurringInterval
+
+# Alias to avoid the `date: date | None` shadowing issue inside TransactionUpdate
+# where a field named `date` is also typed as `date`.
+date = _Date
 
 
 class TagResponse(BaseModel):
@@ -14,6 +18,7 @@ class TagResponse(BaseModel):
 
 class TransactionCreate(BaseModel):
     plan_id: str | None = None
+    trip_id: str | None = None
     amount: float = Field(..., gt=0)
     type: TransactionType
     category: str = Field(..., max_length=100)
@@ -25,9 +30,24 @@ class TransactionCreate(BaseModel):
     tag_ids: list[str] = []
 
 
+class TransactionUpdate(BaseModel):
+    plan_id: str | None = None
+    trip_id: str | None = None
+    amount: float | None = Field(default=None, gt=0)
+    type: TransactionType | None = None
+    category: str | None = Field(default=None, max_length=100)
+    date: _Date | None = None
+    description: str | None = None
+    is_recurring: bool | None = None
+    recurring_interval: RecurringInterval | None = None
+    next_due_date: _Date | None = None
+    tag_ids: list[str] | None = None
+
+
 class TransactionResponse(BaseModel):
     id: str
     plan_id: str | None
+    trip_id: str | None = None
     amount: float
     type: TransactionType
     category: str

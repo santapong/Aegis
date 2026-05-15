@@ -8,32 +8,83 @@ import pandas as pd
 from ..database import get_db
 from ..models.transaction import Transaction, TransactionType, RecurringInterval
 from ..models.tag import Tag
+from ..models.trip import Trip
 from ..models.user import User
 from ..schemas.transaction import (
-    TransactionCreate, TransactionResponse, TransactionSummary,
+    TransactionCreate, TransactionUpdate, TransactionResponse, TransactionSummary,
     RecurringTransactionSummary,
     TagCreate, TagUpdate, TagResponse,
     ImportPreviewResponse, ImportPreviewRow, ImportConfirmRequest, ImportResultResponse,
 )
 from ..schemas.dashboard import AnomalyItem, AnomaliesResponse
+from ..services.notification_service import evaluate_budget_thresholds
 from ..auth import get_current_user
 
 router = APIRouter(prefix="/api/transactions", tags=["transactions"])
 
 
+def _validate_trip_ownership(db: Session, trip_id: str | None, user_id: str) -> None:
+    """Reject trip_id values that don't belong to the caller, preventing
+    cross-user trip linkage."""
+    if not trip_id:
+        return
+    exists = (
+        db.query(Trip.id)
+        .filter(Trip.id == trip_id, Trip.user_id == user_id)
+        .first()
+    )
+    if not exists:
+        raise HTTPException(status_code=404, detail="Trip not found")
+
+
 @router.post("/", response_model=TransactionResponse, status_code=201)
 def create_transaction(txn: TransactionCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    _validate_trip_ownership(db, txn.trip_id, current_user.id)
     tag_ids = txn.tag_ids
     data = txn.model_dump(exclude={"tag_ids"})
     db_txn = Transaction(**data, user_id=current_user.id)
 
     if tag_ids:
-        tags = db.query(Tag).filter(Tag.id.in_(tag_ids)).all()
+        tags = db.query(Tag).filter(Tag.id.in_(tag_ids), Tag.user_id == current_user.id).all()
         db_txn.tags = tags
 
     db.add(db_txn)
     db.commit()
     db.refresh(db_txn)
+    evaluate_budget_thresholds(db, user_id=current_user.id, transaction=db_txn)
+    return db_txn
+
+
+@router.put("/{txn_id}", response_model=TransactionResponse)
+def update_transaction(
+    txn_id: str,
+    update: TransactionUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    db_txn = (
+        db.query(Transaction)
+        .filter(Transaction.id == txn_id, Transaction.user_id == current_user.id)
+        .first()
+    )
+    if not db_txn:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    data = update.model_dump(exclude_unset=True)
+    if "trip_id" in data:
+        _validate_trip_ownership(db, data["trip_id"], current_user.id)
+    tag_ids = data.pop("tag_ids", None)
+    for key, val in data.items():
+        setattr(db_txn, key, val)
+    if tag_ids is not None:
+        db_txn.tags = (
+            db.query(Tag).filter(Tag.id.in_(tag_ids), Tag.user_id == current_user.id).all()
+            if tag_ids else []
+        )
+
+    db.commit()
+    db.refresh(db_txn)
+    evaluate_budget_thresholds(db, user_id=current_user.id, transaction=db_txn)
     return db_txn
 
 

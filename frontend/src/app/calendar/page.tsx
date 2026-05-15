@@ -15,6 +15,7 @@ import {
   subMonths,
   startOfWeek,
   endOfWeek,
+  differenceInDays,
 } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus, Calendar } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
@@ -27,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Modal, ModalBody, ModalFooter } from "@/components/ui/modal";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { EmptyState } from "@/components/ui/empty-state";
 import { staggerContainer, staggerItem, slideUp } from "@/lib/animations";
 import type { CalendarEvent, PlanCategory, PlanStatus, Priority, Recurrence } from "@/types";
@@ -84,6 +86,9 @@ export default function CalendarPage() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(() => buildDefaultForm(new Date()));
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [draggedEventId, setDraggedEventId] = useState<string | null>(null);
+  const [dragOverDay, setDragOverDay] = useState<string | null>(null);
+  const [reschedulingId, setReschedulingId] = useState<string | null>(null);
 
   const openNewPlan = (day?: Date | null) => {
     const d = day ?? selectedDate ?? new Date();
@@ -117,11 +122,109 @@ export default function CalendarPage() {
     onError: () => toast.error("Failed to create plan"),
   });
 
+  const eventsQueryKey = [
+    "calendar-events",
+    format(monthStart, "yyyy-MM-dd"),
+    format(monthEnd, "yyyy-MM-dd"),
+  ];
+
+  const moveMutation = useMutation({
+    mutationFn: ({ id, newStart }: { id: string; newStart: string }) =>
+      calendarAPI.moveEvent(id, { new_start: newStart }),
+    onMutate: async ({ id, newStart }) => {
+      await queryClient.cancelQueries({ queryKey: ["calendar-events"] });
+      const previous = queryClient.getQueryData<CalendarEvent[]>(eventsQueryKey);
+      queryClient.setQueryData<CalendarEvent[]>(eventsQueryKey, (old = []) =>
+        old.map((event) => {
+          if (event.id !== id) return event;
+          const oldStart = new Date(event.start);
+          const targetStart = new Date(newStart);
+          const oldEnd = event.end ? new Date(event.end) : null;
+          const offsetDays = differenceInDays(targetStart, oldStart);
+          const newEnd =
+            oldEnd != null
+              ? format(
+                  new Date(oldEnd.getTime() + offsetDays * 24 * 60 * 60 * 1000),
+                  "yyyy-MM-dd"
+                )
+              : event.end;
+          return { ...event, start: newStart, end: newEnd };
+        })
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(eventsQueryKey, context.previous);
+      }
+      toast.error("Failed to reschedule plan");
+    },
+    onSuccess: () => {
+      toast.success("Plan rescheduled");
+    },
+    onSettled: () => {
+      setReschedulingId(null);
+      queryClient.invalidateQueries({ queryKey: ["calendar-events"] });
+      queryClient.invalidateQueries({ queryKey: ["plans"] });
+    },
+  });
+
+  const handleEventDragStart = (
+    e: React.DragEvent<HTMLDivElement>,
+    eventId: string
+  ) => {
+    setDraggedEventId(eventId);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", eventId);
+  };
+
+  const handleEventDragEnd = () => {
+    setDraggedEventId(null);
+    setDragOverDay(null);
+  };
+
+  const handleDayDragOver = (
+    e: React.DragEvent<HTMLDivElement>,
+    day: Date
+  ) => {
+    if (!draggedEventId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    const key = format(day, "yyyy-MM-dd");
+    if (dragOverDay !== key) setDragOverDay(key);
+  };
+
+  const handleDayDrop = (
+    e: React.DragEvent<HTMLDivElement>,
+    day: Date
+  ) => {
+    e.preventDefault();
+    const eventId = e.dataTransfer.getData("text/plain") || draggedEventId;
+    setDragOverDay(null);
+    setDraggedEventId(null);
+    if (!eventId) return;
+    const event = events.find((ev) => ev.id === eventId);
+    if (!event) return;
+    const newStart = format(day, "yyyy-MM-dd");
+    if (event.start === newStart) return;
+    setReschedulingId(eventId);
+    moveMutation.mutate({ id: eventId, newStart });
+  };
+
+  const handleMobileReschedule = (eventId: string, value: string) => {
+    if (!value) return;
+    setReschedulingId(eventId);
+    moveMutation.mutate({ id: eventId, newStart: value });
+  };
+
   const validate = () => {
     const errs: Record<string, string> = {};
     if (!form.title.trim()) errs.title = "Title is required";
     if (!form.amount || parseFloat(form.amount) <= 0) errs.amount = "Amount must be greater than 0";
     if (!form.start_date) errs.start_date = "Start date is required";
+    if (form.end_date && form.start_date && form.end_date < form.start_date) {
+      errs.end_date = "End date must be on or after start date";
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -239,16 +342,24 @@ export default function CalendarPage() {
                 const isCurrentMonth = isSameMonth(day, currentDate);
                 const isToday = isSameDay(day, new Date());
                 const isSelected = selectedDate && isSameDay(day, selectedDate);
+                const dayKey = format(day, "yyyy-MM-dd");
+                const isDropTarget = dragOverDay === dayKey;
 
                 return (
                   <div
                     key={i}
                     onClick={() => setSelectedDate(day)}
+                    onDragOver={(e) => handleDayDragOver(e, day)}
+                    onDragLeave={() => {
+                      if (dragOverDay === dayKey) setDragOverDay(null);
+                    }}
+                    onDrop={(e) => handleDayDrop(e, day)}
                     className={cn(
                       "min-h-[100px] p-2 border-b border-r border-border cursor-pointer transition-colors",
                       !isCurrentMonth && "opacity-40",
                       isSelected && "bg-primary/5",
-                      "hover:bg-muted"
+                      isDropTarget && "bg-primary/10 ring-2 ring-inset ring-primary/40",
+                      !isDropTarget && "hover:bg-muted"
                     )}
                   >
                     <span
@@ -260,18 +371,31 @@ export default function CalendarPage() {
                       {format(day, "d")}
                     </span>
                     <div className="mt-1 space-y-1">
-                      {dayEvents.slice(0, 3).map((event) => (
-                        <div
-                          key={event.id}
-                          className={cn(
-                            "text-xs px-1.5 py-0.5 rounded truncate text-white font-medium",
-                            categoryColors[event.category] ?? "bg-gray-500"
-                          )}
-                          title={`${event.title} - ${formatCurrency(event.amount)}`}
-                        >
-                          {event.title}
-                        </div>
-                      ))}
+                      {dayEvents.slice(0, 3).map((event) => {
+                        const isDragging = draggedEventId === event.id;
+                        const isRescheduling = reschedulingId === event.id;
+                        return (
+                          <div
+                            key={event.id}
+                            draggable
+                            onDragStart={(e) => {
+                              e.stopPropagation();
+                              handleEventDragStart(e, event.id);
+                            }}
+                            onDragEnd={handleEventDragEnd}
+                            onClick={(e) => e.stopPropagation()}
+                            className={cn(
+                              "text-xs px-1.5 py-0.5 rounded truncate text-white font-medium cursor-grab active:cursor-grabbing select-none",
+                              categoryColors[event.category] ?? "bg-gray-500",
+                              isDragging && "opacity-50",
+                              isRescheduling && "animate-pulse"
+                            )}
+                            title={`${event.title} - ${formatCurrency(event.amount)} (drag to reschedule)`}
+                          >
+                            {event.title}
+                          </div>
+                        );
+                      })}
                       {dayEvents.length > 3 && (
                         <span className="text-xs text-muted-foreground">
                           +{dayEvents.length - 3} more
@@ -300,7 +424,32 @@ export default function CalendarPage() {
                             <div className={cn("w-2.5 h-2.5 rounded-full", categoryColors[event.category])} />
                             <span className="text-sm">{event.title}</span>
                           </div>
-                          <span className="text-sm font-medium">{formatCurrency(event.amount)}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium">{formatCurrency(event.amount)}</span>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <button
+                                  className="text-xs text-primary hover:underline"
+                                  aria-label="Reschedule"
+                                >
+                                  Move
+                                </button>
+                              </PopoverTrigger>
+                              <PopoverContent align="end" className="w-56">
+                                <p className="text-xs font-medium mb-2">Reschedule to</p>
+                                <Input
+                                  type="date"
+                                  defaultValue={event.start.slice(0, 10)}
+                                  onChange={(e) =>
+                                    handleMobileReschedule(event.id, e.target.value)
+                                  }
+                                />
+                                {reschedulingId === event.id && (
+                                  <p className="text-xs text-muted-foreground mt-2">Saving...</p>
+                                )}
+                              </PopoverContent>
+                            </Popover>
+                          </div>
                         </div>
                       ))}
                     </div>
