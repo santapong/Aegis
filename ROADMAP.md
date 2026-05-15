@@ -44,10 +44,19 @@ Captured here for continuity; not scoped.
 - Email / push notifications (SMTP + Web Push).
 - **Outbound webhooks** — generic delivery channel for budget/anomaly/bill events (follow-up to v1.1 MCP work).
 - **LINE Messaging API** — push notifications and a chat-driven expense logger (requires user-settings token storage + background task system).
-- **Transaction edit/correction UI** — backend PUT shipped in v1.1; frontend modal still pending.
 - **AI auto-categorization with review queue** — the "correct useful data" loop on top of the CSV importer.
 - Additional CSV connectors for common Thai / UK / EU banks.
 - Postgres `tsvector` + GIN index upgrade for transaction search (replaces the v0.8 `ILIKE` MVP).
+
+### Frontend reliability follow-ups (deferred from v1.1 QA pass)
+- **Session-expired toast** — surface a "Your session expired, please sign in again" message before the silent redirect (`frontend/src/lib/api.ts:31-42`).
+- **Per-route `error.tsx` boundaries** — keep sidebar/status-bar chrome when a query throws.
+- **Cross-tab logout propagation** — `storage` event listener on `aegis-auth` so logging out in tab A logs out tab B.
+- **Plans progress-slider debounce** — currently fires ~100 requests on a single drag (`frontend/src/app/plans/page.tsx:371-380`).
+- **Dashboard query error UI** — surface failures from the six `useQuery` calls instead of blank space (`frontend/src/app/page.tsx:72-100`).
+- **Notification store** — stop swallowing sync errors and fix the `unreadCount` off-by-one (`frontend/src/stores/notification-store.ts:19-43`).
+- **Settings backend persistence** — replace the "local preferences only" copy with a real `user_preferences` table + endpoint.
+- **Tag management UI** — backend supports it; no frontend surface yet.
 
 ### Ops & SRE
 - Horizontal scale via async workers (RQ or Celery) for heavy AI / PDF jobs.

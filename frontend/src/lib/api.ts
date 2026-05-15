@@ -52,6 +52,11 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   return res.json();
 }
 
+/** DELETE helper that runs through fetchJSON's auth + error pipeline. */
+function fetchDELETE(path: string): Promise<void> {
+  return fetchJSON<void>(path, { method: "DELETE" });
+}
+
 interface AuthUser {
   id: string;
   email: string;
@@ -103,13 +108,7 @@ export const transactionsAPI = {
   anomalies: (days = 90, threshold = 2.0) =>
     fetchJSON(`/api/transactions/anomalies?days=${days}&threshold=${threshold}`),
   recurring: () => fetchJSON("/api/transactions/recurring"),
-  delete: (id: string) =>
-    fetch(`${API_BASE}/api/transactions/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
-      },
-    }),
+  delete: (id: string) => fetchDELETE(`/api/transactions/${id}`),
   importPreview: async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
@@ -133,13 +132,7 @@ export const tagsAPI = {
     fetchJSON("/api/tags/", { method: "POST", body: JSON.stringify(data) }),
   update: (id: string, data: { name?: string; color?: string }) =>
     fetchJSON(`/api/tags/${id}`, { method: "PUT", body: JSON.stringify(data) }),
-  delete: (id: string) =>
-    fetch(`${API_BASE}/api/tags/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
-      },
-    }),
+  delete: (id: string) => fetchDELETE(`/api/tags/${id}`),
 };
 
 export const plansAPI = {
@@ -157,13 +150,7 @@ export const plansAPI = {
       method: "PATCH",
       body: JSON.stringify({ progress }),
     }),
-  delete: (id: string) =>
-    fetch(`${API_BASE}/api/plans/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
-      },
-    }),
+  delete: (id: string) => fetchDELETE(`/api/plans/${id}`),
 };
 
 export const budgetsAPI = {
@@ -175,13 +162,7 @@ export const budgetsAPI = {
     fetchJSON("/api/budgets/", { method: "POST", body: JSON.stringify(data) }),
   update: (id: string, data: Record<string, unknown>) =>
     fetchJSON(`/api/budgets/${id}`, { method: "PUT", body: JSON.stringify(data) }),
-  delete: (id: string) =>
-    fetch(`${API_BASE}/api/budgets/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
-      },
-    }),
+  delete: (id: string) => fetchDELETE(`/api/budgets/${id}`),
   comparison: (start?: string, end?: string) => {
     const params = new URLSearchParams();
     if (start) params.set("period_start", start);
@@ -200,13 +181,7 @@ export const tripsAPI = {
     fetchJSON("/api/trips/", { method: "POST", body: JSON.stringify(data) }),
   update: (id: string, data: Record<string, unknown>) =>
     fetchJSON(`/api/trips/${id}`, { method: "PUT", body: JSON.stringify(data) }),
-  delete: (id: string) =>
-    fetch(`${API_BASE}/api/trips/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
-      },
-    }),
+  delete: (id: string) => fetchDELETE(`/api/trips/${id}`),
   summary: (id: string) => fetchJSON(`/api/trips/${id}/summary`),
 };
 
@@ -263,11 +238,33 @@ export const aiAPI = {
 export const reportsAPI = {
   categoryComparison: (months = 6) =>
     fetchJSON(`/api/reports/category-comparison?months=${months}`),
-  exportCSV: (start?: string, end?: string) => {
+  /**
+   * Download the CSV export through an authenticated fetch, then trigger a
+   * client-side `&lt;a download&gt;` click. Mirrors `exportPDF` so a token-less
+   * `window.open` doesn't 401 in a popup.
+   */
+  exportCSV: async (start?: string, end?: string) => {
     const params = new URLSearchParams();
     if (start) params.set("start_date", start);
     if (end) params.set("end_date", end);
-    return `${API_BASE}/api/reports/export?${params}`;
+    const res = await fetch(`${API_BASE}/api/reports/export?${params}`, {
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
+      },
+    });
+    if (!res.ok) throw new APIError(res.status, "CSV export failed");
+    const blob = await res.blob();
+    const filename =
+      res.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1] ||
+      "aegis-transactions.csv";
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
   },
   exportPDF: async (start?: string, end?: string) => {
     const params = new URLSearchParams();
@@ -319,13 +316,7 @@ export const savingsGoalsAPI = {
       method: "POST",
       body: JSON.stringify({ amount }),
     }),
-  delete: (id: string) =>
-    fetch(`${API_BASE}/api/savings-goals/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
-      },
-    }),
+  delete: (id: string) => fetchDELETE(`/api/savings-goals/${id}`),
 };
 
 export const paymentsAPI = {
@@ -356,11 +347,5 @@ export const debtsAPI = {
     }),
   payoffPlan: (strategy = "avalanche", extraPayment = 0) =>
     fetchJSON(`/api/debts/payoff-plan?strategy=${strategy}&extra_payment=${extraPayment}`),
-  delete: (id: string) =>
-    fetch(`${API_BASE}/api/debts/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
-      },
-    }),
+  delete: (id: string) => fetchDELETE(`/api/debts/${id}`),
 };

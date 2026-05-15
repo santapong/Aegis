@@ -99,11 +99,15 @@ export default function ReportsPage() {
     });
   }, [categoryComparison, allCategories]);
 
-  const handleExportCsv = () => {
+  const handleExportCsv = async () => {
     setExportingCsv(true);
-    const url = reportsAPI.exportCSV(dateRange.start, dateRange.end);
-    window.open(url as unknown as string, "_blank");
-    setTimeout(() => setExportingCsv(false), 1000);
+    try {
+      await reportsAPI.exportCSV(dateRange.start, dateRange.end);
+    } catch {
+      toast.error("CSV export failed. Check server logs.");
+    } finally {
+      setExportingCsv(false);
+    }
   };
 
   const handleExportPdf = async () => {

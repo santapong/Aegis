@@ -222,6 +222,9 @@ export default function CalendarPage() {
     if (!form.title.trim()) errs.title = "Title is required";
     if (!form.amount || parseFloat(form.amount) <= 0) errs.amount = "Amount must be greater than 0";
     if (!form.start_date) errs.start_date = "Start date is required";
+    if (form.end_date && form.start_date && form.end_date < form.start_date) {
+      errs.end_date = "End date must be on or after start date";
+    }
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };

@@ -34,12 +34,14 @@ export default function TripDetailPage() {
   const [showTxn, setShowTxn] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [budgetForm, setBudgetForm] = useState({ name: "", amount: "", category: "" });
+  const [budgetErrors, setBudgetErrors] = useState<Record<string, string>>({});
   const [txnForm, setTxnForm] = useState({
     amount: "",
     category: "",
     date: new Date().toISOString().split("T")[0],
     description: "",
   });
+  const [txnErrors, setTxnErrors] = useState<Record<string, string>>({});
 
   const { data: summary, isLoading, error } = useQuery<TripSummary>({
     queryKey: ["trip-summary", tripId],
@@ -261,14 +263,22 @@ export default function TripDetailPage() {
         </ModalFooter>
       </Modal>
 
-      <Modal open={showBudget} onClose={() => setShowBudget(false)} title="Add Trip Budget" size="md">
+      <Modal open={showBudget} onClose={() => { setShowBudget(false); setBudgetErrors({}); }} title="Add Trip Budget" size="md">
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (!budgetForm.name || !budgetForm.amount || !budgetForm.category) return;
+            const errs: Record<string, string> = {};
+            if (!budgetForm.name.trim()) errs.name = "Name is required";
+            const amount = parseFloat(budgetForm.amount);
+            if (!budgetForm.amount || Number.isNaN(amount) || amount <= 0) {
+              errs.amount = "Amount must be greater than 0";
+            }
+            if (!budgetForm.category.trim()) errs.category = "Category is required";
+            setBudgetErrors(errs);
+            if (Object.keys(errs).length > 0) return;
             createBudget.mutate({
               name: budgetForm.name,
-              amount: parseFloat(budgetForm.amount),
+              amount,
               category: budgetForm.category,
               period_start: trip.start_date,
               period_end: trip.end_date,
@@ -282,6 +292,7 @@ export default function TripDetailPage() {
               placeholder="e.g. Flights"
               value={budgetForm.name}
               onChange={(e) => setBudgetForm({ ...budgetForm, name: e.target.value })}
+              error={budgetErrors.name}
             />
             <div className="grid grid-cols-2 gap-4">
               <Input
@@ -291,17 +302,19 @@ export default function TripDetailPage() {
                 onChange={(e) => setBudgetForm({ ...budgetForm, amount: e.target.value })}
                 min="0"
                 step="0.01"
+                error={budgetErrors.amount}
               />
               <Input
                 label="Category"
                 placeholder="e.g. flights"
                 value={budgetForm.category}
                 onChange={(e) => setBudgetForm({ ...budgetForm, category: e.target.value })}
+                error={budgetErrors.category}
               />
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button variant="outline" type="button" onClick={() => setShowBudget(false)}>
+            <Button variant="outline" type="button" onClick={() => { setShowBudget(false); setBudgetErrors({}); }}>
               Cancel
             </Button>
             <Button type="submit" loading={createBudget.isPending}>
@@ -311,13 +324,21 @@ export default function TripDetailPage() {
         </form>
       </Modal>
 
-      <Modal open={showTxn} onClose={() => setShowTxn(false)} title="Log Trip Expense" size="md">
+      <Modal open={showTxn} onClose={() => { setShowTxn(false); setTxnErrors({}); }} title="Log Trip Expense" size="md">
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            if (!txnForm.amount || !txnForm.category) return;
+            const errs: Record<string, string> = {};
+            const amount = parseFloat(txnForm.amount);
+            if (!txnForm.amount || Number.isNaN(amount) || amount <= 0) {
+              errs.amount = "Amount must be greater than 0";
+            }
+            if (!txnForm.category.trim()) errs.category = "Category is required";
+            if (!txnForm.date) errs.date = "Date is required";
+            setTxnErrors(errs);
+            if (Object.keys(errs).length > 0) return;
             createTxn.mutate({
-              amount: parseFloat(txnForm.amount),
+              amount,
               type: "expense",
               category: txnForm.category,
               date: txnForm.date,
@@ -335,12 +356,14 @@ export default function TripDetailPage() {
                 onChange={(e) => setTxnForm({ ...txnForm, amount: e.target.value })}
                 min="0"
                 step="0.01"
+                error={txnErrors.amount}
               />
               <Input
                 label="Category"
                 placeholder="e.g. dining"
                 value={txnForm.category}
                 onChange={(e) => setTxnForm({ ...txnForm, category: e.target.value })}
+                error={txnErrors.category}
               />
             </div>
             <Input
@@ -348,6 +371,7 @@ export default function TripDetailPage() {
               type="date"
               value={txnForm.date}
               onChange={(e) => setTxnForm({ ...txnForm, date: e.target.value })}
+              error={txnErrors.date}
             />
             <Input
               label="Description"
@@ -357,7 +381,7 @@ export default function TripDetailPage() {
             />
           </ModalBody>
           <ModalFooter>
-            <Button variant="outline" type="button" onClick={() => setShowTxn(false)}>
+            <Button variant="outline" type="button" onClick={() => { setShowTxn(false); setTxnErrors({}); }}>
               Cancel
             </Button>
             <Button type="submit" loading={createTxn.isPending}>
