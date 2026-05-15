@@ -273,16 +273,6 @@ export default function DashboardPage() {
                         {a.description ?? `${a.deviation_ratio.toFixed(1)}× the average for this category (${formatCurrency(a.average_for_category)}).`}
                       </p>
                     </div>
-                    <button
-                      className="font-mono text-[10px] px-2 py-1 rounded transition-colors hover:text-foreground"
-                      style={{
-                        color: "var(--aegis-dim)",
-                        border: "1px solid var(--aegis-line-2)",
-                        background: "transparent",
-                      }}
-                    >
-                      review
-                    </button>
                   </motion.div>
                 ))}
               </div>

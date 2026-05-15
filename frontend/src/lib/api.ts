@@ -92,6 +92,8 @@ export const transactionsAPI = {
     ),
   create: (data: Record<string, unknown>) =>
     fetchJSON("/api/transactions/", { method: "POST", body: JSON.stringify(data) }),
+  update: (id: string, data: Record<string, unknown>) =>
+    fetchJSON(`/api/transactions/${id}`, { method: "PUT", body: JSON.stringify(data) }),
   summary: (start?: string, end?: string) => {
     const params = new URLSearchParams();
     if (start) params.set("start_date", start);
@@ -211,17 +213,33 @@ export const tripsAPI = {
 export const calendarAPI = {
   events: (start: string, end: string) =>
     fetchJSON(`/api/calendar/events?start=${start}&end=${end}`),
-  moveEvent: (id: string, data: Record<string, unknown>) =>
-    fetchJSON(`/api/calendar/events/${id}/move`, {
+  moveEvent: (
+    id: string,
+    data: { new_start: string; new_end?: string | null }
+  ) => {
+    const params = new URLSearchParams();
+    params.set("new_start", data.new_start);
+    if (data.new_end) params.set("new_end", data.new_end);
+    return fetchJSON(`/api/calendar/events/${id}/move?${params.toString()}`, {
       method: "PUT",
-      body: JSON.stringify(data),
-    }),
+    });
+  },
 };
 
 export const ganttAPI = {
   tasks: () => fetchJSON("/api/gantt/tasks"),
-  update: (id: string, data: Record<string, unknown>) =>
-    fetchJSON(`/api/gantt/tasks/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  update: (
+    id: string,
+    data: { start?: string; end?: string; progress?: number }
+  ) => {
+    const params = new URLSearchParams();
+    if (data.start) params.set("start", data.start);
+    if (data.end) params.set("end", data.end);
+    if (data.progress !== undefined) params.set("progress", String(data.progress));
+    return fetchJSON(`/api/gantt/tasks/${id}?${params.toString()}`, {
+      method: "PUT",
+    });
+  },
 };
 
 export const aiAPI = {

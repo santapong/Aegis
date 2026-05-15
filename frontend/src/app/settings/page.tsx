@@ -40,7 +40,10 @@ export default function SettingsPage() {
       animate="visible"
     >
       <motion.div variants={staggerItem}>
-        <PageHeader title="Settings" subtitle="Customize your Aegis experience" />
+        <PageHeader
+          title="Settings"
+          subtitle="Local preferences for this device — they live in your browser's storage. Sync to your account is coming in a future release."
+        />
       </motion.div>
 
       <motion.div variants={staggerItem}>

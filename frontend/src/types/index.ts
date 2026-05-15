@@ -58,6 +58,7 @@ export interface Tag {
 export interface Transaction {
   id: string;
   plan_id: string | null;
+  trip_id?: string | null;
   amount: number;
   type: TransactionType;
   category: string;

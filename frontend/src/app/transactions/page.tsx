@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { transactionsAPI, tagsAPI } from "@/lib/api";
+import { transactionsAPI, tagsAPI, tripsAPI } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { staggerContainer, staggerItem } from "@/lib/animations";
@@ -18,8 +18,8 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabList, Tab, TabPanel } from "@/components/ui/tabs";
-import { Plus, Trash2, ArrowUpRight, ArrowDownRight, Receipt, Upload, RefreshCw, Tag as TagIcon } from "lucide-react";
-import type { Transaction, Tag, RecurringTransactionSummary, ImportPreviewResponse, ImportResult } from "@/types";
+import { Plus, Trash2, Pencil, ArrowUpRight, ArrowDownRight, Receipt, Upload, RefreshCw, Tag as TagIcon } from "lucide-react";
+import type { Transaction, Tag, Trip, RecurringTransactionSummary, ImportPreviewResponse, ImportResult } from "@/types";
 
 interface TransactionSummary {
   total_income: number;
@@ -35,6 +35,7 @@ export default function TransactionsPage() {
 
   const [activeTab, setActiveTab] = useState("all");
   const [showCreate, setShowCreate] = useState(false);
+  const [editingTxn, setEditingTxn] = useState<Transaction | null>(null);
   const [showImport, setShowImport] = useState(false);
   const [importPreview, setImportPreview] = useState<ImportPreviewResponse | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -44,7 +45,7 @@ export default function TransactionsPage() {
     start_date: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split("T")[0],
     end_date: new Date().toISOString().split("T")[0],
   });
-  const [form, setForm] = useState({
+  const defaultForm = {
     amount: "",
     type: "expense" as "income" | "expense",
     category: "",
@@ -53,7 +54,9 @@ export default function TransactionsPage() {
     is_recurring: false,
     recurring_interval: "",
     tag_ids: [] as string[],
-  });
+    trip_id: "",
+  };
+  const [form, setForm] = useState(defaultForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const queryParams: Record<string, string> = {};
@@ -82,18 +85,60 @@ export default function TransactionsPage() {
     queryFn: () => tagsAPI.list() as Promise<Tag[]>,
   });
 
+  const { data: trips } = useQuery<Trip[]>({
+    queryKey: ["trips"],
+    queryFn: () => tripsAPI.list() as Promise<Trip[]>,
+  });
+
+  const invalidateAfterMutation = () => {
+    queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    queryClient.invalidateQueries({ queryKey: ["transaction-summary"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
+    queryClient.invalidateQueries({ queryKey: ["recurring-transactions"] });
+  };
+
+  const closeForm = () => {
+    setShowCreate(false);
+    setEditingTxn(null);
+    setForm(defaultForm);
+    setErrors({});
+  };
+
+  const openEdit = (tx: Transaction) => {
+    setEditingTxn(tx);
+    setForm({
+      amount: String(tx.amount),
+      type: tx.type as "income" | "expense",
+      category: tx.category,
+      date: tx.date,
+      description: tx.description ?? "",
+      is_recurring: tx.is_recurring,
+      recurring_interval: tx.recurring_interval ?? "",
+      tag_ids: tx.tags?.map((t) => t.id) ?? [],
+      trip_id: tx.trip_id ?? "",
+    });
+    setShowCreate(true);
+  };
+
   const createMutation = useMutation({
     mutationFn: (data: Record<string, unknown>) => transactionsAPI.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["transaction-summary"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-summary"] });
-      queryClient.invalidateQueries({ queryKey: ["recurring-transactions"] });
-      setShowCreate(false);
-      setForm({ amount: "", type: "expense", category: "", date: new Date().toISOString().split("T")[0], description: "", is_recurring: false, recurring_interval: "", tag_ids: [] });
+      invalidateAfterMutation();
+      closeForm();
       toast.success("Transaction created successfully");
     },
     onError: () => toast.error("Failed to create transaction"),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) =>
+      transactionsAPI.update(id, data),
+    onSuccess: () => {
+      invalidateAfterMutation();
+      closeForm();
+      toast.success("Transaction updated");
+    },
+    onError: () => toast.error("Failed to update transaction"),
   });
 
   const deleteMutation = useMutation({
@@ -132,7 +177,7 @@ export default function TransactionsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    createMutation.mutate({
+    const payload = {
       amount: parseFloat(form.amount),
       type: form.type,
       category: form.category,
@@ -141,7 +186,13 @@ export default function TransactionsPage() {
       is_recurring: form.is_recurring,
       recurring_interval: form.is_recurring && form.recurring_interval ? form.recurring_interval : null,
       tag_ids: form.tag_ids,
-    });
+      trip_id: form.trip_id || null,
+    };
+    if (editingTxn) {
+      updateMutation.mutate({ id: editingTxn.id, data: payload });
+    } else {
+      createMutation.mutate(payload);
+    }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -310,9 +361,14 @@ export default function TransactionsPage() {
                                 {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                               </td>
                               <td className="px-4 py-3 text-right">
-                                <button onClick={() => setDeleteId(tx.id)} className="text-red-500 hover:text-red-700 p-1">
-                                  <Trash2 size={14} />
-                                </button>
+                                <div className="flex items-center justify-end gap-1">
+                                  <button onClick={() => openEdit(tx)} className="text-muted-foreground hover:text-foreground p-1">
+                                    <Pencil size={14} />
+                                  </button>
+                                  <button onClick={() => setDeleteId(tx.id)} className="text-red-500 hover:text-red-700 p-1">
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))}
@@ -345,7 +401,14 @@ export default function TransactionsPage() {
                             <p className={`text-sm font-medium ${tx.type === "income" ? "text-green-500" : "text-red-500"}`}>
                               {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                             </p>
-                            <button onClick={() => setDeleteId(tx.id)} className="text-red-500 text-xs mt-1">Delete</button>
+                            <div className="flex items-center justify-end gap-2 mt-1">
+                              <button onClick={() => openEdit(tx)} className="text-muted-foreground p-1">
+                                <Pencil size={14} />
+                              </button>
+                              <button onClick={() => setDeleteId(tx.id)} className="text-red-500 p-1">
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -432,8 +495,8 @@ export default function TransactionsPage() {
         </Tabs>
       </motion.div>
 
-      {/* Create Transaction Modal */}
-      <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add Transaction" size="md">
+      {/* Create / Edit Transaction Modal */}
+      <Modal open={showCreate} onClose={closeForm} title={editingTxn ? "Edit Transaction" : "Add Transaction"} size="md">
         <form onSubmit={handleSubmit}>
           <ModalBody className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -445,6 +508,18 @@ export default function TransactionsPage() {
               <Input label="Date" type="date" value={form.date} onChange={(e) => setForm({ ...form, date: e.target.value })} error={errors.date} />
             </div>
             <Textarea label="Description (optional)" placeholder="Add a note..." value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+
+            {trips && trips.length > 0 && (
+              <Select
+                label="Trip (optional)"
+                value={form.trip_id}
+                onChange={(e) => setForm({ ...form, trip_id: e.target.value })}
+                options={[
+                  { value: "", label: "None" },
+                  ...trips.map((t) => ({ value: t.id, label: t.title })),
+                ]}
+              />
+            )}
 
             {/* Tags */}
             {tags && tags.length > 0 && (
@@ -498,8 +573,10 @@ export default function TransactionsPage() {
             )}
           </ModalBody>
           <ModalFooter>
-            <Button variant="outline" type="button" onClick={() => setShowCreate(false)}>Cancel</Button>
-            <Button type="submit" loading={createMutation.isPending}>Create</Button>
+            <Button variant="outline" type="button" onClick={closeForm}>Cancel</Button>
+            <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>
+              {editingTxn ? "Save Changes" : "Create"}
+            </Button>
           </ModalFooter>
         </form>
       </Modal>
