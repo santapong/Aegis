@@ -27,6 +27,9 @@ class Transaction(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("users.id"), nullable=True, index=True)
     plan_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("plans.id"), nullable=True)
+    trip_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("trips.id", ondelete="SET NULL"), nullable=True, index=True
+    )
     amount: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     type: Mapped[TransactionType] = mapped_column(Enum(TransactionType, native_enum=False), nullable=False)
     category: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -42,6 +45,7 @@ class Transaction(Base):
     next_due_date: Mapped[date | None] = mapped_column(Date, nullable=True)
 
     plan: Mapped["Plan | None"] = relationship("Plan", back_populates="transactions")
+    trip: Mapped["Trip | None"] = relationship("Trip", back_populates="transactions")
     tags: Mapped[list["Tag"]] = relationship(
         "Tag", secondary="transaction_tags", back_populates="transactions"
     )
@@ -52,3 +56,4 @@ class Transaction(Base):
 
 from .plan import Plan  # noqa: E402, F401
 from .tag import Tag  # noqa: E402, F401
+from .trip import Trip  # noqa: E402, F401

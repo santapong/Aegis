@@ -188,6 +188,26 @@ export const budgetsAPI = {
   },
 };
 
+export const tripsAPI = {
+  list: (params?: Record<string, string>) => {
+    const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+    return fetchJSON(`/api/trips/${qs}`);
+  },
+  get: (id: string) => fetchJSON(`/api/trips/${id}`),
+  create: (data: Record<string, unknown>) =>
+    fetchJSON("/api/trips/", { method: "POST", body: JSON.stringify(data) }),
+  update: (id: string, data: Record<string, unknown>) =>
+    fetchJSON(`/api/trips/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  delete: (id: string) =>
+    fetch(`${API_BASE}/api/trips/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
+      },
+    }),
+  summary: (id: string) => fetchJSON(`/api/trips/${id}/summary`),
+};
+
 export const calendarAPI = {
   events: (start: string, end: string) =>
     fetchJSON(`/api/calendar/events?start=${start}&end=${end}`),

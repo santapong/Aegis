@@ -8,9 +8,11 @@ from .savings_goal import SavingsGoal
 from .debt import Debt
 from .payment import Payment
 from .notification import Notification, NotificationType
+from .trip import Trip, TripStatus
 
 __all__ = [
     "User", "Plan", "Transaction", "Budget", "AIRecommendation",
     "Tag", "SavingsGoal", "Debt", "Payment",
     "Notification", "NotificationType",
+    "Trip", "TripStatus",
 ]

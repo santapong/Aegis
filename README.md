@@ -133,6 +133,46 @@ When `DEBUG=true`:
 
 In production (`DEBUG=false`) these are disabled.
 
+## MCP server (`aegis-mcp`)
+
+Aegis ships a stdio MCP server that exposes the 18 most-useful tools
+(transactions, budgets, plans, trips, dashboard, AI advisor) to any MCP
+client — Claude Desktop, Claude Code, or Cursor. It runs in-process and
+queries the same database as the FastAPI backend.
+
+Local-trust model: the server resolves the user via `AEGIS_USER_EMAIL`
+instead of a short-lived JWT, since the binary spawns as a child process of
+your MCP client and already shares the same machine.
+
+### Claude Desktop
+
+Add to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "aegis": {
+      "command": "uv",
+      "args": ["run", "--project", "/abs/path/to/Aegis", "aegis-mcp"],
+      "env": {
+        "AEGIS_USER_EMAIL": "you@example.com",
+        "DATABASE_URL": "sqlite:////abs/path/to/Aegis/money_management.db",
+        "JWT_SECRET_KEY": "match-the-backend"
+      }
+    }
+  }
+}
+```
+
+### Claude Code
+
+```bash
+claude mcp add aegis -- uv run --project . aegis-mcp
+```
+
+Then in a session try: "list my trips", "show this month's budget vs actual",
+"create a trip called Bangkok May 2026 from May 20 to May 27".
+
 ## Testing
 
 ```bash

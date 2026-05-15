@@ -10,12 +10,13 @@ from ..models.transaction import Transaction, TransactionType, RecurringInterval
 from ..models.tag import Tag
 from ..models.user import User
 from ..schemas.transaction import (
-    TransactionCreate, TransactionResponse, TransactionSummary,
+    TransactionCreate, TransactionUpdate, TransactionResponse, TransactionSummary,
     RecurringTransactionSummary,
     TagCreate, TagUpdate, TagResponse,
     ImportPreviewResponse, ImportPreviewRow, ImportConfirmRequest, ImportResultResponse,
 )
 from ..schemas.dashboard import AnomalyItem, AnomaliesResponse
+from ..services.notification_service import evaluate_budget_thresholds
 from ..auth import get_current_user
 
 router = APIRouter(prefix="/api/transactions", tags=["transactions"])
@@ -34,6 +35,35 @@ def create_transaction(txn: TransactionCreate, db: Session = Depends(get_db), cu
     db.add(db_txn)
     db.commit()
     db.refresh(db_txn)
+    evaluate_budget_thresholds(db, user_id=current_user.id, transaction=db_txn)
+    return db_txn
+
+
+@router.put("/{txn_id}", response_model=TransactionResponse)
+def update_transaction(
+    txn_id: str,
+    update: TransactionUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    db_txn = (
+        db.query(Transaction)
+        .filter(Transaction.id == txn_id, Transaction.user_id == current_user.id)
+        .first()
+    )
+    if not db_txn:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+
+    data = update.model_dump(exclude_unset=True)
+    tag_ids = data.pop("tag_ids", None)
+    for key, val in data.items():
+        setattr(db_txn, key, val)
+    if tag_ids is not None:
+        db_txn.tags = db.query(Tag).filter(Tag.id.in_(tag_ids)).all() if tag_ids else []
+
+    db.commit()
+    db.refresh(db_txn)
+    evaluate_budget_thresholds(db, user_id=current_user.id, transaction=db_txn)
     return db_txn
 
 
