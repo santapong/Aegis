@@ -165,18 +165,17 @@ def get_recurring_transactions(db: Session = Depends(get_db), current_user: User
         .all()
     )
 
-    recurring_income = sum(
-        monthly_equivalent(t) for t in recurring if t.type == TransactionType.income
-    )
-    recurring_expenses = sum(
-        monthly_equivalent(t) for t in recurring if t.type == TransactionType.expense
-    )
-    total_monthly = sum(
-        monthly_equivalent(t) for t in recurring if t.type == TransactionType.expense
-    )
+    recurring_income = 0.0
+    recurring_expenses = 0.0
+    for t in recurring:
+        amount = monthly_equivalent(t)
+        if t.type == TransactionType.income:
+            recurring_income += amount
+        else:
+            recurring_expenses += amount
 
     return RecurringTransactionSummary(
-        total_monthly_recurring=round(total_monthly, 2),
+        total_monthly_recurring=round(recurring_expenses, 2),
         recurring_income=round(recurring_income, 2),
         recurring_expenses=round(recurring_expenses, 2),
         subscriptions=recurring,

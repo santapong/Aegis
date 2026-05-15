@@ -52,6 +52,14 @@ def _iter_months(start: date, end: date) -> Iterable[tuple[int, int]]:
             y += 1
 
 
+def _advance_months(y: int, m: int, step: int) -> tuple[int, int]:
+    m += step
+    while m > 12:
+        m -= 12
+        y += 1
+    return y, m
+
+
 def expand_occurrences(
     tx: Transaction, start: date, end: date
 ) -> list[date]:
@@ -83,7 +91,6 @@ def expand_occurrences(
     if interval in (RecurringInterval.weekly, RecurringInterval.biweekly):
         delta = _INTERVAL_DELTAS[interval]
         cur = anchor
-        # Rewind to the first occurrence at or after `start`.
         if cur < start:
             steps = ((start - cur) // delta)
             cur = cur + delta * steps
@@ -94,32 +101,20 @@ def expand_occurrences(
             cur += delta
         return out
 
-    # Monthly / quarterly / yearly: step by month count, clamping the day.
     step_months = {
         RecurringInterval.monthly: 1,
         RecurringInterval.quarterly: 3,
         RecurringInterval.yearly: 12,
     }[interval]
     y, m, d = anchor.year, anchor.month, anchor.day
-    # Advance to first occurrence at or after start.
-    while True:
-        candidate = _clamp_day(y, m, d)
-        if candidate >= start:
-            break
-        m += step_months
-        while m > 12:
-            m -= 12
-            y += 1
+    while _clamp_day(y, m, d) < start:
+        y, m = _advance_months(y, m, step_months)
     while True:
         candidate = _clamp_day(y, m, d)
         if candidate > end:
             break
-        if candidate >= start:
-            out.append(candidate)
-        m += step_months
-        while m > 12:
-            m -= 12
-            y += 1
+        out.append(candidate)
+        y, m = _advance_months(y, m, step_months)
     return out
 
 

@@ -42,11 +42,13 @@ export default function InvestmentsPage() {
   const { data: holdings, isLoading } = useQuery<Investment[]>({
     queryKey: ["investments"],
     queryFn: () => investmentsAPI.list() as Promise<Investment[]>,
+    staleTime: 60_000,
   });
 
   const { data: summary } = useQuery<PortfolioSummary>({
     queryKey: ["investments-summary"],
     queryFn: () => investmentsAPI.summary() as Promise<PortfolioSummary>,
+    staleTime: 60_000,
   });
 
   const invalidate = () => {

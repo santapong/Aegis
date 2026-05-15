@@ -28,6 +28,14 @@ interface TransactionSummary {
   by_category: Record<string, number>;
 }
 
+type WeekendRule = "strict" | "roll_back" | "roll_forward";
+
+const WEEKEND_RULE_OPTIONS: { value: WeekendRule; label: string }[] = [
+  { value: "strict", label: "Keep the literal day (strict)" },
+  { value: "roll_back", label: "Roll back to previous weekday" },
+  { value: "roll_forward", label: "Roll forward to next weekday" },
+];
+
 export default function TransactionsPage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -62,7 +70,7 @@ export default function TransactionsPage() {
     recurring_interval: "",
     recurrence_mode: "interval" as RecurrenceMode,
     recurrence_dates: [] as number[],
-    recurrence_weekend_rule: "strict" as "strict" | "roll_back" | "roll_forward",
+    recurrence_weekend_rule: "strict" as WeekendRule,
     tag_ids: [] as string[],
     trip_id: "",
   };
@@ -133,8 +141,7 @@ export default function TransactionsPage() {
       recurring_interval: tx.recurring_interval ?? "",
       recurrence_mode: usesDates ? "dates" : "interval",
       recurrence_dates: tx.recurrence_dates ?? [],
-      recurrence_weekend_rule:
-        (tx.recurrence_weekend_rule as "strict" | "roll_back" | "roll_forward") ?? "strict",
+      recurrence_weekend_rule: (tx.recurrence_weekend_rule as WeekendRule) ?? "strict",
       tag_ids: tx.tags?.map((t) => t.id) ?? [],
       trip_id: tx.trip_id ?? "",
     });
@@ -800,17 +807,10 @@ export default function TransactionsPage() {
                       onChange={(e) =>
                         setForm({
                           ...form,
-                          recurrence_weekend_rule: e.target.value as
-                            | "strict"
-                            | "roll_back"
-                            | "roll_forward",
+                          recurrence_weekend_rule: e.target.value as WeekendRule,
                         })
                       }
-                      options={[
-                        { value: "strict", label: "Keep the literal day (strict)" },
-                        { value: "roll_back", label: "Roll back to previous weekday" },
-                        { value: "roll_forward", label: "Roll forward to next weekday" },
-                      ]}
+                      options={WEEKEND_RULE_OPTIONS}
                     />
                   </div>
                 )}
