@@ -23,13 +23,26 @@ def _build_engine(url: str):
 
         return eng
 
-    # PostgreSQL and MySQL
+    # PostgreSQL and MySQL.
+    connect_args: dict = {}
+    if url.startswith("postgresql"):
+        # statement_timeout caps any single query at 15s so a runaway
+        # SELECT can't pin a pool connection indefinitely.
+        # connect_timeout bounds the initial socket open so we fail fast
+        # against a wedged DB instead of hanging Uvicorn workers.
+        connect_args = {
+            "options": "-c statement_timeout=15000",
+            "connect_timeout": 10,
+        }
+
     return create_engine(
         url,
         pool_size=10,
         max_overflow=20,
+        pool_timeout=10,
         pool_pre_ping=True,
         pool_recycle=1800,
+        connect_args=connect_args,
     )
 
 

@@ -48,6 +48,12 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: list[str] = ["http://localhost:3000"]
 
+    # Public frontend URL — used to build Stripe success/cancel return
+    # URLs and any other server-issued links back to the UI. Should match
+    # whatever the user sees in their browser. Leave the localhost default
+    # for dev; override per-environment in production.
+    frontend_url: str = "http://localhost:3000"
+
     # Rate Limiting
     rate_limit_per_minute: int = 100
 

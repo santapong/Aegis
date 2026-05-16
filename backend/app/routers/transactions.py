@@ -384,8 +384,20 @@ tags_router = APIRouter(prefix="/api/tags", tags=["tags"])
 
 
 @tags_router.get("/", response_model=list[TagResponse])
-def list_tags(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return db.query(Tag).filter(Tag.user_id == current_user.id).order_by(Tag.name).all()
+def list_tags(
+    limit: int = Query(default=200, le=1000),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        db.query(Tag)
+        .filter(Tag.user_id == current_user.id)
+        .order_by(Tag.name)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
 
 
 @tags_router.post("/", response_model=TagResponse, status_code=201)

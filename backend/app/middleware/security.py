@@ -47,14 +47,17 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "font-src 'self' data:;"
         )
 
-        # Request logging
-        duration_ms = (time.time() - start_time) * 1000
-        logger.info(
-            "{method} {path} {status} {duration:.0f}ms",
-            method=request.method,
-            path=request.url.path,
-            status=response.status_code,
-            duration=duration_ms,
-        )
+        # Request logging — skip the health probe (every 10–30 s on most
+        # PaaS deploys, would generate thousands of log lines a day per
+        # pod with zero diagnostic value).
+        if request.url.path != "/api/health":
+            duration_ms = (time.time() - start_time) * 1000
+            logger.info(
+                "{method} {path} {status} {duration:.0f}ms",
+                method=request.method,
+                path=request.url.path,
+                status=response.status_code,
+                duration=duration_ms,
+            )
 
         return response

@@ -39,11 +39,20 @@ export default function InvestmentsPage() {
   const [form, setForm] = useState(defaultForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { data: holdings, isLoading } = useQuery<Investment[]>({
-    queryKey: ["investments"],
-    queryFn: () => investmentsAPI.list() as Promise<Investment[]>,
+  const PAGE_STEP = 30;
+  const [pageSize, setPageSize] = useState(PAGE_STEP);
+
+  const { data: rawHoldings, isLoading } = useQuery<Investment[]>({
+    queryKey: ["investments", pageSize],
+    queryFn: () =>
+      investmentsAPI.list({
+        limit: String(pageSize + 1),
+        offset: "0",
+      }) as Promise<Investment[]>,
     staleTime: 60_000,
   });
+  const hasMore = (rawHoldings?.length ?? 0) > pageSize;
+  const holdings = rawHoldings?.slice(0, pageSize);
 
   const { data: summary } = useQuery<PortfolioSummary>({
     queryKey: ["investments-summary"],
@@ -221,6 +230,7 @@ export default function InvestmentsPage() {
           }
         />
       ) : (
+        <>
         <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {holdings.map((h) => {
             const value = h.units * h.current_price;
@@ -293,6 +303,26 @@ export default function InvestmentsPage() {
             );
           })}
         </motion.div>
+        <div
+          className="flex items-center justify-between gap-4 mt-4 px-1"
+          style={{ fontSize: 12 }}
+        >
+          <span className="text-muted-foreground">
+            Showing {holdings.length}
+            {hasMore ? "+" : ""} holding
+            {holdings.length === 1 ? "" : "s"}
+          </span>
+          {hasMore && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setPageSize((p) => p + PAGE_STEP)}
+            >
+              Load {PAGE_STEP} more
+            </Button>
+          )}
+        </div>
+        </>
       )}
 
       {/* Create / Edit Modal */}

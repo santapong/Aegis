@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from urllib.parse import urlparse
 
 from fastapi import FastAPI
@@ -7,7 +8,7 @@ from loguru import logger
 from sqlalchemy import text
 
 from .config import get_settings
-from .database import SessionLocal
+from .database import SessionLocal, engine
 from .logging_config import configure_logging
 from .middleware import (
     RateLimitMiddleware,
@@ -38,11 +39,38 @@ configure_logging(settings.log_format, settings.debug)
 
 APP_VERSION = "1.0.0"
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    """FastAPI lifespan handler.
+
+    Startup: log the active configuration so deploy logs make it obvious
+    which provider / DB is wired in. Shutdown: dispose of the SQLAlchemy
+    engine so its pool closes cleanly when the process receives SIGTERM
+    — without this, container hosts wait for the TCP timeout instead of
+    draining gracefully.
+    """
+    logger.info("Aegis v{version} started", version=APP_VERSION)
+    logger.info(
+        "config: debug={debug} db={db} ai_provider={prov} ai={ai} stripe={stripe} log_format={fmt}",
+        debug=settings.debug,
+        db=_db_backend(settings.database_url),
+        prov=settings.ai_provider,
+        ai="configured" if _ai_configured(settings) else "not_configured",
+        stripe="configured" if settings.stripe_secret_key else "not_configured",
+        fmt=settings.log_format,
+    )
+    yield
+    logger.info("Aegis shutting down — disposing DB engine")
+    engine.dispose()
+
+
 app = FastAPI(
     title=settings.app_name,
     version=APP_VERSION,
     docs_url="/api/docs" if settings.debug else None,
     redoc_url="/api/redoc" if settings.debug else None,
+    lifespan=lifespan,
 )
 
 # add_middleware prepends, so the last call wraps outermost.
@@ -92,23 +120,6 @@ def _ai_configured(s) -> bool:
     if s.ai_provider == "groq":
         return bool(s.groq_api_key)
     return False
-
-
-@app.on_event("startup")
-def on_startup():
-    logger.info(
-        "Aegis v{version} started",
-        version=APP_VERSION,
-    )
-    logger.info(
-        "config: debug={debug} db={db} ai_provider={prov} ai={ai} stripe={stripe} log_format={fmt}",
-        debug=settings.debug,
-        db=_db_backend(settings.database_url),
-        prov=settings.ai_provider,
-        ai="configured" if _ai_configured(settings) else "not_configured",
-        stripe="configured" if settings.stripe_secret_key else "not_configured",
-        fmt=settings.log_format,
-    )
 
 
 @app.get("/api/health")

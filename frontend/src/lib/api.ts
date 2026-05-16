@@ -394,7 +394,10 @@ export const preferencesAPI = {
 };
 
 export const investmentsAPI = {
-  list: () => fetchJSON("/api/investments/"),
+  list: (params?: Record<string, string>) => {
+    const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+    return fetchJSON(`/api/investments/${qs}`);
+  },
   get: (id: string) => fetchJSON(`/api/investments/${id}`),
   create: (data: Record<string, unknown>) =>
     fetchJSON("/api/investments/", { method: "POST", body: JSON.stringify(data) }),

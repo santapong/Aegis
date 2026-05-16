@@ -64,12 +64,20 @@ def create_checkout_session(
                 "quantity": 1,
             }],
             mode="payment",
-            success_url=data.success_url or "http://localhost:3000/payments?status=success",
-            cancel_url=data.cancel_url or "http://localhost:3000/payments?status=cancelled",
+            # Always derive return URLs from settings.frontend_url. We
+            # used to accept caller-supplied success_url / cancel_url —
+            # that's an open-redirect vector, and the localhost default
+            # silently 404s in any non-dev deploy. Caller-provided values
+            # are now ignored.
+            success_url=f"{settings.frontend_url.rstrip('/')}/payments?status=success",
+            cancel_url=f"{settings.frontend_url.rstrip('/')}/payments?status=cancelled",
         )
     except Exception as e:
         logger.error("Stripe checkout session creation failed: {err}", err=str(e))
-        raise HTTPException(status_code=400, detail=str(e))
+        # Don't echo Stripe's raw error message to the client — it can
+        # include internal session / customer IDs. The full message is
+        # already in the server log above.
+        raise HTTPException(status_code=502, detail="Payment provider error.")
 
     # Record the payment locally
     payment = Payment(
