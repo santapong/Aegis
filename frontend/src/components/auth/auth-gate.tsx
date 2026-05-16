@@ -7,7 +7,7 @@ import { Sidebar } from "@/components/ui/sidebar";
 import { StatusBar } from "@/components/ui/status-bar";
 
 const AUTH_PAGES = ["/login", "/register"];
-const PUBLIC_PAGES = ["/welcome"];
+const PUBLIC_PAGES = ["/welcome", "/landing"];
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuthStore();
@@ -48,8 +48,13 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
       <div className="flex flex-1 flex-col min-w-0">
-        <main className="flex-1 overflow-y-auto bg-background pt-16 lg:pt-0">
-          <div className="p-4 md:p-6 lg:p-8">{children}</div>
+        <main
+          className="flex-1 overflow-y-auto pt-16 lg:pt-0"
+          style={{ background: "transparent" }}
+        >
+          <div className="p-4 md:p-6 lg:p-8" style={{ paddingBottom: "calc(var(--statusbar-h) + 32px)" }}>
+            {children}
+          </div>
         </main>
         <StatusBar />
       </div>

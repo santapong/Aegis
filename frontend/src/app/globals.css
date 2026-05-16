@@ -1,8 +1,15 @@
 @import "tailwindcss";
 
-/* ===== AEGIS · TERMINAL — design tokens, fonts, signature elements =====
- * Aesthetic: dark terminal / pro-trader, playful but grown-up.
- * Source: design-ref/styles.css (Aegis Frontend.html handoff bundle).
+/* ===== AEGIS · GALAXY v2 — multi-theme cosmic design system =====================
+ * Three runtime-switchable themes share a single component vocabulary:
+ *   .theme-observatory    — deep ink, hairline cyan, no glow, terminal restraint
+ *   .theme-constellation  — midnight + gold, star-chart, editorial roman serif
+ *   .theme-supernova      — kinetic warm-amber on void, black hole, italic serif
+ *
+ * Each theme block redefines the cosmic token set (--void, --pane, --accent, etc.)
+ * AND aliases the legacy shadcn / aegis tokens so existing components auto-theme.
+ *
+ * Source of truth: design_handoff_galaxy_theme/README.md + galaxy-v2-theme.css.
  */
 
 @theme inline {
@@ -37,102 +44,282 @@
   --font-serif: var(--font-serif);
 }
 
+/* ===== Shared base (overridden by .theme-* blocks) ============================ */
 :root {
-  --background: #F4F2EC;            /* bone */
-  --foreground: #14161A;
-  --card: #FBFAF6;
-  --card-foreground: #14161A;
-  --popover: #FBFAF6;
-  --popover-foreground: #14161A;
-  --primary: oklch(0.55 0.18 305);   /* magenta — claude/AI */
-  --primary-foreground: #FBFAF6;
-  --secondary: #EFEDE6;
-  --secondary-foreground: #14161A;
-  --muted: #EFEDE6;
-  --muted-foreground: #6A6F78;
-  --accent: #EFEDE6;
-  --accent-foreground: #14161A;
-  --destructive: oklch(0.55 0.2 25);
-  --destructive-foreground: #FBFAF6;
-  --border: #DDD8CC;
-  --input: #DDD8CC;
-  --ring: oklch(0.55 0.18 305);
-
-  --chart-1: oklch(0.55 0.18 305);
-  --chart-2: oklch(0.55 0.16 145);
-  --chart-3: oklch(0.55 0.2 25);
-  --chart-4: oklch(0.6 0.18 60);
-  --chart-5: oklch(0.55 0.15 250);
-
-  --success: oklch(0.55 0.16 145);
-  --warning: oklch(0.6 0.18 60);
-
-  /* Aegis terminal aliases — used by sidebar, status bar, signature surfaces */
-  --aegis-panel: #FBFAF6;
-  --aegis-panel-2: #EFEDE6;
-  --aegis-line: #DDD8CC;
-  --aegis-line-2: #C7C2B5;
-  --aegis-fg-2: #2C2F35;
-  --aegis-dim: #6A6F78;
-  --aegis-dim-2: #999A93;
-  --aegis-ok: oklch(0.55 0.16 145);
-  --aegis-warn: oklch(0.6 0.18 60);
-  --aegis-bad: oklch(0.55 0.2 25);
-  --aegis-grid: rgba(0, 0, 0, 0.025);
-
+  --pad-x: 28px;
+  --pad-y: 24px;
   --sidebar-width: 260px;
   --sidebar-collapsed: 68px;
-
-  /* Legacy aliases for backward compatibility */
-  --bg: var(--background);
-  --bg-secondary: var(--secondary);
-  --bg-card: var(--card);
-  --bg-hover: var(--accent);
-  --text: var(--foreground);
-  --text-muted: var(--muted-foreground);
+  --statusbar-h: 28px;
+  --star-opacity: 1;
 }
 
-.dark {
-  --background: #0A0B0D;             /* ink */
-  --foreground: #E6E8EB;
-  --card: #111317;
-  --card-foreground: #E6E8EB;
-  --popover: #111317;
-  --popover-foreground: #E6E8EB;
-  --primary: oklch(0.78 0.16 305);
-  --primary-foreground: #0A0B0D;
-  --secondary: #15181D;
-  --secondary-foreground: #E6E8EB;
-  --muted: #15181D;
-  --muted-foreground: #6F7680;
-  --accent: #15181D;
-  --accent-foreground: #E6E8EB;
-  --destructive: oklch(0.72 0.18 25);
-  --destructive-foreground: #0A0B0D;
-  --border: #21252C;
-  --input: #21252C;
-  --ring: oklch(0.78 0.16 305);
+/* ===== Theme: Observatory (default — restrained terminal) ===================== */
+.theme-observatory,
+:root {
+  /* Cosmic tokens */
+  --void:        #050810;
+  --void-2:      #0a1020;
+  --void-3:      #0f1830;
 
-  --chart-1: oklch(0.78 0.16 305);
-  --chart-2: oklch(0.78 0.14 145);
-  --chart-3: oklch(0.72 0.18 25);
-  --chart-4: oklch(0.78 0.16 75);
-  --chart-5: oklch(0.7 0.14 250);
+  --pane:        rgba(14, 20, 34, 0.92);
+  --pane-2:      rgba(20, 28, 46, 0.6);
+  --pane-edge:   rgba(120, 160, 210, 0.12);
+  --pane-edge-2: rgba(120, 160, 210, 0.24);
 
-  --success: oklch(0.78 0.14 145);
-  --warning: oklch(0.78 0.16 75);
+  --fg:    #e5ecf5;
+  --fg-2:  #b6c2d2;
+  --dim:   #6f7c92;
+  --dim-2: #424d5f;
 
-  --aegis-panel: #111317;
-  --aegis-panel-2: #15181D;
-  --aegis-line: #21252C;
-  --aegis-line-2: #2A2F38;
-  --aegis-fg-2: #C5C9CF;
-  --aegis-dim: #6F7680;
-  --aegis-dim-2: #4A5058;
-  --aegis-ok: oklch(0.78 0.14 145);
-  --aegis-warn: oklch(0.78 0.16 75);
-  --aegis-bad: oklch(0.72 0.18 25);
-  --aegis-grid: rgba(255, 255, 255, 0.025);
+  --accent:      #5ad8ff;
+  --accent-2:    #8aa6c4;
+  --accent-soft: rgba(90, 216, 255, 0.08);
+  --accent-glow: rgba(90, 216, 255, 0.18);
+
+  --ok:   #59d6a3;
+  --warn: #e2b46a;
+  --bad:  #e87d92;
+
+  --grid: rgba(120, 160, 210, 0.04);
+
+  --display-font:     'Geist', var(--font-sans), system-ui, sans-serif;
+  --display-style:    normal;
+  --display-weight:   500;
+  --display-tracking: -0.025em;
+
+  --card-blur:   0px;
+  --card-radius: 4px;
+  --kpi-radius:  4px;
+
+  --hero-glow: 0 0 0 transparent;
+  --line-glow: drop-shadow(0 0 0 transparent);
+  --ring-glow: none;
+
+  /* === Aliases — wire cosmic tokens through to shadcn / aegis vocabulary === */
+  --background: var(--void);
+  --foreground: var(--fg);
+  --card: var(--pane);
+  --card-foreground: var(--fg);
+  --popover: var(--void-2);
+  --popover-foreground: var(--fg);
+  --primary: var(--accent);
+  --primary-foreground: var(--void);
+  --secondary: var(--pane-2);
+  --secondary-foreground: var(--fg);
+  --muted: var(--pane-2);
+  --muted-foreground: var(--dim);
+  --accent-foreground: var(--void);
+  --destructive: var(--bad);
+  --destructive-foreground: var(--void);
+  --border: var(--pane-edge);
+  --input: var(--pane-edge);
+  --ring: var(--accent);
+
+  --chart-1: var(--accent);
+  --chart-2: var(--accent-2);
+  --chart-3: var(--ok);
+  --chart-4: var(--warn);
+  --chart-5: var(--bad);
+
+  --success: var(--ok);
+  --warning: var(--warn);
+
+  /* Aegis legacy aliases — used everywhere in existing components. */
+  --aegis-panel:   var(--pane);
+  --aegis-panel-2: var(--pane-2);
+  --aegis-line:    var(--pane-edge);
+  --aegis-line-2:  var(--pane-edge-2);
+  --aegis-fg-2:    var(--fg-2);
+  --aegis-dim:     var(--dim);
+  --aegis-dim-2:   var(--dim-2);
+  --aegis-ok:      var(--ok);
+  --aegis-warn:    var(--warn);
+  --aegis-bad:     var(--bad);
+  --aegis-grid:    var(--grid);
+
+  --bg: var(--void);
+  --bg-secondary: var(--pane-2);
+  --bg-card: var(--pane);
+  --bg-hover: var(--pane-2);
+  --text: var(--fg);
+  --text-muted: var(--dim);
+}
+
+/* ===== Theme: Constellation (editorial gold-on-midnight) ====================== */
+.theme-constellation {
+  --void:        #08091c;
+  --void-2:      #0c0e26;
+  --void-3:      #131638;
+
+  --pane:        rgba(18, 22, 46, 0.78);
+  --pane-2:      rgba(24, 30, 56, 0.62);
+  --pane-edge:   rgba(220, 200, 160, 0.18);
+  --pane-edge-2: rgba(220, 200, 160, 0.32);
+
+  --fg:    #f3eedf;
+  --fg-2:  #cabf9e;
+  --dim:   #897e62;
+  --dim-2: #58513c;
+
+  --accent:      #d4a85a;
+  --accent-2:    #f0d99a;
+  --accent-soft: rgba(212, 168, 90, 0.12);
+  --accent-glow: rgba(212, 168, 90, 0.28);
+
+  --ok:   #9ed18a;
+  --warn: #e5b67a;
+  --bad:  #d68a8a;
+
+  --grid: rgba(220, 200, 160, 0.05);
+
+  --display-font:     'Instrument Serif', var(--font-serif), Georgia, serif;
+  --display-style:    normal;
+  --display-weight:   400;
+  --display-tracking: -0.015em;
+
+  --card-blur:   4px;
+  --card-radius: 2px;
+  --kpi-radius:  2px;
+
+  --hero-glow: none;
+  --line-glow: drop-shadow(0 0 3px var(--accent-glow));
+  --ring-glow: drop-shadow(0 0 4px var(--accent-glow));
+
+  --background: var(--void);
+  --foreground: var(--fg);
+  --card: var(--pane);
+  --card-foreground: var(--fg);
+  --popover: var(--void-2);
+  --popover-foreground: var(--fg);
+  --primary: var(--accent);
+  --primary-foreground: var(--void);
+  --secondary: var(--pane-2);
+  --secondary-foreground: var(--fg);
+  --muted: var(--pane-2);
+  --muted-foreground: var(--dim);
+  --accent-foreground: var(--void);
+  --destructive: var(--bad);
+  --destructive-foreground: var(--void);
+  --border: var(--pane-edge);
+  --input: var(--pane-edge);
+  --ring: var(--accent);
+
+  --chart-1: var(--accent);
+  --chart-2: var(--accent-2);
+  --chart-3: var(--ok);
+  --chart-4: var(--warn);
+  --chart-5: var(--bad);
+
+  --success: var(--ok);
+  --warning: var(--warn);
+
+  --aegis-panel:   var(--pane);
+  --aegis-panel-2: var(--pane-2);
+  --aegis-line:    var(--pane-edge);
+  --aegis-line-2:  var(--pane-edge-2);
+  --aegis-fg-2:    var(--fg-2);
+  --aegis-dim:     var(--dim);
+  --aegis-dim-2:   var(--dim-2);
+  --aegis-ok:      var(--ok);
+  --aegis-warn:    var(--warn);
+  --aegis-bad:     var(--bad);
+  --aegis-grid:    var(--grid);
+
+  --bg: var(--void);
+  --bg-secondary: var(--pane-2);
+  --bg-card: var(--pane);
+  --bg-hover: var(--pane-2);
+  --text: var(--fg);
+  --text-muted: var(--dim);
+}
+
+/* ===== Theme: Supernova (kinetic amber + black hole) ========================== */
+.theme-supernova {
+  --void:        #07050a;
+  --void-2:      #0c0814;
+  --void-3:      #181020;
+
+  --pane:        rgba(18, 14, 30, 0.86);
+  --pane-2:      rgba(26, 20, 38, 0.80);
+  --pane-edge:   rgba(232, 168, 92, 0.16);
+  --pane-edge-2: rgba(232, 168, 92, 0.30);
+
+  --fg:    #f4f1ec;
+  --fg-2:  #c4bcb0;
+  --dim:   #8a8278;
+  --dim-2: #54514a;
+
+  --accent:      #e8a85c;
+  --accent-2:    #7cc4ff;
+  --accent-soft: rgba(232, 168, 92, 0.12);
+  --accent-glow: rgba(232, 168, 92, 0.34);
+
+  --ok:   #8fd1a0;
+  --warn: #e8b878;
+  --bad:  #e88080;
+
+  --grid: rgba(232, 168, 92, 0.045);
+
+  --display-font:     'Instrument Serif', var(--font-serif), Georgia, serif;
+  --display-style:    italic;
+  --display-weight:   400;
+  --display-tracking: -0.022em;
+
+  --card-blur:   14px;
+  --card-radius: 6px;
+  --kpi-radius:  6px;
+
+  --hero-glow: 0 0 12px var(--accent-glow);
+  --line-glow: drop-shadow(0 0 4px var(--accent-glow));
+  --ring-glow: drop-shadow(0 0 5px var(--accent-glow));
+
+  --background: var(--void);
+  --foreground: var(--fg);
+  --card: var(--pane);
+  --card-foreground: var(--fg);
+  --popover: var(--void-2);
+  --popover-foreground: var(--fg);
+  --primary: var(--accent);
+  --primary-foreground: var(--void);
+  --secondary: var(--pane-2);
+  --secondary-foreground: var(--fg);
+  --muted: var(--pane-2);
+  --muted-foreground: var(--dim);
+  --accent-foreground: var(--void);
+  --destructive: var(--bad);
+  --destructive-foreground: var(--void);
+  --border: var(--pane-edge);
+  --input: var(--pane-edge);
+  --ring: var(--accent);
+
+  --chart-1: var(--accent);
+  --chart-2: var(--accent-2);
+  --chart-3: var(--ok);
+  --chart-4: var(--warn);
+  --chart-5: var(--bad);
+
+  --success: var(--ok);
+  --warning: var(--warn);
+
+  --aegis-panel:   var(--pane);
+  --aegis-panel-2: var(--pane-2);
+  --aegis-line:    var(--pane-edge);
+  --aegis-line-2:  var(--pane-edge-2);
+  --aegis-fg-2:    var(--fg-2);
+  --aegis-dim:     var(--dim);
+  --aegis-dim-2:   var(--dim-2);
+  --aegis-ok:      var(--ok);
+  --aegis-warn:    var(--warn);
+  --aegis-bad:     var(--bad);
+  --aegis-grid:    var(--grid);
+
+  --bg: var(--void);
+  --bg-secondary: var(--pane-2);
+  --bg-card: var(--pane);
+  --bg-hover: var(--pane-2);
+  --text: var(--fg);
+  --text-muted: var(--dim);
 }
 
 * {
@@ -140,120 +327,243 @@
   box-sizing: border-box;
 }
 
-body {
+html, body {
   margin: 0;
+  padding: 0;
+}
+
+body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
-  font-feature-settings: "rlig" 1, "calt" 1;
+  font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1, "cv11" 1;
   font-variant-ligatures: none;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  /* Subtle terminal grid background — 32px lattice, ultra-low contrast. */
-  background-image:
-    linear-gradient(var(--aegis-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--aegis-grid) 1px, transparent 1px);
-  background-size: 32px 32px;
+  min-height: 100vh;
+  transition: background 0.6s ease, color 0.6s ease;
 }
 
-/* ===== Type utility classes — used in components for the terminal aesthetic ===== */
-.font-mono { font-family: var(--font-mono); }
-.font-serif { font-family: var(--font-serif); }
+/* ===== Type utilities ========================================================= */
+.font-mono   { font-family: var(--font-mono); }
+.font-serif  { font-family: var(--font-serif); }
 .tabular-nums { font-variant-numeric: tabular-nums; }
+.tabular     { font-variant-numeric: tabular-nums; }
 
 /* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--pane-edge-2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-/* Selection */
 ::selection {
-  background: var(--primary);
-  color: var(--primary-foreground);
+  background: var(--accent);
+  color: var(--void);
 }
 
-/* ===== Aegis signature components ===== */
+/* ===== Cosmic backdrop ======================================================== */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.bd-base {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 90% 60% at 15% 0%,
+      color-mix(in oklab, var(--accent) 14%, transparent) 0%, transparent 55%),
+    radial-gradient(ellipse 80% 55% at 90% 100%,
+      color-mix(in oklab, var(--accent-2) 10%, transparent) 0%, transparent 60%),
+    linear-gradient(180deg, var(--void) 0%, var(--void-2) 50%, var(--void) 100%);
+}
+.theme-observatory .bd-base {
+  background:
+    radial-gradient(ellipse 70% 45% at 50% -10%,
+      color-mix(in oklab, var(--accent) 6%, transparent) 0%, transparent 55%),
+    linear-gradient(180deg, var(--void) 0%, var(--void-2) 100%);
+}
+.theme-supernova .bd-base {
+  background:
+    radial-gradient(ellipse 45% 35% at 85% 8%,
+      rgba(232, 168, 92, 0.16) 0%, rgba(140, 60, 110, 0.08) 38%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 10% 95%,
+      color-mix(in oklab, var(--accent) 10%, transparent) 0%, transparent 65%),
+    linear-gradient(180deg, var(--void) 0%, var(--void-2) 60%, #06040a 100%);
+}
 
-/* 3-letter code badge — magenta, bordered, monospace. Goes top-left on cards. */
+.bd-stars {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 10% 20%, #fff, transparent),
+    radial-gradient(1px 1px at 24% 78%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 38% 14%, #fff, transparent),
+    radial-gradient(1px 1px at 47% 55%, #cfd5ff, transparent),
+    radial-gradient(1px 1px at 62% 32%, #fff, transparent),
+    radial-gradient(2px 2px at 71% 88%, #fff, transparent),
+    radial-gradient(1px 1px at 85% 12%, #b8d1ff, transparent),
+    radial-gradient(1.5px 1.5px at 92% 64%, #fff, transparent),
+    radial-gradient(1px 1px at 5% 47%, #fff, transparent),
+    radial-gradient(1px 1px at 17% 90%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 33% 33%, #ffefcf, transparent),
+    radial-gradient(1px 1px at 52% 7%, #fff, transparent),
+    radial-gradient(1px 1px at 67% 70%, #fff, transparent),
+    radial-gradient(2px 2px at 79% 41%, #fff, transparent),
+    radial-gradient(1px 1px at 88% 86%, #cfd5ff, transparent),
+    radial-gradient(1px 1px at 95% 28%, #fff, transparent),
+    radial-gradient(1px 1px at 12% 62%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 42% 92%, #fff, transparent),
+    radial-gradient(1px 1px at 58% 23%, #ffefcf, transparent),
+    radial-gradient(1px 1px at 76% 16%, #fff, transparent);
+  background-size: 100% 100%;
+  opacity: var(--star-opacity, 1);
+}
+.bd-stars.twinkle { animation: twinkle 4.2s ease-in-out infinite; }
+@keyframes twinkle {
+  0%, 100% { opacity: var(--star-opacity, 1); }
+  50%      { opacity: calc(var(--star-opacity, 1) * 0.55); }
+}
+
+.bd-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, #000 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, #000 30%, transparent 100%);
+}
+
+.bd-constellation {
+  position: absolute;
+  inset: 0;
+  opacity: 0.4;
+}
+.bd-constellation line { stroke: var(--accent); stroke-width: 0.5; opacity: 0.5; }
+.bd-constellation circle { fill: var(--accent-2); }
+
+.bd-blackhole {
+  position: absolute;
+  width: 580px;
+  height: 580px;
+  top: -130px;
+  right: -180px;
+  opacity: 0.72;
+  pointer-events: none;
+  filter: drop-shadow(0 0 80px rgba(232, 168, 92, 0.2));
+  mix-blend-mode: screen;
+}
+.bd-blackhole svg { width: 100%; height: 100%; display: block; }
+
+/* ===== Galaxy signature components ============================================ */
+
+/* 3-letter code chip — bordered uppercase mono badge in accent. */
+.code,
 .aegis-code {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 1.4px;
-  color: var(--primary);
-  padding: 2px 6px;
-  border: 1px solid var(--aegis-line-2);
+  letter-spacing: 1.6px;
+  color: var(--accent);
+  padding: 3px 7px;
+  border: 1px solid var(--pane-edge-2);
   border-radius: 3px;
+  background: var(--accent-soft);
   font-weight: 500;
+  text-transform: uppercase;
+}
+.theme-constellation .code,
+.theme-constellation .aegis-code,
+.theme-supernova .code,
+.theme-supernova .aegis-code {
+  text-shadow: 0 0 8px var(--accent-glow);
 }
 
-/* Card head with dashed-bottom divider — used across all dashboard cards. */
+/* Card head — code chip + title + meta, 1px dashed bottom divider. */
+.card-head,
 .aegis-card-head {
   display: flex;
   align-items: baseline;
   gap: 12px;
   margin-bottom: 18px;
-  padding-bottom: 10px;
-  border-bottom: 1px dashed var(--aegis-line);
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--pane-edge);
+}
+.card-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fg);
+  margin: 0;
+}
+.card-action {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--dim);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
-/* Keyboard chip — used in sidebar nav, palette, status bar. */
+/* Keyboard chip */
+.kbd,
 .aegis-kbd {
   font-family: var(--font-mono);
   font-size: 10px;
-  padding: 2px 6px;
-  border: 1px solid var(--aegis-line-2);
+  padding: 1px 5px;
+  border: 1px solid var(--pane-edge);
   border-radius: 3px;
-  background: var(--aegis-panel-2);
-  color: var(--aegis-dim);
+  background: transparent;
+  color: var(--dim-2);
+  letter-spacing: 0.4px;
 }
 
-/* Blinking caret — used in AI input and "transmission" UI. */
+/* Blinking caret — sign-in button + AI input. */
+.caret,
 .aegis-caret {
   display: inline-block;
-  width: 8px;
-  height: 14px;
-  background: var(--primary);
+  width: 6px;
+  height: 11px;
+  background: currentColor;
   margin-left: 2px;
-  vertical-align: -2px;
+  vertical-align: -1px;
   animation: aegisBlink 1.05s steps(2) infinite;
 }
 
-/* Status bar — bottom of the app shell, monospace readouts. */
+/* Status bar — fixed bottom, mono 11px. */
+.status,
 .aegis-status {
-  height: 26px;
+  height: var(--statusbar-h);
   padding: 0 16px;
-  background: var(--aegis-panel);
-  border-top: 1px solid var(--aegis-line);
+  background: linear-gradient(180deg,
+    color-mix(in oklab, var(--void) 80%, transparent),
+    color-mix(in oklab, var(--void) 95%, transparent));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--pane-edge);
   display: flex;
   align-items: center;
   gap: 10px;
   font-family: var(--font-mono);
   font-size: 11px;
-  color: var(--aegis-dim);
+  color: var(--dim);
 }
+.status b,
 .aegis-status b {
-  color: var(--aegis-fg-2);
+  color: var(--fg-2);
   font-weight: 500;
 }
-.aegis-status-sep {
-  color: var(--aegis-dim-2);
+.aegis-status-sep,
+.status-sep {
+  color: var(--dim-2);
 }
 
-/* Pulsing dot — "connected" status, AI live badge. */
+/* Pulsing dot — connected status, AI live badge. */
 .aegis-dot {
   display: inline-flex;
   position: relative;
@@ -277,91 +587,517 @@ body {
   animation: aegisPulse 1.6s ease-out infinite;
 }
 
-/* Hero AI badge — magenta pill with pulsing dot. */
+/* Hero AI badge — accent pill with dot. */
 .aegis-ai-badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 4px 8px;
-  border: 1px solid var(--aegis-line-2);
+  border: 1px solid var(--pane-edge-2);
   border-radius: 999px;
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 1.4px;
-  color: var(--primary);
+  color: var(--accent);
 }
 
 /* AI insight card — left-tinted border, body copy. */
 .aegis-insight {
-  border: 1px solid var(--aegis-line);
-  border-left: 3px solid var(--insight-tint, var(--primary));
-  border-radius: 4px;
+  border: 1px solid var(--pane-edge);
+  border-left: 3px solid var(--insight-tint, var(--accent));
+  border-radius: var(--card-radius);
   padding: 14px 16px;
-  background: var(--aegis-panel-2);
+  background: var(--pane-2);
 }
 .aegis-insight-kicker {
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 1.4px;
-  color: var(--insight-tint, var(--primary));
+  color: var(--insight-tint, var(--accent));
   margin-bottom: 8px;
 }
 
-/* Hero opener — italic Instrument Serif headline + monospace eyebrow. */
+/* Hero opener — display headline + monospace eyebrow. */
 .aegis-opener-eyebrow {
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 1.6px;
-  color: var(--aegis-dim);
+  color: var(--dim);
   margin-bottom: 14px;
+  text-transform: uppercase;
 }
 .aegis-opener-title {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-style: italic;
+  font-family: var(--display-font);
+  font-weight: var(--display-weight);
+  font-style: var(--display-style);
   font-size: clamp(32px, 4vw, 44px);
   line-height: 1.05;
-  letter-spacing: -0.02em;
-  color: var(--foreground);
+  letter-spacing: var(--display-tracking);
+  color: var(--fg);
   margin: 0 0 12px;
 }
 .aegis-opener-sub {
   font-family: var(--font-mono);
   font-size: 12px;
-  color: var(--aegis-dim);
+  color: var(--dim);
   margin: 0;
   font-variant-numeric: tabular-nums;
 }
 .aegis-opener-sub b {
-  color: var(--foreground);
+  color: var(--fg);
   font-weight: 500;
 }
 
-/* Italic display numerals — KPI hero values. */
+/* Display numerals — KPI hero values use the theme's display ramp. */
 .aegis-display {
-  font-family: var(--font-serif);
-  font-style: italic;
-  font-weight: 400;
+  font-family: var(--display-font);
+  font-style: var(--display-style);
+  font-weight: var(--display-weight);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
+  letter-spacing: var(--display-tracking);
 }
 
-/* ===== v0.9 mobile polish =====
- * Gantt timelines need horizontal scroll without stealing swipe-back gestures.
- * Reports + Calendar wrappers clamp children to prevent horizontal page-level
- * scroll leaks on narrow viewports.
- */
+/* ===== Galaxy buttons ========================================================= */
+.btn-galaxy {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 9px 16px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--void);
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 0 0 1px var(--accent-glow), var(--hero-glow);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  font-weight: 500;
+}
+.theme-observatory .btn-galaxy { border-radius: 4px; box-shadow: none; }
+.theme-constellation .btn-galaxy { border-radius: 2px; }
+.btn-galaxy:hover { transform: translateY(-1px); }
+.btn-galaxy.ghost {
+  background: transparent;
+  color: var(--fg-2);
+  border: 1px solid var(--pane-edge-2);
+  box-shadow: none;
+}
+.btn-galaxy.ghost:hover { background: var(--pane); color: var(--fg); }
+
+/* ===== KPI grid + sparklines ================================================= */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+@media (max-width: 1024px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+}
+.kpi {
+  position: relative;
+  padding: 20px 20px 18px;
+  border-radius: var(--kpi-radius);
+  border: 1px solid var(--pane-edge);
+  background: var(--pane);
+  backdrop-filter: blur(var(--card-blur));
+  -webkit-backdrop-filter: blur(var(--card-blur));
+  overflow: hidden;
+}
+.kpi-orbit {
+  position: absolute;
+  width: 110px; height: 110px;
+  right: -36px; top: -36px;
+  border-radius: 50%;
+  border: 1px dashed var(--pane-edge);
+  opacity: 0.7;
+  pointer-events: none;
+}
+.kpi-orbit::after {
+  content: '';
+  position: absolute;
+  top: 8%; left: -3px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: var(--hero-glow);
+}
+.theme-observatory .kpi-orbit { display: none; }
+.kpi-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  color: var(--dim);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.kpi-value {
+  font-family: var(--display-font);
+  font-style: var(--display-style);
+  font-weight: var(--display-weight);
+  font-size: 36px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--fg);
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+}
+.kpi-delta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--fg-2);
+}
+.kpi-delta.up   { color: var(--ok); }
+.kpi-delta.down { color: var(--bad); }
+.kpi-spark {
+  margin-top: 10px;
+  height: 28px;
+  width: 100%;
+}
+
+/* ===== Cards (galaxy variant — used by new shell <Card />) =================== */
+.card-galaxy {
+  position: relative;
+  border-radius: var(--card-radius);
+  border: 1px solid var(--pane-edge);
+  background: var(--pane);
+  backdrop-filter: blur(var(--card-blur));
+  -webkit-backdrop-filter: blur(var(--card-blur));
+  padding: 20px 22px;
+  overflow: hidden;
+}
+.theme-constellation .card-galaxy {
+  background-image:
+    linear-gradient(var(--accent) 0 0),
+    linear-gradient(var(--accent) 0 0),
+    linear-gradient(var(--accent) 0 0),
+    linear-gradient(var(--accent) 0 0);
+  background-size: 8px 1px, 1px 8px, 8px 1px, 1px 8px;
+  background-position: 0 0, 0 0, 100% 100%, 100% 100%;
+  background-repeat: no-repeat;
+  background-color: var(--pane);
+}
+
+/* ===== Page head ============================================================= */
+.page-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed var(--pane-edge);
+  flex-wrap: wrap;
+}
+.page-head h1 {
+  font-family: var(--display-font);
+  font-style: var(--display-style);
+  font-weight: var(--display-weight);
+  font-size: 36px;
+  line-height: 1;
+  letter-spacing: var(--display-tracking);
+  margin: 0;
+  color: var(--fg);
+}
+.page-head .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.8px;
+  color: var(--dim);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.page-head .eyebrow .pip {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: var(--hero-glow);
+}
+.page-head .crumb { color: var(--dim-2); }
+.page-head .crumb b { color: var(--fg-2); font-weight: 500; }
+.page-head .head-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* ===== Hero (dashboard) ====================================================== */
+.galaxy-hero {
+  position: relative;
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  border: 1px solid var(--pane-edge);
+  background:
+    linear-gradient(135deg,
+      color-mix(in oklab, var(--accent) 10%, transparent) 0%,
+      color-mix(in oklab, var(--void-3) 30%, transparent) 50%,
+      transparent 100%),
+    var(--pane);
+  backdrop-filter: blur(var(--card-blur));
+  -webkit-backdrop-filter: blur(var(--card-blur));
+  padding: 36px 38px 32px;
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 28px;
+  align-items: end;
+  min-height: 220px;
+}
+@media (max-width: 768px) {
+  .galaxy-hero {
+    grid-template-columns: 1fr;
+    padding: 28px 22px 24px;
+    min-height: 0;
+  }
+}
+.galaxy-hero-title {
+  font-family: var(--display-font);
+  font-style: var(--display-style);
+  font-weight: var(--display-weight);
+  font-size: clamp(36px, 4.4vw, 56px);
+  line-height: 1.02;
+  letter-spacing: var(--display-tracking);
+  margin: 0 0 14px;
+  color: var(--fg);
+}
+.galaxy-hero-sub {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--fg-2);
+  margin: 0;
+  line-height: 1.65;
+  max-width: 56ch;
+}
+.galaxy-hero-sub b { color: var(--fg); font-weight: 500; }
+.galaxy-hero-sub .net { color: var(--ok); }
+
+/* ===== Envelope / progress bars =============================================== */
+.env-bar {
+  position: relative;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--pane-2);
+  overflow: hidden;
+}
+.env-bar > i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius: 3px;
+}
+.env-bar.warn > i { background: linear-gradient(90deg, var(--warn), var(--bad)); }
+.env-bar.bad > i  { background: linear-gradient(90deg, var(--bad), var(--bad)); }
+
+/* ===== Gantt bar ============================================================== */
+.gantt-bar {
+  height: 18px;
+  border-radius: 9px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  box-shadow: var(--ring-glow);
+}
+.gantt-bar.at-risk {
+  background: linear-gradient(90deg, var(--warn), var(--bad));
+}
+
+/* ===== Auth split layout (login/register) ===================================== */
+.auth-split {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  position: relative;
+  z-index: 1;
+}
+@media (max-width: 1024px) {
+  .auth-split { grid-template-columns: 1fr; }
+}
+.auth-aside {
+  padding: 64px 56px;
+  border-right: 1px solid var(--pane-edge);
+  background:
+    linear-gradient(180deg,
+      color-mix(in oklab, var(--accent) 8%, transparent) 0%,
+      transparent 60%),
+    var(--pane);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 32px;
+}
+@media (max-width: 1024px) { .auth-aside { padding: 40px 28px; border-right: none; border-bottom: 1px solid var(--pane-edge); } }
+.auth-main {
+  padding: 64px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+}
+@media (max-width: 1024px) { .auth-main { padding: 40px 28px; } }
+.auth-card {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+.auth-quote {
+  font-family: var(--display-font);
+  font-style: italic;
+  font-weight: var(--display-weight);
+  font-size: 22px;
+  line-height: 1.35;
+  color: var(--fg);
+  letter-spacing: var(--display-tracking);
+}
+
+/* ===== Landing page styles ==================================================== */
+.front-nav {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 22px 56px;
+  border-bottom: 1px solid var(--pane-edge);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.4px;
+  color: var(--dim);
+}
+.front-nav a { color: var(--dim); text-decoration: none; transition: color 0.2s; }
+.front-nav a:hover { color: var(--fg); }
+.front-nav .brand-name {
+  font-family: var(--display-font);
+  font-style: var(--display-style);
+  font-weight: var(--display-weight);
+  font-size: 18px;
+  letter-spacing: var(--display-tracking);
+  color: var(--fg);
+  text-transform: none;
+}
+@media (max-width: 768px) { .front-nav { padding: 20px 22px; gap: 16px; flex-wrap: wrap; } }
+
+.landing-hero {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 56px;
+  padding: 80px 56px;
+  align-items: center;
+}
+@media (max-width: 1024px) {
+  .landing-hero { grid-template-columns: 1fr; padding: 56px 22px; gap: 40px; }
+}
+.landing-title {
+  font-family: var(--display-font);
+  font-style: var(--display-style);
+  font-weight: var(--display-weight);
+  font-size: clamp(40px, 7vw, 72px);
+  line-height: 1.02;
+  letter-spacing: var(--display-tracking);
+  color: var(--fg);
+  margin: 0 0 18px;
+}
+.landing-sub {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--fg-2);
+  line-height: 1.6;
+  max-width: 52ch;
+  margin: 0 0 28px;
+}
+.landing-stats {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 28px;
+  padding: 40px 56px 64px;
+  border-top: 1px solid var(--pane-edge);
+  border-bottom: 1px solid var(--pane-edge);
+}
+@media (max-width: 768px) { .landing-stats { grid-template-columns: repeat(2, 1fr); padding: 32px 22px; gap: 22px; } }
+.landing-stat .l {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 8px;
+}
+.landing-stat .v {
+  font-family: var(--display-font);
+  font-style: var(--display-style);
+  font-weight: var(--display-weight);
+  font-size: 32px;
+  color: var(--fg);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.landing-stat .s {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--dim-2);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+/* ===== Welcome / Onboarding ================================================== */
+.welcome-steps {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 22px 32px;
+  border-bottom: 1px dashed var(--pane-edge);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1.4px;
+  color: var(--dim);
+}
+.welcome-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.welcome-step .num {
+  width: 22px; height: 22px;
+  border: 1px solid var(--pane-edge-2);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: var(--dim);
+}
+.welcome-step.active .num {
+  background: var(--accent);
+  color: var(--void);
+  border-color: var(--accent);
+  box-shadow: var(--hero-glow);
+}
+.welcome-step.active { color: var(--fg); }
+
+/* ===== Misc helpers =========================================================== */
 .gantt-scroll {
   touch-action: pan-x;
   overscroll-behavior-x: contain;
 }
-
 .chart-responsive {
   min-width: 0;
   width: 100%;
 }
 
-/* Respect reduced motion */
+/* ===== Reduced motion ========================================================= */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;
@@ -369,46 +1105,55 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  .bd-blackhole animateTransform { display: none; }
 }
 
-/* Animations */
+/* ===== Animations ============================================================= */
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
+  0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 @keyframes fade-in {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 @keyframes slide-in-from-right {
   from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+  to   { transform: translateX(0); }
 }
 @keyframes slide-in-from-bottom {
   from { transform: translateY(8px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  to   { transform: translateY(0); opacity: 1; }
 }
 @keyframes accordion-down {
   from { height: 0; }
-  to { height: var(--radix-accordion-content-height); }
+  to   { height: var(--radix-accordion-content-height); }
 }
 @keyframes accordion-up {
   from { height: var(--radix-accordion-content-height); }
-  to { height: 0; }
+  to   { height: 0; }
 }
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 0%, transparent); }
-  50% { box-shadow: 0 0 16px 4px color-mix(in oklab, var(--primary) 25%, transparent); }
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--accent) 0%, transparent); }
+  50%      { box-shadow: 0 0 16px 4px color-mix(in oklab, var(--accent) 25%, transparent); }
 }
 @keyframes aegisBlink {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  50%      { opacity: 0; }
 }
 @keyframes aegisPulse {
-  0% { transform: scale(1); opacity: 0.55; }
-  100% { transform: scale(2); opacity: 0; }
+  0%   { transform: scale(1);   opacity: 0.55; }
+  100% { transform: scale(2);   opacity: 0;    }
 }
 @keyframes aegisBounce {
   0%, 100% { opacity: 0.25; transform: translateY(0); }
-  50% { opacity: 1; transform: translateY(-3px); }
+  50%      { opacity: 1;    transform: translateY(-3px); }
+}
+@keyframes galaxyPulse {
+  0%, 100% { transform: scale(1);   opacity: 1; }
+  50%      { transform: scale(1.3); opacity: 0.5; }
+}
+@keyframes drift {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(40px, -30px) scale(1.08); }
 }

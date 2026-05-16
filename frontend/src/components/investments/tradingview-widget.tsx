@@ -18,6 +18,8 @@ interface TradingViewWidgetProps {
  */
 export function TradingViewWidget({ symbol, height = 220 }: TradingViewWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  // All cosmic themes share a dark surface, so the TradingView widget always
+  // mounts in dark mode regardless of which Aegis theme is active.
   const theme = useAppStore((s) => s.theme);
 
   useEffect(() => {
@@ -36,7 +38,7 @@ export function TradingViewWidget({ symbol, height = 220 }: TradingViewWidgetPro
       width: "100%",
       height,
       locale: "en",
-      colorTheme: theme === "dark" ? "dark" : "light",
+      colorTheme: "dark",
       isTransparent: true,
       showVolume: false,
       showMA: false,

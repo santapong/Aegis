@@ -1,64 +1,69 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAppStore } from "@/stores/app-store";
+import { PulsingDot } from "@/components/shell/pulsing-dot";
 
 /**
  * StatusBar — terminal-style readout pinned to the bottom of the app shell.
  *
- * Pattern from `Aegis Frontend.html` design handoff:
- *   connected · latency 42ms · uptime 02:14:33 · build v1.0.0 · last sync just now · BKK 14:23:01
+ * Galaxy pattern (from handoff):
+ *   ● AEGIS · draft Observatory · node aegis-01 · latency 42ms · ⌘K command · ⌘\ ai panel
  *
- * "Live-feeling" numbers: latency jitters, BKK clock ticks, uptime increments.
- * No business data here — purely chrome that conveys aliveness.
+ * Live-feeling: latency jitters and the BKK clock ticks. No business data —
+ * purely chrome conveying aliveness.
  */
 export function StatusBar() {
+  const theme = useAppStore((s) => s.theme);
   const [latency, setLatency] = useState(42);
-  const [uptime, setUptime] = useState(0);
   const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
     setNow(new Date());
     const t = setInterval(() => {
       setLatency(38 + Math.round(Math.random() * 14));
-      setUptime((u) => u + 1);
       setNow(new Date());
     }, 1000);
     return () => clearInterval(t);
   }, []);
 
-  const fmtUp = (s: number) => {
-    const h = Math.floor(s / 3600).toString().padStart(2, "0");
-    const m = Math.floor((s % 3600) / 60).toString().padStart(2, "0");
-    const ss = (s % 60).toString().padStart(2, "0");
-    return `${h}:${m}:${ss}`;
-  };
-
-  // Render a placeholder timestamp on the server so SSR + first hydration align.
   const bkkTime = now
     ? now.toLocaleTimeString("en-GB", { hour12: false, timeZone: "Asia/Bangkok" })
     : "--:--:--";
 
   return (
-    <footer className="aegis-status">
-      <span className="flex items-center gap-1.5" style={{ color: "var(--aegis-ok)" }}>
-        <span className="aegis-dot">
-          <span className="aegis-dot-pulse" />
-          <span className="aegis-dot-core" />
-        </span>
-        <span>connected</span>
+    <footer className="aegis-status" style={{ position: "relative", zIndex: 1 }}>
+      <span
+        className="flex items-center gap-1.5"
+        style={{ color: "var(--ok)" }}
+      >
+        <PulsingDot />
+        <b style={{ color: "var(--fg-2)" }}>AEGIS</b>
       </span>
       <span className="aegis-status-sep">·</span>
-      <span>latency <b className="tabular-nums">{latency}ms</b></span>
+      <span>
+        draft <b style={{ color: "var(--accent)", textTransform: "capitalize" }}>{theme}</b>
+      </span>
       <span className="aegis-status-sep">·</span>
-      <span>uptime <b className="tabular-nums">{fmtUp(uptime)}</b></span>
+      <span>
+        node <b>aegis-01</b>
+      </span>
       <span className="aegis-status-sep">·</span>
-      <span>build <b>v1.0.0</b></span>
+      <span>
+        latency <b className="tabular-nums">{latency}ms</b>
+      </span>
       <span className="aegis-status-sep">·</span>
-      <span>last sync <b>just now</b></span>
-      <span className="ml-auto" style={{ color: "var(--aegis-dim)" }}>BKK · <span className="tabular-nums">{bkkTime}</span></span>
-      <span className="aegis-status-sep">·</span>
-      <span style={{ color: "var(--aegis-dim)" }}>
-        press <span className="aegis-kbd">/</span> to command
+      <span className="hidden md:inline">
+        last sync <b>just now</b>
+      </span>
+      <span className="ml-auto flex items-center gap-2.5">
+        <span className="hidden lg:inline" style={{ color: "var(--dim)" }}>
+          BKK · <span className="tabular-nums">{bkkTime}</span>
+        </span>
+        <span className="aegis-status-sep hidden lg:inline">·</span>
+        <span style={{ color: "var(--dim)" }}>
+          <span className="aegis-kbd">/</span> command · <span className="aegis-kbd">⌘\</span> ai
+        </span>
       </span>
     </footer>
   );

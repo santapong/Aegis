@@ -2,180 +2,202 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import {
-  Shield,
-  Sparkles,
-  LineChart,
-  Calendar,
-  GanttChart,
-  FileText,
-  KeyRound,
-  Bell,
-  ArrowRight,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { Search, ArrowLeft, ArrowRight } from "lucide-react";
+import { CodeChip } from "@/components/shell/code-chip";
+import { cn } from "@/lib/utils";
 
-const FEATURES = [
-  {
-    icon: LineChart,
-    title: "Financial health score",
-    body: "0–100 gauge plus breakdown. Cash-flow forecast up to 12 months ahead.",
-  },
-  {
-    icon: Calendar,
-    title: "Calendar + Gantt planning",
-    body: "See every income, expense, and plan on a timeline. Drag to reschedule.",
-  },
-  {
-    icon: GanttChart,
-    title: "AI advisor powered by Claude",
-    body: "Tool-use structured output for spending analysis, recommendations, and weekly summaries.",
-  },
-  {
-    icon: FileText,
-    title: "PDF + CSV exports",
-    body: "Server-side WeasyPrint renders a print-ready monthly report. CSV for spreadsheets.",
-  },
-  {
-    icon: Bell,
-    title: "Server-backed notifications",
-    body: "Budget overruns, upcoming bills, goal milestones, and anomaly alerts with dedupe keys.",
-  },
-  {
-    icon: KeyRound,
-    title: "Keyboard-first",
-    body: "N for new, / for the command palette, ? for the cheatsheet, g-chords for nav.",
-  },
+const STEPS = [
+  { num: "01", label: "Verify identity" },
+  { num: "02", label: "Connect institutions" },
+  { num: "03", label: "Import history" },
+  { num: "04", label: "Calibrate AI" },
 ];
 
+const BANKS: Array<{ name: string; sub: string; color: string }> = [
+  { name: "Chase", sub: "US · retail", color: "#117ACA" },
+  { name: "Bank of America", sub: "US · retail", color: "#E61030" },
+  { name: "Wells Fargo", sub: "US · retail", color: "#D71E28" },
+  { name: "Citi", sub: "US · retail", color: "#003B70" },
+  { name: "Capital One", sub: "US · retail", color: "#004977" },
+  { name: "Apple Card", sub: "US · card", color: "#1B1B1B" },
+  { name: "Robinhood", sub: "US · broker", color: "#00C805" },
+  { name: "Fidelity", sub: "US · broker", color: "#368727" },
+  { name: "Coinbase", sub: "Global · crypto", color: "#0052FF" },
+  { name: "Revolut", sub: "EU · fintech", color: "#0075EB" },
+  { name: "Wise", sub: "Global · fx", color: "#9FE870" },
+  { name: "SCB", sub: "TH · retail", color: "#4F2682" },
+];
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 export default function WelcomePage() {
+  const [filter, setFilter] = useState("");
+  const filtered = BANKS.filter((b) =>
+    b.name.toLowerCase().includes(filter.toLowerCase())
+  );
+
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <header className="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <Shield size={16} className="text-primary-foreground" />
+    <div
+      className="min-h-screen relative z-[1]"
+      style={{ color: "var(--fg)" }}
+    >
+      {/* Step indicator */}
+      <header className="welcome-steps">
+        <CodeChip>WEL</CodeChip>
+        <span style={{ color: "var(--dim-2)" }}>·</span>
+        {STEPS.map((s, i) => (
+          <div
+            key={s.num}
+            className={cn("welcome-step", i === 1 && "active")}
+          >
+            <span className="num">{s.num}</span>
+            <span>{s.label}</span>
+            {i < STEPS.length - 1 && (
+              <span className="ml-3" style={{ color: "var(--dim-2)" }}>
+                →
+              </span>
+            )}
           </div>
-          <span className="font-bold tracking-tight">Aegis</span>
-        </div>
-        <nav className="flex items-center gap-3 text-sm">
-          <Link href="/login" className="text-muted-foreground hover:text-foreground">
-            Sign in
-          </Link>
-          <Link href="/register">
-            <Button size="sm">Get started</Button>
-          </Link>
-        </nav>
+        ))}
+        <Link
+          href="/"
+          className="ml-auto font-mono text-[11px] tracking-[1.4px]"
+          style={{ color: "var(--dim)" }}
+        >
+          skip onboarding →
+        </Link>
       </header>
 
-      <main>
-        <section className="max-w-4xl mx-auto px-6 pt-16 pb-20 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 text-xs text-muted-foreground mb-6"
-          >
-            <Sparkles size={12} className="text-primary" />
-            v1.0 — generally available
-          </motion.div>
+      <motion.main
+        className="max-w-5xl mx-auto px-8 py-12"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div
+          className="font-mono text-[10px] tracking-[1.8px] uppercase mb-3 flex items-center gap-2"
+          style={{ color: "var(--dim)" }}
+        >
+          <span
+            className="inline-block w-1.5 h-1.5 rounded-full"
+            style={{ background: "var(--accent)", boxShadow: "var(--hero-glow)" }}
+          />
+          step 02 of 04 · connect institutions
+        </div>
+        <h1
+          className="text-[44px] leading-[1.05] mb-4"
+          style={{
+            fontFamily: "var(--display-font)",
+            fontStyle: "var(--display-style)",
+            fontWeight: "var(--display-weight)",
+            letterSpacing: "var(--display-tracking)",
+            color: "var(--fg)",
+          }}
+        >
+          Where should Aegis read from?
+        </h1>
+        <p
+          className="font-mono text-[13px] leading-[1.65] max-w-[60ch] mb-8"
+          style={{ color: "var(--fg-2)" }}
+        >
+          Pick the accounts you want mapped. Read-only by default. You can add or
+          revoke any institution from <b style={{ color: "var(--fg)" }}>Settings →
+          Integrations</b> later.
+        </p>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-4xl md:text-6xl font-bold tracking-tight mb-6"
-          >
-            Money management that{" "}
-            <span className="bg-gradient-to-r from-indigo-500 to-violet-500 bg-clip-text text-transparent">
-              plans itself
-            </span>
-          </motion.h1>
+        <div className="relative max-w-[420px] mb-8">
+          <Search
+            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
+            style={{ color: "var(--dim)" }}
+          />
+          <input
+            placeholder="Search 12 supported institutions…"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="flex h-11 w-full px-3 pl-10 text-sm focus-visible:outline-none"
+            style={{
+              background: "var(--pane-2)",
+              color: "var(--fg)",
+              border: "1px solid var(--pane-edge)",
+              borderRadius: "var(--card-radius)",
+              fontFamily: "var(--font-mono)",
+            }}
+          />
+        </div>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10"
-          >
-            Aegis combines a calendar planner, a Gantt timeline, and an AI advisor into one
-            keyboard-first workspace. Self-hosted, open source, Claude-powered.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex flex-col sm:flex-row gap-3 justify-center"
-          >
-            <Link href="/register">
-              <Button size="lg" icon={<ArrowRight size={16} />} iconPosition="right">
-                Create an account
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button variant="outline" size="lg">
-                Try the demo
-              </Button>
-            </Link>
-          </motion.div>
-
-          <p className="mt-6 text-xs text-muted-foreground">
-            Seed data:{" "}
-            <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-[11px]">demo@aegis.local</code>{" "}
-            /{" "}
-            <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-[11px]">demo-password-123</code>{" "}
-            (after running <code>make seed</code>).
-          </p>
-        </section>
-
-        <section className="max-w-6xl mx-auto px-6 pb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {FEATURES.map((f, i) => {
-            const Icon = f.icon;
-            return (
-              <motion.div
-                key={f.title}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4, delay: i * 0.05 }}
-                className="rounded-xl border border-border bg-card p-6"
-              >
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Icon size={18} />
-                </div>
-                <h3 className="font-semibold mb-1">{f.title}</h3>
-                <p className="text-sm text-muted-foreground">{f.body}</p>
-              </motion.div>
-            );
-          })}
-        </section>
-
-        <section className="max-w-4xl mx-auto px-6 pb-24 text-center">
-          <h2 className="text-3xl font-bold tracking-tight mb-3">Self-hosted, your data stays yours</h2>
-          <p className="text-muted-foreground mb-8">
-            SQLite out of the box. PostgreSQL or MySQL via <code>DATABASE_URL</code>. Docker
-            Compose, one-command deploy, open source.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <a
-              href="https://github.com/santapong/aegis"
-              target="_blank"
-              rel="noopener noreferrer"
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          {filtered.map((b) => (
+            <button
+              key={b.name}
+              className="flex items-center gap-3 p-3 text-left transition-all hover:translate-y-[-1px]"
+              style={{
+                border: "1px solid var(--pane-edge)",
+                background: "var(--pane)",
+                borderRadius: "var(--card-radius)",
+                backdropFilter: "blur(var(--card-blur))",
+              }}
             >
-              <Button variant="outline" size="lg">View on GitHub</Button>
-            </a>
-            <Link href="/docs">
-              <Button size="lg">Read the docs</Button>
-            </Link>
-          </div>
-        </section>
-      </main>
+              <span
+                className="flex items-center justify-center font-mono text-[10px] tracking-[0.8px] flex-shrink-0"
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 6,
+                  background: b.color,
+                  color: "#fff",
+                  fontWeight: 600,
+                }}
+              >
+                {initials(b.name)}
+              </span>
+              <div className="min-w-0">
+                <div
+                  className="font-medium text-[13px] truncate"
+                  style={{ color: "var(--fg)" }}
+                >
+                  {b.name}
+                </div>
+                <div
+                  className="font-mono text-[10px] tracking-[1.2px] uppercase truncate"
+                  style={{ color: "var(--dim)" }}
+                >
+                  {b.sub}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
 
-      <footer className="max-w-6xl mx-auto px-6 py-8 border-t border-border text-xs text-muted-foreground flex flex-col sm:flex-row items-center justify-between gap-3">
-        <span>© Aegis — MIT licensed</span>
-        <span>v1.0.0</span>
-      </footer>
+        <p
+          className="mt-10 font-mono text-[11px] max-w-[60ch] leading-[1.6]"
+          style={{ color: "var(--dim)" }}
+        >
+          Aegis uses bank-grade aggregators with read-only OAuth scopes. Aegis never
+          stores your bank credentials — only the tokens the aggregator hands back, and
+          those can be revoked at any time. By continuing you agree to the{" "}
+          <Link href="/docs" style={{ color: "var(--accent)" }}>
+            data-handling notes
+          </Link>
+          .
+        </p>
+
+        <div className="mt-10 flex items-center justify-between gap-3">
+          <Link href="/login" className="btn-galaxy ghost">
+            <ArrowLeft size={14} /> Back
+          </Link>
+          <Link href="/" className="btn-galaxy">
+            Continue <ArrowRight size={14} />
+          </Link>
+        </div>
+      </motion.main>
     </div>
   );
 }

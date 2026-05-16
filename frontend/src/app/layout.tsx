@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/ui/providers";
 import { AuthGate } from "@/components/auth/auth-gate";
+import { Backdrop } from "@/components/shell/backdrop";
 import { cn } from "@/lib/utils";
 
 const inter = Inter({
@@ -33,9 +34,19 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn(inter.variable, mono.variable, serif.variable, "antialiased font-sans")}>
+      <body
+        className={cn(
+          inter.variable,
+          mono.variable,
+          serif.variable,
+          "antialiased font-sans theme-observatory"
+        )}
+      >
         <Providers>
-          <AuthGate>{children}</AuthGate>
+          <Backdrop />
+          <div className="relative z-[1]">
+            <AuthGate>{children}</AuthGate>
+          </div>
         </Providers>
       </body>
     </html>
