@@ -262,7 +262,10 @@ def detect_anomalies(
 
 
 @router.post("/import/preview", response_model=ImportPreviewResponse)
-async def import_preview(file: UploadFile = File(...)):
+async def import_preview(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
     if not file.filename or not file.filename.endswith(".csv"):
         raise HTTPException(status_code=400, detail="Only CSV files are supported")
 
