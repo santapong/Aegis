@@ -21,13 +21,29 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Permissions-Policy"] = (
             "camera=(), microphone=(), geolocation=(), payment=(self)"
         )
+        # HSTS: only meaningful on HTTPS — browsers ignore it on plain HTTP,
+        # so it's safe to send always. 1 year + subdomains is the Google /
+        # OWASP-recommended baseline.
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains"
+        )
+        # CSP: 'unsafe-inline' stays because Next.js inlines small bootstrap
+        # scripts and CSS-in-JS chunks. 'unsafe-eval' is intentionally NOT
+        # listed — production Next builds don't need eval, and including it
+        # widens the XSS blast radius significantly. Google Identity Services
+        # is allowlisted under script/frame/connect-src for the sign-in flow.
         response.headers["Content-Security-Policy"] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com; "
-            "style-src 'self' 'unsafe-inline'; "
+            "script-src 'self' 'unsafe-inline' "
+            "https://js.stripe.com "
+            "https://accounts.google.com https://apis.google.com; "
+            "style-src 'self' 'unsafe-inline' https://accounts.google.com; "
             "img-src 'self' data: https:; "
-            "connect-src 'self' https://api.stripe.com; "
-            "frame-src https://js.stripe.com https://hooks.stripe.com; "
+            "connect-src 'self' "
+            "https://api.stripe.com "
+            "https://accounts.google.com https://oauth2.googleapis.com; "
+            "frame-src https://js.stripe.com https://hooks.stripe.com "
+            "https://accounts.google.com; "
             "font-src 'self' data:;"
         )
 

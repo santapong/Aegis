@@ -1,0 +1,122 @@
+name: build-and-push
+
+# Builds + publishes both Aegis images to the configured registries on every
+# push to main. GHCR is always pushed (uses GITHUB_TOKEN). ECR and Artifact
+# Registry are conditional — they only run when the operator has provided the
+# corresponding deploy credentials as repository secrets:
+#   AWS_DEPLOY_ROLE_ARN  → ECR push via OIDC role
+#   ECR_REGISTRY         → e.g. 123456789012.dkr.ecr.us-east-1.amazonaws.com
+#   ECR_REGION           → e.g. us-east-1
+#   GCP_DEPLOY_SA_KEY    → JSON service-account key (or use OIDC)
+#   GAR_LOCATION         → e.g. us-central1
+#   GAR_PROJECT          → GCP project ID
+#   GAR_REPOSITORY       → Artifact Registry repository name
+# Untagged version-releases still go through .github/workflows/release.yml.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write   # required for AWS / GCP OIDC
+
+jobs:
+  publish:
+    name: Build & publish ${{ matrix.image }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image: aegis-backend
+            context: ./backend
+            dockerfile: ./backend/Dockerfile
+          - image: aegis-frontend
+            context: ./frontend
+            dockerfile: ./frontend/Dockerfile
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # --- GHCR (always) -----------------------------------------------------
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: GHCR metadata
+        id: meta_ghcr
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      # --- ECR (conditional) -------------------------------------------------
+      - name: Configure AWS credentials
+        if: ${{ vars.ECR_REGISTRY != '' && secrets.AWS_DEPLOY_ROLE_ARN != '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.ECR_REGION }}
+
+      - name: Log in to ECR
+        if: ${{ vars.ECR_REGISTRY != '' && secrets.AWS_DEPLOY_ROLE_ARN != '' }}
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: ECR metadata
+        if: ${{ vars.ECR_REGISTRY != '' && secrets.AWS_DEPLOY_ROLE_ARN != '' }}
+        id: meta_ecr
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ vars.ECR_REGISTRY }}/${{ matrix.image }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      # --- Artifact Registry (conditional) -----------------------------------
+      - name: Authenticate to Google Cloud
+        if: ${{ vars.GAR_PROJECT != '' && secrets.GCP_DEPLOY_SA_KEY != '' }}
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_DEPLOY_SA_KEY }}
+
+      - name: Log in to Artifact Registry
+        if: ${{ vars.GAR_PROJECT != '' && secrets.GCP_DEPLOY_SA_KEY != '' }}
+        run: |
+          gcloud auth configure-docker ${{ vars.GAR_LOCATION }}-docker.pkg.dev --quiet
+
+      - name: Artifact Registry metadata
+        if: ${{ vars.GAR_PROJECT != '' && secrets.GCP_DEPLOY_SA_KEY != '' }}
+        id: meta_gar
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ vars.GAR_LOCATION }}-docker.pkg.dev/${{ vars.GAR_PROJECT }}/${{ vars.GAR_REPOSITORY }}/${{ matrix.image }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=short
+
+      # --- Build once, push to every registry --------------------------------
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: |
+            ${{ steps.meta_ghcr.outputs.tags }}
+            ${{ steps.meta_ecr.outputs.tags }}
+            ${{ steps.meta_gar.outputs.tags }}
+          labels: ${{ steps.meta_ghcr.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

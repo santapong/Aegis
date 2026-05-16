@@ -107,14 +107,26 @@ export default function PlansPage() {
     router.replace("/plans");
   }, [searchParams, router]);
 
+  // Pagination — request one extra row to detect "has more" cheaply.
+  const PAGE_STEP = 30;
+  const [pageSize, setPageSize] = useState(PAGE_STEP);
+
+  useEffect(() => {
+    setPageSize(PAGE_STEP);
+  }, [categoryFilter, statusFilter]);
+
   const queryParams: Record<string, string> = {};
   if (categoryFilter !== "all") queryParams.category = categoryFilter;
   if (statusFilter !== "all") queryParams.status = statusFilter;
+  queryParams.limit = String(pageSize + 1);
+  queryParams.offset = "0";
 
-  const { data: plans, isLoading } = useQuery<Plan[]>({
-    queryKey: ["plans", queryParams],
+  const { data: rawPlans, isLoading } = useQuery<Plan[]>({
+    queryKey: ["plans", categoryFilter, statusFilter, pageSize],
     queryFn: () => plansAPI.list(queryParams) as Promise<Plan[]>,
   });
+  const hasMore = (rawPlans?.length ?? 0) > pageSize;
+  const plans = rawPlans?.slice(0, pageSize);
 
   const createMutation = useMutation({
     mutationFn: (data: Record<string, unknown>) => plansAPI.create(data),
@@ -324,7 +336,8 @@ export default function PlansPage() {
           ))}
         </div>
       ) : plans && plans.length > 0 ? (
-        viewMode === "grid" ? (
+        <>
+        {viewMode === "grid" ? (
           <motion.div
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
             variants={staggerContainer}
@@ -467,7 +480,27 @@ export default function PlansPage() {
               </table>
             </div>
           </Card>
-        )
+        )}
+        <div
+          className="flex items-center justify-between gap-4 mt-4 px-1"
+          style={{ fontSize: 12 }}
+        >
+          <span className="text-muted-foreground">
+            Showing {plans.length}
+            {hasMore ? "+" : ""} plan
+            {plans.length === 1 ? "" : "s"}
+          </span>
+          {hasMore && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setPageSize((p) => p + PAGE_STEP)}
+            >
+              Load {PAGE_STEP} more
+            </Button>
+          )}
+        </div>
+        </>
       ) : (
         <EmptyState
           icon={Target}

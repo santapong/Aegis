@@ -2,7 +2,13 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useToastStore } from "@/stores/toast-store";
 import type { NotificationListResponse, Notification, Transaction } from "@/types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Same-origin by default — the browser hits `/api/*` and Next.js
+// rewrites (server-side) to BACKEND_INTERNAL_URL. Override with
+// NEXT_PUBLIC_API_URL only if you intentionally want the browser to
+// reach the backend directly (e.g. to bypass Vercel's response buffering
+// for streaming AI responses). Empty string falls through to relative
+// `/api/...` URLs which the rewrite handles.
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export class APIError extends Error {
   status: number;
@@ -94,6 +100,17 @@ export const authAPI = {
     fetchJSON<{ access_token: string; token_type: string }>(
       "/api/auth/login",
       { method: "POST", body: JSON.stringify(data) }
+    ),
+  /**
+   * Exchange a Google Identity Services credential (ID token) for an
+   * Aegis JWT. Backend verifies the credential's signature against
+   * Google's public certs, then either signs in the matched user or
+   * creates a new account (auto-linking by email when applicable).
+   */
+  googleSignIn: (credential: string) =>
+    fetchJSON<{ access_token: string; token_type: string }>(
+      "/api/auth/google",
+      { method: "POST", body: JSON.stringify({ credential }) }
     ),
   me: () => fetchJSON<AuthUser>("/api/auth/me"),
   markOnboarded: () => fetchJSON<AuthUser>("/api/auth/onboarded", { method: "POST" }),

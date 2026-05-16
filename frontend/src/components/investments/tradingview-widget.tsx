@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useAppStore } from "@/stores/app-store";
 
 interface TradingViewWidgetProps {
   symbol: string;
@@ -13,12 +12,11 @@ interface TradingViewWidgetProps {
  * a direct child of an empty container, and the widget config is encoded
  * inside it as JSON — that's how TradingView's loader discovers it.
  *
- * Re-mounts when `symbol` or theme changes, since the widget reads its
- * config once on script execution.
+ * Re-mounts only when `symbol` or `height` change. The widget always
+ * uses dark mode since all Aegis cosmic themes share a dark surface.
  */
 export function TradingViewWidget({ symbol, height = 220 }: TradingViewWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const theme = useAppStore((s) => s.theme);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -36,7 +34,7 @@ export function TradingViewWidget({ symbol, height = 220 }: TradingViewWidgetPro
       width: "100%",
       height,
       locale: "en",
-      colorTheme: theme === "dark" ? "dark" : "light",
+      colorTheme: "dark",
       isTransparent: true,
       showVolume: false,
       showMA: false,
@@ -60,7 +58,7 @@ export function TradingViewWidget({ symbol, height = 220 }: TradingViewWidgetPro
     return () => {
       container.innerHTML = "";
     };
-  }, [symbol, theme, height]);
+  }, [symbol, height]);
 
   return (
     <div

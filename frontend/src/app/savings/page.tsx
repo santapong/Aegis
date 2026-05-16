@@ -33,7 +33,7 @@ export default function SavingsPage() {
     current_amount: "0",
     deadline: "",
     category: "general",
-    color: "#3B82F6",
+    color: "#5ad8ff",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [contributeError, setContributeError] = useState<string>("");

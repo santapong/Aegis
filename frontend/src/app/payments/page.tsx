@@ -22,35 +22,50 @@ import {
 } from "lucide-react";
 import type { Payment, StripeConfig } from "@/types";
 
+const PAGE_STEP = 25;
+
 export default function PaymentsPage() {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [payments, setPayments] = useState<Payment[]>([]);
+  // `pageSize` drives the server-side `limit`; we request one extra row
+  // so we can show "Load more" without a separate count call.
+  const [pageSize, setPageSize] = useState(PAGE_STEP);
+  const [hasMore, setHasMore] = useState(false);
   const [config, setConfig] = useState<StripeConfig | null>(null);
   const { toast } = useToast();
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    loadData();
+    loadPayments(pageSize);
+    if (!config) {
+      paymentsAPI
+        .config()
+        .then((c) => setConfig(c as StripeConfig))
+        .catch(() => {
+          /* config may fail if Stripe isn't set up */
+        });
+    }
     const status = searchParams.get("status");
     if (status === "success") {
       toast.success("Payment completed successfully!");
     } else if (status === "cancelled") {
       toast.info("Payment was cancelled");
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageSize]);
 
-  const loadData = async () => {
+  const loadPayments = async (size: number) => {
     try {
-      const [configData, paymentsData] = await Promise.all([
-        paymentsAPI.config() as Promise<StripeConfig>,
-        paymentsAPI.list() as Promise<Payment[]>,
-      ]);
-      setConfig(configData);
-      setPayments(paymentsData);
+      const rows = (await paymentsAPI.list({
+        limit: String(size + 1),
+        offset: "0",
+      })) as Payment[];
+      setHasMore(rows.length > size);
+      setPayments(rows.slice(0, size));
     } catch {
-      // Config may fail if not set up
+      // Backend may be unavailable; keep previous state.
     }
   };
 
@@ -237,6 +252,25 @@ export default function PaymentsPage() {
                       </div>
                     </div>
                   ))}
+                  <div
+                    className="flex items-center justify-between gap-4 pt-3 mt-2 border-t border-border"
+                    style={{ fontSize: 12 }}
+                  >
+                    <span className="text-muted-foreground">
+                      Showing {payments.length}
+                      {hasMore ? "+" : ""} payment
+                      {payments.length === 1 ? "" : "s"}
+                    </span>
+                    {hasMore && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setPageSize((p) => p + PAGE_STEP)}
+                      >
+                        Load {PAGE_STEP} more
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
             </CardContent>

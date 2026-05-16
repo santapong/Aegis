@@ -23,6 +23,14 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440  # 24 hours
 
+    # Google OAuth — optional. When set, /api/auth/google accepts Google
+    # ID tokens and signs the user in (or registers them). The same client
+    # ID must be configured in the frontend (NEXT_PUBLIC_GOOGLE_CLIENT_ID)
+    # so Google issues tokens that pass our `aud` check. Leave blank to
+    # disable Google sign-in entirely; the endpoint returns 503 in that
+    # case so the frontend can hide the button gracefully.
+    google_oauth_client_id: str = ""
+
     # AI provider — "anthropic" | "typhoon" | "groq"
     ai_provider: str = "anthropic"
     # Anthropic

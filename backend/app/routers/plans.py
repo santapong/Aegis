@@ -11,8 +11,29 @@ from ..auth import get_current_user
 router = APIRouter(prefix="/api/plans", tags=["plans"])
 
 
+def _validate_parent_ownership(db: Session, parent_id: str | None, user_id: str) -> None:
+    """Reject parent_id values that point at another user's plan.
+
+    Without this, a request body could set ``parent_id`` to any UUID and
+    create cross-tenant sub-task linkage in the Gantt view. Treat a
+    missing parent the same as "no parent" — 404 keeps the error
+    indistinguishable from a wrong UUID, which avoids leaking whether a
+    given id exists elsewhere.
+    """
+    if parent_id is None:
+        return
+    exists = (
+        db.query(Plan.id)
+        .filter(Plan.id == parent_id, Plan.user_id == user_id)
+        .first()
+    )
+    if exists is None:
+        raise HTTPException(status_code=404, detail="Parent plan not found")
+
+
 @router.post("/", response_model=PlanResponse, status_code=201)
 def create_plan(plan: PlanCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    _validate_parent_ownership(db, getattr(plan, "parent_id", None), current_user.id)
     db_plan = Plan(**plan.model_dump(), user_id=current_user.id)
     db.add(db_plan)
     db.commit()
@@ -56,7 +77,12 @@ def update_plan(plan_id: str, plan_update: PlanUpdate, db: Session = Depends(get
     plan = db.query(Plan).filter(Plan.id == plan_id, Plan.user_id == current_user.id).first()
     if not plan:
         raise HTTPException(status_code=404, detail="Plan not found")
-    for field, value in plan_update.model_dump(exclude_unset=True).items():
+    update_data = plan_update.model_dump(exclude_unset=True)
+    if "parent_id" in update_data:
+        _validate_parent_ownership(db, update_data["parent_id"], current_user.id)
+        if update_data["parent_id"] == plan_id:
+            raise HTTPException(status_code=400, detail="A plan cannot be its own parent")
+    for field, value in update_data.items():
         setattr(plan, field, value)
     db.commit()
     db.refresh(plan)
