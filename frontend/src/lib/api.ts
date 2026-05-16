@@ -101,6 +101,17 @@ export const authAPI = {
       "/api/auth/login",
       { method: "POST", body: JSON.stringify(data) }
     ),
+  /**
+   * Exchange a Google Identity Services credential (ID token) for an
+   * Aegis JWT. Backend verifies the credential's signature against
+   * Google's public certs, then either signs in the matched user or
+   * creates a new account (auto-linking by email when applicable).
+   */
+  googleSignIn: (credential: string) =>
+    fetchJSON<{ access_token: string; token_type: string }>(
+      "/api/auth/google",
+      { method: "POST", body: JSON.stringify({ credential }) }
+    ),
   me: () => fetchJSON<AuthUser>("/api/auth/me"),
   markOnboarded: () => fetchJSON<AuthUser>("/api/auth/onboarded", { method: "POST" }),
 };

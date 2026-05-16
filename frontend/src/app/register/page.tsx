@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, User, Check } from "lucide-react";
 import { authAPI } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth-store";
 import { CodeChip } from "@/components/shell/code-chip";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in";
 import { cn } from "@/lib/utils";
 
 type Tier = "starter" | "navigator";
@@ -82,6 +83,23 @@ export default function RegisterPage() {
     }
   };
 
+  const handleGoogleCredential = useCallback(
+    async (credential: string) => {
+      setError("");
+      try {
+        const tokenRes = await authAPI.googleSignIn(credential);
+        setToken(tokenRes.access_token);
+        const userRes = await authAPI.me();
+        login(tokenRes.access_token, userRes);
+        router.push("/");
+      } catch (err: unknown) {
+        const e = err as { detail?: string; message?: string };
+        setError(e.detail || e.message || "Google sign-in failed");
+      }
+    },
+    [router, login, setToken]
+  );
+
   return (
     <div className="auth-split">
       <aside className="auth-aside">
@@ -150,6 +168,19 @@ export default function RegisterPage() {
           >
             Create account
           </h2>
+
+          <GoogleSignInButton onCredential={handleGoogleCredential} label="signup_with" />
+
+          {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
+            <div
+              className="my-5 flex items-center gap-3 font-mono text-[10px] tracking-[1.6px] uppercase"
+              style={{ color: "var(--dim-2)" }}
+            >
+              <span style={{ flex: 1, height: 1, background: "var(--pane-edge)" }} />
+              <span>or email</span>
+              <span style={{ flex: 1, height: 1, background: "var(--pane-edge)" }} />
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (

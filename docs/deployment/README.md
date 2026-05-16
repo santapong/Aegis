@@ -64,6 +64,20 @@ These appear in every recipe; the deeper docs cover platform-specific details.
 
 Full list with defaults: [`backend/.env.example`](../../backend/.env.example).
 
+## Google sign-in (optional)
+
+Aegis supports Google ID-token sign-in alongside email/password. To enable it on any of the recipes:
+
+1. Go to [Google Cloud Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials).
+2. **Create credentials → OAuth client ID → Web application**.
+3. **Authorized JavaScript origins**: every URL the frontend loads from. For a Vercel deploy this means `https://your-app.vercel.app`, your custom domain, *and* `http://localhost:3000` for local dev. Vercel preview-deploy URLs change per-PR, so add a wildcard pattern if you need them.
+4. **Authorized redirect URIs**: leave blank — Aegis uses the ID-token flow (Google Identity Services), not the redirect flow. The button issues a credential client-side and POSTs it to `/api/auth/google`.
+5. Copy the **Client ID** (looks like `XXXX.apps.googleusercontent.com`).
+6. Set `GOOGLE_OAUTH_CLIENT_ID` on the backend and `NEXT_PUBLIC_GOOGLE_CLIENT_ID` on the frontend to the same value. Both are required.
+7. Redeploy. The Google button appears on `/login` and `/register` automatically; if either env var is missing, the button hides gracefully and the email/password form remains usable.
+
+Auto-link behavior: if a Google account's email matches an existing email/password user, the next Google sign-in attaches the Google `sub` claim to that user. The original password keeps working — there are now two ways to log in.
+
 ## Health check
 
 The backend exposes `GET /api/health` returning `{ ok, db, error }`. Wire this into every load balancer / probe — ALB target group, App Runner health check, Cloud Run liveness probe, docker-compose healthcheck. The check verifies a real `SELECT 1` against the database so a healthy response means the app can actually serve traffic.
