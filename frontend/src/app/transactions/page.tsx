@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { transactionsAPI, tagsAPI, tripsAPI } from "@/lib/api";
@@ -77,16 +77,31 @@ export default function TransactionsPage() {
   const [form, setForm] = useState(defaultForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Pagination — server returns at most `pageSize + 1` rows so we can
+  // detect whether there's another page without a separate count query.
+  // `pageSize` grows by PAGE_STEP each time the user clicks "Load more".
+  const PAGE_STEP = 50;
+  const [pageSize, setPageSize] = useState(PAGE_STEP);
+
   const queryParams: Record<string, string> = {};
   if (filters.type) queryParams.type = filters.type;
   if (filters.category) queryParams.category = filters.category;
   if (filters.start_date) queryParams.start_date = filters.start_date;
   if (filters.end_date) queryParams.end_date = filters.end_date;
+  queryParams.limit = String(pageSize + 1);
+  queryParams.offset = "0";
 
-  const { data: transactions, isLoading } = useQuery<Transaction[]>({
-    queryKey: ["transactions", queryParams],
+  // Reset visible page back to one chunk whenever filters change.
+  useEffect(() => {
+    setPageSize(PAGE_STEP);
+  }, [filters.type, filters.category, filters.start_date, filters.end_date]);
+
+  const { data: rawTransactions, isLoading } = useQuery<Transaction[]>({
+    queryKey: ["transactions", filters, pageSize],
     queryFn: () => transactionsAPI.list(queryParams) as Promise<Transaction[]>,
   });
+  const hasMore = (rawTransactions?.length ?? 0) > pageSize;
+  const transactions = rawTransactions?.slice(0, pageSize);
 
   const { data: summary } = useQuery<TransactionSummary>({
     queryKey: ["transaction-summary", filters.start_date, filters.end_date],
@@ -557,6 +572,25 @@ export default function TransactionsPage() {
                           </div>
                         </div>
                       ))}
+                    </div>
+                    <div
+                      className="flex items-center justify-between gap-4 px-4 py-3 border-t border-border"
+                      style={{ fontSize: 12 }}
+                    >
+                      <span className="text-muted-foreground">
+                        Showing {transactions.length}
+                        {hasMore ? "+" : ""} transaction
+                        {transactions.length === 1 ? "" : "s"}
+                      </span>
+                      {hasMore && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setPageSize((p) => p + PAGE_STEP)}
+                        >
+                          Load {PAGE_STEP} more
+                        </Button>
+                      )}
                     </div>
                   </>
                 ) : (
