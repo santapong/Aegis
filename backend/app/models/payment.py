@@ -20,7 +20,7 @@ class Payment(Base):
     __tablename__ = "payments"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("users.id"), nullable=True, index=True)
+    user_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
     stripe_payment_id: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     stripe_customer_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     stripe_session_id: Mapped[str | None] = mapped_column(String(255), nullable=True, unique=True)

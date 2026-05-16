@@ -94,7 +94,11 @@ These are starting points — tune based on your DB's `max_connections` and your
 
 Backend instances × `(DB_POOL_SIZE + DB_MAX_OVERFLOW)` must stay under your DB's `max_connections`. On Neon free tier (100 conn limit) you can run ~50 backend pods of size 2+2; on RDS db.t3.micro (max 87) about 4 pods of 10+10.
 
-## What's NOT supported (and why)
+## Want analytics on a warehouse?
+
+The 🔴 column above (Redshift, BigQuery, Spanner, PlanetScale) covers databases that **shouldn't be Aegis's primary store** — but Redshift / BigQuery / Snowflake / ClickHouse make excellent analytics targets *downstream* of the operational Postgres. See [`docs/analytics-warehouses.md`](./analytics-warehouses.md) for the CDC pipeline patterns, per-warehouse target schemas, and the `/api/export/*.ndjson` bootstrap endpoints.
+
+## What's NOT supported as primary DB (and why)
 
 **AWS Redshift** is a column-store analytics warehouse. It does row-level UPDATE/DELETE only as a costly rewrite of entire columns. Aegis writes one row per transaction-create API call — Redshift would be 10–100× slower per call and significantly more expensive. If you want analytics on top of Aegis, use a CDC pipeline (Debezium, Fivetran) to replicate from your OLTP Postgres into Redshift for BI tools to query.
 

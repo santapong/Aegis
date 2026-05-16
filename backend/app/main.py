@@ -11,6 +11,7 @@ from .config import get_settings
 from .database import SessionLocal, engine
 from .logging_config import configure_logging
 from .middleware import (
+    BodySizeLimitMiddleware,
     RateLimitMiddleware,
     RequestIDMiddleware,
     SecurityHeadersMiddleware,
@@ -32,6 +33,7 @@ from .routers import (
     trips,
     preferences,
     investments,
+    export,
 )
 
 settings = get_settings()
@@ -78,6 +80,7 @@ app = FastAPI(
 # every downstream log line (including SecurityHeadersMiddleware's request log).
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware, requests_per_minute=settings.rate_limit_per_minute)
+app.add_middleware(BodySizeLimitMiddleware, max_bytes=settings.max_request_body_bytes)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -105,6 +108,7 @@ app.include_router(notifications.router)
 app.include_router(trips.router)
 app.include_router(preferences.router)
 app.include_router(investments.router)
+app.include_router(export.router)
 
 
 def _db_backend(url: str) -> str:

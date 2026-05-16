@@ -29,8 +29,16 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       login: (token, user) =>
         set({ token, user, isAuthenticated: true }),
-      logout: () =>
-        set({ token: null, user: null, isAuthenticated: false }),
+      logout: () => {
+        // Best-effort: ask the backend to clear the httpOnly cookie.
+        // Fire-and-forget — the local state is wiped either way so a
+        // network failure here can't trap the user in a logged-in UI.
+        // Lazy-import to avoid circular dep with lib/api.
+        import("@/lib/api")
+          .then(({ authAPI }) => authAPI.logout().catch(() => {}))
+          .catch(() => {});
+        set({ token: null, user: null, isAuthenticated: false });
+      },
       setUser: (user) => set({ user }),
       setToken: (token) => set({ token }),
     }),

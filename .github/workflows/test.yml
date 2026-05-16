@@ -1,0 +1,150 @@
+name: test
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Cancel in-progress runs when a new push lands on the same branch —
+# saves Actions minutes and keeps the PR check status moving.
+concurrency:
+  group: test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: backend (${{ matrix.db }} / py${{ matrix.python }})
+    runs-on: ubuntu-latest
+
+    # Cross-DB matrix: every PR runs the tests against SQLite (fast,
+    # always works) and PostgreSQL (the prod target). MySQL is a
+    # nightly job — see `mysql` schedule below.
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.11", "3.12"]
+        db: [sqlite, postgres]
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: aegis_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DEBUG: "true"
+      JWT_SECRET_KEY: "ci-only-test-secret-32-bytes-padding-pad"
+      CACHE_BACKEND: "redis"
+      CACHE_REDIS_URL: "redis://localhost:6379/0"
+      DATABASE_URL: ${{ matrix.db == 'postgres' && 'postgresql://postgres:test@localhost:5432/aegis_test' || 'sqlite:///./ci.db' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install backend deps
+        working-directory: backend
+        run: uv pip install --system -e ".[test]"
+
+      - name: Lint (ruff)
+        working-directory: backend
+        # Non-blocking — ruff isn't a project dependency yet. When it
+        # graduates to required, drop `continue-on-error`.
+        continue-on-error: true
+        run: |
+          pip install ruff
+          ruff check app/
+
+      - name: Static security scan (bandit)
+        working-directory: backend
+        continue-on-error: true
+        run: |
+          pip install bandit
+          bandit -r app/ -ll
+
+      - name: Run alembic migrations
+        working-directory: backend
+        run: alembic upgrade head
+
+      - name: Run pytest
+        working-directory: backend
+        run: pytest -v --tb=short
+
+  frontend:
+    name: frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install
+        working-directory: frontend
+        run: npm ci
+      - name: Type-check
+        working-directory: frontend
+        run: npx tsc --noEmit
+      - name: Build
+        working-directory: frontend
+        env:
+          # Avoid telemetry network calls in CI.
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: npm run build
+
+  security:
+    name: security scan (trivy)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy filesystem scan
+        # Catches vulnerable dependencies in pyproject.toml and package.json
+        # before they ship. SARIF output gets uploaded to the GitHub
+        # Security tab for review.
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+        continue-on-error: true
+
+      - name: Upload Trivy results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+        continue-on-error: true

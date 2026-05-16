@@ -70,6 +70,14 @@ class Settings(BaseSettings):
 
     # Rate Limiting
     rate_limit_per_minute: int = 100
+    # Honor X-Forwarded-For when bucketing requests. Only enable after
+    # verifying your proxy chain strips inbound XFF headers from clients
+    # — otherwise an attacker can spoof IPs to evade the limit.
+    rate_limit_trust_forwarded_for: bool = False
+    # Max request body in bytes. Applied at the middleware layer so
+    # FastAPI never even tries to parse oversized payloads. Default 2 MB
+    # is generous for JSON; the CSV import path has its own 5 MB cap.
+    max_request_body_bytes: int = 2 * 1024 * 1024
 
     # Cache — see backend/app/cache.py. "memory" is fine for one pod;
     # "redis" is required as soon as you have multiple uvicorn workers or

@@ -24,7 +24,7 @@ class Notification(Base):
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), nullable=False, index=True)
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     type: Mapped[NotificationType] = mapped_column(
         Enum(NotificationType, native_enum=False, length=32),
         nullable=False,

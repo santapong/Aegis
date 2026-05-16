@@ -1,7 +1,7 @@
 import re
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -15,9 +15,11 @@ from ..schemas.auth import (
     UserResponse,
 )
 from ..auth import (
+    clear_auth_cookie,
     create_access_token,
     get_current_user,
     hash_password,
+    set_auth_cookie,
     verify_google_id_token,
     verify_password,
 )
@@ -64,7 +66,7 @@ def register(data: UserRegister, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(data: UserLogin, db: Session = Depends(get_db)):
+def login(data: UserLogin, response: Response, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
     if not user or not verify_password(data.password, user.hashed_password):
         raise HTTPException(
@@ -75,11 +77,29 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=403, detail="Account is deactivated")
 
     token = create_access_token(user.id)
+    # Set the httpOnly cookie for browser clients AND return the token
+    # in the body for native API clients (CLI / mobile). The frontend
+    # ignores the body field — its requests use the cookie via
+    # credentials: 'include'.
+    set_auth_cookie(response, token)
     return TokenResponse(access_token=token)
 
 
+@router.post("/logout", status_code=204)
+def logout(response: Response):
+    """Clear the session cookie.
+
+    Note: this does NOT revoke the JWT itself — token revocation needs a
+    server-side denylist (Redis), tracked as a separate follow-up. For
+    now, "logout" means the browser stops sending the cookie; an
+    attacker who already captured the JWT can still use it via header
+    until its natural expiry (24 h default).
+    """
+    clear_auth_cookie(response)
+
+
 @router.post("/google", response_model=TokenResponse)
-def google_sign_in(data: GoogleSignInRequest, db: Session = Depends(get_db)):
+def google_sign_in(data: GoogleSignInRequest, response: Response, db: Session = Depends(get_db)):
     """Sign in (or register) via a Google ID token.
 
     Accepts the credential JWT issued by Google Identity Services in the
@@ -149,6 +169,7 @@ def google_sign_in(data: GoogleSignInRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=403, detail="Account is deactivated")
 
     token = create_access_token(user.id)
+    set_auth_cookie(response, token)
     return TokenResponse(access_token=token)
 
 

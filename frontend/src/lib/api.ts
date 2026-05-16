@@ -45,13 +45,19 @@ function notifySessionExpired() {
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const isPublic = PUBLIC_ENDPOINTS.some((p) => url.startsWith(p));
-  const token = isPublic ? null : useAuthStore.getState().token;
+  // Auth is now cookie-based — the backend sets an httpOnly cookie on
+  // login that the browser auto-attaches when `credentials: 'include'`
+  // is set. For backward-compat with users mid-migration, if a token
+  // is still in the store we also send it as a Bearer header; the
+  // backend prefers the cookie when both are present.
+  const legacyToken = isPublic ? null : useAuthStore.getState().token;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(legacyToken ? { Authorization: `Bearer ${legacyToken}` } : {}),
   };
   const res = await fetch(`${API_BASE}${url}`, {
     headers,
+    credentials: "include",
     ...init,
   });
   if (res.status === 401) {
@@ -113,6 +119,9 @@ export const authAPI = {
       { method: "POST", body: JSON.stringify({ credential }) }
     ),
   me: () => fetchJSON<AuthUser>("/api/auth/me"),
+  /** Clear the httpOnly session cookie server-side. The client store
+   *  is wiped separately by useAuthStore.logout(). */
+  logout: () => fetchJSON<void>("/api/auth/logout", { method: "POST" }),
   markOnboarded: () => fetchJSON<AuthUser>("/api/auth/onboarded", { method: "POST" }),
 };
 

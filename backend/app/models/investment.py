@@ -20,7 +20,7 @@ class Investment(Base):
     __tablename__ = "investments"
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), nullable=False, index=True)
+    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     tradingview_symbol: Mapped[str] = mapped_column(String(64), nullable=False)
     units: Mapped[float] = mapped_column(Numeric(18, 6), nullable=False, default=0)
