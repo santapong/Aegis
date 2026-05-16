@@ -90,20 +90,20 @@ const clusters: NavCluster[] = [
     index: "01",
     label: "Overview",
     items: [
-      { href: "/", label: "Dashboard", code: "DSH", icon: LayoutDashboard, k: "⌘1", tourId: "sidebar-dashboard" },
-      { href: "/transactions", label: "Transactions", code: "TXN", icon: ArrowLeftRight, k: "⌘2", tourId: "sidebar-transactions" },
-      { href: "/reports", label: "Reports", code: "RPT", icon: BarChart3, k: "⌘3" },
+      { href: "/", label: "Dashboard", code: "DSH", icon: LayoutDashboard, k: "⌘⇧1", tourId: "sidebar-dashboard" },
+      { href: "/transactions", label: "Transactions", code: "TXN", icon: ArrowLeftRight, k: "⌘⇧2", tourId: "sidebar-transactions" },
+      { href: "/reports", label: "Reports", code: "RPT", icon: BarChart3, k: "⌘⇧3" },
     ],
   },
   {
     index: "02",
     label: "Money",
     items: [
-      { href: "/budgets", label: "Budgets", code: "BDG", icon: Wallet, k: "⌘4", tourId: "sidebar-budgets" },
-      { href: "/savings", label: "Savings", code: "SAV", icon: PiggyBank, k: "⌘5" },
-      { href: "/investments", label: "Investments", code: "INV", icon: TrendingUp, k: "⌘6" },
-      { href: "/debts", label: "Debts", code: "DBT", icon: Banknote, k: "⌘7" },
-      { href: "/payments", label: "Payments", code: "PAY", icon: Receipt, k: "⌘8" },
+      { href: "/budgets", label: "Budgets", code: "BDG", icon: Wallet, k: "⌘⇧4", tourId: "sidebar-budgets" },
+      { href: "/savings", label: "Savings", code: "SAV", icon: PiggyBank, k: "⌘⇧5" },
+      { href: "/investments", label: "Investments", code: "INV", icon: TrendingUp, k: "⌘⇧6" },
+      { href: "/debts", label: "Debts", code: "DBT", icon: Banknote, k: "⌘⇧7" },
+      { href: "/payments", label: "Payments", code: "PAY", icon: Receipt, k: "⌘⇧8" },
     ],
   },
   {
@@ -121,7 +121,7 @@ const clusters: NavCluster[] = [
     label: "System",
     items: [
       { href: "/docs", label: "Docs", code: "DOC", icon: BookOpen, k: "⇧/" },
-      { href: "/settings", label: "Settings", code: "SET", icon: Settings, k: "⌘," },
+      { href: "/settings", label: "Settings", code: "SET", icon: Settings, k: "⌘⇧," },
       { href: "/welcome", label: "Onboarding", code: "WEL", icon: Compass, k: "⇧W" },
     ],
   },
@@ -129,8 +129,13 @@ const clusters: NavCluster[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { sidebarOpen, toggleSidebar, toggleAIPanel } = useAppStore();
-  const { user, logout } = useAuthStore();
+  // Discrete selectors — subscribing to the whole store re-renders the
+  // sidebar (with motion + sparklines) on every unrelated state change.
+  const sidebarOpen = useAppStore((s) => s.sidebarOpen);
+  const toggleSidebar = useAppStore((s) => s.toggleSidebar);
+  const toggleAIPanel = useAppStore((s) => s.toggleAIPanel);
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.innerWidth < 1024) {
@@ -156,6 +161,7 @@ export function Sidebar() {
           onClick={toggleSidebar}
           className="p-2 rounded transition-colors"
           style={{ color: "var(--fg-2)" }}
+          aria-label="Open navigation"
         >
           <Menu size={20} />
         </button>
@@ -170,6 +176,7 @@ export function Sidebar() {
           data-tour-id="ai-advisor"
           className="p-2 rounded transition-colors"
           style={{ color: "var(--fg-2)" }}
+          aria-label="Open AI advisor"
         >
           <Bot size={20} />
         </button>
@@ -362,6 +369,7 @@ export function Sidebar() {
           <button
             onClick={toggleAIPanel}
             data-tour-id="ai-advisor"
+            aria-label={!sidebarOpen ? "AI advisor" : undefined}
             className={cn(
               "w-full grid items-center gap-2.5 px-2.5 py-1.5 rounded text-left transition-colors",
               sidebarOpen ? "grid-cols-[14px_1fr_auto]" : "grid-cols-1 justify-items-center"
@@ -370,10 +378,7 @@ export function Sidebar() {
           >
             <Bot size={14} />
             {sidebarOpen && (
-              <>
-                <span className="text-[12.5px] font-mono">AI Advisor</span>
-                <span className="kbd">⌘A</span>
-              </>
+              <span className="text-[12.5px] font-mono">AI Advisor</span>
             )}
           </button>
 
@@ -407,6 +412,7 @@ export function Sidebar() {
               </div>
               <button
                 onClick={logout}
+                aria-label={!sidebarOpen ? "Sign out" : undefined}
                 className={cn(
                   "w-full grid items-center gap-2.5 px-2.5 py-1.5 rounded text-left transition-colors",
                   sidebarOpen ? "grid-cols-[14px_1fr_auto]" : "grid-cols-1 justify-items-center"
@@ -415,10 +421,7 @@ export function Sidebar() {
               >
                 <LogOut size={14} />
                 {sidebarOpen && (
-                  <>
-                    <span className="text-[12.5px] font-mono">Sign out</span>
-                    <span className="kbd">⌘Q</span>
-                  </>
+                  <span className="text-[12.5px] font-mono">Sign out</span>
                 )}
               </button>
             </>

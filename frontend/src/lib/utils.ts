@@ -41,16 +41,20 @@ export function formatCurrency(amount: number, currency?: string): string {
 }
 
 export function getPriorityColor(priority: string): string {
+  // Returns CSS custom property references so the color resolves against
+  // the active cosmic theme (Observatory cyan / Constellation gold /
+  // Supernova amber). Used in inline `style` and recharts `fill` props;
+  // both contexts resolve CSS vars correctly through SVG inheritance.
   switch (priority) {
     case "critical":
-      return "#EF4444";
+      return "var(--bad)";
     case "high":
-      return "#F59E0B";
+      return "var(--warn)";
     case "medium":
-      return "#3B82F6";
+      return "var(--accent)";
     case "low":
-      return "#6B7280";
+      return "var(--dim)";
     default:
-      return "#6B7280";
+      return "var(--dim)";
   }
 }

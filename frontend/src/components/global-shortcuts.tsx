@@ -40,16 +40,24 @@ export function GlobalShortcuts() {
   useHotkeys("g>i", () => router.push("/trips"), opts);
   useHotkeys("g>o", () => router.push("/docs"), opts);
 
-  // Galaxy cluster shortcuts (handoff spec — sidebar kbd chips)
-  useHotkeys("meta+1, ctrl+1", () => router.push("/"), opts);
-  useHotkeys("meta+2, ctrl+2", () => router.push("/transactions"), opts);
-  useHotkeys("meta+3, ctrl+3", () => router.push("/reports"), opts);
-  useHotkeys("meta+4, ctrl+4", () => router.push("/budgets"), opts);
-  useHotkeys("meta+5, ctrl+5", () => router.push("/savings"), opts);
-  useHotkeys("meta+6, ctrl+6", () => router.push("/investments"), opts);
-  useHotkeys("meta+7, ctrl+7", () => router.push("/debts"), opts);
-  useHotkeys("meta+8, ctrl+8", () => router.push("/payments"), opts);
-  useHotkeys("meta+comma, ctrl+comma", () => router.push("/settings"), opts);
+  // Galaxy cluster shortcuts — using meta+shift+N (not meta+N) to avoid
+  // colliding with the browser's built-in "switch to tab N" binding, which
+  // browsers reserve and `preventDefault` cannot reliably suppress. Same
+  // for settings (meta+shift+comma instead of meta+comma, which the OS
+  // reserves for "Preferences").
+  useHotkeys("meta+shift+1, ctrl+shift+1", () => router.push("/"), opts);
+  useHotkeys("meta+shift+2, ctrl+shift+2", () => router.push("/transactions"), opts);
+  useHotkeys("meta+shift+3, ctrl+shift+3", () => router.push("/reports"), opts);
+  useHotkeys("meta+shift+4, ctrl+shift+4", () => router.push("/budgets"), opts);
+  useHotkeys("meta+shift+5, ctrl+shift+5", () => router.push("/savings"), opts);
+  useHotkeys("meta+shift+6, ctrl+shift+6", () => router.push("/investments"), opts);
+  useHotkeys("meta+shift+7, ctrl+shift+7", () => router.push("/debts"), opts);
+  useHotkeys("meta+shift+8, ctrl+shift+8", () => router.push("/payments"), opts);
+  useHotkeys(
+    "meta+shift+comma, ctrl+shift+comma",
+    () => router.push("/settings"),
+    opts
+  );
   useHotkeys("shift+c", () => router.push("/calendar"), opts);
   useHotkeys("shift+g", () => router.push("/gantt"), opts);
   useHotkeys("shift+t", () => router.push("/trips"), opts);

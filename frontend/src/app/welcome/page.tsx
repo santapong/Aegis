@@ -114,11 +114,16 @@ export default function WelcomePage() {
         </p>
 
         <div className="relative max-w-[420px] mb-8">
+          <label htmlFor="welcome-institution-search" className="sr-only">
+            Search supported institutions
+          </label>
           <Search
             className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
             style={{ color: "var(--dim)" }}
+            aria-hidden
           />
           <input
+            id="welcome-institution-search"
             placeholder="Search 12 supported institutions…"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}

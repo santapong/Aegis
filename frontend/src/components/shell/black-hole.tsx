@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 /**
  * BlackHole — pure-SVG showpiece for the Supernova theme. Two counter-
  * rotating accretion disks (42s + 24s), a photon ring + soft halo, a pure
@@ -9,10 +11,23 @@
  * Positioned by `.bd-blackhole` in globals.css (top-right of the viewport,
  * mix-blend-mode: screen). Only mounted when theme === 'supernova'.
  *
- * Gradient stops come straight from the chat-iterated handoff spec
- * (warmed peach/amber/plum so the disk harmonizes with the amber accent).
+ * Respects `prefers-reduced-motion`: when set, the disks render in a fixed
+ * orientation and the <animateTransform> elements are omitted entirely
+ * (SVG SMIL cannot be paused via CSS, so the component subscribes to
+ * matchMedia and conditionally renders the animation children).
  */
 export function BlackHole() {
+  const [reduceMotion, setReduceMotion] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReduceMotion(mq.matches);
+    update();
+    mq.addEventListener?.("change", update);
+    return () => mq.removeEventListener?.("change", update);
+  }, []);
+
   return (
     <div className="bd-blackhole" aria-hidden>
       <svg viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
@@ -58,15 +73,17 @@ export function BlackHole() {
           <g>
             <ellipse rx="250" ry="72" fill="url(#bh-disk)" />
             <ellipse rx="250" ry="72" fill="url(#bh-doppler)" opacity="0.55" />
-            <animateTransform
-              attributeName="transform"
-              attributeType="XML"
-              type="rotate"
-              from="0"
-              to="360"
-              dur="42s"
-              repeatCount="indefinite"
-            />
+            {!reduceMotion && (
+              <animateTransform
+                attributeName="transform"
+                attributeType="XML"
+                type="rotate"
+                from="0"
+                to="360"
+                dur="42s"
+                repeatCount="indefinite"
+              />
+            )}
           </g>
         </g>
 
@@ -74,16 +91,18 @@ export function BlackHole() {
         <g transform="translate(300 300)">
           <g>
             <ellipse rx="160" ry="38" fill="url(#bh-disk)" opacity="0.9" />
-            <ellipse rx="160" ry="38" fill="url(#bh-doppler)" opacity="0.6" />
-            <animateTransform
-              attributeName="transform"
-              attributeType="XML"
-              type="rotate"
-              from="360"
-              to="0"
-              dur="24s"
-              repeatCount="indefinite"
-            />
+            <ellipse rx="160" ry="38" fill="url(#bh-doppler)" opacity="0.55" />
+            {!reduceMotion && (
+              <animateTransform
+                attributeName="transform"
+                attributeType="XML"
+                type="rotate"
+                from="360"
+                to="0"
+                dur="24s"
+                repeatCount="indefinite"
+              />
+            )}
           </g>
         </g>
 

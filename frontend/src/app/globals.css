@@ -69,8 +69,8 @@
 
   --fg:    #e5ecf5;
   --fg-2:  #b6c2d2;
-  --dim:   #6f7c92;
-  --dim-2: #424d5f;
+  --dim:   #8499b3;
+  --dim-2: #6a7488;
 
   --accent:      #5ad8ff;
   --accent-2:    #8aa6c4;
@@ -159,8 +159,8 @@
 
   --fg:    #f3eedf;
   --fg-2:  #cabf9e;
-  --dim:   #897e62;
-  --dim-2: #58513c;
+  --dim:   #a89a78;
+  --dim-2: #8a7f5e;
 
   --accent:      #d4a85a;
   --accent-2:    #f0d99a;
@@ -247,8 +247,8 @@
 
   --fg:    #f4f1ec;
   --fg-2:  #c4bcb0;
-  --dim:   #8a8278;
-  --dim-2: #54514a;
+  --dim:   #a89e90;
+  --dim-2: #8a8278;
 
   --accent:      #e8a85c;
   --accent-2:    #7cc4ff;
@@ -359,6 +359,29 @@ body {
 ::selection {
   background: var(--accent);
   color: var(--void);
+}
+
+/* ===== Focus ring — keyboard navigation ======================================
+ * Browsers were stripped of their default outline by some `focus-visible:outline-none`
+ * declarations; this guarantees a visible focus indicator for keyboard users
+ * (WCAG 2.4.7) on every interactive element across all themes.
+ */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  outline-offset: 3px;
+}
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline-offset: 0;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
 /* ===== Cosmic backdrop ======================================================== */
@@ -777,7 +800,8 @@ body {
   padding: 20px 22px;
   overflow: hidden;
 }
-.theme-constellation .card-galaxy {
+.theme-constellation .card-galaxy,
+.theme-constellation [data-slot="card"] {
   background-image:
     linear-gradient(var(--accent) 0 0),
     linear-gradient(var(--accent) 0 0),
@@ -1105,7 +1129,9 @@ body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  .bd-blackhole animateTransform { display: none; }
+  /* SVG SMIL <animateTransform> can't be disabled via CSS; the BlackHole
+     component reads matchMedia('(prefers-reduced-motion: reduce)') and
+     omits the <animateTransform> children directly. */
 }
 
 /* ===== Animations ============================================================= */

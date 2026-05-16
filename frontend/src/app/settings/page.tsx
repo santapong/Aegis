@@ -118,6 +118,8 @@ export default function SettingsPage() {
                         <button
                           key={meta.name}
                           onClick={() => handleThemePick(meta.name)}
+                          aria-pressed={active}
+                          aria-label={`Apply ${meta.label} theme`}
                           className={cn(
                             "flex flex-col items-stretch gap-3 p-4 rounded transition-all text-left",
                             active
@@ -289,6 +291,9 @@ export default function SettingsPage() {
                           aiAutoSuggestions: !settings.aiAutoSuggestions,
                         })
                       }
+                      role="switch"
+                      aria-checked={settings.aiAutoSuggestions}
+                      aria-label="Toggle AI auto-suggestions"
                       className={cn(
                         "relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
                       )}

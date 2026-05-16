@@ -20,10 +20,21 @@ export function Sparkline({
   showLast = true,
 }: SparklineProps) {
   if (!data.length) return null;
+
+  // Degenerate case: a single point would produce `M0 y` and a dot pinned
+  // to the left edge — render a centered dot instead.
+  if (data.length === 1) {
+    return (
+      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ display: "block" }}>
+        <circle cx={width / 2} cy={height / 2} r={1.8} fill={stroke} />
+      </svg>
+    );
+  }
+
   const min = Math.min(...data);
   const max = Math.max(...data);
   const span = Math.max(1, max - min);
-  const step = data.length > 1 ? width / (data.length - 1) : width;
+  const step = width / (data.length - 1);
   const points = data.map((v, i) => {
     const x = i * step;
     const y = height - ((v - min) / span) * (height - 2) - 1;

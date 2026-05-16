@@ -1,6 +1,6 @@
 ---
 name: frontend-design-team
-description: Coordinate a specialized frontend design team (Design Lead, Visual Designer, Design-System Steward, UI Engineer, Motion Designer, Accessibility Reviewer, Copy Writer, Visual QA) to redesign or extend Aegis frontend pages, themes, and components. Trigger when the user asks to "redesign", "restyle", "reskin", "build a new theme", "improve the design", "design a new page", "the team should design X", or hands off a Claude Design (claude.ai/design) bundle. Also trigger for design polish — typography, palette, spacing, motion, accessibility, copy — anything where visual coherence and design-system fidelity matter more than raw feature work.
+description: Coordinate a specialized frontend design team (Design Lead, Visual Designer, Design-System Steward, UI Engineer, Motion Designer, Accessibility Reviewer, Copy Writer, Visual QA) to redesign or extend Aegis frontend pages, themes, and components. Trigger when the user asks to "redesign", "restyle", "reskin", "build a new theme", "improve the design", "polish the UI", or hands off a Claude Design (claude.ai/design) bundle. Also trigger for design polish — typography, palette, spacing, motion, accessibility microcopy — anything where visual coherence and design-system fidelity matter more than raw feature work. **Boundary with multi-agent-orchestration**: this skill owns work where the deliverable is a *visual / design-system change*; the other owns work where the deliverable is a *feature with new behavior*. When a request blends both (e.g. "build the trips detail page with the galaxy treatment"), invoke multi-agent-orchestration as the parent and have it spawn a Design Lead from this skill's roster.
 ---
 
 # Aegis Frontend Design Team
@@ -23,7 +23,7 @@ Trigger this skill when the user asks for:
 - **Design handoff** — the user pasted or fetched a `claude.ai/design` URL, an HTML/CSS/JSX mockup, or a Figma export and wants it implemented
 - **Copy / content polish** — eyebrow chips, microcopy, empty states, error messages, button labels
 
-Skip this skill for one-off CSS tweaks, single-page feature implementation with no visual direction, or pure logic / backend work — use plain edits or `multi-agent-orchestration` instead.
+Skip this skill for one-off CSS tweaks, pure logic / backend work, or feature work where the visual direction is already settled (just a new route in the existing look) — use plain edits or `multi-agent-orchestration` instead. **Rule of thumb**: if the request changes how Aegis *looks*, design-team. If it changes what Aegis *does*, orchestration. If both, orchestration is the parent and pulls in design-team roles via its UX Reviewer slot.
 
 ---
 
@@ -35,8 +35,8 @@ Each role maps to a sub-agent invocation. Pick the smallest set that covers the 
 |------|----------|------|-------|
 | **Design Lead** | `general-purpose` | Translates user intent into a one-page design brief (goal, palette, typography, geometry, motion, references). **Always first on multi-area design work.** Final-call arbiter when other roles disagree. | Handoff README, existing `globals.css`, recent design decisions |
 | **Visual Designer** | `general-purpose` | Palette (hex + oklch), type ramp, spacing scale, card geometry, decorative motifs, illustration / SVG showpieces (orbital chart, black hole, constellation lines). Outputs token sets, not code. | The handoff CSS / JSX, the Aegis brand vocabulary |
-| **Design-System Steward** | `general-purpose` | `frontend/src/app/globals.css`, `components/shell/*`, `components/ui/*`. Owns the token map (`--void` / `--pane` / `--accent` / `--display-*` / `--card-radius` / `--hero-glow`), keeps the `.theme-*` blocks coherent, prevents drift. Refuses changes that bypass tokens. | The visual designer's token sheet, current Tailwind v4 `@theme inline` block |
-| **UI Engineer** | `general-purpose` | Translates the design into React + Tailwind + recharts. Owns route-level page implementations under `frontend/src/app/<route>/page.tsx`. Reuses `components/shell/*` and `components/ui/*` primitives — does not invent new primitives without the Steward's sign-off. | Design brief, token sheet, existing page being reskinned, the prototype JSX (read for structure, never copied verbatim) |
+| **Design-System Steward** | `general-purpose` | **Sole owner** of `frontend/src/app/globals.css` and `components/shell/*`. Owns the token map (`--void` / `--pane` / `--accent` / `--display-*` / `--card-radius` / `--hero-glow`), keeps the `.theme-*` blocks coherent, prevents drift. **Shared read-access** to `components/ui/*` — refactors there require sign-off from the relevant UI Engineer who maintains the primitive. Refuses changes that bypass tokens. | The visual designer's token sheet, current Tailwind v4 `@theme inline` block |
+| **UI Engineer** | `general-purpose` | Translates the design into React + Tailwind + recharts. Owns route-level page implementations under `frontend/src/app/<route>/page.tsx` and the shadcn primitives in `components/ui/*`. Reuses `components/shell/*` primitives — does not modify them or invent new ones without the Steward's sign-off. | Design brief, token sheet, existing page being reskinned, the prototype JSX (read for structure, never copied verbatim) |
 | **Motion Designer** | `general-purpose` | Keyframes, transitions, micro-interactions, framer-motion variants in `frontend/src/lib/animations.ts`, SVG `<animateTransform>` choreography (e.g. the Supernova black hole), reduced-motion fallbacks. | Existing animations, the `prefers-reduced-motion` clause in `globals.css` |
 | **Accessibility Reviewer** | `general-purpose` | WCAG contrast ratios on every theme/token pair, focus rings, keyboard tab order, ARIA labels, `prefers-reduced-motion` paths, screen-reader text on icon-only buttons. Outputs a punch list, not a diff (hands fixes back to the UI Engineer). | The implemented diff |
 | **Copy / Content Designer** | `general-purpose` | Eyebrow chips, page subtitles, empty states, error toasts, tooltip text, the 3-letter card codes (`DSH` / `HLT` / `BDG` / …), button labels, microcopy. Owns the Aegis voice (terminal-restrained, no exclamation marks, mono for chrome, serif for display). | Existing copy across pages |
@@ -50,7 +50,7 @@ Each role maps to a sub-agent invocation. Pick the smallest set that covers the 
 
 ### Pattern A — Handoff implementation (Claude Design bundle)
 
-The flow used to ship the galaxy theme in PR #27. Use whenever the user hands you a `claude.ai/design` URL or a similar bundle.
+The flow used to ship the galaxy theme rollout. Use whenever the user hands you a `claude.ai/design` URL or a similar bundle.
 
 1. **Main thread**: fetch + extract the bundle, read its `README.md` and chat transcripts so the *intent* is clear before any agent is spawned.
 2. **Design Lead**: produce a one-page brief — themes / pages / signature components, what to extend vs. replace, file map onto the existing repo.
@@ -148,13 +148,15 @@ Step 6 — main thread integrates, runs `npm run build`, commits, pushes, opens 
 1. **Theme via `.theme-*` class on `<body>`.** Three production themes — Observatory (default), Constellation, Supernova. Switching lives in **Settings → Appearance**, never in a developer Tweaks panel.
 2. **Tokens in `frontend/src/app/globals.css`.** Tailwind v4 `@theme inline` block — adding a token means appending `--color-foo: var(--foo)` there and defining `--foo` per theme.
 3. **Token redirect strategy.** Legacy `--background` / `--card` / `--primary` / `--aegis-*` names re-map onto the cosmic tokens (`--void` / `--pane` / `--accent` / …) so existing pages auto-theme. New code targets the cosmic names; legacy aliases stay only for backward compatibility.
-4. **Galaxy primitives live in `frontend/src/components/shell/`.** `<Backdrop />`, `<BlackHole />`, `<ConstellationLayer />`, `<CodeChip />`, `<GalaxyCard />`, `<Kpi />`, `<KpiGrid />`, `<PageHead />`, `<PulsingDot />`, `<Sparkline />`, `<CosmicChart />`. Extend these — don't fork them.
-5. **Signature components.** Every card gets a 3-letter `<CodeChip>` at the top (DSH / HLT / ALT / SPD / TRD / INS / BDG / SAV / INV / DBT / PAY / CAL / GNT / RPT / DOC). Every page gets a `<PageHead>` with eyebrow + pip + display title.
+4. **Galaxy primitives live in `frontend/src/components/shell/`.** Current set: `<Backdrop />`, `<BlackHole />`, `<ConstellationLayer />`, `<CodeChip />`, `<GalaxyCard />`, `<Kpi />` (also exports `KpiGrid`), `<PageHead />`, `<PulsingDot />`, `<Sparkline />`, `<CosmicChart />`. Extend these — don't fork them. The full source-of-truth list is whatever is exported from that directory at the time of the change.
+5. **Signature components.** Every card gets a 3-letter `<CodeChip>` at the top (DSH / HLT / ALT / SPD / TRD / INS / BDG / SAV / INV / DBT / PAY / CAL / GNT / RPT / DOC — non-exhaustive, see usages of `code-chip.tsx`). Every page gets a `<PageHead>` with eyebrow + pip + display title.
 6. **Display font is theme-bound.** `var(--display-font)` + `var(--display-style)` + `var(--display-weight)` + `var(--display-tracking)`. Geist sans for Observatory; Instrument Serif roman for Constellation; Instrument Serif italic for Supernova. Never hard-code a font-family.
-7. **Charts use recharts** with `stroke="var(--accent)"` etc. — never hex literals. Donut, area, bar, line, radial all have direct recharts equivalents.
-8. **Animations live in CSS** when possible (`globals.css` keyframes), framer-motion only for entry / page transitions / staggered reveals. The black hole uses SVG-native `<animateTransform>`, not JS frame loops.
-9. **Reduced-motion is non-negotiable.** Every keyframe needs a `@media (prefers-reduced-motion: reduce)` fallback. The Supernova black hole disables its rotation in that mode.
+7. **Charts use recharts** with `stroke="var(--accent)"` etc. — never hex literals (exception: user-content colors like a savings goal's color-picker hex). Donut, area, bar, line, radial all have direct recharts equivalents.
+8. **Animations**: prefer CSS keyframes in `globals.css` for ambient / decorative motion (twinkle, plume drift, pulse-glow, blinking caret). Use `framer-motion` for interactive overlays + reveals (modals, toasts, dropdowns, the sidebar drawer, page-mount staggers via `staggerContainer / staggerItem` in `lib/animations.ts`). The black hole uses SVG-native `<animateTransform>` (no JS frame loop) and reads `matchMedia('(prefers-reduced-motion: reduce)')` at mount to omit them when needed.
+9. **Reduced-motion is non-negotiable.** Every keyframe needs a `@media (prefers-reduced-motion: reduce)` fallback. SVG SMIL animations (`<animateTransform>`) cannot be neutralized via CSS — guard them at the component level via `matchMedia`.
 10. **Don't ship a developer Tweaks panel.** End-user theme switching only — engineering toggles (starfield opacity, twinkle) gate behind `process.env.NODE_ENV !== 'production'`.
+11. **className composition uses `cn()`** from `@/lib/utils` (clsx + tailwind-merge). Never concatenate class strings by hand or with template literals.
+12. **Shared animation variants live in `@/lib/animations`** — `fadeIn`, `slideUp`, `staggerContainer`, `staggerItem`, etc. Don't redefine them per file.
 
 ---
 
@@ -167,13 +169,13 @@ Step 6 — main thread integrates, runs `npm run build`, commits, pushes, opens 
 - [ ] `npm run build` green; no React hydration warnings; no recharts axis-fill complaints.
 - [ ] Accessibility punch list resolved or filed as follow-ups in `ROADMAP.md`.
 - [ ] Motion respects `prefers-reduced-motion`.
-- [ ] Draft PR opened on the branch named in `CLAUDE.md` / system instructions, with a role-by-role section in the body.
+- [ ] Draft PR opened on the branch named in the active session's system instructions, with a role-by-role section in the body.
 
 ---
 
 ## Anti-patterns
 
-- ❌ Letting the UI Engineer drop a hex literal into a page — always escalate to the Steward.
+- ❌ Letting the UI Engineer drop a hex literal into a page — always escalate to the Steward. (Exception: user-content colors, like a savings-goal color picker.)
 - ❌ Copying prototype JSX verbatim — the bundle is a visual reference, not production code.
 - ❌ Spawning a single mega-agent to "redesign everything" — fan-out is the whole point.
 - ❌ Reskinning a page without first reading the page's existing react-query / data hooks — the team only changes presentation, not data flow.
@@ -181,3 +183,6 @@ Step 6 — main thread integrates, runs `npm run build`, commits, pushes, opens 
 - ❌ Inventing a new primitive (e.g. yet another card variant) when an existing one in `components/shell/` works. Reach for the Steward instead.
 - ❌ Skipping the Visual QA pass on a multi-theme change.
 - ❌ Self-reviewing — the implementer never QAs their own diff.
+- ❌ Concatenating className strings by hand instead of using `cn()` — breaks tailwind-merge dedup and produces conflicting utilities silently.
+- ❌ Importing `framer-motion` into a Server Component — it requires `"use client"`. Wrap or hoist the motion piece into a child client component instead.
+- ❌ Bypassing the design-system: writing a one-off `style={{ color: "#5ad8ff" }}` instead of `style={{ color: "var(--accent)" }}`. Any color that should change with the theme is a token, not a literal.

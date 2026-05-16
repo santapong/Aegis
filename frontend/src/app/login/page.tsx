@@ -192,13 +192,13 @@ export default function LoginPage() {
                 >
                   Password
                 </label>
-                <button
-                  type="button"
+                <Link
+                  href="/register"
                   className="font-mono text-[10px] tracking-[1.4px]"
                   style={{ color: "var(--accent)" }}
                 >
                   forgot? →
-                </button>
+                </Link>
               </div>
               <div className="relative">
                 <Lock

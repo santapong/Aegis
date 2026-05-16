@@ -109,12 +109,21 @@ export const useAppStore = create<AppState>()(
       name: "aegis-app-store",
       version: 2,
       // Migrate v1 (theme: "light" | "dark") → v2 (cosmic themes).
-      migrate: (state, fromVersion) => {
-        const s = (state ?? {}) as Partial<AppState> & { theme?: unknown };
-        if (fromVersion < 2 || !isCosmicTheme(s.theme)) {
-          s.theme = "observatory";
+      // Returns a Partial — Zustand merges over the store's default state
+      // so untouched keys (actions, settings) keep their initial values.
+      migrate: (state, fromVersion): Partial<AppState> => {
+        const s = (state ?? {}) as Record<string, unknown>;
+        const out: Partial<AppState> = {};
+        if (typeof s.sidebarOpen === "boolean") out.sidebarOpen = s.sidebarOpen;
+        if (typeof s.hasSeenTour === "boolean") out.hasSeenTour = s.hasSeenTour;
+        if (s.settings && typeof s.settings === "object") {
+          out.settings = { ...defaultSettings, ...(s.settings as AppSettings) };
         }
-        return s as AppState;
+        out.theme =
+          fromVersion < 2 || !isCosmicTheme(s.theme)
+            ? "observatory"
+            : s.theme;
+        return out;
       },
       partialize: (state) => ({
         sidebarOpen: state.sidebarOpen,

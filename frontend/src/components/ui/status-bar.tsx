@@ -32,7 +32,13 @@ export function StatusBar() {
     : "--:--:--";
 
   return (
-    <footer className="aegis-status" style={{ position: "relative", zIndex: 1 }}>
+    <div
+      className="aegis-status"
+      role="status"
+      aria-live="off"
+      aria-label="Application status"
+      style={{ position: "relative", zIndex: 1 }}
+    >
       <span
         className="flex items-center gap-1.5"
         style={{ color: "var(--ok)" }}
@@ -62,9 +68,9 @@ export function StatusBar() {
         </span>
         <span className="aegis-status-sep hidden lg:inline">·</span>
         <span style={{ color: "var(--dim)" }}>
-          <span className="aegis-kbd">/</span> command · <span className="aegis-kbd">⌘\</span> ai
+          <span className="aegis-kbd">/</span> command · <span className="aegis-kbd">?</span> shortcuts
         </span>
       </span>
-    </footer>
+    </div>
   );
 }
