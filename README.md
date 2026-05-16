@@ -183,6 +183,27 @@ cd backend && uv pip install -e '.[test]' && pytest
 
 Smoke tests live in `backend/tests/test_smoke.py` and cover `/api/health` plus the register → login → authorized-request flow.
 
+## Deployment
+
+Aegis runs on any platform that supports Docker, plus Vercel for the
+frontend. Four recipes are documented in [`docs/deployment/`](docs/deployment/):
+
+| Recipe | Frontend | Backend | DB | ~Monthly cost |
+|--------|----------|---------|-----|---------------|
+| [Vercel + Neon](docs/deployment/vercel-neon.md) **(primary)** | Vercel | Render / Fly / Railway | Neon | **$7** |
+| [AWS](docs/deployment/aws.md) | Vercel / Amplify / container | App Runner / ECS Fargate | RDS Postgres | $25–60 |
+| [GCP](docs/deployment/gcp.md) | Vercel / Firebase / Cloud Run | Cloud Run | Cloud SQL | $0–25 |
+| [Self-hosted](docs/deployment/self-hosted.md) | Same VPS | Same VPS | Same VPS | $5–20 |
+
+Each recipe is a step-by-step runbook with env-var lists, smoke tests, and rollback notes. Start with the [overview](docs/deployment/README.md) if you're unsure which to pick.
+
+The repo includes:
+
+- A [`build-and-push.yml`](.github/workflows/build-and-push.yml) workflow that pushes both images to GHCR on every `main` push (plus optionally ECR and Artifact Registry when the right secrets are set).
+- Make targets — `make image-backend`, `make image-frontend`, `make push-ghcr OWNER=…`, `make push-ecr REGION=… ACCOUNT=…`, `make push-gar REGION=… PROJECT=… REPO=…`, `make deploy-vercel`.
+- Per-service `.env.example` files: [`frontend/.env.example`](frontend/.env.example), [`backend/.env.example`](backend/.env.example).
+- A [`frontend/vercel.json`](frontend/vercel.json) that pins the framework and root directory for Vercel imports.
+
 ## Directory layout
 
 ```

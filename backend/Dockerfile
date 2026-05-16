@@ -13,10 +13,21 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Copy installed packages from builder
-# (Healthcheck uses python stdlib — no curl/apt needed, so the image stays slim
-# and the build doesn't depend on the Debian apt mirrors being reachable.)
+# WeasyPrint runtime deps — Cairo / Pango / GDK-Pixbuf / fonts. Without these
+# the /api/reports/export.pdf endpoint crashes on first request on any
+# platform that doesn't pre-bake them (AWS ECS, GCP Cloud Run, etc).
+# Adds ~80 MB to the image but the alternative is silent PDF failure.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libpango-1.0-0 \
+        libpangoft2-1.0-0 \
+        libcairo2 \
+        libgdk-pixbuf-2.0-0 \
+        libffi8 \
+        shared-mime-info \
+        fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
 
+# Copy installed packages from builder
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 

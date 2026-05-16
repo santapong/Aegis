@@ -2,7 +2,13 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useToastStore } from "@/stores/toast-store";
 import type { NotificationListResponse, Notification, Transaction } from "@/types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Same-origin by default — the browser hits `/api/*` and Next.js
+// rewrites (server-side) to BACKEND_INTERNAL_URL. Override with
+// NEXT_PUBLIC_API_URL only if you intentionally want the browser to
+// reach the backend directly (e.g. to bypass Vercel's response buffering
+// for streaming AI responses). Empty string falls through to relative
+// `/api/...` URLs which the rewrite handles.
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
 export class APIError extends Error {
   status: number;

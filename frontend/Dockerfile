@@ -14,8 +14,13 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build-time env vars (NEXT_PUBLIC_* are inlined at build time)
-ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+# NEXT_PUBLIC_* env vars are inlined at build time. Aegis prefers the
+# same-origin Next.js `rewrites()` proxy (see `next.config.ts`), so we
+# build with NEXT_PUBLIC_API_URL="" by default — the browser uses
+# relative `/api/*` URLs and the proxy handles cross-origin at request
+# time via BACKEND_INTERNAL_URL. Override only if you need direct
+# browser→backend calls (e.g. AI streaming on Vercel).
+ARG NEXT_PUBLIC_API_URL=""
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 RUN bun run build
@@ -42,5 +47,9 @@ EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+
+# BACKEND_INTERNAL_URL is read at request time by the rewrite proxy.
+# Set it per environment (compose service name in Docker, public HTTPS
+# URL on Vercel/ECS/Cloud Run).
 
 CMD ["node", "server.js"]
