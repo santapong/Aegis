@@ -26,6 +26,7 @@ dependencies = [
     "python-jose[cryptography]>=3.3.0",
     "python-multipart>=0.0.20",
     "google-auth>=2.30.0",
+    "redis>=5.0.0",
     "sqlalchemy>=2.0.45",
     "stripe>=11.0.0",
     "uvicorn>=0.34.0",

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import String, DateTime, Table, Column, ForeignKey
+from sqlalchemy import String, DateTime, Table, Column, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -18,10 +18,17 @@ transaction_tags = Table(
 
 class Tag(Base):
     __tablename__ = "tags"
+    __table_args__ = (
+        # Tag names are unique **per user**, not globally. The old
+        # globally-unique constraint meant Alice creating "groceries"
+        # blocked Bob from ever creating his own "groceries" tag — that
+        # bug is fixed by the v0.9.5 migration.
+        UniqueConstraint("user_id", "name", name="uq_tags_user_name"),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("users.id"), nullable=True, index=True)
-    name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
+    name: Mapped[str] = mapped_column(String(50), nullable=False)
     color: Mapped[str] = mapped_column(String(7), default="#6B7280")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
 
