@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from datetime import date, timedelta
 
+from ..cache import get_cache, user_scope
+from ..config import get_settings
 from ..database import get_db
 from ..models.plan import Plan, PlanStatus, Recurrence
 from ..models.budget import Budget
@@ -19,6 +21,7 @@ from ..schemas.dashboard import (
 from ..auth import get_current_user
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
+_settings = get_settings()
 
 CATEGORY_COLORS = {
     "food": "#EF4444",
@@ -36,6 +39,17 @@ CATEGORY_COLORS = {
 
 @router.get("/summary", response_model=KPISummary)
 def get_summary(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    # Cached for the configured default TTL (60 s by default). Reads
+    # the same exact data on every dashboard render — without this,
+    # a single page load fires 4 queries that scan the user's full
+    # transaction history. Invalidated by transactions mutation hooks
+    # (see _invalidate_dashboard in routers/transactions.py).
+    cache = get_cache()
+    key = user_scope("dashboard:summary", current_user.id)
+    cached = cache.get(key)
+    if cached is not None:
+        return KPISummary(**cached)
+
     today = date.today()
     month_start = today.replace(day=1)
 
@@ -58,7 +72,7 @@ def get_summary(db: Session = Depends(get_db), current_user: User = Depends(get_
     active_plans = db.query(Plan).filter(Plan.user_id == current_user.id, Plan.status.in_([PlanStatus.planned, PlanStatus.in_progress])).count()
     completed_plans = db.query(Plan).filter(Plan.user_id == current_user.id, Plan.status == PlanStatus.completed).count()
 
-    return KPISummary(
+    result = KPISummary(
         total_balance=total_balance,
         monthly_income=monthly_income,
         monthly_expenses=monthly_expenses,
@@ -66,10 +80,18 @@ def get_summary(db: Session = Depends(get_db), current_user: User = Depends(get_
         active_plans=active_plans,
         completed_plans=completed_plans,
     )
+    cache.set(key, result, ttl=_settings.cache_default_ttl)
+    return result
 
 
 @router.get("/charts", response_model=DashboardCharts)
 def get_charts(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    cache = get_cache()
+    key = user_scope("dashboard:charts", current_user.id)
+    cached = cache.get(key)
+    if cached is not None:
+        return DashboardCharts(**cached)
+
     today = date.today()
 
     # Spending by category (last 30 days)
@@ -119,11 +141,13 @@ def get_charts(db: Session = Depends(get_db), current_user: User = Depends(get_c
             "expenses": expenses,
         })
 
-    return DashboardCharts(
+    result = DashboardCharts(
         spending_by_category=spending_by_category,
         monthly_trend=monthly_trend,
         budget_progress=[],
     )
+    cache.set(key, result, ttl=_settings.cache_default_ttl)
+    return result
 
 
 @router.get("/health-score", response_model=HealthScoreResponse)

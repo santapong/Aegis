@@ -39,10 +39,18 @@ export default function TripsPage() {
   const [form, setForm] = useState(defaultForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { data: trips } = useQuery<Trip[]>({
-    queryKey: ["trips"],
-    queryFn: () => tripsAPI.list() as Promise<Trip[]>,
+  const PAGE_STEP = 24;
+  const [pageSize, setPageSize] = useState(PAGE_STEP);
+
+  const { data: rawTrips } = useQuery<Trip[]>({
+    queryKey: ["trips", pageSize],
+    queryFn: () =>
+      tripsAPI.list({ limit: String(pageSize + 1), offset: "0" }) as Promise<
+        Trip[]
+      >,
   });
+  const hasMore = (rawTrips?.length ?? 0) > pageSize;
+  const trips = rawTrips?.slice(0, pageSize);
 
   const createMutation = useMutation({
     mutationFn: (data: Record<string, unknown>) => tripsAPI.create(data),
@@ -102,6 +110,7 @@ export default function TripsPage() {
       </motion.div>
 
       {trips && trips.length > 0 ? (
+        <>
         <motion.div variants={staggerItem} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {trips.map((t) => (
             <Link key={t.id} href={`/trips/${t.id}`} className="block">
@@ -129,6 +138,26 @@ export default function TripsPage() {
             </Link>
           ))}
         </motion.div>
+        <div
+          className="flex items-center justify-between gap-4 mt-4 px-1"
+          style={{ fontSize: 12 }}
+        >
+          <span className="text-muted-foreground">
+            Showing {trips.length}
+            {hasMore ? "+" : ""} trip
+            {trips.length === 1 ? "" : "s"}
+          </span>
+          {hasMore && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setPageSize((p) => p + PAGE_STEP)}
+            >
+              Load {PAGE_STEP} more
+            </Button>
+          )}
+        </div>
+        </>
       ) : (
         <EmptyState
           icon={Plane}

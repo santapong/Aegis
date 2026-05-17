@@ -15,6 +15,8 @@ router = APIRouter(prefix="/api/gantt", tags=["gantt"])
 def get_gantt_tasks(
     start: date | None = None,
     end: date | None = None,
+    limit: int = Query(default=500, le=2000),
+    offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -24,7 +26,7 @@ def get_gantt_tasks(
     if end:
         query = query.filter(Plan.end_date <= end)
 
-    plans = query.order_by(Plan.start_date).all()
+    plans = query.order_by(Plan.start_date).offset(offset).limit(limit).all()
     return [
         GanttTask(
             id=p.id,

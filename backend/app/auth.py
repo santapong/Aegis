@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordBearer
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
@@ -14,7 +14,53 @@ from .database import get_db
 from .models.user import User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+# auto_error=False so the dependency falls through to the cookie when
+# no Authorization header is present, rather than 401-ing immediately.
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
+
+# Name of the httpOnly cookie that carries the JWT for browser clients.
+# Native API clients (CLI, mobile, scripts) keep using
+# ``Authorization: Bearer ...``. The auth dependency accepts either —
+# header takes precedence so a deliberate Authorization value can
+# override the cookie (useful for impersonation in admin tools).
+AUTH_COOKIE_NAME = "aegis_session"
+
+
+def set_auth_cookie(response: Response, token: str) -> None:
+    """Attach the JWT as an httpOnly cookie on the response.
+
+    Why httpOnly: JavaScript can't read it, so an XSS payload can't
+    exfiltrate the session — meaningfully smaller blast radius than
+    JWT-in-localStorage (any injected script can scrape that).
+
+    Why SameSite=Lax: blocks the cookie on cross-site POST navigation
+    (CSRF). Lax (not Strict) so external links — Stripe checkout return
+    URLs, password-reset emails when they ship — still carry the
+    session.
+
+    Why Secure: cookie only over HTTPS. In dev (``debug=true``) we drop
+    Secure so localhost works; production refuses to.
+    """
+    settings = get_settings()
+    response.set_cookie(
+        key=AUTH_COOKIE_NAME,
+        value=token,
+        max_age=settings.jwt_expire_minutes * 60,
+        httponly=True,
+        secure=not settings.debug,
+        samesite="lax",
+        path="/",
+    )
+
+
+def clear_auth_cookie(response: Response) -> None:
+    """Drop the session cookie on logout."""
+    response.delete_cookie(
+        key=AUTH_COOKIE_NAME,
+        path="/",
+        httponly=True,
+        samesite="lax",
+    )
 
 
 def hash_password(password: str) -> str:
@@ -90,14 +136,28 @@ def create_access_token(user_id: str) -> str:
 
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    request: Request,
+    header_token: str | None = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ) -> User:
+    """Resolve the active user from either an Authorization header OR
+    the ``aegis_session`` httpOnly cookie.
+
+    Header is checked first so that scripts and impersonating admins
+    can override the cookie deliberately. Browser clients should not
+    set the header — the cookie is auto-attached by the browser and the
+    JWT never reaches JavaScript.
+    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Invalid or expired token",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+    token = header_token or request.cookies.get(AUTH_COOKIE_NAME)
+    if not token:
+        raise credentials_exception
+
     settings = get_settings()
     try:
         payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])

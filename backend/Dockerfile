@@ -46,5 +46,22 @@ USER appuser
 
 EXPOSE 8000
 
+# Container-level liveness check. Render / Fly / Kubernetes can layer
+# their own probes on top; this is the fallback for bare `docker run`.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+    CMD python -c "import urllib.request,sys; \
+sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=4).status == 200 else 1)" \
+    || exit 1
+
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+# --proxy-headers + --forwarded-allow-ips=* honors X-Forwarded-* from
+# Vercel / Cloudflare / ALB so request.client.host and HTTPS detection
+# match the real client. --timeout-graceful-shutdown gives in-flight
+# requests 25 s to finish before SIGKILL on container stop.
+CMD ["uvicorn", "app.main:app", \
+     "--host", "0.0.0.0", \
+     "--port", "8000", \
+     "--workers", "2", \
+     "--proxy-headers", \
+     "--forwarded-allow-ips=*", \
+     "--timeout-graceful-shutdown", "25"]

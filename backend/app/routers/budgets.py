@@ -45,6 +45,8 @@ def create_budget(budget: BudgetCreate, db: Session = Depends(get_db), current_u
 def list_budgets(
     category: str | None = None,
     active: bool | None = None,
+    limit: int = Query(default=100, le=500),
+    offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -54,7 +56,12 @@ def list_budgets(
     if active is True:
         today = date.today()
         query = query.filter(Budget.period_start <= today, Budget.period_end >= today)
-    return query.order_by(Budget.period_start.desc()).all()
+    return (
+        query.order_by(Budget.period_start.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
 
 
 @router.get("/comparison", response_model=BudgetComparisonResponse)

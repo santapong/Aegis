@@ -12,11 +12,25 @@ class Settings(BaseSettings):
     app_name: str = "Money Management API"
     debug: bool = False
 
-    # Database — supports PostgreSQL, MySQL, and SQLite
-    # PostgreSQL: postgresql://user:pass@host:5432/dbname
+    # Database — see docs/databases.md for the full compatibility matrix.
+    # Tested: SQLite (dev), PostgreSQL 13+ (incl. RDS / Aurora / Cloud SQL
+    # / AlloyDB / Azure / Neon / Supabase / Cockroach / Yugabyte),
+    # MySQL 8.0+ / MariaDB 10.5+ (incl. RDS / Aurora / Cloud SQL / Azure /
+    # TiDB ≥ 6.6).
+    #
+    # PostgreSQL: postgresql://user:pass@host:5432/dbname?sslmode=require
     # MySQL:      mysql+pymysql://user:pass@host:3306/dbname
     # SQLite:     sqlite:///./data.db
     database_url: str = "sqlite:///./money_management.db"
+
+    # Connection-pool sizing. Defaults work for a single backend pod
+    # behind a managed Postgres with the standard 100-connection ceiling.
+    # For serverless DBs (Neon free tier, Aurora Serverless v2), lower
+    # pool_size and pool_recycle so suspend/resume is cheap.
+    db_pool_size: int = 10
+    db_max_overflow: int = 20
+    db_pool_timeout: int = 10  # seconds to wait for a free connection
+    db_pool_recycle: int = 1800  # seconds before recycling — beat the LB idle timeout
 
     # JWT Authentication
     jwt_secret_key: str = PLACEHOLDER_JWT_SECRET
@@ -48,8 +62,31 @@ class Settings(BaseSettings):
     # CORS
     cors_origins: list[str] = ["http://localhost:3000"]
 
+    # Public frontend URL — used to build Stripe success/cancel return
+    # URLs and any other server-issued links back to the UI. Should match
+    # whatever the user sees in their browser. Leave the localhost default
+    # for dev; override per-environment in production.
+    frontend_url: str = "http://localhost:3000"
+
     # Rate Limiting
     rate_limit_per_minute: int = 100
+    # Honor X-Forwarded-For when bucketing requests. Only enable after
+    # verifying your proxy chain strips inbound XFF headers from clients
+    # — otherwise an attacker can spoof IPs to evade the limit.
+    rate_limit_trust_forwarded_for: bool = False
+    # Max request body in bytes. Applied at the middleware layer so
+    # FastAPI never even tries to parse oversized payloads. Default 2 MB
+    # is generous for JSON; the CSV import path has its own 5 MB cap.
+    max_request_body_bytes: int = 2 * 1024 * 1024
+
+    # Cache — see backend/app/cache.py. "memory" is fine for one pod;
+    # "redis" is required as soon as you have multiple uvicorn workers or
+    # replicas, because the in-memory backend doesn't share state across
+    # processes (a stale read in worker B will outlast a mutation in
+    # worker A). "disabled" no-ops every call.
+    cache_backend: str = "memory"  # memory | redis | disabled
+    cache_redis_url: str = ""
+    cache_default_ttl: int = 60  # seconds
 
     # Stripe
     stripe_secret_key: str = ""

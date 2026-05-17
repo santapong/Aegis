@@ -21,6 +21,18 @@ from ..schemas.dashboard import AnomalyItem, AnomaliesResponse
 from ..services.notification_service import evaluate_budget_thresholds
 from ..services.recurrence import expand_occurrences, monthly_equivalent
 from ..auth import get_current_user
+from ..cache import invalidate_user
+
+# Cache scopes the transactions router invalidates on every mutation.
+# Any cached read that depends on the user's transaction set must list
+# its scope here. Keep it tight — over-invalidation is cheap, but a
+# missing entry means stale reads.
+_DASHBOARD_CACHE_SCOPES = [
+    "dashboard:summary",
+    "dashboard:charts",
+    "dashboard:health-score",
+    "dashboard:cashflow",
+]
 
 router = APIRouter(prefix="/api/transactions", tags=["transactions"])
 
@@ -54,6 +66,7 @@ def create_transaction(txn: TransactionCreate, db: Session = Depends(get_db), cu
     db.commit()
     db.refresh(db_txn)
     evaluate_budget_thresholds(db, user_id=current_user.id, transaction=db_txn)
+    invalidate_user(_DASHBOARD_CACHE_SCOPES, current_user.id)
     return db_txn
 
 
@@ -87,6 +100,7 @@ def update_transaction(
     db.commit()
     db.refresh(db_txn)
     evaluate_budget_thresholds(db, user_id=current_user.id, transaction=db_txn)
+    invalidate_user(_DASHBOARD_CACHE_SCOPES, current_user.id)
     return db_txn
 
 
@@ -378,14 +392,27 @@ def delete_transaction(txn_id: str, db: Session = Depends(get_db), current_user:
         raise HTTPException(status_code=404, detail="Transaction not found")
     db.delete(txn)
     db.commit()
+    invalidate_user(_DASHBOARD_CACHE_SCOPES, current_user.id)
 
 
 tags_router = APIRouter(prefix="/api/tags", tags=["tags"])
 
 
 @tags_router.get("/", response_model=list[TagResponse])
-def list_tags(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    return db.query(Tag).filter(Tag.user_id == current_user.id).order_by(Tag.name).all()
+def list_tags(
+    limit: int = Query(default=200, le=1000),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return (
+        db.query(Tag)
+        .filter(Tag.user_id == current_user.id)
+        .order_by(Tag.name)
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
 
 
 @tags_router.post("/", response_model=TagResponse, status_code=201)

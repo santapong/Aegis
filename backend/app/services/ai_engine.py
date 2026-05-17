@@ -110,23 +110,39 @@ class AIEngine:
         self.user_id = user_id
         self.provider = settings.ai_provider
 
+        # 30 s is plenty for a single completion under normal load; the
+        # SDK default (10 min) lets a hung upstream pin a uvicorn worker
+        # for the whole request lifetime.
+        ai_timeout_s = 30.0
+
         if self.provider == "anthropic":
             if not settings.anthropic_api_key:
                 self._raise_unconfigured("ANTHROPIC_API_KEY")
-            self._anthropic = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+            self._anthropic = anthropic.Anthropic(
+                api_key=settings.anthropic_api_key,
+                timeout=ai_timeout_s,
+            )
             self._openai = None
             self.model = settings.ai_model
         elif self.provider == "typhoon":
             if not settings.typhoon_api_key:
                 self._raise_unconfigured("TYPHOON_API_KEY")
             self._anthropic = None
-            self._openai = OpenAI(api_key=settings.typhoon_api_key, base_url=settings.typhoon_base_url)
+            self._openai = OpenAI(
+                api_key=settings.typhoon_api_key,
+                base_url=settings.typhoon_base_url,
+                timeout=ai_timeout_s,
+            )
             self.model = settings.typhoon_model
         elif self.provider == "groq":
             if not settings.groq_api_key:
                 self._raise_unconfigured("GROQ_API_KEY")
             self._anthropic = None
-            self._openai = OpenAI(api_key=settings.groq_api_key, base_url=settings.groq_base_url)
+            self._openai = OpenAI(
+                api_key=settings.groq_api_key,
+                base_url=settings.groq_base_url,
+                timeout=ai_timeout_s,
+            )
             self.model = settings.groq_model
         else:
             raise HTTPException(

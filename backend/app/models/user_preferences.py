@@ -28,7 +28,7 @@ class UserPreferences(Base):
     )
     # One-to-one with User. Unique so a user can only ever have a single row.
     user_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("users.id"), nullable=False, unique=True, index=True
+        String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True
     )
     currency: Mapped[str] = mapped_column(
         String(8), nullable=False, default=DEFAULT_CURRENCY
