@@ -10,10 +10,27 @@ interface AuthUser {
 }
 
 interface AuthState {
+  /**
+   * Legacy field. The JWT now lives in an httpOnly cookie set by
+   * `/api/auth/login` and `/api/auth/google`; JavaScript cannot read
+   * it (which is the security win — XSS can't exfiltrate the session).
+   *
+   * Kept in the in-memory shape for two reasons:
+   * 1. Backward-compat for users with a pre-cookie session that
+   *    still has a token in localStorage. `lib/api.ts` reads this
+   *    and sends it as a Bearer header so they don't get force-logged-out
+   *    on first page load after the upgrade.
+   * 2. Native API clients (CLI / scripts) can still set a token
+   *    explicitly via `setToken()` when the cookie isn't an option.
+   *
+   * **Never call `setToken()` from a browser sign-in flow.** Doing so
+   * re-introduces the localStorage XSS exfiltration risk that the
+   * cookie auth was meant to close.
+   */
   token: string | null;
   user: AuthUser | null;
   isAuthenticated: boolean;
-  login: (token: string, user: AuthUser) => void;
+  login: (user: AuthUser) => void;
   logout: () => void;
   setUser: (user: AuthUser) => void;
   setToken: (token: string) => void;
@@ -27,8 +44,11 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       user: null,
       isAuthenticated: false,
-      login: (token, user) =>
-        set({ token, user, isAuthenticated: true }),
+      login: (user) =>
+        // No token argument — the cookie carries auth now. `token` stays
+        // at whatever it was (null for new sessions, legacy value for
+        // upgraded ones) and gets used only as a Bearer fallback.
+        set({ user, isAuthenticated: true }),
       logout: () => {
         // Best-effort: ask the backend to clear the httpOnly cookie.
         // Fire-and-forget — the local state is wiped either way so a
@@ -44,8 +64,12 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: STORAGE_KEY,
+      // `token` is deliberately NOT persisted. Any value already in
+      // localStorage from a pre-cookie deploy will be loaded once on
+      // first mount (Zustand persist hydration) and then stay only in
+      // memory — never written back. Subsequent logouts/logins fully
+      // wipe it.
       partialize: (state) => ({
-        token: state.token,
         user: state.user,
         isAuthenticated: state.isAuthenticated,
       }),
@@ -80,14 +104,15 @@ if (typeof window !== "undefined") {
         return;
       }
 
-      // Remote side logged in as a different user — mirror the new token.
+      // Remote side logged in (possibly as a different user) — mirror
+      // the user object. The cookie is shared across tabs at the
+      // browser level so we don't need to copy it.
       if (
         next.isAuthenticated &&
-        next.token &&
         next.user &&
-        next.token !== current.token
+        next.user.id !== current.user?.id
       ) {
-        current.login(next.token, next.user as AuthUser);
+        current.login(next.user as AuthUser);
       }
     } catch {
       // Malformed payload — ignore.

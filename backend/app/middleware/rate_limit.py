@@ -101,6 +101,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         "/api/auth/login",
         "/api/auth/register",
         "/api/auth/google",
+        "/api/auth/logout",
+        "/api/export/",
     )
     _strict_limit = 20
 

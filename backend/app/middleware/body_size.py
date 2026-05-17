@@ -8,8 +8,15 @@ unbounded JSON.
 
 Strategy: check ``Content-Length`` upfront and 413 immediately when
 declared size exceeds the cap. For chunked uploads (no
-``Content-Length``) we wrap the receive stream and abort if the
+``Content-Length``) we wrap the receive callable and abort if the
 running total crosses the cap mid-stream.
+
+Implementation note: this is a **pure ASGI** middleware, not a
+``BaseHTTPMiddleware`` subclass. The latter wraps downstream calls in
+its own anyio task group, which swallows exceptions raised inside
+``receive`` and turns them into 500s instead of the 413 we want.
+Talking ASGI directly lets us send the 413 response cleanly and
+short-circuit the route.
 
 Caveat: a malicious client can lie about ``Content-Length`` to
 under-declare. The streaming check catches that too — it counts actual
@@ -18,101 +25,130 @@ bytes received.
 
 from __future__ import annotations
 
+import json
+
 from loguru import logger
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
-from starlette.responses import JSONResponse
 
 
-class BodySizeLimitMiddleware(BaseHTTPMiddleware):
+class BodySizeLimitMiddleware:
     """Reject requests whose body exceeds ``max_bytes``.
 
     Exemptions: GET / HEAD / DELETE / OPTIONS have no body to count.
-    The CSV import path has its own larger cap; we don't special-case
-    it here because the import path's cap (5 MB) is below this
-    middleware's default (5 MB) only by coincidence. Operators who
-    raise either should think about both.
+    A small set of routes (CSV imports) gets a higher per-path cap;
+    add to ``_ROUTE_OVERRIDES`` if you need more.
     """
 
-    # Routes allowed to exceed the default cap, e.g. multi-MB CSV
-    # uploads. Each gets a per-route override.
     _ROUTE_OVERRIDES: dict[str, int] = {
         "/api/transactions/import/preview": 5 * 1024 * 1024,
         "/api/transactions/import/confirm": 5 * 1024 * 1024,
     }
 
+    _EXEMPT_METHODS = frozenset({"GET", "HEAD", "DELETE", "OPTIONS"})
+
     def __init__(self, app, max_bytes: int):
-        super().__init__(app)
+        self.app = app
         self.max_bytes = max_bytes
 
     def _cap_for(self, path: str) -> int:
-        return self._ROUTE_OVERRIDES.get(path, self.max_bytes)
+        # Exact-match override; trailing slash variants get the
+        # default cap. Pad the override set if a route ever ships
+        # both forms.
+        return self._ROUTE_OVERRIDES.get(path.rstrip("/"), self.max_bytes)
 
-    async def dispatch(self, request: Request, call_next):
-        if request.method in ("GET", "HEAD", "DELETE", "OPTIONS"):
-            return await call_next(request)
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
 
-        cap = self._cap_for(request.url.path)
+        method = scope.get("method", "")
+        if method in self._EXEMPT_METHODS:
+            await self.app(scope, receive, send)
+            return
+
+        path = scope.get("path", "")
+        cap = self._cap_for(path)
 
         # Upfront Content-Length check — cheapest path, catches honest
-        # clients immediately.
-        content_length = request.headers.get("content-length")
-        if content_length is not None:
-            try:
-                declared = int(content_length)
-            except ValueError:
-                declared = 0
-            if declared > cap:
-                return _too_large(declared, cap)
+        # clients before we touch the body at all.
+        for header, value in scope.get("headers", []):
+            if header == b"content-length":
+                try:
+                    declared = int(value)
+                except ValueError:
+                    declared = 0
+                if declared > cap:
+                    await _send_413(send, declared, cap)
+                    return
+                break
 
-        # Streaming check — handles chunked transfers and Content-Length
-        # liars. Wrap ``receive`` so we count actual bytes as they
-        # arrive, and bail the moment we cross the cap.
-        original_receive = request.receive
+        # Streaming check — wrap receive so we count actual bytes as
+        # they arrive, and 413 the moment we cross the cap.
         received_so_far = 0
+        cap_exceeded = False
 
-        async def counting_receive():
-            nonlocal received_so_far
-            message = await original_receive()
+        async def capped_receive():
+            nonlocal received_so_far, cap_exceeded
+            message = await receive()
             if message["type"] == "http.request":
                 received_so_far += len(message.get("body", b""))
-                if received_so_far > cap:
-                    # Raise to short-circuit the route. Starlette's
-                    # exception handler will translate to 500 by default,
-                    # so we log + raise a specific RuntimeError caught
-                    # below.
-                    raise _BodyTooLarge(received_so_far, cap)
+                if received_so_far > cap and not cap_exceeded:
+                    cap_exceeded = True
+                    logger.warning(
+                        "Body size cap exceeded on {path}: {actual} > {cap}",
+                        path=path,
+                        actual=received_so_far,
+                        cap=cap,
+                    )
+                    # Signal end-of-stream to the downstream app so its
+                    # body-parse fails fast rather than waiting for more
+                    # bytes. The app will still run; we replace its
+                    # response below.
+                    return {"type": "http.request", "body": b"", "more_body": False}
             return message
 
-        # Mutate the request's receive callable. Starlette allows this;
-        # the typing is loose enough.
-        request._receive = counting_receive  # type: ignore[attr-defined]
+        # Capture the downstream response so we can replace it with a
+        # 413 if the cap was exceeded mid-stream. If everything is fine,
+        # we forward the captured response unchanged.
+        response_started = False
+        response_status = 200
+        response_headers: list = []
+        response_body_chunks: list[bytes] = []
+
+        async def buffering_send(message):
+            nonlocal response_started, response_status, response_headers
+            if cap_exceeded:
+                # Drop downstream sends — we'll emit our own 413 after
+                # the app returns.
+                return
+            if message["type"] == "http.response.start":
+                response_started = True
+                response_status = message["status"]
+                response_headers = message.get("headers", [])
+            await send(message)
 
         try:
-            return await call_next(request)
-        except _BodyTooLarge as exc:
-            logger.warning(
-                "Body size cap exceeded on {path}: {actual} > {cap}",
-                path=request.url.path,
-                actual=exc.actual,
-                cap=exc.cap,
-            )
-            return _too_large(exc.actual, exc.cap)
+            await self.app(scope, capped_receive, buffering_send)
+        finally:
+            if cap_exceeded and not response_started:
+                await _send_413(send, received_so_far, cap)
 
 
-class _BodyTooLarge(Exception):
-    def __init__(self, actual: int, cap: int) -> None:
-        super().__init__(f"body {actual} > cap {cap}")
-        self.actual = actual
-        self.cap = cap
-
-
-def _too_large(actual: int, cap: int) -> JSONResponse:
-    return JSONResponse(
-        status_code=413,
-        content={
+async def _send_413(send, actual: int, cap: int) -> None:
+    body = json.dumps(
+        {
             "detail": "Request body too large.",
             "max_bytes": cap,
             "received_bytes": actual,
-        },
+        }
+    ).encode("utf-8")
+    await send(
+        {
+            "type": "http.response.start",
+            "status": 413,
+            "headers": [
+                (b"content-type", b"application/json"),
+                (b"content-length", str(len(body)).encode()),
+            ],
+        }
     )
+    await send({"type": "http.response.body", "body": body, "more_body": False})

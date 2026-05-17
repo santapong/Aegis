@@ -45,7 +45,6 @@ const FEATURE_BULLETS = [
 export default function RegisterPage() {
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
-  const setToken = useAuthStore((s) => s.setToken);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -70,10 +69,11 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await authAPI.register({ email, username, password });
-      const tokenRes = await authAPI.login({ email, password });
-      setToken(tokenRes.access_token);
+      // The login call sets an httpOnly cookie; do NOT persist the
+      // returned token to localStorage (XSS exfiltration risk).
+      await authAPI.login({ email, password });
       const userRes = await authAPI.me();
-      login(tokenRes.access_token, userRes);
+      login(userRes);
       router.push("/");
     } catch (err: unknown) {
       const e = err as { detail?: string; message?: string };
@@ -87,17 +87,16 @@ export default function RegisterPage() {
     async (credential: string) => {
       setError("");
       try {
-        const tokenRes = await authAPI.googleSignIn(credential);
-        setToken(tokenRes.access_token);
+        await authAPI.googleSignIn(credential);
         const userRes = await authAPI.me();
-        login(tokenRes.access_token, userRes);
+        login(userRes);
         router.push("/");
       } catch (err: unknown) {
         const e = err as { detail?: string; message?: string };
         setError(e.detail || e.message || "Google sign-in failed");
       }
     },
-    [router, login, setToken]
+    [router, login]
   );
 
   return (

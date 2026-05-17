@@ -54,11 +54,20 @@ def set_auth_cookie(response: Response, token: str) -> None:
 
 
 def clear_auth_cookie(response: Response) -> None:
-    """Drop the session cookie on logout."""
+    """Drop the session cookie on logout.
+
+    Attributes must mirror ``set_auth_cookie`` exactly (httpOnly,
+    secure, samesite, path). Older Safari builds silently ignore the
+    delete when ``Secure`` is set on the original and absent on the
+    clear, so the cookie sticks around and "logout" does nothing
+    visible.
+    """
+    settings = get_settings()
     response.delete_cookie(
         key=AUTH_COOKIE_NAME,
         path="/",
         httponly=True,
+        secure=not settings.debug,
         samesite="lax",
     )
 
