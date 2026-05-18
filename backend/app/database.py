@@ -147,6 +147,89 @@ def get_db():
         db.close()
 
 
+# ---------------------------------------------------------------------------
+# Async engine + session — opt-in, runs alongside the sync engine.
+# ---------------------------------------------------------------------------
+#
+# New routes can declare `async def ...(db: AsyncSession = Depends(get_async_db))`
+# to use asyncpg + AsyncSession. Existing sync routes are unaffected. The
+# two engines share the same DB but maintain independent connection pools,
+# which is fine at our pool sizing (4 workers × (10+20) sync + (5) async
+# = 140 conns/pod when both are active; still fits Neon pooler).
+#
+# Migration recipe: docs/design/002-async-sqlalchemy-migration.md.
+#
+# Created lazily on first use so the dep isn't pulled in for deploys that
+# never touch async routes.
+
+_async_engine = None
+_async_session_factory = None
+
+
+def _build_async_engine():
+    """Create the async engine on first use. Mirrors _build_engine but
+    uses the asyncpg driver and exposes AsyncSession."""
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+    url = settings.database_url
+    if url.startswith("sqlite"):
+        # SQLite async via aiosqlite — useful for tests. Not for prod.
+        async_url = url.replace("sqlite:///", "sqlite+aiosqlite:///", 1)
+        return create_async_engine(async_url, pool_pre_ping=True)
+    if url.startswith("postgresql"):
+        # psycopg2 → asyncpg. The URL prefix swap is the only change.
+        async_url = url.replace("postgresql://", "postgresql+asyncpg://", 1).replace(
+            "postgresql+psycopg2://", "postgresql+asyncpg://"
+        )
+        # asyncpg doesn't accept the `-c statement_timeout=...` option
+        # the sync engine passes; configure timeout via server_settings.
+        return create_async_engine(
+            async_url,
+            pool_size=settings.db_pool_size // 2 or 1,
+            max_overflow=settings.db_max_overflow // 2 or 1,
+            pool_timeout=settings.db_pool_timeout,
+            pool_pre_ping=True,
+            pool_recycle=settings.db_pool_recycle,
+            connect_args={
+                "server_settings": {"statement_timeout": "15000"},
+                "timeout": 10,
+            },
+        )
+    if url.startswith(("mysql", "mariadb")):
+        # MySQL async via asyncmy. Add to pyproject if you adopt this.
+        # Documented as "needs extra dep" for now.
+        raise NotImplementedError(
+            "Async MySQL requires the asyncmy package — add it to pyproject."
+        )
+    raise NotImplementedError(f"Async not configured for dialect: {url.split('://', 1)[0]}")
+
+
+def get_async_engine():
+    """Return the singleton async engine, building it on first call."""
+    global _async_engine, _async_session_factory
+    if _async_engine is None:
+        from sqlalchemy.ext.asyncio import async_sessionmaker
+
+        _async_engine = _build_async_engine()
+        _async_session_factory = async_sessionmaker(
+            _async_engine, expire_on_commit=False
+        )
+    return _async_engine
+
+
+async def get_async_db():
+    """FastAPI dependency: yield an AsyncSession.
+
+    Use in routes that benefit from non-blocking DB I/O (long-running
+    queries that could otherwise pin a threadpool worker). Pairs with
+    ``async def`` route handlers.
+    """
+    get_async_engine()  # warm the singleton
+    assert _async_session_factory is not None
+    async with _async_session_factory() as session:
+        yield session
+
+
 def ping() -> bool:
     """Cheap connectivity check used by ``/api/health``. Returns True
     if a trivial ``SELECT 1`` succeeds, False otherwise.

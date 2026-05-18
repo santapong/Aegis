@@ -51,6 +51,52 @@ services:
         limits:
           memory: 512M
 
+  # Optional Redis sidecar for cache + rate limiter + background-job
+  # queue. Set CACHE_BACKEND=redis + CACHE_REDIS_URL=redis://redis:6379/0
+  # in .env to wire the backend at it. Without this service the app
+  # silently falls back to in-memory cache + inline PDF rendering.
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  # Background worker — picks up jobs enqueued via app/jobs.py. Today
+  # that's PDF rendering; the design doc at
+  # docs/design/001-background-worker-queue.md covers Phase 2.
+  # Lifts WeasyPrint + matplotlib off the API workers so a concurrent
+  # PDF + AI request doesn't starve /api/health.
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    stop_grace_period: 30s
+    command: ["arq", "app.worker.WorkerSettings"]
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/money_management
+      CACHE_BACKEND: redis
+      CACHE_REDIS_URL: redis://redis:6379/0
+      LOG_FORMAT: ${LOG_FORMAT:-json}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
   frontend:
     build:
       context: ./frontend

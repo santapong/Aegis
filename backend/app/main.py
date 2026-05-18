@@ -35,6 +35,7 @@ from .routers import (
     preferences,
     investments,
     export,
+    jobs,
 )
 
 settings = get_settings()
@@ -115,6 +116,7 @@ app.include_router(trips.router)
 app.include_router(preferences.router)
 app.include_router(investments.router)
 app.include_router(export.router)
+app.include_router(jobs.router)
 
 
 def _db_backend(url: str) -> str:

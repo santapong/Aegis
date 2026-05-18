@@ -29,6 +29,17 @@ dependencies = [
     "python-multipart>=0.0.20",
     "google-auth>=2.30.0",
     "redis>=5.0.0",
+    # arq drives the background-worker queue (PDF rendering, AI batch
+    # summaries). Optional at runtime: if CACHE_REDIS_URL isn't set the
+    # PDF endpoint falls back to inline rendering. arq's only hard dep
+    # is redis (already required by cache + rate limiter).
+    "arq>=0.26",
+    # asyncpg powers the AsyncSession factory in database.py. Optional
+    # at runtime — the sync engine (psycopg2) stays the default. New
+    # routes can opt-in to async via Depends(get_async_db). See
+    # docs/design/002-async-sqlalchemy-migration.md for the per-router
+    # migration recipe.
+    "asyncpg>=0.30.0",
     "sqlalchemy>=2.0.45",
     "stripe>=11.0.0",
     "uvicorn>=0.34.0",
