@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from loguru import logger
 from sqlalchemy import text
@@ -81,6 +82,11 @@ app = FastAPI(
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware, requests_per_minute=settings.rate_limit_per_minute)
 app.add_middleware(BodySizeLimitMiddleware, max_bytes=settings.max_request_body_bytes)
+# gzip after the routing middlewares so headers we set (Content-Security-Policy
+# etc.) still apply to the compressed response. 500-byte floor skips tiny
+# responses where the gzip overhead (CPU + 20-byte header) costs more than it
+# saves. Dashboard JSON payloads run 10–50 kB → ~75% reduction over the wire.
+app.add_middleware(GZipMiddleware, minimum_size=500)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from sqlalchemy import case, func as sa_func
 from sqlalchemy.orm import Session
 from datetime import date, timedelta
 
@@ -53,32 +54,71 @@ def get_summary(db: Session = Depends(get_db), current_user: User = Depends(get_
     today = date.today()
     month_start = today.replace(day=1)
 
-    monthly_txns = (
-        db.query(Transaction)
-        .filter(Transaction.user_id == current_user.id, Transaction.date >= month_start, Transaction.date <= today)
-        .all()
+    # SQL aggregation — replaces a current-month .all() + all-time
+    # .all() + Python sums (worst case all-time scan materialized to
+    # compute one scalar). Two queries: one for monthly totals,
+    # one for all-time balance. Both use the (user_id, date) and
+    # (user_id, type, date) composite indexes from v0.9.7.
+    income_sum = sa_func.coalesce(
+        sa_func.sum(
+            case((Transaction.type == TransactionType.income, Transaction.amount), else_=0)
+        ),
+        0,
+    )
+    expense_sum = sa_func.coalesce(
+        sa_func.sum(
+            case((Transaction.type == TransactionType.expense, Transaction.amount), else_=0)
+        ),
+        0,
     )
 
-    monthly_income = sum(float(t.amount) for t in monthly_txns if t.type == TransactionType.income)
-    monthly_expenses = sum(float(t.amount) for t in monthly_txns if t.type == TransactionType.expense)
-    savings_rate = ((monthly_income - monthly_expenses) / monthly_income * 100) if monthly_income > 0 else 0
-
-    all_txns = db.query(Transaction).filter(Transaction.user_id == current_user.id).all()
-    total_balance = sum(
-        float(t.amount) if t.type == TransactionType.income else -float(t.amount)
-        for t in all_txns
+    monthly_row = (
+        db.query(income_sum.label("income"), expense_sum.label("expense"))
+        .filter(
+            Transaction.user_id == current_user.id,
+            Transaction.date >= month_start,
+            Transaction.date <= today,
+        )
+        .one()
+    )
+    monthly_income = float(monthly_row.income or 0)
+    monthly_expenses = float(monthly_row.expense or 0)
+    savings_rate = (
+        ((monthly_income - monthly_expenses) / monthly_income * 100)
+        if monthly_income > 0
+        else 0
     )
 
-    active_plans = db.query(Plan).filter(Plan.user_id == current_user.id, Plan.status.in_([PlanStatus.planned, PlanStatus.in_progress])).count()
-    completed_plans = db.query(Plan).filter(Plan.user_id == current_user.id, Plan.status == PlanStatus.completed).count()
+    balance_row = (
+        db.query((income_sum - expense_sum).label("balance"))
+        .filter(Transaction.user_id == current_user.id)
+        .one()
+    )
+    total_balance = float(balance_row.balance or 0)
+
+    active_plans = (
+        db.query(sa_func.count(Plan.id))
+        .filter(
+            Plan.user_id == current_user.id,
+            Plan.status.in_([PlanStatus.planned, PlanStatus.in_progress]),
+        )
+        .scalar()
+        or 0
+    )
+    completed_plans = (
+        db.query(sa_func.count(Plan.id))
+        .filter(Plan.user_id == current_user.id, Plan.status == PlanStatus.completed)
+        .scalar()
+        or 0
+    )
 
     result = KPISummary(
         total_balance=total_balance,
         monthly_income=monthly_income,
         monthly_expenses=monthly_expenses,
         savings_rate=round(savings_rate, 1),
-        active_plans=active_plans,
-        completed_plans=completed_plans,
+        active_plans=int(active_plans),
+        completed_plans=int(completed_plans),
     )
     cache.set(key, result, ttl=_settings.cache_default_ttl)
     return result
@@ -94,51 +134,88 @@ def get_charts(db: Session = Depends(get_db), current_user: User = Depends(get_c
 
     today = date.today()
 
-    # Spending by category (last 30 days)
-    recent_expenses = (
-        db.query(Transaction)
+    # Spending by category (last 30 days) — single GROUP BY query,
+    # replaces a full 30-day .all() + Python aggregation loop.
+    category_rows = (
+        db.query(
+            Transaction.category,
+            sa_func.coalesce(sa_func.sum(Transaction.amount), 0).label("total"),
+        )
         .filter(
             Transaction.user_id == current_user.id,
             Transaction.type == TransactionType.expense,
             Transaction.date >= today - timedelta(days=30),
         )
+        .group_by(Transaction.category)
+        .order_by(sa_func.sum(Transaction.amount).desc())
         .all()
     )
-    category_totals: dict[str, float] = {}
-    for t in recent_expenses:
-        category_totals[t.category] = category_totals.get(t.category, 0) + float(t.amount)
-
     spending_by_category = [
         ChartDataPoint(
-            label=cat,
-            value=amount,
-            color=CATEGORY_COLORS.get(cat.lower(), "#6B7280"),
+            label=category,
+            value=float(total or 0),
+            color=CATEGORY_COLORS.get((category or "").lower(), "#6B7280"),
         )
-        for cat, amount in sorted(category_totals.items(), key=lambda x: -x[1])
+        for category, total in category_rows
     ]
 
-    # Monthly trend (last 6 months)
+    # Monthly trend (last 6 months) — was 6 separate full-month .all()s
+    # in a Python loop. One GROUP BY over a 6-month window replaces all
+    # of them. We then re-bucket in Python so the month-name string
+    # formatting matches the previous shape. Empty months still appear
+    # in the output with zero values (the frontend chart expects 6
+    # rows).
+    six_months_ago = date(today.year, today.month, 1) - timedelta(days=1)
+    six_months_ago = date(
+        six_months_ago.year, six_months_ago.month, 1
+    ) - timedelta(days=150)  # roughly 5 months earlier
+    six_months_ago = date(six_months_ago.year, six_months_ago.month, 1)
+
+    income_sum = sa_func.coalesce(
+        sa_func.sum(
+            case((Transaction.type == TransactionType.income, Transaction.amount), else_=0)
+        ),
+        0,
+    )
+    expense_sum = sa_func.coalesce(
+        sa_func.sum(
+            case((Transaction.type == TransactionType.expense, Transaction.amount), else_=0)
+        ),
+        0,
+    )
+    # We need to group by (year, month) portably across SQLite + Postgres
+    # + MySQL. SQLAlchemy's func.extract works on all three for DATE
+    # columns. Result keys are (year, month) → (income, expense).
+    monthly_rows = (
+        db.query(
+            sa_func.extract("year", Transaction.date).label("y"),
+            sa_func.extract("month", Transaction.date).label("m"),
+            income_sum.label("income"),
+            expense_sum.label("expense"),
+        )
+        .filter(
+            Transaction.user_id == current_user.id,
+            Transaction.date >= six_months_ago,
+            Transaction.date <= today,
+        )
+        .group_by("y", "m")
+        .all()
+    )
+    bucket: dict[tuple[int, int], tuple[float, float]] = {
+        (int(y), int(m)): (float(income or 0), float(expense or 0))
+        for y, m, income, expense in monthly_rows
+    }
+
     monthly_trend = []
     for i in range(5, -1, -1):
         m = (today.month - i - 1) % 12 + 1
         y = today.year - (1 if today.month - i <= 0 else 0)
         month_start = date(y, m, 1)
-        if m == 12:
-            month_end = date(y + 1, 1, 1) - timedelta(days=1)
-        else:
-            month_end = date(y, m + 1, 1) - timedelta(days=1)
-
-        month_txns = (
-            db.query(Transaction)
-            .filter(Transaction.user_id == current_user.id, Transaction.date >= month_start, Transaction.date <= month_end)
-            .all()
-        )
-        income = sum(float(t.amount) for t in month_txns if t.type == TransactionType.income)
-        expenses = sum(float(t.amount) for t in month_txns if t.type == TransactionType.expense)
+        income, expense = bucket.get((y, m), (0.0, 0.0))
         monthly_trend.append({
             "month": month_start.strftime("%b %Y"),
             "income": income,
-            "expenses": expenses,
+            "expenses": expense,
         })
 
     result = DashboardCharts(
