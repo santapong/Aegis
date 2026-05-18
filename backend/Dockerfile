@@ -58,10 +58,19 @@ ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 # Vercel / Cloudflare / ALB so request.client.host and HTTPS detection
 # match the real client. --timeout-graceful-shutdown gives in-flight
 # requests 25 s to finish before SIGKILL on container stop.
+#
+# 4 workers is the sweet spot for the 512 MB / 0.5 vCPU instances we
+# target (Render Starter, Cloud Run min, App Runner small): more pool
+# headroom for the threadpool when WeasyPrint PDF (~800 ms CPU) and
+# AI calls (up to 30 s) run alongside dashboard reads. Each worker
+# carries its own DB pool, so `4 × (DB_POOL_SIZE + DB_MAX_OVERFLOW)`
+# must stay under your Postgres connection ceiling — at defaults
+# 4×30=120, which fits Neon free tier's 100-conn limit only via the
+# `-pooler.neon.tech` endpoint. See docs/databases.md for the matrix.
 CMD ["uvicorn", "app.main:app", \
      "--host", "0.0.0.0", \
      "--port", "8000", \
-     "--workers", "2", \
+     "--workers", "4", \
      "--proxy-headers", \
      "--forwarded-allow-ips=*", \
      "--timeout-graceful-shutdown", "25"]

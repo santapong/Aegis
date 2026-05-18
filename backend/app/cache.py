@@ -285,7 +285,52 @@ def invalidate_user(scopes: list[str], user_id: str) -> None:
     """Invalidate every cache entry for ``user_id`` across the listed
     scopes. Call this from mutation handlers (transaction create,
     budget update, plan delete, etc.).
+
+    Prefer ``invalidate_user_all`` for new code — listing scopes
+    explicitly is error-prone: each new cached endpoint requires
+    updating every mutation route, and a missing scope means stale
+    reads. ``invalidate_user_all`` flushes everything user-scoped in
+    one call.
     """
     cache = get_cache()
     for scope in scopes:
         cache.delete_prefix(f"{scope}:{user_id}")
+
+
+# Every scope name that gets keyed by user_id. Mutation routes call
+# ``invalidate_user_all(user_id)`` instead of remembering which scopes
+# apply — addresses the audit's "cache invalidation surface keeps
+# growing manually" concern. When you add a new cached endpoint,
+# register its scope name here (or call ``register_user_scope()`` at
+# module-load time) and every mutation route automatically picks it up.
+_GLOBAL_USER_SCOPES: list[str] = [
+    "dashboard:summary",
+    "dashboard:charts",
+    "dashboard:health-score",
+    "dashboard:cashflow",
+    "ai:weekly-summary",
+    "ai:insights",
+]
+
+
+def register_user_scope(scope: str) -> None:
+    """Register a new user-scoped cache namespace so it gets included
+    in ``invalidate_user_all()``. Cache scopes are append-only by
+    convention; no removal API.
+    """
+    if scope not in _GLOBAL_USER_SCOPES:
+        _GLOBAL_USER_SCOPES.append(scope)
+
+
+def invalidate_user_all(user_id: str) -> None:
+    """Flush every cached value scoped to ``user_id``.
+
+    Use this from mutation routes when you don't want to track which
+    scopes are affected — over-invalidation is cheap (next read
+    re-computes; TTL was already short), but a missing scope is a
+    real correctness bug.
+
+    Equivalent to ``invalidate_user(_GLOBAL_USER_SCOPES, user_id)``,
+    exposed under a clearer name so call sites read as the intent.
+    """
+    invalidate_user(_GLOBAL_USER_SCOPES, user_id)

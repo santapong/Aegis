@@ -14,8 +14,8 @@ The CRITICALs are landed; what's below is **fine today**, breaks at 10k+ users o
 - [x] **`/api/reports/export.{csv,pdf}` have no `LIMIT`** — ✅ Shipped: CSV capped at 50k rows (configurable `?limit=`, max 100k), PDF capped at 5k rows.
 - [x] **`budgets.budget_comparison`** — ✅ Shipped: replaced `.all()` + Python group with one GROUP BY query (≤ ~30 rows regardless of window size).
 - [x] **`ai.get_insights` SQL aggregation** — ✅ Shipped: two aggregate queries with a CASE-based bucket column gives totals + per-category breakdown for both current and prior month in 2 round-trips instead of 2 full scans.
-- [ ] **CSV import uses pandas** — `transactions.py:295`. Stdlib `csv.DictReader` is 10× faster and drops a ~30 MB runtime dep at build time. Note: matplotlib still depends on numpy; full pandas removal saves more once PDF generator is also rewritten. *~2 hours.*
-- [ ] **Sync handlers share one threadpool** — WeasyPrint PDF (~800 ms CPU) + AI calls (~30 s timeout) on the same pool as `/api/health`. Either move long-running routes to a background queue (Render cron / Celery), or bump `--workers ≥ 4` and the anyio threadpool limit. *~half-day if queue, ~15 min if just `--workers 4`.*
+- [x] **CSV import uses pandas** — ✅ Shipped: rewritten with `csv.DictReader` (streaming, constant memory) + helper `_money()` for the bank-export format zoo. pandas removed from `pyproject.toml` entirely (~30 MB cold-start saving); matplotlib keeps numpy as a transitive dep for the PDF chart renderer.
+- [x] **Sync handlers share one threadpool** — ✅ Shipped the quick fix: Dockerfile bumped `--workers` from 2 to 4 with a note explaining the DB-pool math at scale. Worker-queue refactor (Celery / Render cron) still in the architectural backlog if you outgrow this.
 - [x] **Anomaly detection bounded** — ✅ Shipped: two-step now (one GROUP BY for per-category averages, then a single bounded query for outliers using OR-of-category clauses). Stops loading every expense in a 90-day window for power users.
 
 ### Frontend
@@ -26,7 +26,7 @@ The CRITICALs are landed; what's below is **fine today**, breaks at 10k+ users o
 - [x] **Calendar `getEventsForDay` called inside 42-cell day grid per render** — ✅ Shipped: O(events) walk once per `events` change, then `Map<dayKey, CalendarEvent[]>` lookups in render.
 - [x] **Anomaly / insight cards re-fire entry stagger animation on every refetch** — ✅ Shipped: gated via `hasMounted` state — `initial={false}` and `duration: 0` after first paint, so refetches snap-in instantly.
 - [x] **TrendChart re-mounts the 1 s Recharts entry animation on every refetch** — ✅ Shipped: `isAnimationActive={animate}` where `animate` flips false 1.1 s after first paint.
-- [ ] **Driver.js (onboarding) and Stripe.js in shared client bundle** — dynamic-import inside the wrapper components, gated on first use.
+- [x] **Driver.js (onboarding) and Stripe.js in shared client bundle** — ✅ Verified: driver.js is already `await import("driver.js")` in `onboarding-tour.tsx:75` (only the small CSS file stays static). Stripe.js is NOT in the bundle — the frontend uses Stripe's redirect-checkout flow (`window.location.href = checkout_url`), so no `@stripe/stripe-js` import. Audit was being cautious; both items were already resolved.
 - [x] **React Query `staleTime: 30_000` doesn't align with backend cache TTL=60s** — ✅ Shipped: `staleTime: 60_000` + `refetchOnWindowFocus: false` in `providers.tsx`.
 
 ### Database
@@ -52,12 +52,9 @@ WeasyPrint PDFs and AI calls share threadpool slots with `/api/health` and auth.
 - **Cost**: 2–3 days for Celery + Redis + result-polling endpoint, or simpler with Render's cron jobs for batch work
 - **When**: when 95p latency on `/api/health` starts spiking during peak hours
 
-### Single-prefix user cache invalidation
-Today every mutation route manually lists which scopes to invalidate (`_DASHBOARD_CACHE_SCOPES` in transactions, more to come). As cached endpoints multiply, drift is inevitable.
+### ~~Single-prefix user cache invalidation~~ ✅ Shipped
 
-- **Win**: one `invalidate_user(user_id)` call covers everything
-- **Cost**: ~half-day — switch all keys to a single `user:{id}:*` prefix scheme
-- **When**: when you add the 6th cached scope
+Resolved via `backend/app/cache.py:_GLOBAL_USER_SCOPES` + `invalidate_user_all(user_id)`. New cached endpoints register their scope name once at module-load time; every mutation route automatically picks it up. Transactions router was migrated from per-router scope list to the new helper.
 
 ### Frontend → React Server Components for dashboard
 Even with the 6-endpoint dashboard collapsed, TTFB could be served from a single SSR/edge call.
