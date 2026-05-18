@@ -126,6 +126,17 @@ export const authAPI = {
 };
 
 export const dashboardAPI = {
+  /**
+   * One round-trip for the dashboard page — replaces 6 separate
+   * useQuery calls (summary + charts + health-score + cashflow +
+   * anomalies + AI summaries). Backed by its own cache scope
+   * `dashboard:bundle` that's invalidated on every transaction /
+   * plan / budget mutation.
+   */
+  bundle: () => fetchJSON("/api/dashboard/bundle"),
+  // Single-scope endpoints kept for direct callers (CLI, mobile,
+  // pages that only need one slice). The frontend dashboard page
+  // uses `bundle` exclusively.
   summary: () => fetchJSON("/api/dashboard/summary"),
   charts: () => fetchJSON("/api/dashboard/charts"),
   healthScore: () => fetchJSON("/api/dashboard/health-score"),

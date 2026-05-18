@@ -92,6 +92,26 @@ def _build_engine(url: str) -> Engine:
     # AlloyDB, Azure, Neon, Supabase, CockroachDB (wire-compatible),
     # YugabyteDB.
     # ------------------------------------------------------------------
+
+    # Neon-specific check: the standard Neon URL (`ep-xxx.region.aws.
+    # neon.tech`) caps direct connections at the free-tier ceiling
+    # (~100). At our default pool sizing (`pool_size=10 + max_overflow=20
+    # = 30 per worker × 4 workers = 120 connections per pod`) a single
+    # backend pod already exceeds that. The fix is one character: use
+    # the pooler endpoint (`ep-xxx-pooler.region.aws.neon.tech`) which
+    # multiplexes via PgBouncer in transaction mode. Warn loudly when
+    # the operator hasn't done so — silent connection-exhaustion at
+    # peak traffic is the worst failure mode.
+    from loguru import logger
+    if "neon.tech" in url and "pooler.neon.tech" not in url:
+        logger.warning(
+            "DATABASE_URL points at Neon WITHOUT the pooler endpoint "
+            "(neon.tech vs *-pooler.neon.tech). At default pool sizing "
+            "(pool=10 + overflow=20 × 4 workers = 120 conns/pod) you will "
+            "exceed Neon's 100-conn ceiling at peak. Switch to the "
+            "pooler URL from the Neon dashboard. See docs/databases.md."
+        )
+
     connect_args = {
         # statement_timeout caps any single query at 15 s so a runaway
         # SELECT can't pin a pool connection indefinitely.
