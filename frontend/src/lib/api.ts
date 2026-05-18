@@ -356,6 +356,80 @@ export const reportsAPI = {
     a.remove();
     URL.revokeObjectURL(url);
   },
+  /**
+   * Background PDF export — enqueues the render on the worker queue,
+   * polls for completion, then downloads. Use this when the synchronous
+   * `exportPDF` would block the worker for too long (large date range,
+   * heavy traffic). Falls back to the inline endpoint when the queue
+   * isn't configured (backend returns the PDF directly).
+   *
+   * Signature mirrors `exportPDF` so call sites can swap by flipping
+   * one identifier.
+   */
+  exportPDFAsync: async (start?: string, end?: string) => {
+    const params = new URLSearchParams();
+    if (start) params.set("start_date", start);
+    if (end) params.set("end_date", end);
+    params.set("background", "true");
+
+    const enqueueRes = await fetchJSON<
+      | { job_id: string; status: string; poll_url: string; download_url: string }
+      | Blob
+    >(`/api/reports/export.pdf?${params}`);
+
+    // If the backend fell back to inline rendering (Redis not
+    // configured) it returns the PDF bytes directly. fetchJSON would
+    // have failed to JSON-parse those, so the legacy path doesn't
+    // come through here — we get the queued-job JSON envelope.
+    if (typeof enqueueRes !== "object" || !("job_id" in enqueueRes)) {
+      throw new APIError(500, "Unexpected response shape from background PDF export");
+    }
+
+    const { job_id } = enqueueRes;
+    // Poll every 2 s for up to 5 minutes. WeasyPrint normally renders
+    // in 1-2 s; the 5 min ceiling covers cold-start + heavy reports.
+    const maxAttempts = 150;
+    for (let i = 0; i < maxAttempts; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const status = await fetchJSON<{
+        status: "queued" | "running" | "done" | "failed" | "unknown";
+        result_url?: string;
+        error?: string;
+      }>(`/api/jobs/${job_id}/status`);
+
+      if (status.status === "done" && status.result_url) {
+        // Stream the artifact through the cookie-attached fetch so
+        // the browser sends the auth cookie on the download.
+        const legacyToken = useAuthStore.getState().token;
+        const dl = await fetch(`${API_BASE}${status.result_url}`, {
+          credentials: "include",
+          headers: legacyToken ? { Authorization: `Bearer ${legacyToken}` } : {},
+        });
+        if (!dl.ok) throw new APIError(dl.status, "PDF download failed");
+        const blob = await dl.blob();
+        const filename =
+          dl.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1] ||
+          "aegis-report.pdf";
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        return;
+      }
+      if (status.status === "failed") {
+        throw new APIError(500, status.error || "PDF generation failed");
+      }
+      if (status.status === "unknown") {
+        throw new APIError(404, "Job not found — it may have expired");
+      }
+      // queued | running → keep polling
+    }
+    throw new APIError(504, "PDF generation timed out after 5 minutes");
+  },
 };
 
 export const notificationsAPI = {

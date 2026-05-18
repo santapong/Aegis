@@ -126,10 +126,55 @@ def export_csv(
 def export_pdf(
     start_date: date | None = None,
     end_date: date | None = None,
+    background: bool = False,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Render the reports view to a formatted PDF via WeasyPrint."""
+    """Render the reports view to a formatted PDF via WeasyPrint.
+
+    Two execution modes:
+
+    1. **Inline** (default) — render the PDF synchronously on the API
+       worker and stream the bytes back in the response. Simple, works
+       even without Redis. Burns ~800 ms of CPU on the request worker.
+    2. **Background** (``?background=true`` OR auto-fallback when the
+       inline path errored out) — enqueues an arq job, returns 202 with
+       ``{job_id, poll_url, download_url}``. Frontend polls
+       ``/api/jobs/{id}/status`` until "done" and follows ``result_url``
+       to download. Requires ``CACHE_REDIS_URL`` to be configured.
+
+    Inline is preserved for clients that prefer one round-trip (CLI,
+    scripts). Background is recommended once you have > a handful of
+    concurrent users — see docs/design/001-background-worker-queue.md.
+    """
+    # Try the background queue first if explicitly requested. Falls
+    # back to inline rendering when the queue isn't available so the
+    # endpoint stays functional on dev/single-pod deploys.
+    if background:
+        try:
+            from ..jobs import JobQueueUnavailable, enqueue
+
+            today_ = date.today()
+            start_iso = (start_date or today_.replace(day=1)).isoformat()
+            end_iso = (end_date or today_).isoformat()
+            job_id = enqueue(
+                "render_pdf_report",
+                user_id=current_user.id,
+                start_date_iso=start_iso,
+                end_date_iso=end_iso,
+            )
+            return {
+                "job_id": job_id,
+                "status": "queued",
+                "poll_url": f"/api/jobs/{job_id}/status",
+                "download_url": f"/api/jobs/{job_id}/download",
+            }
+        except JobQueueUnavailable:
+            # Redis not configured — fall through to inline render
+            # rather than 503-ing. The operator sees the warning in
+            # the startup log; users keep getting their PDFs.
+            pass
+
     today = date.today()
     start = start_date or today.replace(day=1)
     end = end_date or today

@@ -42,31 +42,31 @@ The CRITICALs are landed; what's below is **fine today**, breaks at 10k+ users o
 
 `GET /api/dashboard/bundle` returns summary + charts + health-score + cashflow-forecast + anomalies + AI weekly-summary + AI insights in one response. Backend caches the bundle under `dashboard:bundle:<user_id>` (registered in `_GLOBAL_USER_SCOPES` so all mutation routes invalidate it). Frontend dashboard switched from 6 `useQuery` calls to 1. AI bits degrade gracefully to `null` / `[]` when the provider isn't configured.
 
-### Move long-running routes to a worker queue
-WeasyPrint PDFs and AI calls share threadpool slots with `/api/health` and auth. A user kicking off a PDF concurrent with an AI analysis can starve the pool for everyone.
+### ~~Move long-running routes to a worker queue~~ ✅ Phase 1 shipped
 
-- **Win**: predictable latency for the hot path under load
-- **Cost**: ~half day for Phase 1 (PDF only via arq + Redis)
-- **When**: when 95p latency on `/api/health` starts spiking during peak hours
-- **Design doc**: [`docs/design/001-background-worker-queue.md`](design/001-background-worker-queue.md) — picks arq over Celery, defines API surface, lists 10-step implementation plan and open questions for the user
+arq + Redis worker queue. `POST /api/reports/export.pdf?background=true` enqueues; `GET /api/jobs/{id}/status` polls; `GET /api/jobs/{id}/download` streams the result. Backward compatible — falls back to inline rendering when `CACHE_REDIS_URL` isn't set. Docker Compose ships a `worker` service running `arq app.worker.WorkerSettings`. Frontend `exportPDFAsync()` wraps the poll loop with a 5-minute timeout.
+
+Phase 2 (AI summary on the queue) is straightforward — register a second arq task in `app/worker.py` and flip the AI endpoints to enqueue. Defer until you actually feel the threadpool pressure on AI calls.
 
 ### ~~Single-prefix user cache invalidation~~ ✅ Shipped
 
 Resolved via `backend/app/cache.py:_GLOBAL_USER_SCOPES` + `invalidate_user_all(user_id)`. New cached endpoints register their scope name once at module-load time; every mutation route automatically picks it up. Transactions router was migrated from per-router scope list to the new helper.
 
 ### Frontend → React Server Components for dashboard
-Even with the 6-endpoint dashboard collapsed, TTFB could be served from a single SSR/edge call.
+Even with the 6-endpoint dashboard collapsed, TTFB-to-data could drop ~150 ms by inlining the bundle response server-side.
 
-- **Win**: dashboard renders with data already inlined, no client-side fetch waterfall
-- **Cost**: ~1 week — major frontend refactor, need to migrate auth from cookie-attached-to-fetch to cookie-attached-to-RSC-fetch
-- **When**: post-launch; only if dashboard TTFB becomes a complaint
+- **Win**: ~150 ms LCP improvement on Vercel + Render
+- **Cost**: ~1 day for the disciplined split (not "convert every widget" — only the data-loading boundary moves to RSC)
+- **When**: when dashboard cold-start becomes a user complaint
+- **Design doc**: [`docs/design/003-rsc-dashboard-migration.md`](design/003-rsc-dashboard-migration.md) — covers the cookie-forwarding wiring, full migration plan, and the security tradeoff that gates the spike.
 
-### Async SQLAlchemy
-All routers are sync `def`. FastAPI dispatches to a threadpool. For DB-heavy reads we could use `asyncpg` + async SQLAlchemy and free the threadpool for CPU-bound work (PDF, AI).
+### ~~Async SQLAlchemy~~ 📋 Infrastructure shipped, spike in `export.py`
 
-- **Win**: 2–3× more concurrent requests per worker without raising worker count
-- **Cost**: ~1 week — every router signature changes, every test changes, fixtures change
-- **When**: post-launch; only if synchronous threadpool exhaustion becomes a hard ceiling
+`get_async_engine()` + `get_async_db()` factory landed in `database.py`. New routes can opt in by declaring `async def …(db: AsyncSession = Depends(get_async_db))`. Sync engine stays the default; the two coexist with independent pools.
+
+`backend/app/routers/export.py` converted as the worked-example spike — uses `select() + stream_scalars()` for true cursor streaming under async.
+
+Full repo migration (every router → async) intentionally NOT shipped. Cost-benefit analysis + per-router migration recipe in [`docs/design/002-async-sqlalchemy-migration.md`](design/002-async-sqlalchemy-migration.md). TL;DR: don't migrate until you're at 500+ concurrent users; worker queue solves the real threadpool problem first.
 
 ## What's NOT on the backlog
 
