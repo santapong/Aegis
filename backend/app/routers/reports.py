@@ -10,7 +10,11 @@ from ..database import get_db
 from ..models.transaction import Transaction, TransactionType
 from ..models.user import User
 from ..auth import get_current_user
-from ..services.pdf_renderer import render_report_pdf
+# pdf_renderer is NOT imported at module level — WeasyPrint + matplotlib
+# are heavy and not installed on serverless Python runtimes (Vercel,
+# Cloud Run min). The PDF endpoint imports them lazily and returns 503
+# if they're unavailable. Other endpoints in this router (CSV export,
+# category-comparison) don't need WeasyPrint and stay functional.
 
 
 router = APIRouter(prefix="/api/reports", tags=["reports"])
@@ -198,6 +202,21 @@ def export_pdf(
         if t.type == TransactionType.expense:
             by_category[t.category] = by_category.get(t.category, 0) + float(t.amount)
     by_category = dict(sorted(by_category.items(), key=lambda kv: kv[1], reverse=True))
+
+    # Lazy import — WeasyPrint and matplotlib are excluded from the
+    # slim Vercel deploy (see backend/requirements.txt). On full
+    # deploys (Docker/Render) they're installed and this just works.
+    try:
+        from ..services.pdf_renderer import render_report_pdf
+    except ImportError as exc:
+        from fastapi import HTTPException
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "PDF export is disabled on this deployment "
+                "(WeasyPrint not installed). Use the CSV export instead."
+            ),
+        ) from exc
 
     pdf_bytes = render_report_pdf(
         username=current_user.username,
