@@ -9,6 +9,7 @@ from ..schemas.debt import (
     PayoffPlanResponse, PayoffStep, MakePaymentRequest,
 )
 from ..auth import get_current_user
+from ..cache import invalidate_user_all
 
 router = APIRouter(prefix="/api/debts", tags=["debts"])
 
@@ -27,6 +28,7 @@ def create_debt(debt: DebtCreate, db: Session = Depends(get_db), current_user: U
     db_debt = Debt(**debt.model_dump(), user_id=current_user.id)
     db.add(db_debt)
     db.commit()
+    invalidate_user_all(current_user.id)
     db.refresh(db_debt)
     return db_debt
 
@@ -125,6 +127,7 @@ def update_debt(debt_id: str, update: DebtUpdate, db: Session = Depends(get_db),
     for key, val in update.model_dump(exclude_unset=True).items():
         setattr(debt, key, val)
     db.commit()
+    invalidate_user_all(current_user.id)
     db.refresh(debt)
     return debt
 
@@ -136,6 +139,7 @@ def make_payment(debt_id: str, req: MakePaymentRequest, db: Session = Depends(ge
         raise HTTPException(status_code=404, detail="Debt not found")
     debt.balance = max(0, float(debt.balance) - req.amount)
     db.commit()
+    invalidate_user_all(current_user.id)
     db.refresh(debt)
     return debt
 
@@ -147,3 +151,4 @@ def delete_debt(debt_id: str, db: Session = Depends(get_db), current_user: User 
         raise HTTPException(status_code=404, detail="Debt not found")
     db.delete(debt)
     db.commit()
+    invalidate_user_all(current_user.id)

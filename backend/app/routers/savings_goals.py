@@ -8,6 +8,7 @@ from ..schemas.savings_goal import (
     SavingsGoalCreate, SavingsGoalUpdate, SavingsGoalResponse, ContributeRequest,
 )
 from ..auth import get_current_user
+from ..cache import invalidate_user_all
 
 router = APIRouter(prefix="/api/savings-goals", tags=["savings-goals"])
 
@@ -30,6 +31,7 @@ def create_savings_goal(goal: SavingsGoalCreate, db: Session = Depends(get_db), 
     db_goal = SavingsGoal(**goal.model_dump(), user_id=current_user.id)
     db.add(db_goal)
     db.commit()
+    invalidate_user_all(current_user.id)
     db.refresh(db_goal)
     return db_goal
 
@@ -50,6 +52,7 @@ def update_savings_goal(goal_id: str, update: SavingsGoalUpdate, db: Session = D
     for key, val in update.model_dump(exclude_unset=True).items():
         setattr(goal, key, val)
     db.commit()
+    invalidate_user_all(current_user.id)
     db.refresh(goal)
     return goal
 
@@ -61,6 +64,7 @@ def contribute_to_goal(goal_id: str, req: ContributeRequest, db: Session = Depen
         raise HTTPException(status_code=404, detail="Savings goal not found")
     goal.current_amount = float(goal.current_amount) + req.amount
     db.commit()
+    invalidate_user_all(current_user.id)
     db.refresh(goal)
     return goal
 
@@ -72,3 +76,4 @@ def delete_savings_goal(goal_id: str, db: Session = Depends(get_db), current_use
         raise HTTPException(status_code=404, detail="Savings goal not found")
     db.delete(goal)
     db.commit()
+    invalidate_user_all(current_user.id)

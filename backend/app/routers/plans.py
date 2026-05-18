@@ -7,6 +7,7 @@ from ..models.plan import Plan, PlanCategory, PlanStatus
 from ..models.user import User
 from ..schemas.plan import PlanCreate, PlanUpdate, PlanResponse
 from ..auth import get_current_user
+from ..cache import invalidate_user_all
 
 router = APIRouter(prefix="/api/plans", tags=["plans"])
 
@@ -37,6 +38,7 @@ def create_plan(plan: PlanCreate, db: Session = Depends(get_db), current_user: U
     db_plan = Plan(**plan.model_dump(), user_id=current_user.id)
     db.add(db_plan)
     db.commit()
+    invalidate_user_all(current_user.id)
     db.refresh(db_plan)
     return db_plan
 
@@ -85,6 +87,7 @@ def update_plan(plan_id: str, plan_update: PlanUpdate, db: Session = Depends(get
     for field, value in update_data.items():
         setattr(plan, field, value)
     db.commit()
+    invalidate_user_all(current_user.id)
     db.refresh(plan)
     return plan
 
@@ -96,6 +99,7 @@ def delete_plan(plan_id: str, db: Session = Depends(get_db), current_user: User 
         raise HTTPException(status_code=404, detail="Plan not found")
     db.delete(plan)
     db.commit()
+    invalidate_user_all(current_user.id)
 
 
 @router.patch("/{plan_id}/progress", response_model=PlanResponse)
@@ -109,5 +113,6 @@ def update_progress(plan_id: str, progress: int = Query(..., ge=0, le=100), db: 
     elif progress > 0:
         plan.status = PlanStatus.in_progress
     db.commit()
+    invalidate_user_all(current_user.id)
     db.refresh(plan)
     return plan

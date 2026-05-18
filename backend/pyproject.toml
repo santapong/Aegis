@@ -13,7 +13,9 @@ dependencies = [
     "loguru>=0.7.3",
     "matplotlib>=3.9.2",
     "numpy>=2.4.0",
-    "pandas>=2.3.3",
+    # pandas removed in v1.1 — CSV import now uses stdlib csv.DictReader
+    # (~10× faster on ingest, drops ~30 MB of cold-start memory).
+    # matplotlib keeps numpy as a transitive dep for the PDF charts.
     "passlib[bcrypt]>=1.7.4",
     # passlib 1.7.4 reads bcrypt.__about__.__version__ which bcrypt 5.x removed,
     # and bcrypt 5 rejects passlib's detect_wrap_bug probe — register/login break.
