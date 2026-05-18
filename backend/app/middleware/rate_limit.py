@@ -111,6 +111,20 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.requests_per_minute = requests_per_minute
         self._settings = get_settings()
         self._limiter = self._build_limiter()
+        # When Redis was unreachable at boot we degrade to in-memory.
+        # Periodically retry so a Redis blip during deploy doesn't pin
+        # us to the in-memory limiter for the lifetime of the process.
+        # ``_next_redis_retry_at`` is a unix timestamp; 0 means "don't
+        # retry" (Redis backend either succeeded or wasn't configured).
+        self._next_redis_retry_at: float = (
+            time.time() + 60.0
+            if (
+                (self._settings.cache_backend or "memory").lower() == "redis"
+                and self._settings.cache_redis_url
+                and isinstance(self._limiter, _InMemoryLimiter)
+            )
+            else 0.0
+        )
 
     def _build_limiter(self):
         """Pick Redis if configured + reachable, else in-memory."""
@@ -135,10 +149,31 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 logger.warning(
                     "Rate limiter could not reach Redis ({err}); falling "
                     "back to in-memory limiter — shared limit across "
-                    "workers will NOT be enforced.",
+                    "workers will NOT be enforced. Will re-attempt every "
+                    "60 s.",
                     err=exc,
                 )
         return _InMemoryLimiter()
+
+    def _maybe_upgrade_to_redis(self) -> None:
+        """If we're on the in-memory fallback and the retry window has
+        elapsed, try Redis again. Cheap fast-path when there's nothing
+        to do — a single timestamp compare, no Redis call.
+
+        Called inline on every request. The 60 s gate keeps the cost
+        bounded; we never call ``redis.ping()`` more than once a minute
+        per worker even under high traffic.
+        """
+        if self._next_redis_retry_at == 0.0:
+            return
+        if time.time() < self._next_redis_retry_at:
+            return
+        self._next_redis_retry_at = time.time() + 60.0
+        new = self._build_limiter()
+        if isinstance(new, _RedisLimiter):
+            logger.info("Rate limiter: redis backend recovered, switching")
+            self._limiter = new
+            self._next_redis_retry_at = 0.0
 
     def _client_id(self, request: Request) -> str:
         """Identify the caller for bucketing.
@@ -157,6 +192,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return request.client.host if request.client else "unknown"
 
     async def dispatch(self, request: Request, call_next):
+        # Cheap check; only does real work if we're stuck on in-memory.
+        self._maybe_upgrade_to_redis()
+
         path = request.url.path
         client_id = self._client_id(request)
 

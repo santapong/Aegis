@@ -37,6 +37,16 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440  # 24 hours
 
+    # SameSite policy for the session cookie set by /api/auth/login and
+    # /api/auth/google. "lax" (default) blocks cross-site POST and is
+    # the right choice for same-origin deploys (Vercel rewrite →
+    # backend). Switch to "none" if your frontend hits the backend
+    # cross-origin (e.g. you set NEXT_PUBLIC_API_URL to the backend's
+    # public URL to bypass Vercel's response buffering for streaming AI).
+    # "none" requires HTTPS (Secure=true), which the cookie helper
+    # already sets in production.
+    auth_cookie_samesite: str = "lax"  # "lax" | "strict" | "none"
+
     # Google OAuth — optional. When set, /api/auth/google accepts Google
     # ID tokens and signs the user in (or registers them). The same client
     # ID must be configured in the frontend (NEXT_PUBLIC_GOOGLE_CLIENT_ID)
