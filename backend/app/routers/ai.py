@@ -174,14 +174,90 @@ def get_insights(db: Session = Depends(get_db), current_user: User = Depends(get
     month_ago = today - timedelta(days=30)
     two_months_ago = today - timedelta(days=60)
 
-    recent = db.query(Transaction).filter(Transaction.user_id == current_user.id, Transaction.date >= month_ago).all()
-    previous = db.query(Transaction).filter(Transaction.user_id == current_user.id, Transaction.date >= two_months_ago, Transaction.date < month_ago).all()
+    # SQL aggregation — was two full .all() scans (60-day window total)
+    # plus four Python passes. Now one GROUP BY over the full window
+    # bucketed by (bucket, type, category) gives us every number used
+    # below. Returns ≤ 2 × types × categories rows (typically 4-60).
+    income_sum = sa_func.coalesce(
+        sa_func.sum(
+            case((Transaction.type == TransactionType.income, Transaction.amount), else_=0)
+        ),
+        0,
+    )
+    expense_sum = sa_func.coalesce(
+        sa_func.sum(
+            case((Transaction.type == TransactionType.expense, Transaction.amount), else_=0)
+        ),
+        0,
+    )
+
+    # "bucket" is 1 for current month, 0 for prior month. Computed in
+    # SQL so we only do one round-trip; portable across all engines
+    # via CASE (no date_trunc dialect quirks).
+    bucket_expr = case((Transaction.date >= month_ago, 1), else_=0).label("bucket")
+    cnt = sa_func.count(Transaction.id).label("cnt")
+
+    # Aggregate 1: totals per (bucket, type) — gives income / expense
+    # for current AND prior month plus the transaction count.
+    totals_rows = (
+        db.query(
+            bucket_expr,
+            Transaction.type,
+            sa_func.coalesce(sa_func.sum(Transaction.amount), 0).label("total"),
+            cnt,
+        )
+        .filter(
+            Transaction.user_id == current_user.id,
+            Transaction.date >= two_months_ago,
+            Transaction.date < today + timedelta(days=1),
+        )
+        .group_by(bucket_expr, Transaction.type)
+        .all()
+    )
+    recent_income = 0.0
+    recent_expenses = 0.0
+    prev_expenses = 0.0
+    recent_count = 0
+    for bucket, txn_type, total, count in totals_rows:
+        total_f = float(total or 0)
+        if int(bucket) == 1:  # current month
+            recent_count += int(count or 0)
+            if txn_type == TransactionType.income:
+                recent_income = total_f
+            else:
+                recent_expenses = total_f
+        else:  # prior month
+            if txn_type == TransactionType.expense:
+                prev_expenses = total_f
+
+    # Aggregate 2: expense totals per (bucket, category) — gives both
+    # months of per-category data for the "biggest increase" insight.
+    cat_rows = (
+        db.query(
+            bucket_expr,
+            Transaction.category,
+            sa_func.coalesce(sa_func.sum(Transaction.amount), 0).label("total"),
+        )
+        .filter(
+            Transaction.user_id == current_user.id,
+            Transaction.type == TransactionType.expense,
+            Transaction.date >= two_months_ago,
+            Transaction.date < today + timedelta(days=1),
+        )
+        .group_by(bucket_expr, Transaction.category)
+        .all()
+    )
+    recent_cats: dict[str, float] = {}
+    prev_cats: dict[str, float] = {}
+    for bucket, category, total in cat_rows:
+        if int(bucket) == 1:
+            recent_cats[category] = float(total or 0)
+        else:
+            prev_cats[category] = float(total or 0)
 
     insights = []
 
     # Savings rate insight
-    recent_income = sum(float(t.amount) for t in recent if t.type == TransactionType.income)
-    recent_expenses = sum(float(t.amount) for t in recent if t.type == TransactionType.expense)
     if recent_income > 0:
         savings_rate = (recent_income - recent_expenses) / recent_income * 100
         if savings_rate >= 20:
@@ -200,7 +276,6 @@ def get_insights(db: Session = Depends(get_db), current_user: User = Depends(get
             ))
 
     # Spending trend
-    prev_expenses = sum(float(t.amount) for t in previous if t.type == TransactionType.expense)
     if prev_expenses > 0:
         change = (recent_expenses - prev_expenses) / prev_expenses * 100
         if change > 15:
@@ -219,15 +294,6 @@ def get_insights(db: Session = Depends(get_db), current_user: User = Depends(get
             ))
 
     # Top growing category
-    recent_cats: dict[str, float] = {}
-    prev_cats: dict[str, float] = {}
-    for t in recent:
-        if t.type == TransactionType.expense:
-            recent_cats[t.category] = recent_cats.get(t.category, 0) + float(t.amount)
-    for t in previous:
-        if t.type == TransactionType.expense:
-            prev_cats[t.category] = prev_cats.get(t.category, 0) + float(t.amount)
-
     biggest_increase = None
     biggest_change = 0
     for cat, amount in recent_cats.items():
@@ -247,13 +313,13 @@ def get_insights(db: Session = Depends(get_db), current_user: User = Depends(get
         ))
 
     # Transaction frequency
-    if len(recent) > 0:
-        avg_per_day = len(recent) / 30
+    if recent_count > 0:
+        avg_per_day = recent_count / 30
         insights.append(InsightItem(
             type="info",
             title="Transaction Activity",
-            message=f"You averaged {avg_per_day:.1f} transactions per day this month ({len(recent)} total).",
-            metric=str(len(recent)),
+            message=f"You averaged {avg_per_day:.1f} transactions per day this month ({recent_count} total).",
+            metric=str(recent_count),
         ))
 
     cache.set(cache_key, [i.model_dump() for i in insights], ttl=_settings.cache_default_ttl)

@@ -188,6 +188,23 @@ Cloud Run will give you a CNAME record to add at your DNS provider. TLS is auto-
 
 For Vercel frontend + Cloud Run backend, use Vercel for the frontend domain and Cloud Run for `api.example.com`.
 
+### Additional env vars on the backend (post-v1)
+
+The env-var list has grown since v1.0. Add these to Secret Manager and pass them via `--set-secrets` on the Cloud Run service:
+
+| Var | Required? | Source |
+|---|---|---|
+| `FRONTEND_URL` | Yes in prod | Your public frontend URL (e.g. `https://app.example.com`). Stripe redirects + email links use this. |
+| `GOOGLE_OAUTH_CLIENT_ID` | Optional | From [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials). Frontend reads the same value as `NEXT_PUBLIC_GOOGLE_CLIENT_ID`. |
+| `CACHE_BACKEND` | Recommended for multi-instance | `memory` (single instance), `redis` (multi-instance), or `disabled`. Pair with `CACHE_REDIS_URL` pointing at Memorystore. |
+| `CACHE_REDIS_URL` | If `CACHE_BACKEND=redis` | e.g. `redis://10.0.0.3:6379/0` via the VPC connector. |
+| `AUTH_COOKIE_SAMESITE` | Optional | `lax` (default) / `strict` / `none`. Use `none` if frontend hits the backend cross-origin. |
+| `MAX_REQUEST_BODY_BYTES` | Optional | Default `2097152` (2 MB). |
+| `RATE_LIMIT_TRUST_FORWARDED_FOR` | Recommended behind GCLB | `true` once you've verified the load balancer strips inbound XFF. |
+| `DB_POOL_SIZE`, `DB_MAX_OVERFLOW`, `DB_POOL_RECYCLE` | Optional | Tune for Cloud SQL connection ceiling. Defaults work for 1 instance against `db-f1-micro`. |
+
+See [`backend/.env.example`](../../backend/.env.example) for the complete list and [`databases.md`](../databases.md) for Cloud SQL / AlloyDB pool-tuning recommendations.
+
 ## Step 6 — Stripe webhook (optional)
 
 In Stripe Dashboard → Webhooks, point the endpoint at `https://api.example.com/api/payments/webhook` (or the Cloud Run URL). Copy the signing secret into the `aegis-stripe-webhook-secret` Secret Manager entry; the next Cloud Run deploy picks it up.

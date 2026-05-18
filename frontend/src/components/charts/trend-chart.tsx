@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   AreaChart,
   Area,
@@ -32,6 +33,17 @@ const COL_INCOME = "oklch(0.78 0.14 145)";
 const COL_EXPENSE = "oklch(0.78 0.16 75)";
 
 export function TrendChart({ data }: TrendChartProps) {
+  // Animate on first paint only. Recharts re-mounts its 1 s entry
+  // animation whenever the parent re-renders with new data identity
+  // (e.g. every React Query refetch). Gating to first mount stops the
+  // chart from "wobbling back to life" every time the user tabs back
+  // into the dashboard.
+  const [animate, setAnimate] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setAnimate(false), 1100);
+    return () => clearTimeout(timer);
+  }, []);
+
   if (data.length === 0) {
     return <EmptyState icon={TrendingUp} title="No trend data yet" className="h-64" />;
   }
@@ -95,7 +107,7 @@ export function TrendChart({ data }: TrendChartProps) {
           strokeLinecap="round"
           dot={false}
           activeDot={{ r: 4, fill: COL_INCOME }}
-          isAnimationActive
+          isAnimationActive={animate}
           animationDuration={1000}
         />
         <Area
@@ -107,7 +119,7 @@ export function TrendChart({ data }: TrendChartProps) {
           strokeLinecap="round"
           dot={false}
           activeDot={{ r: 4, fill: COL_EXPENSE }}
-          isAnimationActive
+          isAnimationActive={animate}
           animationDuration={1000}
         />
       </AreaChart>

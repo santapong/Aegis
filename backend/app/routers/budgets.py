@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func as sa_func
 from sqlalchemy.orm import Session
 from datetime import date
 
@@ -84,20 +85,28 @@ def budget_comparison(
         .all()
     )
 
-    expenses = (
-        db.query(Transaction)
+    # Aggregate expense totals per category in a single GROUP BY query
+    # instead of loading every expense row into Python and summing.
+    # Rows returned: ≤ number-of-distinct-categories (typically 4-30),
+    # regardless of how many transactions sit in the window. Was a
+    # full-window scan on a hot path called by the dashboard.
+    spent_rows = (
+        db.query(
+            Transaction.category,
+            sa_func.coalesce(sa_func.sum(Transaction.amount), 0).label("total"),
+        )
         .filter(
             Transaction.user_id == current_user.id,
             Transaction.type == TransactionType.expense,
             Transaction.date >= period_start,
             Transaction.date <= period_end,
         )
+        .group_by(Transaction.category)
         .all()
     )
-
-    spent_by_category: dict[str, float] = {}
-    for t in expenses:
-        spent_by_category[t.category] = spent_by_category.get(t.category, 0) + float(t.amount)
+    spent_by_category: dict[str, float] = {
+        cat: float(total or 0) for cat, total in spent_rows
+    }
 
     comparisons = []
     for b in budgets:

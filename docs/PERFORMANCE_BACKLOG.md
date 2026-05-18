@@ -12,8 +12,8 @@ The CRITICALs are landed; what's below is **fine today**, breaks at 10k+ users o
 - [x] **SQL aggregation pass on the remaining materialize-then-aggregate routes** — ✅ Shipped: `dashboard.health_score` (was 5–14 queries, now 4 aggregate queries), `dashboard.cashflow_forecast` (was all-time scan, now 2 aggregate queries), `ai.weekly_summary` (was 2 full scans + 4 Python loops, now 3 aggregate queries), `reports.category_comparison` (was N month-scans, now 1 GROUP BY). `budgets.budget_comparison` and `ai.get_insights` still on the list — the latter is just cached for now since its logic is complex.
 - [x] **`notification_service.evaluate_budget_thresholds` fires on every transaction mutation** — ✅ Shipped: replaced per-budget `.all()` + Python sum with `COALESCE(SUM(amount), 0)` SQL scalar.
 - [x] **`/api/reports/export.{csv,pdf}` have no `LIMIT`** — ✅ Shipped: CSV capped at 50k rows (configurable `?limit=`, max 100k), PDF capped at 5k rows.
-- [ ] **`budgets.budget_comparison`** — replace `.all()` + Python group with `SELECT category, SUM(amount) GROUP BY category` + budget JOIN. *~30 min.*
-- [ ] **`ai.get_insights` SQL aggregation** — currently cached but still scans 60 days into Python on miss. Convert to one GROUP BY giving (this-month, prev-month) category buckets. *~1 hour.*
+- [x] **`budgets.budget_comparison`** — ✅ Shipped: replaced `.all()` + Python group with one GROUP BY query (≤ ~30 rows regardless of window size).
+- [x] **`ai.get_insights` SQL aggregation** — ✅ Shipped: two aggregate queries with a CASE-based bucket column gives totals + per-category breakdown for both current and prior month in 2 round-trips instead of 2 full scans.
 - [ ] **CSV import uses pandas** — `transactions.py:295`. Stdlib `csv.DictReader` is 10× faster and drops a ~30 MB runtime dep at build time. Note: matplotlib still depends on numpy; full pandas removal saves more once PDF generator is also rewritten. *~2 hours.*
 - [ ] **Sync handlers share one threadpool** — WeasyPrint PDF (~800 ms CPU) + AI calls (~30 s timeout) on the same pool as `/api/health`. Either move long-running routes to a background queue (Render cron / Celery), or bump `--workers ≥ 4` and the anyio threadpool limit. *~half-day if queue, ~15 min if just `--workers 4`.*
 - [x] **Anomaly detection bounded** — ✅ Shipped: two-step now (one GROUP BY for per-category averages, then a single bounded query for outliers using OR-of-category clauses). Stops loading every expense in a 90-day window for power users.
@@ -22,10 +22,10 @@ The CRITICALs are landed; what's below is **fine today**, breaks at 10k+ users o
 
 - [x] **Page-level `useAppStore()` subscription on the dashboard** — ✅ Shipped: dashboard and settings pages now use per-field selectors.
 - [x] **Transactions filter object identity** — ✅ Shipped: `queryParams` wrapped in `useMemo`.
-- [ ] **Manage-tags modal O(tags × txns × txn.tags)** — `transactions/page.tsx:931` runs `transactions?.filter(...some(...))` inside `tags.map()`. Fine at 50 tags / 100 txns; bad at 5k. Memoize a `Map<tagId, count>` once per data refresh.
+- [x] **Manage-tags modal O(tags × txns × txn.tags)** — ✅ Shipped: `tagUsageById` memoized as a `Map<tagId, count>` built once per data refresh; modal reads `O(1)` per tag.
 - [x] **Calendar `getEventsForDay` called inside 42-cell day grid per render** — ✅ Shipped: O(events) walk once per `events` change, then `Map<dayKey, CalendarEvent[]>` lookups in render.
-- [ ] **Anomaly / insight cards re-fire entry stagger animation on every refetch** — gate to first mount with `key` + `AnimatePresence`, or drop the stagger.
-- [ ] **TrendChart re-mounts the 1 s Recharts entry animation on every refetch** — set `isAnimationActive={false}` after first mount, or stabilize the `data` identity.
+- [x] **Anomaly / insight cards re-fire entry stagger animation on every refetch** — ✅ Shipped: gated via `hasMounted` state — `initial={false}` and `duration: 0` after first paint, so refetches snap-in instantly.
+- [x] **TrendChart re-mounts the 1 s Recharts entry animation on every refetch** — ✅ Shipped: `isAnimationActive={animate}` where `animate` flips false 1.1 s after first paint.
 - [ ] **Driver.js (onboarding) and Stripe.js in shared client bundle** — dynamic-import inside the wrapper components, gated on first use.
 - [x] **React Query `staleTime: 30_000` doesn't align with backend cache TTL=60s** — ✅ Shipped: `staleTime: 60_000` + `refetchOnWindowFocus: false` in `providers.tsx`.
 

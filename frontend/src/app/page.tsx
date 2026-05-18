@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
@@ -101,6 +102,15 @@ function QueryErrorCard({
 }
 
 export default function DashboardPage() {
+  // After the page first mounts, suppress per-item entry animations so
+  // React Query refetches don't re-fire the staggered fade-in on
+  // anomaly + insight cards. The first paint still gets the full
+  // animation; subsequent refetches snap-in instantly.
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
   // Selector — without this the dashboard re-renders on every unrelated
   // app-store write (theme change, panel toggle, settings hydrate).
   const toggleAIPanel = useAppStore((s) => s.toggleAIPanel);
@@ -334,9 +344,9 @@ export default function DashboardPage() {
                 {anomalies.anomalies.slice(0, 5).map((a, i) => (
                   <motion.div
                     key={a.transaction_id}
-                    initial={{ opacity: 0, x: -10 }}
+                    initial={hasMounted ? false : { opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.06 }}
+                    transition={hasMounted ? { duration: 0 } : { delay: i * 0.06 }}
                     className="grid items-start gap-3.5 py-2.5"
                     style={{
                       gridTemplateColumns: "70px 1fr auto",
@@ -437,9 +447,9 @@ export default function DashboardPage() {
                   return (
                     <motion.div
                       key={i}
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={hasMounted ? false : { opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.08 }}
+                      transition={hasMounted ? { duration: 0 } : { delay: i * 0.08 }}
                       className="aegis-insight"
                       style={{ "--insight-tint": tint } as React.CSSProperties}
                     >

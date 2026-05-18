@@ -135,6 +135,22 @@ export default function TransactionsPage() {
     queryFn: () => tripsAPI.list() as Promise<Trip[]>,
   });
 
+  // Precompute usage counts once per data refresh instead of running
+  // a nested `transactions.filter(some(...))` inside every tags.map()
+  // iteration in the manage-tags modal. Was O(tags × txns × txn.tags)
+  // per render — fine at 50 tags / 100 txns, brutal at 5k.
+  const tagUsageById = useMemo(() => {
+    const counts = new Map<string, number>();
+    if (!transactions) return counts;
+    for (const tx of transactions) {
+      if (!tx.tags) continue;
+      for (const t of tx.tags) {
+        counts.set(t.id, (counts.get(t.id) ?? 0) + 1);
+      }
+    }
+    return counts;
+  }, [transactions]);
+
   const invalidateAfterMutation = () => {
     queryClient.invalidateQueries({ queryKey: ["transactions"] });
     queryClient.invalidateQueries({ queryKey: ["transaction-summary"] });
@@ -935,7 +951,7 @@ export default function TransactionsPage() {
           {tags && tags.length > 0 ? (
             <div className="divide-y divide-border rounded-lg border border-border">
               {tags.map((tag) => {
-                const usage = transactions?.filter((tx) => tx.tags?.some((t) => t.id === tag.id)).length ?? 0;
+                const usage = tagUsageById.get(tag.id) ?? 0;
                 const isEditing = editingTagId === tag.id;
                 return (
                   <div key={tag.id} className="p-3 flex items-center gap-3">
