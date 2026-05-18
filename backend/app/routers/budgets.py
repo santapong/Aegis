@@ -16,6 +16,7 @@ from ..schemas.budget import (
     BudgetComparisonResponse,
 )
 from ..auth import get_current_user
+from ..cache import invalidate_user_all
 
 router = APIRouter(prefix="/api/budgets", tags=["budgets"])
 
@@ -38,6 +39,7 @@ def create_budget(budget: BudgetCreate, db: Session = Depends(get_db), current_u
     db_budget = Budget(**budget.model_dump(), user_id=current_user.id)
     db.add(db_budget)
     db.commit()
+    invalidate_user_all(current_user.id)
     db.refresh(db_budget)
     return db_budget
 
@@ -155,6 +157,7 @@ def update_budget(budget_id: str, data: BudgetUpdate, db: Session = Depends(get_
     for key, val in update_data.items():
         setattr(budget, key, val)
     db.commit()
+    invalidate_user_all(current_user.id)
     db.refresh(budget)
     return budget
 
@@ -166,3 +169,4 @@ def delete_budget(budget_id: str, db: Session = Depends(get_db), current_user: U
         raise HTTPException(status_code=404, detail="Budget not found")
     db.delete(budget)
     db.commit()
+    invalidate_user_all(current_user.id)
