@@ -11,21 +11,17 @@ interface AuthUser {
 
 interface AuthState {
   /**
-   * Legacy field. The JWT now lives in an httpOnly cookie set by
+   * Legacy field. The JWT lives in an httpOnly cookie set by
    * `/api/auth/login` and `/api/auth/google`; JavaScript cannot read
    * it (which is the security win — XSS can't exfiltrate the session).
    *
-   * Kept in the in-memory shape for two reasons:
-   * 1. Backward-compat for users with a pre-cookie session that
-   *    still has a token in localStorage. `lib/api.ts` reads this
-   *    and sends it as a Bearer header so they don't get force-logged-out
-   *    on first page load after the upgrade.
-   * 2. Native API clients (CLI / scripts) can still set a token
-   *    explicitly via `setToken()` when the cookie isn't an option.
-   *
-   * **Never call `setToken()` from a browser sign-in flow.** Doing so
-   * re-introduces the localStorage XSS exfiltration risk that the
-   * cookie auth was meant to close.
+   * This field is retained only to read the leftover token from
+   * users who upgraded from a pre-cookie session. `lib/api.ts` reads
+   * it and sends it as a Bearer header during the grace window so
+   * they're not force-logged-out on the first page load after the
+   * upgrade. There is no longer a setter — the value is whatever the
+   * persist middleware loaded once at hydration (always null for new
+   * sessions, since it is no longer persisted).
    */
   token: string | null;
   user: AuthUser | null;
@@ -33,7 +29,6 @@ interface AuthState {
   login: (user: AuthUser) => void;
   logout: () => void;
   setUser: (user: AuthUser) => void;
-  setToken: (token: string) => void;
 }
 
 const STORAGE_KEY = "aegis-auth";
@@ -60,7 +55,6 @@ export const useAuthStore = create<AuthState>()(
         set({ token: null, user: null, isAuthenticated: false });
       },
       setUser: (user) => set({ user }),
-      setToken: (token) => set({ token }),
     }),
     {
       name: STORAGE_KEY,
