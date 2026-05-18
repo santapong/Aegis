@@ -6,6 +6,117 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added — performance
+
+- **Pluggable cache layer** (`backend/app/cache.py`) — `CACHE_BACKEND`
+  env var selects `memory` (per-process TTL dict, default), `redis`
+  (production, shared across workers), or `disabled` (incident-response
+  no-op). JSON values serialized via `pydantic_core.to_jsonable_python`;
+  SCAN-based prefix delete on Redis; per-user invalidation helper. Now
+  wired on `/api/dashboard/{summary,charts,health-score,cashflow-forecast}`
+  and `/api/ai/{weekly-summary,insights}`, invalidated on every
+  transaction mutation.
+- **Redis-backed rate limiter** — replaces the per-worker in-memory
+  limiter when `CACHE_BACKEND=redis` is set. Re-attempts Redis every
+  60 s if unreachable at boot. Strict-prefix list expanded to cover
+  `/api/auth/{login,register,google,logout}` and `/api/export/`.
+- **Hot-path composite indexes** (v0.9.7 + v0.9.8 migrations) on
+  `transactions(user_id, date)`, `(user_id, type, date)`,
+  `(user_id, is_recurring)`, `(user_id, category)`,
+  `plans(user_id, status)`, `plans(user_id, start_date)`,
+  `budgets(user_id, period_start)`,
+  `ai_recommendations(user_id, created_at)`.
+- **`GZipMiddleware`** registered globally — ~75% wire-size reduction
+  on dashboard JSON payloads (≥ 500 B threshold).
+- **NDJSON export endpoints** (`/api/export/{transactions,plans,
+  budgets}.ndjson`) — stream per-user data with `yield_per(100)` for
+  warehouse ingestion and GDPR subject-access requests.
+- **`docs/PERFORMANCE_BACKLOG.md`** — tracks remaining audit findings
+  with impact × effort sequencing.
+- **`docs/analytics-warehouses.md`** — CDC patterns and per-warehouse
+  target schemas (Redshift, BigQuery, Snowflake, ClickHouse).
+- **`docs/databases.md`** — multi-DB compatibility matrix for 20
+  Postgres / MySQL / NewSQL targets.
+
+### Added — security
+
+- **Google sign-in** via Google Identity Services ID-token flow
+  (`/api/auth/google` + opt-in `/api/auth/google/link`). Refuses
+  silent account-link on the unauthenticated endpoint to avoid
+  takeover via recycled Gmail addresses.
+- **httpOnly session cookie** — JWT now in `aegis_session` cookie set
+  on `/login` and `/google`. JavaScript can no longer read the token
+  (XSS exfiltration closed). `AUTH_COOKIE_SAMESITE` env (`lax` default,
+  `none` for cross-origin; `none` force-enables Secure).
+- **App-level request body size cap** (default 2 MB,
+  `MAX_REQUEST_BODY_BYTES`; CSV imports 5 MB) as pure-ASGI middleware
+  so 413 surfaces cleanly even when the route raised.
+- **FK `ON DELETE CASCADE`** on every user-owned table (v0.9.6
+  migration). Deleting a user atomically cascades — GDPR-ready.
+- **Multi-database support** — `database.py` rewritten with per-dialect
+  engine config; pool sizing exposed via `DB_POOL_*` env vars. Tested:
+  SQLite, Postgres 13–17, MySQL 8.0+, MariaDB 10.5+, RDS, Aurora,
+  Cloud SQL, AlloyDB, Azure, Neon, Supabase, Yugabyte, CockroachDB,
+  TiDB.
+- **CI workflow** (`.github/workflows/test.yml`) — matrix runs pytest
+  on (SQLite, Postgres) × (Python 3.11, 3.12) with a Redis service,
+  plus ruff, bandit, Trivy SARIF upload.
+
+### Added — UX
+
+- **Galaxy theme system** — three runtime-switchable themes
+  (Observatory, Constellation, Supernova) replacing the binary
+  dark/light toggle. Persisted per-user via `user_preferences`.
+- **Server-side pagination** with "Load more" footers on transactions,
+  plans, payments, trips, investments pages.
+- **Public landing page** (`/landing`) with `AuthGate` bypass.
+- **Tutorials series** (`docs/tutorials/`) — getting started, CSV
+  import, AI assistant, deploy-production, caching.
+
+### Changed
+
+- **8 routes converted from materialize-then-aggregate to SQL
+  aggregation**: `dashboard.{summary,charts,health-score,cashflow-forecast}`,
+  `transactions.transaction_summary`, `ai.weekly_summary`,
+  `reports.category_comparison`,
+  `notification_service.evaluate_budget_thresholds`. Worst-case path
+  on 100k transactions drops from ~250 ms to ~5 ms.
+- **`detect_anomalies` two-step**: per-category average via `GROUP BY`
+  then a single bounded query for outliers — was loading every expense
+  in the window.
+- **`list_transactions`, `get_recurring_transactions`,
+  `detect_anomalies`** — `selectinload(Transaction.tags)` eliminates
+  N+1 lazy loads (was up to 500 extra SQL roundtrips per page at
+  `limit=500`).
+- **Dashboard bundle**: 14 kB / 293 kB First Load JS → 8.85 kB / 167 kB
+  (−43%). Recharts dynamic-imported via `next/dynamic`.
+- **Stripe return URLs** now derived from `FRONTEND_URL` (was
+  caller-supplied with localhost default — open redirect + broken
+  in production).
+- **React Query**: `staleTime: 60_000`, `refetchOnWindowFocus: false`
+  — matches backend cache TTL, cuts redundant refetches.
+- **Lifespan handler** replaces deprecated `@app.on_event("startup")`;
+  engine disposed on SIGTERM for graceful shutdown.
+- **Uvicorn defaults** (`backend/Dockerfile`):
+  `--proxy-headers --forwarded-allow-ips=* --timeout-graceful-shutdown=25`.
+
+### Fixed
+
+- **Account-takeover via silent Google auto-link** — was allowing any
+  verified-Google account to attach to an existing email/password user.
+- **Tag uniqueness was global** — Alice's "groceries" blocked Bob's
+  own tag. v0.9.5 migration moves to composite `(user_id, name)`.
+- **`/api/transactions/import/preview` was unauthenticated** — DoS
+  vector via repeated 5 MB CSV parses.
+- **`/api/health` logged on every probe** — silenced; was generating
+  thousands of zero-signal log lines per pod per day.
+- **AI provider clients had no HTTP timeout** — hung upstream could
+  pin a worker for 10 min (SDK default). Now 30 s.
+- **CSP allowed `unsafe-eval`** — dropped; HSTS added; Google + Stripe
+  origins allowlisted.
+- **CSV exports were unbounded** — capped at 50 000 rows
+  (configurable), PDF capped at 5 000.
+
 ---
 
 ## [1.0.0] - 2026-04-17

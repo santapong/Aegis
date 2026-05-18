@@ -253,12 +253,36 @@ export default function CalendarPage() {
     return eachDayOfInterval({ start, end });
   }, [monthStart, monthEnd]);
 
+  // Build the per-day index once per `events` change rather than
+  // filtering on every cell render. The previous implementation was
+  // O(days × events) on every parent re-render (~42 cells × N events
+  // × parseDate). For a user with 200 events per month + sidebar
+  // animations re-rendering the page, that's tens of thousands of
+  // Date allocations per second.
+  const eventsByDay = useMemo(() => {
+    const map = new Map<string, CalendarEvent[]>();
+    if (!events) return map;
+    for (const e of events) {
+      const start = new Date(e.start);
+      const end = e.end ? new Date(e.end) : start;
+      // Walk every day in the event's span (most events are one day,
+      // but trips and multi-day plans span multiple cells).
+      const cursor = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+      const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+      while (cursor <= last) {
+        const key = `${cursor.getFullYear()}-${cursor.getMonth()}-${cursor.getDate()}`;
+        const bucket = map.get(key);
+        if (bucket) bucket.push(e);
+        else map.set(key, [e]);
+        cursor.setDate(cursor.getDate() + 1);
+      }
+    }
+    return map;
+  }, [events]);
+
   const getEventsForDay = (day: Date): CalendarEvent[] => {
-    return events.filter((e) => {
-      const eventStart = new Date(e.start);
-      const eventEnd = e.end ? new Date(e.end) : eventStart;
-      return day >= eventStart && day <= eventEnd;
-    });
+    const key = `${day.getFullYear()}-${day.getMonth()}-${day.getDate()}`;
+    return eventsByDay.get(key) ?? [];
   };
 
   const categoryColors: Record<string, string> = {

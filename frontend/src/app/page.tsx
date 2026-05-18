@@ -101,7 +101,9 @@ function QueryErrorCard({
 }
 
 export default function DashboardPage() {
-  const { toggleAIPanel } = useAppStore();
+  // Selector — without this the dashboard re-renders on every unrelated
+  // app-store write (theme change, panel toggle, settings hydrate).
+  const toggleAIPanel = useAppStore((s) => s.toggleAIPanel);
 
   const {
     data: summary,

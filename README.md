@@ -1,29 +1,32 @@
 # Aegis — AI-Powered Money Management
 
-AI-powered financial planning with calendar, Gantt charts, JWT auth, Stripe test-mode payments, keyboard-first navigation, PDF reports, and smart recommendations powered by Claude.
+AI-powered financial planning with calendar, Gantt charts, cookie-session auth, Stripe payments, keyboard-first navigation, PDF reports, and smart recommendations powered by Claude, Typhoon, or Groq.
 
-Status: **v1.0.0 — generally available.** See [CHANGELOG.md](CHANGELOG.md) for release history and [ROADMAP.md](ROADMAP.md) for the post-v1 direction.
+Status: **v1.0.0 GA + post-v1 hardening pass shipped.** See [CHANGELOG.md](CHANGELOG.md) — the `[Unreleased]` section covers security (httpOnly cookies, Google sign-in, FK cascade, body-size cap), multi-DB compatibility, the cache layer, and a full performance pass (SQL aggregation, composite indexes, Recharts code-split, gzip). [ROADMAP.md](ROADMAP.md) tracks longer-term direction.
 
-Public landing page: [`/welcome`](http://localhost:3000/welcome).
+Public landing page: [`/landing`](http://localhost:3000/landing). Sign-in: email/password or **Google** (configurable via `GOOGLE_OAUTH_CLIENT_ID`).
 
 ## Tech Stack
 
-| Layer      | Technology                                                      |
-|------------|-----------------------------------------------------------------|
-| Backend    | Python 3.11+, FastAPI, SQLAlchemy 2.0, Pydantic v2               |
-| Database   | SQLite (dev) / PostgreSQL 16 / MySQL — pick via `DATABASE_URL`   |
-| Migrations | Alembic                                                          |
-| Auth       | JWT (HS256) with bcrypt password hashing                         |
-| AI         | Claude API (Anthropic) with `tool_use` structured output         |
-| Payments   | Stripe test mode (checkout + webhooks)                           |
-| Reports    | WeasyPrint (PDF) + matplotlib (server-side charts)               |
-| Frontend   | Next.js 15, React 19, TypeScript, Bun                            |
-| Styling    | Tailwind CSS v4, shadcn/ui (Radix primitives)                    |
-| Charts     | Recharts                                                         |
-| State      | Zustand + TanStack React Query v5                                |
-| Perf       | `@tanstack/react-virtual` for long lists                         |
-| UX         | `driver.js` onboarding tour + `react-hotkeys-hook` shortcuts     |
-| CI/CD      | GitHub Actions → GHCR multi-arch (`amd64` + `arm64`)             |
+| Layer       | Technology                                                              |
+|-------------|-------------------------------------------------------------------------|
+| Backend     | Python 3.11+, FastAPI (lifespan + pure-ASGI middleware), SQLAlchemy 2.0, Pydantic v2 |
+| Database    | SQLite (dev) / Postgres 13–17 / MySQL 8 / MariaDB 10.5+ / managed equivalents — see [`docs/databases.md`](docs/databases.md) for the 20-target compatibility matrix |
+| Migrations  | Alembic with batch-mode for SQLite parity                               |
+| Cache       | Pluggable (memory / Redis / disabled) — `CACHE_BACKEND` env             |
+| Auth        | JWT (HS256) in httpOnly `aegis_session` cookie + bcrypt + Google Identity Services ID-token flow |
+| Rate limit  | Redis-backed fixed-window (falls back to in-memory) with per-route strict prefixes |
+| AI          | Anthropic Claude / Typhoon / Groq — `AI_PROVIDER` env                   |
+| Payments    | Stripe test + live, webhooks, redirects from `FRONTEND_URL`             |
+| Reports     | WeasyPrint (PDF) + matplotlib (server-side charts)                      |
+| Exports     | NDJSON streaming for downstream warehouses — see [`docs/analytics-warehouses.md`](docs/analytics-warehouses.md) |
+| Frontend    | Next.js 15, React 19, TypeScript                                        |
+| Styling     | Tailwind CSS v4, shadcn/ui, 3 cosmic themes                             |
+| Charts      | Recharts (dynamic-imported on dashboard for −43% First Load JS)         |
+| State       | Zustand (no JWT in localStorage) + TanStack React Query v5              |
+| UX          | `driver.js` onboarding + `react-hotkeys-hook` shortcuts                 |
+| Hardening   | `GZipMiddleware`, request-body-size cap, FK `ON DELETE CASCADE`, statement timeouts |
+| CI/CD       | GitHub Actions: pytest matrix (SQLite × Postgres × py3.11/12) + Trivy SARIF + GHCR multi-arch (`amd64` + `arm64`) |
 
 ## Quick Start
 
@@ -195,7 +198,9 @@ frontend. Four recipes are documented in [`docs/deployment/`](docs/deployment/):
 | [GCP](docs/deployment/gcp.md) | Vercel / Firebase / Cloud Run | Cloud Run | Cloud SQL | $0–25 |
 | [Self-hosted](docs/deployment/self-hosted.md) | Same VPS | Same VPS | Same VPS | $5–20 |
 
-Each recipe is a step-by-step runbook with env-var lists, smoke tests, and rollback notes. Start with the [overview](docs/deployment/README.md) if you're unsure which to pick.
+Each recipe is a step-by-step runbook with env-var lists, smoke tests, and rollback notes. Start with the [overview](docs/deployment/README.md) if you're unsure which to pick. The Vercel + Neon recipe also includes a **UAT acceptance checklist** covering auth, data isolation, cookie attrs, rate-limit, body-size cap, FK cascade, exports, and observability — runnable before inviting external testers.
+
+For tutorials covering the user-facing flows + operator concerns, see [`docs/tutorials/`](docs/tutorials/) (getting started, CSV import, AI assistant, deploy-production, caching). For performance work still on the backlog, see [`docs/PERFORMANCE_BACKLOG.md`](docs/PERFORMANCE_BACKLOG.md).
 
 The repo includes:
 

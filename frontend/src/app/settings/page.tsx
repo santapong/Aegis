@@ -48,8 +48,15 @@ const THEME_META: ThemeMeta[] = [
 ];
 
 export default function SettingsPage() {
-  const { theme, setTheme, settings, updateSettings, resetSettings, restartTour } =
-    useAppStore();
+  // Per-field selectors — settings page legitimately needs most of the
+  // store, but per-field selectors at least skip re-renders triggered
+  // by fields this page doesn't read (e.g. sidebarOpen, aiPanelOpen).
+  const theme = useAppStore((s) => s.theme);
+  const setTheme = useAppStore((s) => s.setTheme);
+  const settings = useAppStore((s) => s.settings);
+  const updateSettings = useAppStore((s) => s.updateSettings);
+  const resetSettings = useAppStore((s) => s.resetSettings);
+  const restartTour = useAppStore((s) => s.restartTour);
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("appearance");
   const [showReset, setShowReset] = useState(false);

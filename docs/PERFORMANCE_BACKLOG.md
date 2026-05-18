@@ -8,31 +8,33 @@ The CRITICALs are landed; what's below is **fine today**, breaks at 10k+ users o
 
 ### Backend
 
-- [ ] **Cache the 4 remaining dashboard endpoints** — `/dashboard/health-score`, `/dashboard/cashflow-forecast`, `/ai/insights`, `/ai/weekly-summary`. Each fires 5–14 queries today. Wire into the existing `_DASHBOARD_CACHE_SCOPES` invalidation list. *~30 min.*
-- [ ] **SQL aggregation pass on the remaining materialize-then-aggregate routes** — `dashboard.get_health_score` (5–14 queries today, loop over budgets × period scans), `dashboard.get_cashflow_forecast` (all-time scan), `ai.weekly_summary`, `ai.get_insights`, `reports.category_comparison` (loops `months` separate scans), `reports` PDF generator (full-window scan for 2 scalars), `budgets.budget_comparison`. Same pattern as we just shipped on `transaction_summary` + `dashboard.get_summary/charts`. *~half-day.*
-- [ ] **`notification_service.evaluate_budget_thresholds` fires on every transaction mutation** — for each candidate budget it loads the entire period and sums in Python. Mutation latency grows with budget period length. Convert to SQL. *~1 hour.*
-- [ ] **`/api/reports/export.{csv,pdf}` have no `LIMIT`** — fine until a user has 100k transactions, then the PDF generator OOMs. Add a `max_rows` query param + page in the PDF if exceeded. *~2 hours.*
+- [x] **Cache the 4 remaining dashboard endpoints** — `/dashboard/health-score`, `/dashboard/cashflow-forecast`, `/ai/insights`, `/ai/weekly-summary`. ✅ Shipped: all wired into `_DASHBOARD_CACHE_SCOPES` and invalidated on transaction mutation.
+- [x] **SQL aggregation pass on the remaining materialize-then-aggregate routes** — ✅ Shipped: `dashboard.health_score` (was 5–14 queries, now 4 aggregate queries), `dashboard.cashflow_forecast` (was all-time scan, now 2 aggregate queries), `ai.weekly_summary` (was 2 full scans + 4 Python loops, now 3 aggregate queries), `reports.category_comparison` (was N month-scans, now 1 GROUP BY). `budgets.budget_comparison` and `ai.get_insights` still on the list — the latter is just cached for now since its logic is complex.
+- [x] **`notification_service.evaluate_budget_thresholds` fires on every transaction mutation** — ✅ Shipped: replaced per-budget `.all()` + Python sum with `COALESCE(SUM(amount), 0)` SQL scalar.
+- [x] **`/api/reports/export.{csv,pdf}` have no `LIMIT`** — ✅ Shipped: CSV capped at 50k rows (configurable `?limit=`, max 100k), PDF capped at 5k rows.
+- [ ] **`budgets.budget_comparison`** — replace `.all()` + Python group with `SELECT category, SUM(amount) GROUP BY category` + budget JOIN. *~30 min.*
+- [ ] **`ai.get_insights` SQL aggregation** — currently cached but still scans 60 days into Python on miss. Convert to one GROUP BY giving (this-month, prev-month) category buckets. *~1 hour.*
 - [ ] **CSV import uses pandas** — `transactions.py:295`. Stdlib `csv.DictReader` is 10× faster and drops a ~30 MB runtime dep at build time. Note: matplotlib still depends on numpy; full pandas removal saves more once PDF generator is also rewritten. *~2 hours.*
 - [ ] **Sync handlers share one threadpool** — WeasyPrint PDF (~800 ms CPU) + AI calls (~30 s timeout) on the same pool as `/api/health`. Either move long-running routes to a background queue (Render cron / Celery), or bump `--workers ≥ 4` and the anyio threadpool limit. *~half-day if queue, ~15 min if just `--workers 4`.*
-- [ ] **Anomaly detection unbounded** — `transactions.py:240` 90-day window with no max. At 100k txns this is 30k rows materialized. Add an upper bound. *~30 min.*
+- [x] **Anomaly detection bounded** — ✅ Shipped: two-step now (one GROUP BY for per-category averages, then a single bounded query for outliers using OR-of-category clauses). Stops loading every expense in a 90-day window for power users.
 
 ### Frontend
 
-- [ ] **Page-level `useAppStore()` subscription on the dashboard** — `app/page.tsx:103` pulls the entire store, so the dashboard re-renders on every theme change / panel toggle / unrelated app-state write. Use a selector: `useAppStore((s) => s.toggleAIPanel)`. *Audit other pages too.*
-- [ ] **Transactions filter object identity** — `transactions/page.tsx:86-92` builds `queryParams` every render; React Query's `queryKey` flips on every keystroke in a date input. Wrap in `useMemo` or move to `useReducer`. *~30 min.*
+- [x] **Page-level `useAppStore()` subscription on the dashboard** — ✅ Shipped: dashboard and settings pages now use per-field selectors.
+- [x] **Transactions filter object identity** — ✅ Shipped: `queryParams` wrapped in `useMemo`.
 - [ ] **Manage-tags modal O(tags × txns × txn.tags)** — `transactions/page.tsx:931` runs `transactions?.filter(...some(...))` inside `tags.map()`. Fine at 50 tags / 100 txns; bad at 5k. Memoize a `Map<tagId, count>` once per data refresh.
-- [ ] **Calendar `getEventsForDay` called inside 42-cell day grid per render** — O(days × events) on every render. Memoize a `Map<dayKey, CalendarEvent[]>` once per `events` change.
+- [x] **Calendar `getEventsForDay` called inside 42-cell day grid per render** — ✅ Shipped: O(events) walk once per `events` change, then `Map<dayKey, CalendarEvent[]>` lookups in render.
 - [ ] **Anomaly / insight cards re-fire entry stagger animation on every refetch** — gate to first mount with `key` + `AnimatePresence`, or drop the stagger.
 - [ ] **TrendChart re-mounts the 1 s Recharts entry animation on every refetch** — set `isAnimationActive={false}` after first mount, or stabilize the `data` identity.
 - [ ] **Driver.js (onboarding) and Stripe.js in shared client bundle** — dynamic-import inside the wrapper components, gated on first use.
-- [ ] **React Query `staleTime: 30_000` doesn't align with backend cache TTL=60s** — bump to `60_000` + `refetchOnWindowFocus: false` in `providers.tsx` to stop double-fetching cached data. *~5 min.*
+- [x] **React Query `staleTime: 30_000` doesn't align with backend cache TTL=60s** — ✅ Shipped: `staleTime: 60_000` + `refetchOnWindowFocus: false` in `providers.tsx`.
 
 ### Database
 
-- [ ] **`transactions(user_id, category)` index** for `?category=` filter + budget comparison joins. *~5 min migration.*
-- [ ] **`budgets(user_id, period_start)` composite index** — `budget_comparison`, `health_score`, `evaluate_budget_thresholds` all do `period_start <= X AND period_end >= Y`. *~5 min migration.*
-- [ ] **`ai_recommendations(user_id, created_at)` composite index** — `ai/history` orders by `created_at DESC`. *~5 min migration.*
-- [ ] **Connection pool math at 2+ Render pods exceeds Neon free tier cap** — drop `db_pool_size` to 5 OR migrate to Neon's pooler endpoint (`-pooler.neon.tech`). *~10 min config change.*
+- [x] **`transactions(user_id, category)` index** — ✅ Shipped (v0.9.8 migration).
+- [x] **`budgets(user_id, period_start)` composite index** — ✅ Shipped (v0.9.8 migration).
+- [x] **`ai_recommendations(user_id, created_at)` composite index** — ✅ Shipped (v0.9.8 migration).
+- [ ] **Connection pool math at 2+ Render pods exceeds Neon free tier cap** — drop `db_pool_size` to 5 OR migrate to Neon's pooler endpoint (`-pooler.neon.tech`). *~10 min config change.* Documented in `docs/deployment/vercel-neon.md`.
 
 ## 🟠 Architectural concerns — bigger refactors
 
