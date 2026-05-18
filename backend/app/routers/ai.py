@@ -1,7 +1,10 @@
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy import case, func as sa_func
 from sqlalchemy.orm import Session
 from datetime import date, timedelta
 
+from ..cache import get_cache, user_scope
+from ..config import get_settings
 from ..database import get_db
 from ..models.transaction import Transaction, TransactionType
 from ..models.ai_recommendation import AIRecommendation
@@ -9,6 +12,8 @@ from ..models.user import User
 from ..schemas.ai import AIAnalyzeRequest, AIRecommendationResponse, AIForecastResponse, WeeklySummaryResponse, InsightItem
 from ..services.ai_engine import AIEngine
 from ..auth import get_current_user
+
+_settings = get_settings()
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
 
@@ -65,32 +70,84 @@ def accept_recommendation(rec_id: str, db: Session = Depends(get_db), current_us
 
 @router.get("/weekly-summary", response_model=WeeklySummaryResponse)
 def weekly_summary(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    cache = get_cache()
+    cache_key = user_scope("ai:weekly-summary", current_user.id)
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return WeeklySummaryResponse(**cached)
+
     today = date.today()
     week_ago = today - timedelta(days=7)
     two_weeks_ago = today - timedelta(days=14)
 
-    # This week's transactions
-    this_week = db.query(Transaction).filter(Transaction.user_id == current_user.id, Transaction.date >= week_ago, Transaction.date <= today).all()
-    # Last week's transactions
-    last_week = db.query(Transaction).filter(Transaction.user_id == current_user.id, Transaction.date >= two_weeks_ago, Transaction.date < week_ago).all()
+    # SQL-side aggregation: one query covering both weeks, grouped by
+    # week bucket + type + category. Was two full .all() scans plus
+    # four Python loops.
+    income_sum = sa_func.coalesce(
+        sa_func.sum(
+            case((Transaction.type == TransactionType.income, Transaction.amount), else_=0)
+        ),
+        0,
+    )
+    expense_sum = sa_func.coalesce(
+        sa_func.sum(
+            case((Transaction.type == TransactionType.expense, Transaction.amount), else_=0)
+        ),
+        0,
+    )
 
-    this_income = sum(float(t.amount) for t in this_week if t.type == TransactionType.income)
-    this_expenses = sum(float(t.amount) for t in this_week if t.type == TransactionType.expense)
-    last_income = sum(float(t.amount) for t in last_week if t.type == TransactionType.income)
-    last_expenses = sum(float(t.amount) for t in last_week if t.type == TransactionType.expense)
+    # Two summary rows — current week and prior week.
+    this_row = (
+        db.query(
+            income_sum.label("inc"),
+            expense_sum.label("exp"),
+            sa_func.count(Transaction.id).label("cnt"),
+        )
+        .filter(
+            Transaction.user_id == current_user.id,
+            Transaction.date >= week_ago,
+            Transaction.date <= today,
+        )
+        .one()
+    )
+    last_row = (
+        db.query(income_sum.label("inc"), expense_sum.label("exp"))
+        .filter(
+            Transaction.user_id == current_user.id,
+            Transaction.date >= two_weeks_ago,
+            Transaction.date < week_ago,
+        )
+        .one()
+    )
+    this_income = float(this_row.inc or 0)
+    this_expenses = float(this_row.exp or 0)
+    last_income = float(last_row.inc or 0)
+    last_expenses = float(last_row.exp or 0)
 
-    # Category breakdown for this week
-    categories: dict[str, float] = {}
-    for t in this_week:
-        if t.type == TransactionType.expense:
-            categories[t.category] = categories.get(t.category, 0) + float(t.amount)
-
-    top_categories = sorted(categories.items(), key=lambda x: x[1], reverse=True)[:5]
+    # Top-5 categories for current-week expenses — one GROUP BY, no
+    # full-row .all().
+    category_rows = (
+        db.query(
+            Transaction.category,
+            sa_func.coalesce(sa_func.sum(Transaction.amount), 0).label("total"),
+        )
+        .filter(
+            Transaction.user_id == current_user.id,
+            Transaction.type == TransactionType.expense,
+            Transaction.date >= week_ago,
+            Transaction.date <= today,
+        )
+        .group_by(Transaction.category)
+        .order_by(sa_func.sum(Transaction.amount).desc())
+        .limit(5)
+        .all()
+    )
+    top_categories = [(cat, float(total or 0)) for cat, total in category_rows]
 
     expense_change = ((this_expenses - last_expenses) / last_expenses * 100) if last_expenses > 0 else 0
     income_change = ((this_income - last_income) / last_income * 100) if last_income > 0 else 0
 
-    return WeeklySummaryResponse(
+    result = WeeklySummaryResponse(
         period_start=week_ago.isoformat(),
         period_end=today.isoformat(),
         total_income=round(this_income, 2),
@@ -99,12 +156,20 @@ def weekly_summary(db: Session = Depends(get_db), current_user: User = Depends(g
         income_change_percent=round(income_change, 1),
         expense_change_percent=round(expense_change, 1),
         top_spending_categories=[{"category": c, "amount": round(a, 2)} for c, a in top_categories],
-        transaction_count=len(this_week),
+        transaction_count=int(this_row.cnt or 0),
     )
+    cache.set(cache_key, result, ttl=_settings.cache_default_ttl)
+    return result
 
 
 @router.get("/insights", response_model=list[InsightItem])
 def get_insights(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    cache = get_cache()
+    cache_key = user_scope("ai:insights", current_user.id)
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return [InsightItem(**item) for item in cached]
+
     today = date.today()
     month_ago = today - timedelta(days=30)
     two_months_ago = today - timedelta(days=60)
@@ -191,4 +256,5 @@ def get_insights(db: Session = Depends(get_db), current_user: User = Depends(get
             metric=str(len(recent)),
         ))
 
+    cache.set(cache_key, [i.model_dump() for i in insights], ttl=_settings.cache_default_ttl)
     return insights

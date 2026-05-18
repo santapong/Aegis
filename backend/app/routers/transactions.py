@@ -32,6 +32,11 @@ _DASHBOARD_CACHE_SCOPES = [
     "dashboard:charts",
     "dashboard:health-score",
     "dashboard:cashflow",
+    # AI summaries derive from transaction history — invalidate on any
+    # mutation so a freshly-added/edited row doesn't show stale
+    # narratives.
+    "ai:weekly-summary",
+    "ai:insights",
 ]
 
 router = APIRouter(prefix="/api/transactions", tags=["transactions"])
@@ -269,23 +274,46 @@ def detect_anomalies(
     today = date.today()
     start = today - timedelta(days=days)
 
+    # Two-step: SQL gives us per-category averages (one row per
+    # category, ≤ 30 rows for a normal user), then we fetch ONLY the
+    # individual rows that exceed `avg * threshold` for their category.
+    # Previously this loaded every expense in the window (up to 100k
+    # for a power user) and computed both passes in Python.
+    base_filters = [
+        Transaction.user_id == current_user.id,
+        Transaction.type == TransactionType.expense,
+        Transaction.date >= start,
+    ]
+    cat_rows = (
+        db.query(
+            Transaction.category,
+            sa_func.avg(Transaction.amount).label("avg"),
+        )
+        .filter(*base_filters)
+        .group_by(Transaction.category)
+        .all()
+    )
+    cat_avg: dict[str, float] = {cat: float(avg or 0) for cat, avg in cat_rows}
+
+    # Build a single OR-of-(category=X AND amount > X.avg * threshold).
+    # Bounded by category count (~30 even for heavy users) so this
+    # stays a single index-friendly query.
+    category_clauses = [
+        (Transaction.category == cat) & (Transaction.amount > avg * threshold)
+        for cat, avg in cat_avg.items()
+        if avg > 0
+    ]
+    if not category_clauses:
+        return AnomaliesResponse(anomalies=[], total_count=0)
+
     expenses = (
         db.query(Transaction)
         .options(selectinload(Transaction.tags))
-        .filter(
-            Transaction.user_id == current_user.id,
-            Transaction.type == TransactionType.expense,
-            Transaction.date >= start,
-        )
+        .filter(*base_filters)
+        .filter(or_(*category_clauses))
         .order_by(Transaction.date.desc())
         .all()
     )
-
-    cat_totals: dict[str, list[float]] = {}
-    for t in expenses:
-        cat_totals.setdefault(t.category, []).append(float(t.amount))
-
-    cat_avg = {cat: sum(vals) / len(vals) for cat, vals in cat_totals.items()}
 
     anomalies = []
     for t in expenses:

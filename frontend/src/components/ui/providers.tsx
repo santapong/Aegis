@@ -34,7 +34,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
     () =>
       new QueryClient({
         defaultOptions: {
-          queries: { staleTime: 30_000, retry: 1 },
+          queries: {
+            // 60 s matches the backend cache TTL (`CACHE_DEFAULT_TTL`).
+            // With these aligned, a cached BE read is never refetched
+            // by the FE before its cache window closes — saves a hot
+            // round-trip per dashboard mount.
+            staleTime: 60_000,
+            // The dashboard hits 6 endpoints; refetch-on-focus turned
+            // every tab-flip into a 6× refetch storm. Mutations
+            // already invalidate the relevant scopes, so stale data
+            // on focus is rare and the cost saved is large.
+            refetchOnWindowFocus: false,
+            retry: 1,
+          },
         },
       })
   );

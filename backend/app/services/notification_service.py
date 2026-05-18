@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta
 
+from sqlalchemy import func as sa_func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -124,18 +125,24 @@ def evaluate_budget_thresholds(
         if cap <= 0:
             continue
 
-        txn_query = db.query(Transaction).filter(
+        # SQL aggregation — was loading every expense in the budget
+        # window into Python and summing. This runs on every transaction
+        # create/update so mutation latency was scaling with budget
+        # period length.
+        spent_query = db.query(
+            sa_func.coalesce(sa_func.sum(Transaction.amount), 0)
+        ).filter(
             Transaction.user_id == user_id,
             Transaction.type == TransactionType.expense,
             Transaction.date >= budget.period_start,
             Transaction.date <= budget.period_end,
         )
         if budget.trip_id is not None:
-            txn_query = txn_query.filter(Transaction.trip_id == budget.trip_id)
+            spent_query = spent_query.filter(Transaction.trip_id == budget.trip_id)
         else:
-            txn_query = txn_query.filter(Transaction.category == budget.category)
+            spent_query = spent_query.filter(Transaction.category == budget.category)
 
-        spent = sum(float(t.amount) for t in txn_query.all())
+        spent = float(spent_query.scalar() or 0)
         pct = spent / cap * 100
 
         period_key = budget.period_start.isoformat()

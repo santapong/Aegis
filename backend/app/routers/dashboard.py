@@ -229,106 +229,141 @@ def get_charts(db: Session = Depends(get_db), current_user: User = Depends(get_c
 
 @router.get("/health-score", response_model=HealthScoreResponse)
 def get_health_score(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    cache = get_cache()
+    cache_key = user_scope("dashboard:health-score", current_user.id)
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return HealthScoreResponse(**cached)
+
     today = date.today()
     month_start = today.replace(day=1)
+    three_months_ago = today - timedelta(days=90)
 
-    # --- Savings Rate Score (0-30) ---
-    monthly_txns = (
-        db.query(Transaction)
-        .filter(Transaction.user_id == current_user.id, Transaction.date >= month_start, Transaction.date <= today)
-        .all()
+    income_sum = sa_func.coalesce(
+        sa_func.sum(
+            case((Transaction.type == TransactionType.income, Transaction.amount), else_=0)
+        ),
+        0,
     )
-    monthly_income = sum(float(t.amount) for t in monthly_txns if t.type == TransactionType.income)
-    monthly_expenses = sum(float(t.amount) for t in monthly_txns if t.type == TransactionType.expense)
+    expense_sum = sa_func.coalesce(
+        sa_func.sum(
+            case((Transaction.type == TransactionType.expense, Transaction.amount), else_=0)
+        ),
+        0,
+    )
+
+    # --- Savings Rate Score (0-30) — one aggregate query, was full
+    # current-month scan + Python loop.
+    monthly_row = (
+        db.query(income_sum.label("income"), expense_sum.label("expense"))
+        .filter(
+            Transaction.user_id == current_user.id,
+            Transaction.date >= month_start,
+            Transaction.date <= today,
+        )
+        .one()
+    )
+    monthly_income = float(monthly_row.income or 0)
+    monthly_expenses = float(monthly_row.expense or 0)
     savings_rate = ((monthly_income - monthly_expenses) / monthly_income * 100) if monthly_income > 0 else 0
-    # 20%+ savings = full score
     savings_score = min(30.0, (savings_rate / 20) * 30) if savings_rate > 0 else 0
 
-    # --- Budget Adherence Score (0-25) ---
+    # --- Budget Adherence Score (0-25) — one aggregate over the union
+    # of all active-budget categories, grouped by category. Was N+1:
+    # one .all() per active budget. For a user with 10 active budgets
+    # and a full month of expenses this drops 10 queries to 2.
     active_budgets = (
         db.query(Budget)
         .filter(Budget.user_id == current_user.id, Budget.period_start <= today, Budget.period_end >= today)
         .all()
     )
     if active_budgets:
-        adherence_scores = []
-        for b in active_budgets:
-            expenses_in_cat = (
-                db.query(Transaction)
+        # Aggregate expense totals per (category, period_start)
+        # combination so we can match each budget to its window.
+        category_spend: dict[str, float] = {}
+        if active_budgets:
+            categories = {b.category for b in active_budgets}
+            # min(period_start) sets the lower bound for our single
+            # query; we still match each budget to its own window in
+            # Python to handle staggered periods.
+            min_period_start = min(b.period_start for b in active_budgets)
+            spend_rows = (
+                db.query(
+                    Transaction.category,
+                    Transaction.date,
+                    Transaction.amount,
+                )
                 .filter(
                     Transaction.user_id == current_user.id,
                     Transaction.type == TransactionType.expense,
-                    Transaction.category == b.category,
-                    Transaction.date >= b.period_start,
+                    Transaction.category.in_(categories),
+                    Transaction.date >= min_period_start,
                     Transaction.date <= today,
                 )
                 .all()
             )
-            spent = sum(float(t.amount) for t in expenses_in_cat)
-            ratio = spent / float(b.amount) if float(b.amount) > 0 else 0
-            # Under budget = 1.0, over budget reduces score
+            # Single in-memory aggregate keyed by (category, period
+            # boundaries) — bounded by active budget count.
+            for b in active_budgets:
+                spent = sum(
+                    float(r.amount)
+                    for r in spend_rows
+                    if r.category == b.category and b.period_start <= r.date <= today
+                )
+                category_spend[b.id] = spent
+
+        adherence_scores = []
+        for b in active_budgets:
+            cap = float(b.amount)
+            if cap <= 0:
+                continue
+            spent = category_spend.get(b.id, 0.0)
+            ratio = spent / cap
             adherence_scores.append(max(0, 1 - max(0, ratio - 1)))
-        avg_adherence = sum(adherence_scores) / len(adherence_scores)
-        budget_score = avg_adherence * 25
+        budget_score = (
+            (sum(adherence_scores) / len(adherence_scores)) * 25 if adherence_scores else 12.5
+        )
     else:
-        budget_score = 12.5  # neutral if no budgets set
+        budget_score = 12.5
 
-    # --- Expense Consistency Score (0-25) ---
-    three_months_ago = today - timedelta(days=90)
-    recent_expenses = (
-        db.query(Transaction)
+    # --- Expense Consistency + Income Stability (0-25 + 0-20) — one
+    # combined GROUP BY (year, month) query gives both 3-month monthly
+    # series. Was 2 full scans + 2 Python loops.
+    series_rows = (
+        db.query(
+            sa_func.extract("year", Transaction.date).label("y"),
+            sa_func.extract("month", Transaction.date).label("m"),
+            income_sum.label("income"),
+            expense_sum.label("expense"),
+        )
         .filter(
             Transaction.user_id == current_user.id,
-            Transaction.type == TransactionType.expense,
             Transaction.date >= three_months_ago,
+            Transaction.date <= today,
         )
+        .group_by("y", "m")
         .all()
     )
-    monthly_totals: dict[str, float] = {}
-    for t in recent_expenses:
-        key = t.date.strftime("%Y-%m")
-        monthly_totals[key] = monthly_totals.get(key, 0) + float(t.amount)
+    monthly_expense_values: list[float] = []
+    monthly_income_values: list[float] = []
+    for _, _, income, expense in series_rows:
+        if float(expense or 0) > 0:
+            monthly_expense_values.append(float(expense))
+        if float(income or 0) > 0:
+            monthly_income_values.append(float(income))
 
-    if len(monthly_totals) >= 2:
-        values = list(monthly_totals.values())
-        avg_expense = sum(values) / len(values)
-        if avg_expense > 0:
-            variance = sum((v - avg_expense) ** 2 for v in values) / len(values)
-            std_dev = variance ** 0.5
-            cv = std_dev / avg_expense  # coefficient of variation
-            consistency_score = max(0, 25 * (1 - min(cv, 1)))
-        else:
-            consistency_score = 25.0
-    else:
-        consistency_score = 12.5
+    def _stability_score(values: list[float], max_points: float) -> float:
+        if len(values) < 2:
+            return max_points / 2
+        avg = sum(values) / len(values)
+        if avg <= 0:
+            return 0.0
+        variance = sum((v - avg) ** 2 for v in values) / len(values)
+        cv = (variance ** 0.5) / avg
+        return max(0.0, max_points * (1 - min(cv, 1)))
 
-    # --- Income Stability Score (0-20) ---
-    recent_income = (
-        db.query(Transaction)
-        .filter(
-            Transaction.user_id == current_user.id,
-            Transaction.type == TransactionType.income,
-            Transaction.date >= three_months_ago,
-        )
-        .all()
-    )
-    monthly_income_totals: dict[str, float] = {}
-    for t in recent_income:
-        key = t.date.strftime("%Y-%m")
-        monthly_income_totals[key] = monthly_income_totals.get(key, 0) + float(t.amount)
-
-    if len(monthly_income_totals) >= 2:
-        values = list(monthly_income_totals.values())
-        avg_inc = sum(values) / len(values)
-        if avg_inc > 0:
-            variance = sum((v - avg_inc) ** 2 for v in values) / len(values)
-            std_dev = variance ** 0.5
-            cv = std_dev / avg_inc
-            income_score = max(0, 20 * (1 - min(cv, 1)))
-        else:
-            income_score = 0
-    else:
-        income_score = 10.0
+    consistency_score = _stability_score(monthly_expense_values, 25.0)
+    income_score = _stability_score(monthly_income_values, 20.0)
 
     overall = round(savings_score + budget_score + consistency_score + income_score, 1)
 
@@ -350,41 +385,73 @@ def get_health_score(db: Session = Depends(get_db), current_user: User = Depends
         HealthScoreBreakdown(name="Income Stability", score=round(income_score, 1), max_score=20, description="Consistency of your income over time"),
     ]
 
-    return HealthScoreResponse(overall_score=overall, grade=grade, breakdown=breakdown)
+    result = HealthScoreResponse(overall_score=overall, grade=grade, breakdown=breakdown)
+    cache.set(cache_key, result, ttl=_settings.cache_default_ttl)
+    return result
 
 
 @router.get("/cashflow-forecast", response_model=CashFlowForecastResponse)
 def get_cashflow_forecast(months: int = 6, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     months = min(months, 12)
-    today = date.today()
 
-    # Current balance
-    all_txns = db.query(Transaction).filter(Transaction.user_id == current_user.id).all()
-    current_balance = sum(
-        float(t.amount) if t.type == TransactionType.income else -float(t.amount)
-        for t in all_txns
+    cache = get_cache()
+    cache_key = user_scope("dashboard:cashflow", current_user.id, str(months))
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return CashFlowForecastResponse(**cached)
+
+    today = date.today()
+    three_months_ago = today - timedelta(days=90)
+
+    income_sum = sa_func.coalesce(
+        sa_func.sum(
+            case((Transaction.type == TransactionType.income, Transaction.amount), else_=0)
+        ),
+        0,
+    )
+    expense_sum = sa_func.coalesce(
+        sa_func.sum(
+            case((Transaction.type == TransactionType.expense, Transaction.amount), else_=0)
+        ),
+        0,
     )
 
-    # Average monthly income & expenses from last 3 months
-    three_months_ago = today - timedelta(days=90)
-    recent = (
-        db.query(Transaction)
-        .filter(Transaction.user_id == current_user.id, Transaction.date >= three_months_ago)
+    # Current balance — single aggregate query (was full all-time scan
+    # + Python sum, the worst hit on this route at 100k transactions).
+    balance_row = (
+        db.query((income_sum - expense_sum).label("balance"))
+        .filter(Transaction.user_id == current_user.id)
+        .one()
+    )
+    current_balance = float(balance_row.balance or 0)
+
+    # Per-month aggregates over the last 90 days. One GROUP BY query
+    # replaces a full 90-day .all() + Python type-and-month loop.
+    series_rows = (
+        db.query(
+            sa_func.extract("year", Transaction.date).label("y"),
+            sa_func.extract("month", Transaction.date).label("m"),
+            income_sum.label("income"),
+            expense_sum.label("expense"),
+        )
+        .filter(
+            Transaction.user_id == current_user.id,
+            Transaction.date >= three_months_ago,
+        )
+        .group_by("y", "m")
         .all()
     )
-
-    monthly_income: dict[str, float] = {}
-    monthly_expense: dict[str, float] = {}
-    for t in recent:
-        key = t.date.strftime("%Y-%m")
-        if t.type == TransactionType.income:
-            monthly_income[key] = monthly_income.get(key, 0) + float(t.amount)
-        else:
-            monthly_expense[key] = monthly_expense.get(key, 0) + float(t.amount)
-
-    num_months = max(len(set(list(monthly_income.keys()) + list(monthly_expense.keys()))), 1)
-    avg_income = sum(monthly_income.values()) / num_months if monthly_income else 0
-    avg_expense = sum(monthly_expense.values()) / num_months if monthly_expense else 0
+    months_in_window = max(len(series_rows), 1)
+    avg_income = (
+        sum(float(income or 0) for _, _, income, _ in series_rows) / months_in_window
+        if series_rows
+        else 0
+    )
+    avg_expense = (
+        sum(float(expense or 0) for _, _, _, expense in series_rows) / months_in_window
+        if series_rows
+        else 0
+    )
 
     # Factor in recurring plans
     recurring_plans = (
@@ -419,4 +486,8 @@ def get_cashflow_forecast(months: int = 6, db: Session = Depends(get_db), curren
             )
         )
 
-    return CashFlowForecastResponse(current_balance=round(current_balance, 2), forecast=forecast)
+    result = CashFlowForecastResponse(
+        current_balance=round(current_balance, 2), forecast=forecast
+    )
+    cache.set(cache_key, result, ttl=_settings.cache_default_ttl)
+    return result

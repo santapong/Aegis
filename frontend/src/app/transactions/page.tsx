@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { transactionsAPI, tagsAPI, tripsAPI } from "@/lib/api";
@@ -83,13 +83,20 @@ export default function TransactionsPage() {
   const PAGE_STEP = 50;
   const [pageSize, setPageSize] = useState(PAGE_STEP);
 
-  const queryParams: Record<string, string> = {};
-  if (filters.type) queryParams.type = filters.type;
-  if (filters.category) queryParams.category = filters.category;
-  if (filters.start_date) queryParams.start_date = filters.start_date;
-  if (filters.end_date) queryParams.end_date = filters.end_date;
-  queryParams.limit = String(pageSize + 1);
-  queryParams.offset = "0";
+  // Memoize so the queryKey doesn't change identity on every keystroke
+  // in an unrelated input. Previously React Query saw a fresh
+  // `queryParams` object on each render and treated every paint as a
+  // new query, blowing through the cache.
+  const queryParams = useMemo(() => {
+    const out: Record<string, string> = {};
+    if (filters.type) out.type = filters.type;
+    if (filters.category) out.category = filters.category;
+    if (filters.start_date) out.start_date = filters.start_date;
+    if (filters.end_date) out.end_date = filters.end_date;
+    out.limit = String(pageSize + 1);
+    out.offset = "0";
+    return out;
+  }, [filters.type, filters.category, filters.start_date, filters.end_date, pageSize]);
 
   // Reset visible page back to one chunk whenever filters change.
   useEffect(() => {
@@ -97,7 +104,7 @@ export default function TransactionsPage() {
   }, [filters.type, filters.category, filters.start_date, filters.end_date]);
 
   const { data: rawTransactions, isLoading } = useQuery<Transaction[]>({
-    queryKey: ["transactions", filters, pageSize],
+    queryKey: ["transactions", queryParams],
     queryFn: () => transactionsAPI.list(queryParams) as Promise<Transaction[]>,
   });
   const hasMore = (rawTransactions?.length ?? 0) > pageSize;
