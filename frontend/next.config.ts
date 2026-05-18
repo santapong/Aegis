@@ -11,16 +11,38 @@ const isVercel = !!process.env.VERCEL;
 const nextConfig: NextConfig = {
   output: isVercel ? undefined : "standalone",
   async rewrites() {
-    // Same-origin proxy: the browser hits `/api/*`, Next.js rewrites
-    // server-side to the internal backend URL. Operators set
-    // BACKEND_INTERNAL_URL per environment (Vercel env, ECS task def,
-    // Cloud Run env). No build-time bake-in, so the same image deploys
-    // anywhere.
-    const backendUrl = process.env.BACKEND_INTERNAL_URL || "http://localhost:8000";
+    // Two deploy topologies supported:
+    //
+    // 1. Vercel-direct multi-service (vercel.json with
+    //    `experimentalServices` at repo root). Vercel routes `/api/*`
+    //    to the Python backend service itself — no Next.js rewrite,
+    //    AND a rewrite here would collide with Vercel's routing.
+    //    Skip the rewrite when BACKEND_INTERNAL_URL is unset.
+    //
+    // 2. Vercel frontend + separate backend (Render / Fly / Cloud Run
+    //    / Docker / etc.). Browser hits `/api/*`, Next.js rewrites
+    //    server-side to BACKEND_INTERNAL_URL. Same-origin from the
+    //    browser's POV; cookie + auth + CORS work cleanly.
+    const explicitBackendUrl = process.env.BACKEND_INTERNAL_URL;
+    if (explicitBackendUrl) {
+      // Topology 2 (or local dev with the var set).
+      return [
+        {
+          source: "/api/:path*",
+          destination: `${explicitBackendUrl}/api/:path*`,
+        },
+      ];
+    }
+    if (isVercel) {
+      // Topology 1 on Vercel — Vercel's experimentalServices handles
+      // /api/* routing. A rewrite here would collide.
+      return [];
+    }
+    // Local dev fallback — `npm run dev` against a uvicorn on :8000.
     return [
       {
         source: "/api/:path*",
-        destination: `${backendUrl}/api/:path*`,
+        destination: "http://localhost:8000/api/:path*",
       },
     ];
   },

@@ -18,8 +18,9 @@ Pick **Vercel + Neon** if you have no preference — it's the cheapest, fastest 
 
 ### Vercel-specific
 
-- **[`vercel-neon.md`](./vercel-neon.md)** — full Vercel + Neon + Render runbook with the UAT acceptance checklist (the 20-item go/no-go before inviting external testers).
-- **[`vercel-deploy-workflow.md`](./vercel-deploy-workflow.md)** — focused walkthrough of the GitHub Actions deploy workflow ([`.github/workflows/deploy-vercel.yml`](../../.github/workflows/deploy-vercel.yml)): preview vs production, post-deploy smoke test, environments + approval gates, env-var matrix, common failure modes.
+- **[`vercel-neon.md`](./vercel-neon.md)** — Vercel + **Render** + Neon. Full backend functionality (PDF, worker queue, AI). The path the entire codebase is designed against. Includes the UAT acceptance checklist.
+- **[`vercel-experimental.md`](./vercel-experimental.md)** — Vercel multi-service (both frontend AND backend on Vercel via `experimentalServices`) + Neon. Same-origin. Caveats: PDF export + background worker disabled (serverless Python can't run them); AI calls need Pro tier for the 60s timeout. Trade `$7/mo Render` for `0$ Hobby` but lose 3 features.
+- **[`vercel-deploy-workflow.md`](./vercel-deploy-workflow.md)** — GitHub Actions workflow for either recipe — preview/production gates, post-deploy smoke test.
 
 ## Architecture (all recipes)
 
