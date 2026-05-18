@@ -160,9 +160,15 @@ export const transactionsAPI = {
   importPreview: async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
+    const legacyToken = useAuthStore.getState().token;
     const res = await fetch(`${API_BASE}/api/transactions/import/preview`, {
       method: "POST",
       body: formData,
+      // Cookie auth — must opt in per-request when bypassing fetchJSON.
+      // Legacy bearer header kept for users mid-migration (pre-cookie
+      // session still has a token in memory).
+      credentials: "include",
+      headers: legacyToken ? { Authorization: `Bearer ${legacyToken}` } : {},
     });
     if (!res.ok) throw new APIError(res.status, "Import preview failed");
     return res.json();
@@ -295,10 +301,12 @@ export const reportsAPI = {
     const params = new URLSearchParams();
     if (start) params.set("start_date", start);
     if (end) params.set("end_date", end);
+    const legacyToken = useAuthStore.getState().token;
     const res = await fetch(`${API_BASE}/api/reports/export?${params}`, {
-      headers: {
-        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
-      },
+      // Cookie auth — send the httpOnly session cookie. Legacy bearer
+      // header included for users still on a pre-cookie session.
+      credentials: "include",
+      headers: legacyToken ? { Authorization: `Bearer ${legacyToken}` } : {},
     });
     if (!res.ok) throw new APIError(res.status, "CSV export failed");
     const blob = await res.blob();
@@ -318,10 +326,10 @@ export const reportsAPI = {
     const params = new URLSearchParams();
     if (start) params.set("start_date", start);
     if (end) params.set("end_date", end);
+    const legacyToken = useAuthStore.getState().token;
     const res = await fetch(`${API_BASE}/api/reports/export.pdf?${params}`, {
-      headers: {
-        Authorization: `Bearer ${useAuthStore.getState().token || ""}`,
-      },
+      credentials: "include",
+      headers: legacyToken ? { Authorization: `Bearer ${legacyToken}` } : {},
     });
     if (!res.ok) throw new APIError(res.status, "PDF export failed");
     const blob = await res.blob();

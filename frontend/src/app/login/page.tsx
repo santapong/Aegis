@@ -12,7 +12,6 @@ import { GoogleSignInButton } from "@/components/auth/google-sign-in";
 export default function LoginPage() {
   const router = useRouter();
   const login = useAuthStore((s) => s.login);
-  const setToken = useAuthStore((s) => s.setToken);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -24,10 +23,12 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const tokenRes = await authAPI.login({ email, password });
-      setToken(tokenRes.access_token);
+      // The backend sets an httpOnly cookie on this call — we
+      // deliberately do NOT persist the returned access_token to
+      // localStorage. Subsequent requests use the cookie.
+      await authAPI.login({ email, password });
       const userRes = await authAPI.me();
-      login(tokenRes.access_token, userRes);
+      login(userRes);
       router.push("/");
     } catch (err: unknown) {
       const e = err as { detail?: string; message?: string };
@@ -41,17 +42,16 @@ export default function LoginPage() {
     async (credential: string) => {
       setError("");
       try {
-        const tokenRes = await authAPI.googleSignIn(credential);
-        setToken(tokenRes.access_token);
+        await authAPI.googleSignIn(credential);
         const userRes = await authAPI.me();
-        login(tokenRes.access_token, userRes);
+        login(userRes);
         router.push("/");
       } catch (err: unknown) {
         const e = err as { detail?: string; message?: string };
         setError(e.detail || e.message || "Google sign-in failed");
       }
     },
-    [router, login, setToken]
+    [router, login]
   );
 
   return (

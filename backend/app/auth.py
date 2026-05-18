@@ -26,6 +26,29 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=Fals
 AUTH_COOKIE_NAME = "aegis_session"
 
 
+def _cookie_attrs() -> dict:
+    """Centralise cookie attribute selection so set + clear can't drift.
+
+    SameSite is configurable (lax / strict / none). "none" is required
+    when the frontend reaches the backend cross-origin (see
+    ``auth_cookie_samesite`` in config) and forces Secure=True even in
+    debug, because browsers reject ``SameSite=None`` without it.
+    """
+    settings = get_settings()
+    samesite_raw = (settings.auth_cookie_samesite or "lax").lower()
+    if samesite_raw not in ("lax", "strict", "none"):
+        # Belt-and-braces: never accidentally emit a non-spec value.
+        samesite_raw = "lax"
+    # SameSite=None demands Secure regardless of debug.
+    secure = (not settings.debug) or samesite_raw == "none"
+    return {
+        "httponly": True,
+        "secure": secure,
+        "samesite": samesite_raw,
+        "path": "/",
+    }
+
+
 def set_auth_cookie(response: Response, token: str) -> None:
     """Attach the JWT as an httpOnly cookie on the response.
 
@@ -33,34 +56,37 @@ def set_auth_cookie(response: Response, token: str) -> None:
     exfiltrate the session — meaningfully smaller blast radius than
     JWT-in-localStorage (any injected script can scrape that).
 
-    Why SameSite=Lax: blocks the cookie on cross-site POST navigation
-    (CSRF). Lax (not Strict) so external links — Stripe checkout return
-    URLs, password-reset emails when they ship — still carry the
-    session.
+    Why SameSite=Lax by default: blocks the cookie on cross-site POST
+    navigation (CSRF). Lax (not Strict) so external links — Stripe
+    checkout return URLs, password-reset emails when they ship — still
+    carry the session. Operators with a cross-origin frontend
+    (``NEXT_PUBLIC_API_URL`` set) should switch to
+    ``AUTH_COOKIE_SAMESITE=none`` and rely on Secure+HTTPS for
+    transport safety.
 
     Why Secure: cookie only over HTTPS. In dev (``debug=true``) we drop
-    Secure so localhost works; production refuses to.
+    Secure so localhost works, UNLESS SameSite=None — that combination
+    is required by browsers regardless of dev mode.
     """
     settings = get_settings()
     response.set_cookie(
         key=AUTH_COOKIE_NAME,
         value=token,
         max_age=settings.jwt_expire_minutes * 60,
-        httponly=True,
-        secure=not settings.debug,
-        samesite="lax",
-        path="/",
+        **_cookie_attrs(),
     )
 
 
 def clear_auth_cookie(response: Response) -> None:
-    """Drop the session cookie on logout."""
-    response.delete_cookie(
-        key=AUTH_COOKIE_NAME,
-        path="/",
-        httponly=True,
-        samesite="lax",
-    )
+    """Drop the session cookie on logout.
+
+    Attributes must mirror ``set_auth_cookie`` exactly (httpOnly,
+    secure, samesite, path). Older Safari builds silently ignore the
+    delete when ``Secure`` is set on the original and absent on the
+    clear, so the cookie sticks around and "logout" does nothing
+    visible.
+    """
+    response.delete_cookie(key=AUTH_COOKIE_NAME, **_cookie_attrs())
 
 
 def hash_password(password: str) -> str:
