@@ -60,3 +60,32 @@ class AnomalyItem(BaseModel):
 class AnomaliesResponse(BaseModel):
     anomalies: list[AnomalyItem]
     total_count: int
+
+
+class DashboardBundleResponse(BaseModel):
+    """Single round-trip payload for the dashboard page.
+
+    The dashboard previously mounted 6+ separate queries (summary,
+    charts, health-score, cashflow-forecast, anomalies, insights,
+    weekly-summary). Each one was its own HTTP round-trip — under
+    Vercel + Render that's 6× the rewrite-proxy latency on first
+    paint. The bundle endpoint returns all of them in one shot and
+    is itself cached with the same per-user invalidation rules
+    (`dashboard:bundle` in `_GLOBAL_USER_SCOPES`).
+
+    Optional fields use lower-case `None` rather than missing-key so
+    the frontend can render the page in a degraded state when, for
+    example, AI insights aren't configured for this deployment.
+    """
+
+    summary: KPISummary
+    charts: DashboardCharts
+    health_score: HealthScoreResponse
+    cashflow_forecast: CashFlowForecastResponse
+    anomalies: AnomaliesResponse
+    # AI-derived; nullable for deployments where the AI provider isn't
+    # configured (the underlying handlers raise 503 in that case — the
+    # bundle catches and returns None instead of failing the whole
+    # response).
+    weekly_summary: dict | None = None
+    insights: list[dict] = []

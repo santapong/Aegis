@@ -18,6 +18,7 @@ from ..schemas.dashboard import (
     HealthScoreResponse,
     CashFlowPoint,
     CashFlowForecastResponse,
+    DashboardBundleResponse,
 )
 from ..auth import get_current_user
 
@@ -488,6 +489,82 @@ def get_cashflow_forecast(months: int = 6, db: Session = Depends(get_db), curren
 
     result = CashFlowForecastResponse(
         current_balance=round(current_balance, 2), forecast=forecast
+    )
+    cache.set(cache_key, result, ttl=_settings.cache_default_ttl)
+    return result
+
+
+@router.get("/bundle", response_model=DashboardBundleResponse)
+def get_dashboard_bundle(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """One round-trip for the entire dashboard page.
+
+    Replaces the 6-endpoint fan-out (summary, charts, health-score,
+    cashflow-forecast, anomalies, weekly-summary, insights) the
+    dashboard mounted on every page load. Each component query had
+    its own rewrite-proxy hop on Vercel + Render — at p99 that's 6×
+    the latency on first paint.
+
+    The bundle has its own ``dashboard:bundle:<user_id>`` cache key
+    that's invalidated alongside every other dashboard scope via
+    ``_GLOBAL_USER_SCOPES``. On a cache miss it calls each underlying
+    handler function directly (not via HTTP) — those handlers have
+    their own per-scope caches, so a fresh bundle call can still hit
+    several scope-level caches inline.
+
+    AI bits are optional: if the upstream AI provider isn't
+    configured the weekly_summary / insights handlers raise 503; we
+    catch and return `None` / `[]` so the rest of the dashboard
+    renders even without AI.
+    """
+    # Local imports to dodge module-level circular: ai + transactions
+    # routers both import from dashboard indirectly via cache scopes.
+    from ..routers.ai import get_insights, weekly_summary
+    from ..routers.transactions import detect_anomalies
+    from fastapi import HTTPException
+
+    cache = get_cache()
+    cache_key = user_scope("dashboard:bundle", current_user.id)
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return DashboardBundleResponse(**cached)
+
+    summary = get_summary(db=db, current_user=current_user)
+    charts = get_charts(db=db, current_user=current_user)
+    health_score = get_health_score(db=db, current_user=current_user)
+    cashflow_forecast = get_cashflow_forecast(
+        months=6, db=db, current_user=current_user
+    )
+    anomalies = detect_anomalies(
+        days=90, threshold=2.0, db=db, current_user=current_user
+    )
+
+    # AI calls are wrapped: if the provider isn't configured the
+    # handler raises HTTPException(503). Degrade gracefully so the
+    # rest of the dashboard renders.
+    weekly: dict | None = None
+    insights: list[dict] = []
+    try:
+        weekly = weekly_summary(db=db, current_user=current_user).model_dump()
+    except HTTPException as exc:
+        if exc.status_code != 503:
+            raise
+    try:
+        insights = [i.model_dump() for i in get_insights(db=db, current_user=current_user)]
+    except HTTPException as exc:
+        if exc.status_code != 503:
+            raise
+
+    result = DashboardBundleResponse(
+        summary=summary,
+        charts=charts,
+        health_score=health_score,
+        cashflow_forecast=cashflow_forecast,
+        anomalies=anomalies,
+        weekly_summary=weekly,
+        insights=insights,
     )
     cache.set(cache_key, result, ttl=_settings.cache_default_ttl)
     return result

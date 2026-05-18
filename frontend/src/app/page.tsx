@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
-import { dashboardAPI, transactionsAPI, aiAPI } from "@/lib/api";
+import { dashboardAPI } from "@/lib/api";
 import { KPICards } from "@/components/dashboard/kpi-cards";
 import { ProgressRing } from "@/components/charts/progress-ring";
 import { Card, CardContent } from "@/components/ui/card";
@@ -115,62 +115,60 @@ export default function DashboardPage() {
   // app-store write (theme change, panel toggle, settings hydrate).
   const toggleAIPanel = useAppStore((s) => s.toggleAIPanel);
 
+  // ONE round-trip for the entire dashboard. Replaces 6 separate
+  // useQuery calls (summary + charts + health + cashflow + anomalies +
+  // insights). Backend bundles them server-side and caches the bundle
+  // as a single key; mutations invalidate everything atomically via
+  // _GLOBAL_USER_SCOPES.
+  //
+  // Each sub-field is destructured below so the rest of the component
+  // continues to read `summary`, `charts`, etc. as before — only the
+  // fetch shape changed, not the consumers.
+  type DashboardBundle = {
+    summary: KPISummary;
+    charts: DashboardCharts;
+    health_score: HealthScoreResponse;
+    cashflow_forecast: CashFlowForecastResponse;
+    anomalies: AnomaliesResponse;
+    weekly_summary: unknown | null;
+    insights: InsightItem[];
+  };
   const {
-    data: summary,
-    isLoading: summaryLoading,
-    error: summaryError,
-    refetch: refetchSummary,
-  } = useQuery<KPISummary>({
-    queryKey: ["dashboard-summary"],
-    queryFn: () => dashboardAPI.summary() as Promise<KPISummary>,
+    data: bundle,
+    isLoading: bundleLoading,
+    error: bundleError,
+    refetch: refetchBundle,
+  } = useQuery<DashboardBundle>({
+    queryKey: ["dashboard-bundle"],
+    queryFn: () => dashboardAPI.bundle() as Promise<DashboardBundle>,
   });
 
-  const {
-    data: charts,
-    isLoading: chartsLoading,
-    error: chartsError,
-    refetch: refetchCharts,
-  } = useQuery<DashboardCharts>({
-    queryKey: ["dashboard-charts"],
-    queryFn: () => dashboardAPI.charts() as Promise<DashboardCharts>,
-  });
+  const summary = bundle?.summary;
+  const charts = bundle?.charts;
+  const healthScore = bundle?.health_score;
+  const cashflow = bundle?.cashflow_forecast;
+  const anomalies = bundle?.anomalies;
+  const insights = bundle?.insights;
 
-  const {
-    data: healthScore,
-    isLoading: healthLoading,
-    error: healthError,
-    refetch: refetchHealth,
-  } = useQuery<HealthScoreResponse>({
-    queryKey: ["health-score"],
-    queryFn: () => dashboardAPI.healthScore() as Promise<HealthScoreResponse>,
-  });
+  // Loading / error state collapses to the single bundle query.
+  const summaryLoading = bundleLoading;
+  const chartsLoading = bundleLoading;
+  const healthLoading = bundleLoading;
+  const summaryError = bundleError;
+  const chartsError = bundleError;
+  const healthError = bundleError;
+  const cashflowError = bundleError;
+  const anomaliesError = bundleError;
+  const insightsError = bundleError;
 
-  const {
-    data: cashflow,
-    error: cashflowError,
-    refetch: refetchCashflow,
-  } = useQuery<CashFlowForecastResponse>({
-    queryKey: ["cashflow-forecast"],
-    queryFn: () => dashboardAPI.cashflowForecast() as Promise<CashFlowForecastResponse>,
-  });
-
-  const {
-    data: anomalies,
-    error: anomaliesError,
-    refetch: refetchAnomalies,
-  } = useQuery<AnomaliesResponse>({
-    queryKey: ["anomalies"],
-    queryFn: () => transactionsAPI.anomalies() as Promise<AnomaliesResponse>,
-  });
-
-  const {
-    data: insights,
-    error: insightsError,
-    refetch: refetchInsights,
-  } = useQuery<InsightItem[]>({
-    queryKey: ["insights"],
-    queryFn: () => aiAPI.insights() as Promise<InsightItem[]>,
-  });
+  // Refetch helpers preserved so the existing "Retry" buttons keep
+  // working — each now triggers the same single bundle refetch.
+  const refetchSummary = refetchBundle;
+  const refetchCharts = refetchBundle;
+  const refetchHealth = refetchBundle;
+  const refetchCashflow = refetchBundle;
+  const refetchAnomalies = refetchBundle;
+  const refetchInsights = refetchBundle;
 
   const gradeColor = (grade: string) => {
     switch (grade) {

@@ -38,19 +38,17 @@ The CRITICALs are landed; what's below is **fine today**, breaks at 10k+ users o
 
 ## 🟠 Architectural concerns — bigger refactors
 
-### `GET /api/dashboard/bundle`
-The dashboard mounts and fires **6 parallel uncached endpoints**: summary, charts, health-score, cashflow-forecast, anomalies, insights. Collapse into one composite endpoint:
+### ~~`GET /api/dashboard/bundle`~~ ✅ Shipped
 
-- **Win**: 5× fewer roundtrips, one cache key per user, one invalidation on mutations
-- **Cost**: ~1 day backend + matching frontend hook refactor
-- **When**: before scaling past ~500 concurrent dashboard users
+`GET /api/dashboard/bundle` returns summary + charts + health-score + cashflow-forecast + anomalies + AI weekly-summary + AI insights in one response. Backend caches the bundle under `dashboard:bundle:<user_id>` (registered in `_GLOBAL_USER_SCOPES` so all mutation routes invalidate it). Frontend dashboard switched from 6 `useQuery` calls to 1. AI bits degrade gracefully to `null` / `[]` when the provider isn't configured.
 
 ### Move long-running routes to a worker queue
 WeasyPrint PDFs and AI calls share threadpool slots with `/api/health` and auth. A user kicking off a PDF concurrent with an AI analysis can starve the pool for everyone.
 
 - **Win**: predictable latency for the hot path under load
-- **Cost**: 2–3 days for Celery + Redis + result-polling endpoint, or simpler with Render's cron jobs for batch work
+- **Cost**: ~half day for Phase 1 (PDF only via arq + Redis)
 - **When**: when 95p latency on `/api/health` starts spiking during peak hours
+- **Design doc**: [`docs/design/001-background-worker-queue.md`](design/001-background-worker-queue.md) — picks arq over Celery, defines API surface, lists 10-step implementation plan and open questions for the user
 
 ### ~~Single-prefix user cache invalidation~~ ✅ Shipped
 

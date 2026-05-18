@@ -308,6 +308,9 @@ _GLOBAL_USER_SCOPES: list[str] = [
     "dashboard:charts",
     "dashboard:health-score",
     "dashboard:cashflow",
+    # Bundle aggregates the four above plus anomalies + AI summaries.
+    # Keyed at `dashboard:bundle:<user_id>` so prefix delete catches it.
+    "dashboard:bundle",
     "ai:weekly-summary",
     "ai:insights",
 ]
