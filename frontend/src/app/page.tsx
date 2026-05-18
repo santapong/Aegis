@@ -2,11 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import { dashboardAPI, transactionsAPI, aiAPI } from "@/lib/api";
 import { KPICards } from "@/components/dashboard/kpi-cards";
-import { SpendingChart } from "@/components/charts/spending-chart";
-import { TrendChart } from "@/components/charts/trend-chart";
-import { AIPanel } from "@/components/ai/ai-panel";
 import { ProgressRing } from "@/components/charts/progress-ring";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,16 +14,28 @@ import { staggerContainer, staggerItem } from "@/lib/animations";
 import { useAppStore } from "@/stores/app-store";
 import { formatCurrency } from "@/lib/utils";
 import { AlertTriangle, RefreshCw } from "lucide-react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
+
+// Recharts (~95 kB gz) + the two chart wrappers + the AI panel are all
+// pulled out of the dashboard's static client bundle and lazy-imported.
+// They render on the same page; the Skeleton fallback keeps the layout
+// stable while the chunk loads. ssr:false because Recharts uses
+// ResizeObserver / window APIs that aren't available during SSR.
+const SpendingChart = dynamic(
+  () => import("@/components/charts/spending-chart").then((m) => m.SpendingChart),
+  { ssr: false, loading: () => <Skeleton height={180} /> }
+);
+const TrendChart = dynamic(
+  () => import("@/components/charts/trend-chart").then((m) => m.TrendChart),
+  { ssr: false, loading: () => <Skeleton height={180} /> }
+);
+const AIPanel = dynamic(
+  () => import("@/components/ai/ai-panel").then((m) => m.AIPanel),
+  { ssr: false }
+);
+const CashflowChart = dynamic(
+  () => import("@/components/charts/cashflow-chart").then((m) => m.CashflowChart),
+  { ssr: false, loading: () => <Skeleton height={240} /> }
+);
 import type {
   HealthScoreResponse,
   CashFlowForecastResponse,
@@ -34,15 +44,6 @@ import type {
   DashboardCharts,
   InsightItem,
 } from "@/types";
-
-const glassTooltipStyle = {
-  background: "var(--card)",
-  border: "1px solid var(--border)",
-  borderRadius: "6px",
-  fontFamily: "var(--font-mono)",
-  fontSize: "11px",
-  padding: "8px 12px",
-};
 
 /** Card head — magenta 3-letter code badge + sans title + optional action. */
 function CardHead({
@@ -491,57 +492,7 @@ export default function DashboardPage() {
                   </>
                 }
               />
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={cashflow.forecast}>
-                  <CartesianGrid strokeDasharray="2 4" stroke="var(--border)" strokeOpacity={0.6} />
-                  <XAxis
-                    dataKey="month"
-                    tick={{ fontSize: 10, fontFamily: "var(--font-mono)", fill: "var(--aegis-dim)" }}
-                    stroke="var(--border)"
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 10, fontFamily: "var(--font-mono)", fill: "var(--aegis-dim)" }}
-                    stroke="var(--border)"
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <Tooltip
-                    formatter={(value: number) => formatCurrency(value)}
-                    contentStyle={glassTooltipStyle}
-                    cursor={{ stroke: "var(--aegis-line-2)", strokeDasharray: "2 4" }}
-                  />
-                  <Legend wrapperStyle={{ fontFamily: "var(--font-mono)", fontSize: 10, letterSpacing: 1 }} />
-                  <Line
-                    type="monotone"
-                    dataKey="projected_balance"
-                    stroke="var(--primary)"
-                    strokeWidth={1.75}
-                    name="balance"
-                    dot={false}
-                    activeDot={{ r: 4, fill: "var(--primary)" }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="projected_income"
-                    stroke="var(--aegis-ok)"
-                    strokeWidth={1.5}
-                    name="income"
-                    dot={false}
-                    activeDot={{ r: 4, fill: "var(--aegis-ok)" }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="projected_expenses"
-                    stroke="var(--aegis-warn)"
-                    strokeWidth={1.5}
-                    name="expenses"
-                    dot={false}
-                    activeDot={{ r: 4, fill: "var(--aegis-warn)" }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <CashflowChart data={cashflow.forecast} />
             </CardContent>
           </Card>
         </motion.div>
