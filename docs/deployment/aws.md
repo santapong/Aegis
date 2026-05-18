@@ -230,7 +230,24 @@ Only useful if you want everything in one cloud for compliance / cost-center rea
 
 ## Step 6 — Smoke test
 
-Same checklist as [vercel-neon.md Step 6](./vercel-neon.md#step-6--smoke-test).
+Same checklist as [vercel-neon.md Step 6](./vercel-neon.md#step-6--smoke-test) plus the **[UAT acceptance checklist](./vercel-neon.md#uat-acceptance-checklist)** at the bottom of that doc — same 20 checks apply across all hosting providers.
+
+### Additional env vars on the backend (post-v1)
+
+The env-var list has grown since v1.0. AWS App Runner / ECS Fargate operators need these in Secrets Manager / Parameter Store in addition to what Steps 3a/3b list:
+
+| Var | Required? | Source |
+|---|---|---|
+| `FRONTEND_URL` | Yes in prod | Your public frontend URL (e.g. `https://app.example.com`). Stripe redirects + email links use this. |
+| `GOOGLE_OAUTH_CLIENT_ID` | Optional | From [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials). Frontend reads the same value as `NEXT_PUBLIC_GOOGLE_CLIENT_ID`. |
+| `CACHE_BACKEND` | Recommended for multi-pod | `memory` (single pod), `redis` (multi-pod), or `disabled`. Pair with `CACHE_REDIS_URL` pointing at ElastiCache. |
+| `CACHE_REDIS_URL` | If `CACHE_BACKEND=redis` | e.g. `rediss://aegis-redis.cache.amazonaws.com:6379/0`. |
+| `AUTH_COOKIE_SAMESITE` | Optional | `lax` (default) / `strict` / `none`. Use `none` if your frontend hits the backend cross-origin. |
+| `MAX_REQUEST_BODY_BYTES` | Optional | Default `2097152` (2 MB). |
+| `RATE_LIMIT_TRUST_FORWARDED_FOR` | Recommended behind ALB | `true` once you've verified the ALB strips inbound XFF from clients. |
+| `DB_POOL_SIZE`, `DB_MAX_OVERFLOW`, `DB_POOL_RECYCLE` | Optional | Tune for RDS connection ceiling. Defaults work for 1 pod against `db.t4g.micro`. |
+
+See [`backend/.env.example`](../../backend/.env.example) for the complete list and [`databases.md`](../databases.md) for RDS / Aurora / Aurora Serverless v2 pool-tuning recommendations.
 
 ## Step 7 — CI/CD
 

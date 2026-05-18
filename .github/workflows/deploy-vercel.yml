@@ -1,0 +1,123 @@
+name: deploy-vercel
+
+# Deploys the frontend (Next.js) to Vercel via the Vercel CLI. Two
+# triggers:
+#
+#   - push to `main`         → production deploy (--prod)
+#   - workflow_dispatch       → manual preview deploy from any branch
+#
+# Why a custom workflow vs. Vercel's native GitHub integration?
+#   - The native integration is great for "auto-deploy every branch"
+#     but doesn't give you a place to inject secrets, run a smoke
+#     test, or gate behind a CI green. This workflow lets you do all
+#     three.
+#   - The native integration can coexist with this — Vercel will skip
+#     a deploy when the commit was pushed by a token used here.
+#
+# Required repository secrets:
+#   - VERCEL_TOKEN          — https://vercel.com/account/tokens
+#   - VERCEL_ORG_ID         — `vercel link` then read `.vercel/project.json`
+#   - VERCEL_PROJECT_ID     — same source
+#
+# Required repository variables (Settings → Variables → Actions):
+#   - none required; `BACKEND_INTERNAL_URL`, `NEXT_PUBLIC_*` live in
+#     Vercel's own env panel, not here. This workflow only orchestrates
+#     the build + deploy.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      production:
+        description: "Deploy to production"
+        type: boolean
+        default: false
+
+# Cancel a prior in-flight deploy of the same branch so we don't
+# end up with two parallel Vercel builds racing each other.
+concurrency:
+  group: deploy-vercel-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: deploy frontend
+    runs-on: ubuntu-latest
+    # GitHub Environments give us per-deploy approval gates + a place
+    # to scope secrets. Create `production` and `preview` environments
+    # in repo Settings → Environments and attach VERCEL_* secrets there
+    # if you want stricter separation; falls back to repo secrets.
+    environment:
+      name: ${{ github.event_name == 'push' || inputs.production && 'production' || 'preview' }}
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel environment
+        # Pull the project metadata + the matching env-var set. Use the
+        # production env for main pushes, preview env otherwise.
+        working-directory: frontend
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          if [[ "${{ github.event_name }}" == "push" || "${{ inputs.production }}" == "true" ]]; then
+            vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          else
+            vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+          fi
+
+      - name: Build
+        working-directory: frontend
+        env:
+          NEXT_TELEMETRY_DISABLED: "1"
+        run: |
+          if [[ "${{ github.event_name }}" == "push" || "${{ inputs.production }}" == "true" ]]; then
+            vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          else
+            vercel build --token=${{ secrets.VERCEL_TOKEN }}
+          fi
+
+      - name: Deploy
+        id: deploy
+        working-directory: frontend
+        run: |
+          if [[ "${{ github.event_name }}" == "push" || "${{ inputs.production }}" == "true" ]]; then
+            url=$(vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }})
+          else
+            url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          fi
+          echo "Deployed → $url"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke test
+        # Hit the deployed URL's /api/health (proxied via Next.js
+        # rewrite to the backend on Render / Fly / wherever
+        # BACKEND_INTERNAL_URL points). Fails the workflow if the
+        # frontend is up but the backend isn't reachable through the
+        # rewrite — catches misconfigured env vars before users do.
+        run: |
+          url="${{ steps.deploy.outputs.url }}"
+          echo "Smoking $url/api/health"
+          for i in 1 2 3 4 5; do
+            response=$(curl -fsS --max-time 10 "$url/api/health" || true)
+            if echo "$response" | grep -q '"status":"ok"'; then
+              echo "Health check passed: $response"
+              exit 0
+            fi
+            echo "Attempt $i failed, retrying..."
+            sleep 5
+          done
+          echo "Health check never returned status=ok. Backend not reachable through the rewrite."
+          exit 1

@@ -16,6 +16,11 @@ Four recipes are documented, in recommended order:
 
 Pick **Vercel + Neon** if you have no preference — it's the cheapest, fastest to ship, and the path that the rest of the documentation is written against. The other recipes assume you have a specific reason to be on AWS or GCP (existing infrastructure, compliance, cost-at-scale).
 
+### Vercel-specific
+
+- **[`vercel-neon.md`](./vercel-neon.md)** — full Vercel + Neon + Render runbook with the UAT acceptance checklist (the 20-item go/no-go before inviting external testers).
+- **[`vercel-deploy-workflow.md`](./vercel-deploy-workflow.md)** — focused walkthrough of the GitHub Actions deploy workflow ([`.github/workflows/deploy-vercel.yml`](../../.github/workflows/deploy-vercel.yml)): preview vs production, post-deploy smoke test, environments + approval gates, env-var matrix, common failure modes.
+
 ## Architecture (all recipes)
 
 ```
