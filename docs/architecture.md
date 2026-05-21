@@ -224,7 +224,7 @@ sequenceDiagram
     Note over User,DB: Email + password
     User->>FE: Submit credentials
     FE->>BE: POST /api/auth/login
-    BE->>DB: SELECT user; verify bcrypt
+    BE->>DB: SELECT user, verify bcrypt
     BE-->>FE: Set-Cookie: aegis_session (httpOnly, Secure, SameSite=Lax)
     end
 
