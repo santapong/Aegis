@@ -78,25 +78,33 @@ flowchart TB
 The root [`vercel.json`](vercel.json) is already wired for Vercel's `experimentalServices` mode — both the Next.js frontend AND the FastAPI backend run on Vercel, with Neon for Postgres.
 
 ```bash
-# Provision a Neon Postgres at https://neon.tech and copy the pooler URL.
-vercel deploy            # links the project + builds + deploys
-vercel env add DATABASE_URL production    # paste the Neon URL
-vercel env add JWT_SECRET_KEY production  # openssl rand -hex 32
-vercel --prod            # promote to production
+npm i -g vercel && vercel login
+vercel link                              # links the repo to a Vercel project
+
+# Provision a Neon Postgres at https://neon.tech, then set the env vars:
+vercel env add DATABASE_URL production   # paste the Neon pooler URL
+vercel env add JWT_SECRET_KEY production # paste output of: openssl rand -hex 32
+
+vercel deploy --prod                     # build + deploy to production
 ```
 
-Full step-by-step runbook: [`docs/deployment/vercel.md`](docs/deployment/vercel.md). The trade-off vs Docker is documented — PDF export, the background worker, and AI calls > 10 s are disabled on Vercel Hobby (the latter works on Pro).
+Then run `alembic upgrade head` once against the Neon URL to migrate the schema (Vercel's serverless runtime can't run the migration on boot).
+
+Full step-by-step runbook: [`docs/deployment/vercel.md`](docs/deployment/vercel.md). Trade-offs vs Docker are documented — PDF export, the background worker, and AI calls > 10 s are disabled on Vercel Hobby (the latter works on Pro).
 
 ### Run locally with Docker
 
 ```bash
 cp .env.example .env
-openssl rand -hex 32 >> .env    # paste as JWT_SECRET_KEY
+# Edit .env and replace JWT_SECRET_KEY=CHANGE-ME-IN-PRODUCTION with a real secret:
+openssl rand -hex 32
 
 docker compose up -d            # production-ish
 # or, for hot reload:
 make dev
 ```
+
+Or use `make setup`, which does both steps for you and generates a fresh JWT secret idempotently.
 
 Frontend: http://localhost:3000 • Backend: http://localhost:8000
 
