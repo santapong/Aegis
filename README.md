@@ -6,6 +6,8 @@ Status: **v1.0.0 GA + post-v1 hardening pass shipped.** See [CHANGELOG.md](CHANG
 
 Public landing page: [`/landing`](http://localhost:3000/landing). Sign-in: email/password or **Google** (configurable via `GOOGLE_OAUTH_CLIENT_ID`).
 
+For a deeper look at how the system is put together — layered backend, frontend state model, data model, auth flow, deployment topologies — see [`docs/architecture.md`](docs/architecture.md).
+
 ## Architecture at a glance
 
 ```mermaid
