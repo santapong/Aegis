@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed — repo layout & default deployment
+
+- **Vercel-first deployment** — root [`vercel.json`](vercel.json) (already
+  wired for `experimentalServices`) is now the default. `vercel deploy`
+  from the repo root ships both frontend and backend in one platform.
+  README Quick Start, `docs/deployment/README.md`, and the cloud-specific
+  recipes now lead with Vercel; the previous "Vercel + Render" recipe
+  remains as the full-features alternative.
+- **Renamed deployment recipes** —
+  `docs/deployment/vercel-experimental.md` → `vercel.md` (now the default,
+  no longer "experimental" framing), and
+  `docs/deployment/vercel-neon.md` → `vercel-render.md` (clearer that
+  Render is what makes this recipe different from the all-Vercel default).
+- **Removed dead files** — root `main.py` (a leftover `print("Hello…")`
+  stub), root `pyproject.toml` (out-of-date duplicate; `aegis-mcp` script
+  registration moved to `backend/pyproject.toml`), root `uv.lock` (was
+  generated from the dead root pyproject), `DOCKER_VERIFY_PLAN.md` (a
+  one-off Docker setup planning artifact), and `plan.md` (redundant with
+  ROADMAP / CHANGELOG).
+- **MCP server invocation path updated** — `uv run --project ./backend
+  aegis-mcp` (was `--project .`). The script registration now lives next
+  to the rest of the backend deps in `backend/pyproject.toml`.
+
 ### Added — performance
 
 - **Pluggable cache layer** (`backend/app/cache.py`) — `CACHE_BACKEND`

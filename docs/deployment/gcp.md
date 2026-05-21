@@ -16,7 +16,7 @@ flowchart LR
     BE --> SM
 ```
 
-> **Read [vercel-neon.md](./vercel-neon.md) first** if you don't have a specific reason to be on GCP — Cloud Run's free tier makes the GCP recipe genuinely cheap, but the setup is one or two notches more involved.
+> **Read [vercel.md](./vercel.md) first** if you don't have a specific reason to be on GCP — Cloud Run's free tier makes the GCP recipe genuinely cheap, but the setup is one or two notches more involved than `vercel deploy`.
 
 ## Prerequisites
 
@@ -144,7 +144,7 @@ curl $URL/api/health
 
 ### Option 1 — Vercel (recommended)
 
-Same as [Vercel + Neon recipe](./vercel-neon.md#step-3--deploy-the-frontend-vercel) but with `BACKEND_INTERNAL_URL` set to the Cloud Run URL (or your custom backend domain). Update `CORS_ORIGINS` on Cloud Run after the fact.
+Same as [Vercel + Neon recipe](./vercel-render.md#step-3--deploy-the-frontend-vercel) but with `BACKEND_INTERNAL_URL` set to the Cloud Run URL (or your custom backend domain). Update `CORS_ORIGINS` on Cloud Run after the fact.
 
 ### Option 2 — Firebase Hosting + Cloud Functions
 

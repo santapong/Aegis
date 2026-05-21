@@ -2,7 +2,7 @@
 
 Step-by-step setup for shipping the Aegis frontend to Vercel, with a GitHub Actions workflow that handles preview + production deploys, runs a post-deploy smoke test, and stays out of your way when the build is green.
 
-This doc covers **frontend only**. For the backend, see [`vercel-neon.md`](vercel-neon.md) (Render), [`aws.md`](aws.md), [`gcp.md`](gcp.md), or [`self-hosted.md`](self-hosted.md).
+This doc covers **frontend only**. For the backend, see [`vercel-render.md`](vercel-render.md) (Render), [`aws.md`](aws.md), [`gcp.md`](gcp.md), or [`self-hosted.md`](self-hosted.md).
 
 ## Workflow overview
 
@@ -192,7 +192,7 @@ Aegis is a static-export Next.js app with server-side rewrites — minimal serve
 
 ## Related docs
 
-- [`vercel-neon.md`](vercel-neon.md) — full Vercel + Neon + Render runbook including the **UAT acceptance checklist**.
+- [`vercel-render.md`](vercel-render.md) — full Vercel + Neon + Render runbook including the **UAT acceptance checklist**.
 - [`aws.md`](aws.md) — AWS App Runner / ECS Fargate alternative for the backend.
 - [`gcp.md`](gcp.md) — GCP Cloud Run alternative for the backend.
 - [`../tutorials/06-deploy-production.md`](../tutorials/06-deploy-production.md) — deploy-day runbook with prerequisites, secrets, first-boot health checks.

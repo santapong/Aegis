@@ -108,7 +108,7 @@ Stays inline (Phase 2 candidates):
 8. Render deploy: separate Background Worker service ($7/mo) running
    the same image with `arq app.worker.WorkerSettings` as the command
 9. Tests: mock the Redis queue, assert enqueue + poll cycle
-10. Docs: update vercel-neon.md + tutorials with the new flow
+10. Docs: update vercel-render.md + tutorials with the new flow
 ```
 
 Estimated effort: **half day** for Phase 1 if everything goes smoothly. Plus another half-day for polish + tests + docs.

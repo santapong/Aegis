@@ -73,37 +73,44 @@ flowchart TB
 
 ## Quick Start
 
-### 1. Configure environment
+### Deploy to Vercel (default)
+
+The root [`vercel.json`](vercel.json) is already wired for Vercel's `experimentalServices` mode — both the Next.js frontend AND the FastAPI backend run on Vercel, with Neon for Postgres.
+
+```bash
+npm i -g vercel && vercel login
+vercel link                              # links the repo to a Vercel project
+
+# Provision a Neon Postgres at https://neon.tech, then set the env vars:
+vercel env add DATABASE_URL production   # paste the Neon pooler URL
+vercel env add JWT_SECRET_KEY production # paste output of: openssl rand -hex 32
+
+vercel deploy --prod                     # build + deploy to production
+```
+
+Then run `alembic upgrade head` once against the Neon URL to migrate the schema (Vercel's serverless runtime can't run the migration on boot).
+
+Full step-by-step runbook: [`docs/deployment/vercel.md`](docs/deployment/vercel.md). Trade-offs vs Docker are documented — PDF export, the background worker, and AI calls > 10 s are disabled on Vercel Hobby (the latter works on Pro).
+
+### Run locally with Docker
 
 ```bash
 cp .env.example .env
-# Generate a real JWT secret and paste it as JWT_SECRET_KEY:
+# Edit .env and replace JWT_SECRET_KEY=CHANGE-ME-IN-PRODUCTION with a real secret:
 openssl rand -hex 32
-```
 
-The default `DATABASE_URL` is SQLite (`sqlite:///./money_management.db`) so you can run end-to-end with zero infra. Optionally paste your Anthropic and Stripe test keys.
-
-### 2. System dependencies for PDF export
-
-WeasyPrint needs Cairo / Pango. On Debian / Ubuntu:
-
-```bash
-sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libcairo2 libgdk-pixbuf-2.0-0 libffi-dev
-```
-
-On macOS: `brew install pango cairo gdk-pixbuf libffi`. The GHCR image bakes these in.
-
-### 3. Run with Docker Compose
-
-```bash
-docker compose up -d        # production-ish
+docker compose up -d            # production-ish
 # or, for hot reload:
 make dev
 ```
 
+Or use `make setup`, which does both steps for you and generates a fresh JWT secret idempotently.
+
 Frontend: http://localhost:3000 • Backend: http://localhost:8000
 
-### 4. Or run manually via `make`
+The default `DATABASE_URL` is SQLite so you can run end-to-end with zero infra.
+
+### Or run natively via `make`
 
 ```bash
 make migrate      # alembic upgrade head
@@ -113,7 +120,9 @@ make frontend     # bun run dev
 make test         # backend pytest
 ```
 
-### 5. Published images (GHCR)
+WeasyPrint (for PDF export) needs Cairo / Pango. On Debian / Ubuntu: `sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libcairo2 libgdk-pixbuf-2.0-0 libffi-dev`. On macOS: `brew install pango cairo gdk-pixbuf libffi`. The GHCR image bakes these in.
+
+### Published images (GHCR)
 
 After `git tag v1.0.0 && git push --tags`, the `release.yml` workflow publishes:
 
@@ -253,7 +262,7 @@ Add to `claude_desktop_config.json`:
   "mcpServers": {
     "aegis": {
       "command": "uv",
-      "args": ["run", "--project", "/abs/path/to/Aegis", "aegis-mcp"],
+      "args": ["run", "--project", "/abs/path/to/Aegis/backend", "aegis-mcp"],
       "env": {
         "AEGIS_USER_EMAIL": "you@example.com",
         "DATABASE_URL": "sqlite:////abs/path/to/Aegis/money_management.db",
@@ -267,7 +276,7 @@ Add to `claude_desktop_config.json`:
 ### Claude Code
 
 ```bash
-claude mcp add aegis -- uv run --project . aegis-mcp
+claude mcp add aegis -- uv run --project ./backend aegis-mcp
 ```
 
 Then in a session try: "list my trips", "show this month's budget vs actual",
@@ -285,17 +294,17 @@ Smoke tests live in `backend/tests/test_smoke.py` and cover `/api/health` plus t
 
 ## Deployment
 
-Aegis runs on any platform that supports Docker, plus Vercel for the
-frontend. Four recipes are documented in [`docs/deployment/`](docs/deployment/):
+Aegis is designed Vercel-first: the root [`vercel.json`](vercel.json) configures Vercel's `experimentalServices` mode so a single `vercel deploy` ships both the Next.js frontend and the FastAPI backend. Five recipes are documented in [`docs/deployment/`](docs/deployment/):
 
 | Recipe | Frontend | Backend | DB | ~Monthly cost |
 |--------|----------|---------|-----|---------------|
-| [Vercel + Neon](docs/deployment/vercel-neon.md) **(primary)** | Vercel | Render / Fly / Railway | Neon | **$7** |
+| [**Vercel (all-in)**](docs/deployment/vercel.md) **(default)** | Vercel | Vercel serverless Python | Neon | **$0** Hobby |
+| [Vercel + Render](docs/deployment/vercel-render.md) | Vercel | Render / Fly / Railway | Neon | $7 |
 | [AWS](docs/deployment/aws.md) | Vercel / Amplify / container | App Runner / ECS Fargate | RDS Postgres | $25–60 |
 | [GCP](docs/deployment/gcp.md) | Vercel / Firebase / Cloud Run | Cloud Run | Cloud SQL | $0–25 |
 | [Self-hosted](docs/deployment/self-hosted.md) | Same VPS | Same VPS | Same VPS | $5–20 |
 
-Each recipe is a step-by-step runbook with env-var lists, smoke tests, and rollback notes. Start with the [overview](docs/deployment/README.md) if you're unsure which to pick. The Vercel + Neon recipe also includes a **UAT acceptance checklist** covering auth, data isolation, cookie attrs, rate-limit, body-size cap, FK cascade, exports, and observability — runnable before inviting external testers.
+Each recipe is a step-by-step runbook with env-var lists, smoke tests, and rollback notes. Start with the [overview](docs/deployment/README.md) if you're unsure which to pick. The Vercel + Render recipe includes a **UAT acceptance checklist** covering auth, data isolation, cookie attrs, rate-limit, body-size cap, FK cascade, exports, and observability — runnable before inviting external testers.
 
 For tutorials covering the user-facing flows + operator concerns, see [`docs/tutorials/`](docs/tutorials/) (getting started, CSV import, AI assistant, deploy-production, caching). For performance work still on the backlog, see [`docs/PERFORMANCE_BACKLOG.md`](docs/PERFORMANCE_BACKLOG.md).
 
