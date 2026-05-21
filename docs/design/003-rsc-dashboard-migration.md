@@ -4,6 +4,33 @@
 
 ## What this would change
 
+```mermaid
+sequenceDiagram
+    autonumber
+    participant B as Browser
+    participant V as Vercel (SSR)
+    participant BE as Backend /api/dashboard/bundle
+
+    rect rgb(255, 235, 235)
+    Note over B,BE: Today (CSR): ~250 ms to first KPI
+    B->>V: GET /
+    V-->>B: HTML shell (~80 ms)
+    Note over B: hydrate (~50 ms)
+    B->>BE: useQuery /api/dashboard/bundle
+    BE-->>B: JSON (~120 ms rewrite hop)
+    Note over B: render KPIs
+    end
+
+    rect rgb(235, 255, 235)
+    Note over B,BE: With RSC: ~100 ms to first KPI
+    B->>V: GET /
+    V->>BE: server-side fetch (cookie forwarded)
+    BE-->>V: JSON
+    V-->>B: HTML + data inlined (~100 ms)
+    Note over B: KPIs visible before JS hydrates
+    end
+```
+
 **Today**: dashboard renders client-side. Browser loads the page shell (`/`), the React tree hydrates, `useQuery` fires `/api/dashboard/bundle`, fills the components. TTFB-to-data on a Vercel + Render deploy:
 - HTML: ~80 ms
 - Hydration: ~50 ms

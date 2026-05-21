@@ -2,6 +2,22 @@
 
 A deploy-day runbook for taking Aegis from a working local stack to an environment you'd let real users into. This is opinionated — it picks specific defaults rather than enumerating every option. For per-platform details (Vercel + Neon, AWS, GCP, self-hosted Docker) see [`../deployment/`](../deployment/).
 
+## Deploy day at a glance
+
+```mermaid
+flowchart TD
+    P0[0 · Prereqs<br/>domain · managed PG · secret manager]
+    P1[1 · Generate JWT_SECRET_KEY<br/>openssl rand -hex 32]
+    P2[2 · Provision DB<br/>alembic upgrade head on boot]
+    P3[3 · Set env vars<br/>DEBUG=false · DATABASE_URL · FRONTEND_URL · CORS_ORIGINS]
+    P4[4 · First-boot health checks<br/>/api/health · register smoke user]
+    P5[5 · Day-1 monitoring<br/>uptime · logs · error tracking]
+    P6[6 · Backups<br/>provider-managed + test restore]
+    P7[7 · Plan for scale<br/>connection pooler · Redis · CDN]
+
+    P0 --> P1 --> P2 --> P3 --> P4 --> P5 --> P6 --> P7
+```
+
 ## 0 · Prerequisites checklist
 
 Before you push the deploy button, verify:
@@ -140,6 +156,20 @@ User-uploaded files (CSV imports, generated PDF reports): currently held only in
 ## 7 · Scaling targets (the rough math)
 
 These are conservative estimates for current-version Aegis on a single small backend instance (1 vCPU, 1 GB RAM):
+
+```mermaid
+flowchart LR
+    U10[10 users<br/>p50 80ms · p99 250ms<br/>no bottleneck]
+    U100[100 users<br/>p50 110ms · p99 600ms<br/>DB pool tight]
+    U500[500 users<br/>p50 200ms · p99 2s<br/>uvicorn + AI limits]
+    U1k[1000+ users<br/>needs horizontal scale<br/>add Redis rate-limit]
+
+    U10 --> U100 --> U500 --> U1k
+
+    U100 -. fix .-> Fix1[Redis rate-limit]
+    U500 -. fix .-> Fix2[PgBouncer<br/>txn mode]
+    U1k -. fix .-> Fix3[CDN + replicas]
+```
 
 | Concurrent users | Latency p50 | Latency p99 | Bottleneck |
 |---|---|---|---|

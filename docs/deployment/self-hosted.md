@@ -2,18 +2,24 @@
 
 Run all three services (frontend + backend + Postgres) on a single VPS, fronted by Caddy for automatic HTTPS. **~$5–20 / month** on a $5–10 DigitalOcean droplet or equivalent Hetzner / Linode / Vultr / OVH instance.
 
-```
-       Internet (TLS auto-renewed by Caddy)
-                    │
-                    ▼
-        ┌──────────────────────┐
-        │   Caddy reverse proxy│ ← :80 / :443
-        │   on the same host   │
-        └──────────┬───────────┘
-              ┌────┴────┐
-              ▼         ▼
-        frontend     backend ─→ postgres
-        :3000        :8000       :5432 (private network only)
+```mermaid
+flowchart TB
+    Internet([Internet<br/>TLS auto-renewed by Caddy])
+    Caddy["Caddy reverse proxy<br/>:80 / :443"]
+
+    subgraph VPS["Single VPS"]
+        Caddy
+        subgraph Compose["docker compose"]
+            FE["frontend :3000"]
+            BE["backend :8000"]
+            DB[("postgres :5432<br/>private network only")]
+        end
+    end
+
+    Internet --> Caddy
+    Caddy -- / --> FE
+    Caddy -- /api/* --> BE
+    BE --> DB
 ```
 
 This is the deployment story `docker-compose.prod.yml` is designed for. Caddy handles TLS via Let's Encrypt or the DNS challenge.
@@ -117,6 +123,18 @@ curl https://aegis.example.com/api/health
 Browse `https://aegis.example.com` — register a new account, log in.
 
 ## Step 5 — Backups
+
+```mermaid
+flowchart LR
+    PG[(pgdata<br/>Docker named volume)]
+    Cron["crontab @03:00<br/>pg_dump | gzip"]
+    Local["/home/$USER/backups<br/>14-day retention"]
+    Offsite[("Backblaze B2 / S3<br/>rclone sync")]
+
+    PG --> Cron
+    Cron --> Local
+    Local -- nightly --> Offsite
+```
 
 The Postgres data lives in a Docker named volume `pgdata`. Back it up regularly.
 

@@ -20,32 +20,46 @@ Going with **arq** below. Reasons: matches the codebase's existing Redis dep (al
 
 ## Architecture
 
-```
-                       ┌──────────────┐
-   browser ────POST────▶ /api/jobs    │
-   (request PDF)       │  (uvicorn)   │  1. enqueue job
-                       └──────┬───────┘  2. return {job_id}
-                              │
-                              ▼
-                       ┌──────────────┐
-                       │  Redis       │  ARQ queue + result store
-                       │  (existing)  │
-                       └──────┬───────┘
-                              │
-                              ▼
-                       ┌──────────────┐
-                       │  arq worker  │  3. pop job
-                       │  (separate   │  4. run PDF / AI
-                       │  process)    │  5. write result
-                       └──────┬───────┘
-                              ▲
-                              │
-   browser ────GET────────────┘
-   /api/jobs/{job_id}/status
-   (poll every 2 s)
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Browser
+    participant API as /api/jobs<br/>(uvicorn)
+    participant Redis as Redis<br/>(ARQ queue + result)
+    participant Worker as arq worker<br/>(separate process)
+
+    Browser->>API: POST /api/reports/export.pdf
+    API->>Redis: enqueue job
+    API-->>Browser: 202 { job_id }
+
+    Worker->>Redis: pop job
+    Worker->>Worker: render PDF / AI
+    Worker->>Redis: write result
+
+    loop poll every 2s
+        Browser->>API: GET /api/jobs/{id}/status
+        API->>Redis: read status
+        Redis-->>API: queued | running | done
+        API-->>Browser: { status, result_url? }
+    end
+
+    Browser->>API: GET result_url
+    API-->>Browser: PDF binary
 ```
 
 ## API surface
+
+```mermaid
+stateDiagram-v2
+    [*] --> queued: POST /api/reports/export.pdf
+    queued --> running: worker pops
+    running --> done: success
+    running --> failed: exception
+    done --> [*]: GET result_url
+    failed --> [*]: client surfaces error
+    queued --> cancelled: DELETE /api/jobs/{id}
+    cancelled --> [*]
+```
 
 ```http
 POST /api/reports/export.pdf

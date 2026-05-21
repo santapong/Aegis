@@ -41,6 +41,31 @@ The AI does poorly at:
 
 ## How the AI sees your data
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant FE as AI panel (frontend)
+    participant BE as Backend /api/ai
+    participant DB as Database
+    participant LLM as Provider<br/>(Claude / Typhoon / Groq)
+
+    User->>FE: Question
+    FE->>BE: POST /api/ai/ask { prompt }
+    BE->>DB: Pull recent transactions,<br/>budgets, plans, preferences
+    DB-->>BE: Context window
+    BE->>LLM: prompt + context
+    loop tool_use rounds
+        LLM-->>BE: tool_call e.g. get_transactions(...)
+        BE->>DB: execute tool
+        DB-->>BE: results
+        BE-->>LLM: tool_result
+    end
+    LLM-->>BE: prose + numbers + action cards
+    BE-->>FE: response
+    FE-->>User: render answer + action cards
+```
+
 When you ask a question, the backend:
 
 1. Pulls a context window: your recent transactions, active budgets, active plans, account preferences.

@@ -4,6 +4,38 @@ Aegis runs on any SQLAlchemy-supported relational database. This page documents 
 
 The short version: **PostgreSQL is the recommended primary; MySQL/MariaDB is a fine alternative; SQLite is dev-only; analytics warehouses (Redshift, BigQuery) are the wrong shape for this app.**
 
+## At-a-glance support
+
+```mermaid
+flowchart TB
+    subgraph OK["✅ Tested / ⚠️ config tweak"]
+        direction LR
+        PG[PostgreSQL 13–17<br/>+ Neon · Supabase · RDS · Aurora<br/>Cloud SQL · AlloyDB · Azure DB]
+        MY[MySQL 8 / MariaDB 10.5+<br/>+ RDS · Cloud SQL · Azure · TiDB]
+        SL[SQLite — dev only]
+    end
+
+    subgraph CodeChange["🟡 Needs code change"]
+        CR[CockroachDB · retry middleware]
+        YB[YugabyteDB]
+        TS[Turso / libSQL]
+    end
+
+    subgraph No["🔴 Not supported as primary"]
+        RS[Redshift]
+        BQ[BigQuery]
+        SP[Spanner]
+        PS[PlanetScale<br/>no FKs]
+        NS[NoSQL — Mongo / Dynamo / Cosmos / Fauna]
+    end
+
+    No -. analytics target via CDC .-> Warehouse[(See analytics-warehouses.md)]
+
+    style OK fill:#efe
+    style CodeChange fill:#ffe
+    style No fill:#fee
+```
+
 ## Quick recommendation by use case
 
 | You want… | Use |
@@ -125,6 +157,18 @@ AWS RDS / Aurora and GCP Cloud SQL support IAM-based auth where the connection p
 Aegis runs a single `engine`. Read replicas would require splitting reads from writes (`Session.using_bind_for_read()` or a routing dialect). On Aurora / Cloud SQL replicas, your read traffic still hits the primary today.
 
 ### Migration concurrency
+
+```mermaid
+flowchart LR
+    Risk["Two pods<br/>roll out together<br/>both run alembic"]
+    Risk --> Race[("Race condition<br/>on schema migration")]
+
+    Fix1[Init container /<br/>pre-deploy Job] --> Safe(("✅ Safe"))
+    Fix2[Rolling deploy<br/>maxSurge=0] --> Safe
+
+    style Race fill:#fee
+    style Safe fill:#efe
+```
 
 `docker-entrypoint.sh` runs `alembic upgrade head` on container start. Two pods rolling out simultaneously can race the migration. Two safer patterns:
 

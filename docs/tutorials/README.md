@@ -2,6 +2,33 @@
 
 Hands-on guides for getting work done with Aegis. Each tutorial is a self-contained walkthrough you can finish in under 30 minutes.
 
+```mermaid
+flowchart TD
+    Root([Tutorials])
+
+    Root --> U[For users]
+    Root --> O[For operators]
+    Root --> D[For developers]
+    Root --> R[Reference]
+
+    U --> U1[1 · Getting started]
+    U --> U2[2 · Import a year of txns]
+    U --> U3[3 · AI assistant]
+    U --> U4[4 · Plan a trip]
+    U --> U5[5 · Google sign-in]
+
+    O --> O1[6 · Deploy to production]
+    O --> O2[7 · Stripe payments]
+    O --> O3[8 · AI providers]
+
+    D --> D1[9 · Adding an entity]
+    D --> D2[10 · Testing a router]
+    D --> D3[11 · Caching]
+
+    R --> R1[Database compatibility]
+    R --> R2[Deployment recipes]
+```
+
 ## For users
 
 1. [**Getting started in 10 minutes**](./01-getting-started.md) — register, add your first transaction, set a budget, and read your dashboard. Start here if you've just deployed Aegis or signed up.

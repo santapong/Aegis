@@ -4,6 +4,37 @@ Step-by-step setup for shipping the Aegis frontend to Vercel, with a GitHub Acti
 
 This doc covers **frontend only**. For the backend, see [`vercel-neon.md`](vercel-neon.md) (Render), [`aws.md`](aws.md), [`gcp.md`](gcp.md), or [`self-hosted.md`](self-hosted.md).
 
+## Workflow overview
+
+```mermaid
+flowchart TD
+    Trigger{Trigger}
+    Trigger -- "push to main" --> Prod[Production deploy<br/>vercel deploy --prod]
+    Trigger -- "workflow_dispatch" --> Choice{Deploy to prod?}
+    Choice -- yes --> Prod
+    Choice -- no --> Preview[Preview deploy]
+
+    Prod --> Steps
+    Preview --> Steps
+
+    subgraph Steps["Workflow steps"]
+        direction TB
+        S1[Checkout]
+        S2[Install Node 20 + Vercel CLI]
+        S3["vercel pull (project meta + env)"]
+        S4["vercel build (local)"]
+        S5["vercel deploy --prebuilt"]
+        S6["Smoke test /api/health<br/>up to 5 retries"]
+        S1 --> S2 --> S3 --> S4 --> S5 --> S6
+    end
+
+    S6 -- pass --> Done((Deploy live))
+    S6 -- fail --> Fail((Workflow fails))
+
+    style Done fill:#efe
+    style Fail fill:#fee
+```
+
 ## Two ways to deploy
 
 | Option | When |

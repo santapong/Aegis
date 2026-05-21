@@ -2,12 +2,21 @@
 
 Run **both** the Next.js frontend AND the FastAPI backend on Vercel itself, using their `experimentalServices` multi-service mode. Same-origin from the browser's POV; no separate Render service to manage.
 
-```
-   ┌──────────────────────┐         ┌──────────────┐
-   │  Vercel              │ /api/*  │  Neon        │
-   │  ├─ frontend (Next)  ├────────►│  Postgres    │
-   │  └─ backend (Python) │         │              │
-   └──────────────────────┘         └──────────────┘
+```mermaid
+flowchart LR
+    Browser([browser])
+
+    subgraph Vercel["Vercel (experimentalServices)"]
+        FE["frontend<br/>(Next.js)"]
+        BE["backend<br/>(Python serverless)"]
+    end
+
+    Neon[("Neon Postgres<br/>pooler endpoint")]
+
+    Browser --> FE
+    Browser -- /api/* --> BE
+    FE --> BE
+    BE --> Neon
 ```
 
 **Read [vercel-neon.md](./vercel-neon.md) first** if you don't have a specific reason to use experimentalServices. That recipe (Vercel + Render + Neon) is the path the entire codebase is designed against; this doc covers an alternative for operators who want everything on Vercel.
@@ -15,6 +24,28 @@ Run **both** the Next.js frontend AND the FastAPI backend on Vercel itself, usin
 ## Hard limitations of this path
 
 `experimentalServices` runs the backend on Vercel's serverless Python runtime. Three Aegis features don't work on that platform:
+
+```mermaid
+flowchart TD
+    Start{Feature}
+    Start --> PDF["PDF export<br/>/api/reports/export.pdf"]
+    Start --> Jobs["Background worker<br/>/api/jobs/*"]
+    Start --> AI["AI calls > 10s"]
+    Start --> Rest[Everything else]
+
+    PDF -- WeasyPrint needs Cairo/Pango --> X1[("503 with JSON error")]
+    Jobs -- No long-lived processes --> X2[("Falls back to inline")]
+    AI -- 10s Hobby timeout --> X3{Tier?}
+    X3 -- Hobby --> X3a[("504 timeout")]
+    X3 -- Pro 60s --> OK1((Works))
+    Rest --> OK2((Works on either tier))
+
+    style X1 fill:#fee
+    style X2 fill:#fee
+    style X3a fill:#fee
+    style OK1 fill:#efe
+    style OK2 fill:#efe
+```
 
 | Feature | Why it breaks | What happens |
 |---|---|---|
