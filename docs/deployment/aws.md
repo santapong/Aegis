@@ -16,7 +16,7 @@ flowchart LR
     BE --> SM
 ```
 
-> **Read [vercel-neon.md](./vercel-neon.md) first** if you don't have a specific reason to be on AWS — it's $7/month vs ~$30–60 for the AWS equivalent.
+> **Read [vercel.md](./vercel.md) first** if you don't have a specific reason to be on AWS — the default Vercel deploy is $0 on Hobby vs ~$30–60 for the AWS equivalent.
 
 ## Prerequisites
 
@@ -195,7 +195,7 @@ The execution role is the standard `ecsTaskExecutionRole` plus `secretsmanager:G
 
 ### Option 1 — Vercel (recommended, even on AWS)
 
-Same as the [Vercel + Neon recipe](./vercel-neon.md#step-3--deploy-the-frontend-vercel), but:
+Same as the [Vercel + Neon recipe](./vercel-render.md#step-3--deploy-the-frontend-vercel), but:
 
 - `BACKEND_INTERNAL_URL` = your App Runner / ALB URL (e.g. `https://api.example.com` or `https://aegis-backend.us-east-1.awsapprunner.com`)
 - Update backend `CORS_ORIGINS` to include the Vercel domain.
@@ -232,7 +232,7 @@ Only useful if you want everything in one cloud for compliance / cost-center rea
 
 ## Step 6 — Smoke test
 
-Same checklist as [vercel-neon.md Step 6](./vercel-neon.md#step-6--smoke-test) plus the **[UAT acceptance checklist](./vercel-neon.md#uat-acceptance-checklist)** at the bottom of that doc — same 20 checks apply across all hosting providers.
+Same checklist as [vercel-render.md Step 6](./vercel-render.md#step-6--smoke-test) plus the **[UAT acceptance checklist](./vercel-render.md#uat-acceptance-checklist)** at the bottom of that doc — same 20 checks apply across all hosting providers.
 
 ### Additional env vars on the backend (post-v1)
 

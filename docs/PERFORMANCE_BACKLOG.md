@@ -60,7 +60,7 @@ flowchart TD
 - [x] **`transactions(user_id, category)` index** — ✅ Shipped (v0.9.8 migration).
 - [x] **`budgets(user_id, period_start)` composite index** — ✅ Shipped (v0.9.8 migration).
 - [x] **`ai_recommendations(user_id, created_at)` composite index** — ✅ Shipped (v0.9.8 migration).
-- [ ] **Connection pool math at 2+ Render pods exceeds Neon free tier cap** — drop `db_pool_size` to 5 OR migrate to Neon's pooler endpoint (`-pooler.neon.tech`). *~10 min config change.* Documented in `docs/deployment/vercel-neon.md`.
+- [ ] **Connection pool math at 2+ Render pods exceeds Neon free tier cap** — drop `db_pool_size` to 5 OR migrate to Neon's pooler endpoint (`-pooler.neon.tech`). *~10 min config change.* Documented in `docs/deployment/vercel-render.md`.
 
 ## 🟠 Architectural concerns — bigger refactors
 

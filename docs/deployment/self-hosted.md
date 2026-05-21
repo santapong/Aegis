@@ -182,7 +182,7 @@ For a single-host deploy, two cheap signals catch most outages:
 
 ## Smoke test
 
-Same as the [Vercel + Neon checklist](./vercel-neon.md#step-6--smoke-test).
+Same as the [Vercel + Neon checklist](./vercel-render.md#step-6--smoke-test).
 
 ## Cost
 

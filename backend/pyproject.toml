@@ -52,6 +52,9 @@ test = [
     "httpx>=0.27",
 ]
 
+[project.scripts]
+aegis-mcp = "app.mcp.server:main"
+
 [tool.pytest.ini_options]
 testpaths = ["backend/tests"]
 pythonpath = ["backend"]

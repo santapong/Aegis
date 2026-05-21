@@ -5,21 +5,22 @@ Aegis is a two-service application:
 - **Frontend** — Next.js 15 / React 19 / Tailwind v4. Single Docker image, also deployable on Vercel without a container.
 - **Backend** — FastAPI / SQLAlchemy / Alembic / WeasyPrint. Containerized; expects a Postgres database.
 
-Four recipes are documented, in recommended order:
+Five recipes are documented, in recommended order:
 
 | Recipe | Frontend | Backend | DB | Monthly cost |
 |--------|----------|---------|----|--------------|
-| [Vercel + Neon](./vercel-neon.md) **(primary)** | Vercel | Render / Fly.io / Railway | Neon | **~$7** |
+| [**Vercel (all-in)**](./vercel.md) **(default)** | Vercel | Vercel serverless Python | Neon | **$0** Hobby |
+| [Vercel + Render](./vercel-render.md) | Vercel | Render / Fly.io / Railway | Neon | ~$7 |
 | [AWS](./aws.md) | Vercel *(or)* Amplify *(or)* docker-compose | App Runner *(or)* ECS Fargate | RDS Postgres | ~$25–60 |
 | [GCP](./gcp.md) | Vercel *(or)* Firebase Hosting *(or)* Cloud Run | Cloud Run | Cloud SQL | ~$0–25 |
 | [Self-hosted](./self-hosted.md) | Same VPS | Same VPS | Same VPS | ~$5–20 |
 
-Pick **Vercel + Neon** if you have no preference — it's the cheapest, fastest to ship, and the path that the rest of the documentation is written against. The other recipes assume you have a specific reason to be on AWS or GCP (existing infrastructure, compliance, cost-at-scale).
+Pick **[Vercel (all-in)](./vercel.md)** if you have no preference — the root `vercel.json` is already wired for it and `vercel deploy` Just Works. The Render alternative exists for deploys that need PDF export, the background worker queue, or AI calls > 10 s on the free tier. The cloud-specific recipes assume you have a specific reason to be on AWS or GCP (existing infrastructure, compliance, cost-at-scale).
 
 ### Vercel-specific
 
-- **[`vercel-neon.md`](./vercel-neon.md)** — Vercel + **Render** + Neon. Full backend functionality (PDF, worker queue, AI). The path the entire codebase is designed against. Includes the UAT acceptance checklist.
-- **[`vercel-experimental.md`](./vercel-experimental.md)** — Vercel multi-service (both frontend AND backend on Vercel via `experimentalServices`) + Neon. Same-origin. Caveats: PDF export + background worker disabled (serverless Python can't run them); AI calls need Pro tier for the 60s timeout. Trade `$7/mo Render` for `0$ Hobby` but lose 3 features.
+- **[`vercel.md`](./vercel.md)** *(default)* — Vercel multi-service (frontend AND backend on Vercel via `experimentalServices`) + Neon. Same-origin, one platform, one bill. Caveats: PDF export + background worker return 503 on serverless; AI calls need Pro tier for the 60 s timeout.
+- **[`vercel-render.md`](./vercel-render.md)** — Vercel + **Render** + Neon. Full backend functionality (PDF, worker queue, AI). Includes the UAT acceptance checklist.
 - **[`vercel-deploy-workflow.md`](./vercel-deploy-workflow.md)** — GitHub Actions workflow for either recipe — preview/production gates, post-deploy smoke test.
 
 ## Architecture (all recipes)

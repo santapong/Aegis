@@ -1,6 +1,6 @@
-# Deploy: Vercel multi-service (experimentalServices) + Neon
+# Deploy: Vercel (recommended)
 
-Run **both** the Next.js frontend AND the FastAPI backend on Vercel itself, using their `experimentalServices` multi-service mode. Same-origin from the browser's POV; no separate Render service to manage.
+The default Aegis deployment. **Both** the Next.js frontend AND the FastAPI backend run on Vercel via `experimentalServices` multi-service mode, with Neon for Postgres. Same-origin from the browser's POV; one platform, one bill, ~$0 on Hobby.
 
 ```mermaid
 flowchart LR
@@ -19,7 +19,9 @@ flowchart LR
     BE --> Neon
 ```
 
-**Read [vercel-neon.md](./vercel-neon.md) first** if you don't have a specific reason to use experimentalServices. That recipe (Vercel + Render + Neon) is the path the entire codebase is designed against; this doc covers an alternative for operators who want everything on Vercel.
+The root [`vercel.json`](../../vercel.json) is already wired for this topology — `vercel deploy` from the repo root Just Works.
+
+> **Need PDF export, the background worker queue, or AI calls > 10 s on Hobby?** See [`vercel-render.md`](./vercel-render.md) for the full-features alternative (Vercel frontend + Render backend). The trade-off is a $7/mo Render service.
 
 ## Hard limitations of this path
 
@@ -55,11 +57,11 @@ flowchart TD
 
 Everything else works: dashboard, transactions, plans, budgets, savings, payments (Stripe), Google sign-in, CSV exports, NDJSON exports, AI on Pro tier, cookie auth, cache (in-memory), rate limiter (in-memory).
 
-If any of the three above is essential, **use [vercel-neon.md](./vercel-neon.md) instead**. Render's $7 Starter runs the full backend including PDF + worker.
+If any of the three above is essential, **use [vercel-render.md](./vercel-render.md) instead**. Render's $7 Starter runs the full backend including PDF + worker.
 
 ## Step 1 — Provision Postgres (Neon)
 
-Same as [vercel-neon.md Step 1](./vercel-neon.md#step-1--provision-postgres-neon). Copy the connection string from Neon — **use the `-pooler.neon.tech` URL**, not the direct one. Vercel's serverless Python opens a new connection per function invocation; the pooler endpoint is what makes that scale.
+Same as [vercel-render.md Step 1](./vercel-render.md#step-1--provision-postgres-neon). Copy the connection string from Neon — **use the `-pooler.neon.tech` URL**, not the direct one. Vercel's serverless Python opens a new connection per function invocation; the pooler endpoint is what makes that scale.
 
 ## Step 2 — Set up the Vercel project
 
@@ -132,7 +134,7 @@ curl https://<your-app>.vercel.app
 
 If `/api/health` returns 500 with `db_error`: `DATABASE_URL` is wrong, OR Neon hasn't woken up yet (free tier scale-to-zero). Wait 5 s and retry — Neon takes a moment on cold start.
 
-Then open the app in a browser and run the [UAT acceptance checklist](./vercel-neon.md#uat-acceptance-checklist) from `vercel-neon.md`. Same 20 checks apply.
+Then open the app in a browser and run the [UAT acceptance checklist](./vercel-render.md#uat-acceptance-checklist) from `vercel-render.md`. Same 20 checks apply.
 
 **Endpoints that will return 503 on this deploy (expected)**:
 - `GET /api/reports/export.pdf` → "PDF export is disabled on this deployment"
@@ -151,11 +153,11 @@ You can start on Hobby and upgrade once you need AI or hit the function-size cap
 
 ## Step 6 — Custom domain
 
-Same as [vercel-neon.md Step 5](./vercel-neon.md#step-5--custom-domain-optional) — Vercel dashboard → Domains → add. After it propagates, update both `FRONTEND_URL` and `CORS_ORIGINS` in the env panel and redeploy.
+Same as [vercel-render.md Step 5](./vercel-render.md#step-5--custom-domain-optional) — Vercel dashboard → Domains → add. After it propagates, update both `FRONTEND_URL` and `CORS_ORIGINS` in the env panel and redeploy.
 
-## What's different from `vercel-neon.md`
+## What's different from `vercel-render.md`
 
-| Concern | vercel-neon.md (Vercel + Render) | This recipe (experimentalServices) |
+| Concern | vercel-render.md (Vercel + Render) | This recipe (experimentalServices) |
 |---|---|---|
 | **Where backend runs** | Render container | Vercel serverless Python |
 | **PDF export** | ✅ Works | ❌ Returns 503 |
@@ -169,7 +171,7 @@ Same as [vercel-neon.md Step 5](./vercel-neon.md#step-5--custom-domain-optional)
 
 ## When to switch back
 
-If you find any of these biting in production, switch to `vercel-neon.md`:
+If you find any of these biting in production, switch to `vercel-render.md`:
 - Users complain about cold starts
 - PDF export becomes user-facing essential
 - AI usage scales past Hobby tier limits
