@@ -24,23 +24,16 @@ Pick **Vercel + Neon** if you have no preference — it's the cheapest, fastest 
 
 ## Architecture (all recipes)
 
-```
-                browser
-                   │
-                   ▼
-       ┌──────────────────────┐
-       │  Frontend  (Next.js) │  serves the SPA, proxies /api/*
-       └──────────┬───────────┘     server-side to the backend
-                  │ /api/*
-                  ▼
-       ┌──────────────────────┐
-       │  Backend  (FastAPI)  │  JWT auth, business logic, Stripe,
-       └──────────┬───────────┘     Anthropic, WeasyPrint
-                  │
-                  ▼
-       ┌──────────────────────┐
-       │  Postgres            │
-       └──────────────────────┘
+```mermaid
+flowchart TB
+    Browser([browser])
+    FE["Frontend (Next.js)<br/>serves the SPA<br/>proxies /api/* server-side"]
+    BE["Backend (FastAPI)<br/>JWT auth · business logic<br/>Stripe · Anthropic · WeasyPrint"]
+    DB[(Postgres)]
+
+    Browser --> FE
+    FE -- /api/* --> BE
+    BE --> DB
 ```
 
 The frontend never talks to the backend directly from the browser — every request goes through Next.js's `rewrites()` proxy (`frontend/next.config.ts`). This keeps auth same-origin (no CORS in the browser), lets you change backend URLs without rebuilding the frontend, and means you only need to set **one** env var (`BACKEND_INTERNAL_URL`) per environment.
@@ -72,7 +65,32 @@ Full list with defaults: [`backend/.env.example`](../../backend/.env.example).
 
 ## Google sign-in (optional)
 
-Aegis supports Google ID-token sign-in alongside email/password. To enable it on any of the recipes:
+Aegis supports Google ID-token sign-in alongside email/password. The flow:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant FE as Frontend
+    participant GIS as Google Identity Services
+    participant BE as Backend
+    participant DB as Database
+
+    User->>FE: Click "Sign in with Google"
+    FE->>GIS: Request ID token (NEXT_PUBLIC_GOOGLE_CLIENT_ID)
+    GIS-->>User: Consent screen
+    User-->>GIS: Approve
+    GIS-->>FE: ID token (JWT)
+    FE->>BE: POST /api/auth/google { token }
+    BE->>GIS: Verify token signature
+    GIS-->>BE: Claims (email, sub)
+    BE->>DB: Lookup or link user by email
+    Note over BE,DB: Auto-link if email matches<br/>existing email/password user
+    BE-->>FE: Set httpOnly aegis_session cookie
+    FE-->>User: Logged in
+```
+
+To enable it on any of the recipes:
 
 1. Go to [Google Cloud Console → APIs & Services → Credentials](https://console.cloud.google.com/apis/credentials).
 2. **Create credentials → OAuth client ID → Web application**.

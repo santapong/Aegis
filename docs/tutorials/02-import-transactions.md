@@ -2,6 +2,19 @@
 
 The fastest way to give Aegis a useful dataset is to import a CSV export from your bank or card issuer. Aegis auto-detects the column layout — you don't have to reformat anything.
 
+```mermaid
+flowchart LR
+    Bank([Bank online portal]) --> Export[Export CSV<br/>date range, ≤ 5 MB]
+    Export --> Upload[Aegis · Transactions<br/>Import CSV]
+    Upload --> Detect[Auto-detect columns<br/>date · amount · type · category]
+    Detect --> Preview[Preview rows<br/>nothing saved yet]
+    Preview --> OK{Looks right?}
+    OK -- yes --> Confirm[Import N rows<br/>single DB transaction]
+    OK -- no --> Fix[Fix CSV<br/>columns, signs, dates]
+    Fix --> Upload
+    Confirm --> Refresh[Dashboard refreshes<br/>+ budgets see new categories]
+```
+
 ## What works out of the box
 
 Aegis recognizes these column names (case-insensitive, whitespace-tolerant):

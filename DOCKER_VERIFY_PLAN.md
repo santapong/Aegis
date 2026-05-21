@@ -1,5 +1,26 @@
 # Docker Compose Verification Plan
 
+## Target topology
+
+```mermaid
+flowchart TB
+    Host([Host machine])
+
+    subgraph Compose["docker compose"]
+        FE[frontend<br/>Next.js · :3000]
+        BE[backend<br/>FastAPI · :8000]
+        DB[(db<br/>postgres:16-alpine · :5432)]
+    end
+
+    Host -- :3000 --> FE
+    Host -- :8000 --> BE
+    FE -- NEXT_PUBLIC_API_URL --> BE
+    BE -- DATABASE_URL<br/>postgresql://...@db:5432 --> DB
+
+    DB -. healthcheck<br/>pg_isready .-> BE
+    BE -. healthcheck<br/>/api/health .-> FE
+```
+
 ## Current Issues Found
 
 After analyzing the project, here are the problems that will prevent `docker compose up` from running successfully:
@@ -135,6 +156,27 @@ Run `docker compose up --build` and confirm:
 ---
 
 ## Expected Startup Order (after fixes)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Compose as docker compose up
+    participant DB as db (postgres)
+    participant BE as backend (FastAPI)
+    participant FE as frontend (Next.js)
+
+    Compose->>DB: start container
+    DB->>DB: pg_isready healthcheck
+    Note over DB: healthy
+    Compose->>BE: start (depends_on db: healthy)
+    BE->>DB: connect + alembic upgrade head
+    BE->>BE: GET /api/health healthcheck
+    Note over BE: healthy
+    Compose->>FE: start (depends_on backend: healthy)
+    FE->>BE: NEXT_PUBLIC_API_URL points at :8000
+    Note over FE: ready on :3000
+```
+
 1. `db` starts → healthcheck passes (PostgreSQL ready)
 2. `backend` starts → connects to `db` → healthcheck passes (`/api/health` returns OK)
 3. `frontend` starts → connects to `backend` API

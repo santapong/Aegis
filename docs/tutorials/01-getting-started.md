@@ -2,6 +2,20 @@
 
 You've just spun up Aegis (locally with `docker compose up` or on a hosted environment). This walkthrough takes you from a fresh account to a usable dashboard.
 
+```mermaid
+flowchart LR
+    S0([0 · Prereqs]) --> S1([1 · Register<br/>~1 min])
+    S1 --> S2([2 · Pick a theme<br/>30 s])
+    S2 --> S3([3 · First transaction<br/>~2 min])
+    S3 --> S4([4 · Set a budget<br/>~2 min])
+    S4 --> S5([5 · Read dashboard<br/>~2 min])
+    S5 --> S6{6 · Next step?}
+    S6 --> CSV[Import CSV]
+    S6 --> AI[Try AI]
+    S6 --> Trip[Plan a trip]
+    S6 --> Plan[Create a plan]
+```
+
 ## 0 · Before you start
 
 You need:

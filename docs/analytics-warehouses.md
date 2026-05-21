@@ -2,6 +2,27 @@
 
 This page is for operators who want to run BI dashboards, ML feature engineering, or compliance reporting on top of Aegis data without those workloads competing with the operational app for resources.
 
+## Architecture that works (CDC pipeline)
+
+```mermaid
+flowchart LR
+    Users([Users])
+    Aegis["Aegis backend<br/>(FastAPI)"]
+    OLTP[("Operational DB<br/>Postgres / MySQL")]
+    CDC["CDC pipeline<br/>Fivetran · Airbyte · Debezium<br/>DMS · Datastream"]
+    DW[(Warehouse<br/>Redshift · BigQuery<br/>Snowflake · ClickHouse)]
+    BI[BI tools<br/>Looker · Metabase · Superset<br/>Tableau · Hex]
+
+    Users --> Aegis
+    Aegis --> OLTP
+    OLTP -- seconds–minutes lag --> CDC
+    CDC --> DW
+    DW --> BI
+
+    style OLTP fill:#efe
+    style DW fill:#eef
+```
+
 **The architecture that works**: Aegis owns its operational data in a transactional Postgres / MySQL. A change-data-capture (CDC) pipeline replicates that data into an analytics warehouse on a delay (seconds to minutes). BI tools (Looker, Metabase, Superset, Tableau, Hex) read the warehouse. The two databases are tuned for their own job — neither one tries to be both.
 
 **The architecture that doesn't work**: pointing `DATABASE_URL` at a warehouse directly. See the [database compatibility doc](databases.md) for why — column-store warehouses are 10–100× slower for the per-row writes Aegis does on every API call, and several (PlanetScale, BigQuery) reject the basic primitives the schema relies on (FKs, transactions).
@@ -18,6 +39,28 @@ Pick based on your team's existing infrastructure. Cost ranges are rough — rea
 | Tiny budget, nightly is fine | A simple cron job that runs `pg_dump | gzip | aws s3 cp` and a Redshift `COPY` |
 
 ## What to replicate
+
+```mermaid
+flowchart LR
+    subgraph Replicate["✅ Replicate"]
+        T[transactions — main fact]
+        P[plans · budgets · savings_goals<br/>investments · debts]
+        U[users — id, created_at, is_active]
+        Tags[tags + transaction_tags<br/>cohort analysis]
+        Pay[payments — revenue analysis]
+    end
+
+    subgraph Skip["🔴 Do NOT replicate"]
+        Pref[user_preferences — settings]
+        Note[notifications — transient]
+        AI[ai_recommendations — derived]
+        PII["users.hashed_password<br/>users.google_subject — PII"]
+        Meta[payments.metadata_json — Stripe IDs]
+    end
+
+    style Replicate fill:#efe
+    style Skip fill:#fee
+```
 
 Every row in these tables is analytics-relevant:
 

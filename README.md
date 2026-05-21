@@ -6,6 +6,49 @@ Status: **v1.0.0 GA + post-v1 hardening pass shipped.** See [CHANGELOG.md](CHANG
 
 Public landing page: [`/landing`](http://localhost:3000/landing). Sign-in: email/password or **Google** (configurable via `GOOGLE_OAUTH_CLIENT_ID`).
 
+## Architecture at a glance
+
+```mermaid
+flowchart TB
+    Browser([Browser])
+
+    subgraph Frontend["Frontend — Next.js 15 / React 19"]
+        Pages[App Router pages<br/>Dashboard · Transactions · Plans · AI]
+        Stores[Zustand stores<br/>+ React Query v5]
+        Rewrite[/api/* rewrite proxy/]
+    end
+
+    subgraph Backend["Backend — FastAPI / Python 3.11+"]
+        Auth[Auth · JWT cookie]
+        Routes[Domain routers<br/>transactions · budgets · plans · payments]
+        AI[AI engine<br/>Claude / Typhoon / Groq]
+        PDF[WeasyPrint PDF + matplotlib]
+        Worker[arq worker · background jobs]
+    end
+
+    subgraph Data["Storage"]
+        DB[(SQLite / Postgres / MySQL)]
+        Cache[(Redis · cache + rate-limit)]
+    end
+
+    Stripe([Stripe])
+    LLM([LLM provider])
+
+    Browser --> Pages
+    Pages --> Stores
+    Stores --> Rewrite
+    Rewrite --> Auth
+    Auth --> Routes
+    Routes --> DB
+    Routes --> Cache
+    Routes --> AI
+    AI --> LLM
+    Routes --> PDF
+    Routes --> Worker
+    Worker --> Cache
+    Routes <--> Stripe
+```
+
 ## Tech Stack
 
 | Layer       | Technology                                                              |
@@ -81,6 +124,27 @@ ghcr.io/santapong/aegis-frontend:1.0.0
 
 ## First-time user flow
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant FE as Frontend (Next.js)
+    participant BE as Backend (FastAPI)
+    participant DB as Database
+
+    User->>FE: GET /welcome
+    FE-->>User: Landing page
+    User->>FE: Click "Create account"
+    User->>FE: Submit email + username + password
+    FE->>BE: POST /api/auth/register
+    BE->>DB: Insert user (bcrypt hash)
+    BE-->>FE: Set httpOnly aegis_session cookie
+    FE-->>User: Redirect to Dashboard
+    Note over User,FE: driver.js onboarding tour runs:<br/>Dashboard → Transactions → Budgets → AI
+    User->>FE: Press "?" or "/"
+    FE-->>User: Cheatsheet / Command palette
+```
+
 1. Open http://localhost:3000/welcome for the landing page, or jump straight to `/register`.
 2. Register with email + username + password (≥8 chars).
 3. Log in — the JWT is stored in the Zustand auth store.
@@ -95,6 +159,39 @@ make seed
 ```
 
 ## Features
+
+```mermaid
+mindmap
+  root((Aegis))
+    Money
+      Transactions
+        CSV import + preview
+        Recurring tracker
+        Multi-tag categorization
+      Budgets
+        Period limits
+        Budget vs actual
+      Savings goals
+      Debt tracker
+        Avalanche / snowball
+    Plan
+      Plans & Goals hierarchy
+      Calendar planner
+      Gantt chart
+      Trips
+    Insights
+      Dashboard KPIs
+      Cash-flow forecast
+      Health score
+      Anomaly detection
+      AI advisor
+    System
+      Reports CSV + PDF
+      Stripe payments
+      Notifications
+      Onboarding tour
+      Keyboard shortcuts
+```
 
 - **Landing** — public `/welcome` marketing page (chrome-less, CTA to register).
 - **Dashboard** — KPI cards, spending charts, financial health score, cash-flow forecast, AI-generated insights.
@@ -211,32 +308,31 @@ The repo includes:
 
 ## Directory layout
 
-```
-aegis/
-├── .github/workflows/
-│   └── release.yml             GHCR multi-arch publish on version tag
-├── backend/
-│   ├── app/
-│   │   ├── services/           notification_service.py, pdf_renderer.py, ai_engine.py
-│   │   ├── seeds/              demo.py (seed fixture)
-│   │   └── templates/          report.html (WeasyPrint)
-│   ├── alembic/                Database migrations
-│   └── tests/                  Backend tests
-├── frontend/
-│   └── src/
-│       ├── app/                Next.js App Router (welcome, login, register, dashboard, …)
-│       ├── components/
-│       │   ├── ui/             shadcn/ui + custom (virtual-list, cheatsheet-dialog)
-│       │   ├── search/         command-palette
-│       │   ├── global-shortcuts.tsx
-│       │   └── onboarding-tour.tsx
-│       ├── stores/             zustand (auth, app, notification)
-│       └── lib/                API client, utilities
-├── Makefile
-├── docker-compose.yml
-├── docker-compose.dev.yml
-├── CHANGELOG.md
-└── ROADMAP.md
+```mermaid
+flowchart TD
+    Root([aegis/])
+    Root --> GH[.github/workflows/<br/>release.yml — GHCR multi-arch]
+    Root --> BE[backend/]
+    Root --> FE[frontend/]
+    Root --> Top[Makefile · docker-compose*.yml<br/>CHANGELOG.md · ROADMAP.md]
+
+    BE --> BEApp[app/]
+    BE --> BEAlembic[alembic/ — DB migrations]
+    BE --> BETests[tests/ — pytest smoke]
+
+    BEApp --> BEServices[services/<br/>notification · pdf_renderer · ai_engine]
+    BEApp --> BESeeds[seeds/demo.py]
+    BEApp --> BETemplates[templates/report.html — WeasyPrint]
+
+    FE --> FESrc[src/]
+    FESrc --> FEApp[app/ — Next.js App Router<br/>welcome · login · register · dashboard]
+    FESrc --> FEComp[components/]
+    FESrc --> FEStores[stores/ — zustand<br/>auth · app · notification]
+    FESrc --> FELib[lib/ — API client, utils]
+
+    FEComp --> FEUI[ui/ — shadcn + custom]
+    FEComp --> FESearch[search/ — command palette]
+    FEComp --> FEShortcuts[global-shortcuts.tsx<br/>onboarding-tour.tsx]
 ```
 
 ## License

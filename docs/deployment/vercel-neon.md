@@ -2,15 +2,16 @@
 
 The fastest, cheapest path to a production Aegis. **~$7 / month** at small scale.
 
-```
-┌─────────────────┐         ┌──────────────────┐        ┌────────────┐
-│  Vercel         │ /api/*  │  Render          │        │  Neon      │
-│  (Next.js)      ├────────►│  (Aegis backend) ├───────►│  Postgres  │
-│  free Hobby     │         │  $7 Starter      │        │  free tier │
-└────────┬────────┘         └──────────────────┘        └────────────┘
-         │
-         ▼
-       browser
+```mermaid
+flowchart LR
+    Browser([browser])
+    Vercel["Vercel<br/>(Next.js)<br/>free Hobby"]
+    Render["Render<br/>(Aegis backend)<br/>$7 Starter"]
+    Neon[("Neon Postgres<br/>free tier")]
+
+    Browser --> Vercel
+    Vercel -- /api/* --> Render
+    Render --> Neon
 ```
 
 Why this combo:
@@ -201,6 +202,29 @@ If any box is red, see the [troubleshooting](#troubleshooting) section or the ma
 
 ## Step 7 — Auto-deploy on `git push`
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Dev
+    participant GH as GitHub (main)
+    participant Vercel
+    participant Render
+    participant Neon
+
+    Dev->>GH: git push origin main
+    par Vercel deploy (~90s)
+        GH->>Vercel: webhook
+        Vercel->>Vercel: build Next.js
+        Vercel->>Vercel: atomic swap
+    and Render deploy (~3min)
+        GH->>Render: webhook
+        Render->>Render: build Docker image
+        Render->>Neon: alembic upgrade head
+        Render->>Render: zero-downtime swap
+    end
+    Note over Vercel,Render: Preview deploys per-PR on Vercel (free).<br/>Render preview needs Pro plan.
+```
+
 Both Vercel and Render auto-deploy on every push to `main`. You get:
 
 - Push → Render rebuilds backend image, runs `alembic upgrade head`, swaps in the new container with zero downtime (~3 min).
@@ -213,6 +237,13 @@ For rollbacks:
 - **Render** — Deploys → click previous successful build → **Rollback**. Takes a couple of minutes.
 
 ## Cost
+
+```mermaid
+pie title Fixed monthly cost (USD)
+    "Vercel Hobby" : 0
+    "Render Starter" : 7
+    "Neon Free" : 0
+```
 
 | Item | Plan | Cost |
 |------|------|------|

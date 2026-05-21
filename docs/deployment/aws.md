@@ -2,16 +2,18 @@
 
 Run Aegis on AWS. Two backend options (**App Runner** for simplicity, **ECS Fargate** for control), three frontend options (Vercel, Amplify, or Cloud Run-style container hosting), and RDS Postgres.
 
-```
-   ┌───────────┐         ┌─────────────────┐       ┌──────────────┐
-   │  Frontend │ /api/*  │  Backend (ECR)  │       │  RDS         │
-   │  (Vercel/ ├────────►│  App Runner OR  ├──────►│  Postgres    │
-   │  Amplify) │         │  ECS Fargate    │       │  db.t4g.micro│
-   └───────────┘         └────────┬────────┘       └──────────────┘
-                                  │
-                                  ▼
-                            CloudWatch logs
-                            Secrets Manager
+```mermaid
+flowchart LR
+    FE["Frontend<br/>Vercel / Amplify"]
+    BE["Backend (ECR image)<br/>App Runner OR ECS Fargate"]
+    RDS[("RDS Postgres<br/>db.t4g.micro")]
+    CW["CloudWatch logs"]
+    SM["Secrets Manager"]
+
+    FE -- /api/* --> BE
+    BE --> RDS
+    BE --> CW
+    BE --> SM
 ```
 
 > **Read [vercel-neon.md](./vercel-neon.md) first** if you don't have a specific reason to be on AWS — it's $7/month vs ~$30–60 for the AWS equivalent.
@@ -259,6 +261,15 @@ See [`backend/.env.example`](../../backend/.env.example) for the complete list a
 Add it as a job-level step after the `Build & push` step.
 
 ## Cost (rough, single AZ, low traffic)
+
+```mermaid
+pie title Monthly cost — AWS App Runner deploy (USD)
+    "App Runner" : 22
+    "RDS Postgres" : 14
+    "Secrets Manager" : 2
+    "Data transfer" : 1
+    "ECR" : 1
+```
 
 | Item | Plan | Cost |
 |------|------|------|

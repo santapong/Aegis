@@ -2,16 +2,18 @@
 
 Run Aegis on Google Cloud. **Cloud Run** for the backend (scale-to-zero, generous free tier), **Cloud SQL Postgres** for the database, and the frontend on either Vercel (recommended) or Cloud Run / Firebase Hosting.
 
-```
-   ┌───────────┐         ┌─────────────────┐       ┌────────────────┐
-   │  Frontend │ /api/*  │  Backend        │       │  Cloud SQL     │
-   │  (Vercel/ ├────────►│  Cloud Run      ├──────►│  Postgres      │
-   │  Firebase)│         │  scale-to-zero  │       │  db-f1-micro   │
-   └───────────┘         └────────┬────────┘       └────────────────┘
-                                  │
-                                  ▼
-                            Cloud Logging
-                            Secret Manager
+```mermaid
+flowchart LR
+    FE["Frontend<br/>Vercel / Firebase / Cloud Run"]
+    BE["Backend<br/>Cloud Run<br/>scale-to-zero"]
+    SQL[("Cloud SQL Postgres<br/>db-f1-micro")]
+    CL["Cloud Logging"]
+    SM["Secret Manager"]
+
+    FE -- /api/* --> BE
+    BE --> SQL
+    BE --> CL
+    BE --> SM
 ```
 
 > **Read [vercel-neon.md](./vercel-neon.md) first** if you don't have a specific reason to be on GCP — Cloud Run's free tier makes the GCP recipe genuinely cheap, but the setup is one or two notches more involved.
@@ -227,6 +229,14 @@ In Stripe Dashboard → Webhooks, point the endpoint at `https://api.example.com
 Alternatively, set up a **Cloud Build trigger** from the GCP Console → Cloud Build → Triggers → connect repo → on push to `main`, run `gcloud run deploy`. Skips the GitHub Actions hop.
 
 ## Cost (rough, low traffic)
+
+```mermaid
+pie title Monthly cost — Vercel + Cloud Run + Cloud SQL (USD)
+    "Cloud SQL Postgres" : 10
+    "Cloud Run backend" : 1
+    "Secret Manager + Artifact Registry" : 1
+    "Vercel Hobby" : 0
+```
 
 | Item | Plan | Cost |
 |------|------|------|

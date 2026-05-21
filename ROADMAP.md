@@ -9,6 +9,21 @@ Current status: **generally available**.
 
 ## Release map
 
+```mermaid
+timeline
+    title Aegis release timeline
+    section Foundation
+        v0.1–v0.6 : Scaffold → auth → multi-db → AI tool_use
+        v0.7.0    : shadcn/ui tokens + smoke tests
+    section Polish
+        v0.8.0 : First-run & discoverability
+        v0.9.0 : Scale & export
+    section GA
+        v1.0.0 : General availability (2026-04-17)
+    section In progress
+        v1.1.0 : MCP server + Trip entity + budget overrun alerts
+```
+
 | Release | Theme | Status |
 |---------|-------|--------|
 | v0.1 – v0.6 | Scaffold → auth → multi-db → AI tool_use | ✅ Shipped |
@@ -23,6 +38,37 @@ Current status: **generally available**.
 ## Post-v1.0 direction
 
 Captured here for continuity; not scoped.
+
+```mermaid
+mindmap
+  root((Post-v1.0))
+    Smart AI & real-time
+      WebSocket AI streaming
+      NL transaction queries
+      CSV auto-categorization
+      Tax optimization
+      Live dashboard updates
+    Feature expansion
+      Investment portfolio
+      Budget templates 50/30/20
+      Multi-currency + FX
+      Receipt attachments
+      Shared budgets
+    Integrations & data
+      Plaid bank import
+      Receipt OCR
+      SMTP + Web Push
+      Outbound webhooks
+      LINE Messaging API
+      AI categorization queue
+      More CSV connectors
+      Postgres tsvector + GIN
+    Ops & SRE
+      Async workers RQ/Celery
+      Prometheus /metrics
+      Sentry error tracking
+      Automated load testing
+```
 
 ### Smart AI & real-time
 - WebSocket streaming for the AI advisor (replace current request/response).
@@ -58,29 +104,30 @@ Captured here for continuity; not scoped.
 
 ## Architecture snapshot (current)
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                FRONTEND (Next.js 15 + React 19 + Bun)           │
-│  Landing • Dashboard • Calendar • Gantt • Reports •              │
-│  Transactions • Budgets • Debts • Savings • Plans • Payments •   │
-│  AI Advisor • Onboarding tour • Command palette • Cheatsheet     │
-│  Tailwind v4 • shadcn/ui • Recharts • Zustand • React Query v5   │
-│  @tanstack/react-virtual • react-hotkeys-hook • driver.js        │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │ REST / JWT
-┌──────────────────────────┴──────────────────────────────────────┐
-│                BACKEND (Python 3.11+ + FastAPI)                  │
-│  Auth • Plans • Transactions (+search) • Budgets • Savings •     │
-│  Debts • Payments (Stripe) • Reports (CSV + PDF) •               │
-│  Notifications • AI (Claude tool_use)                            │
-│  SQLAlchemy 2.0 • Alembic • Pydantic v2 • Pandas •               │
-│  WeasyPrint + matplotlib • Jinja2                                │
-└──────────────────────────┬──────────────────────────────────────┘
-                           │
-              ┌────────────┴────────────┐
-              │  SQLite / PostgreSQL /   │
-              │  MySQL via DATABASE_URL  │
-              └─────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph FE["FRONTEND — Next.js 15 / React 19 / Bun"]
+        direction LR
+        FE1[Landing · Dashboard · Calendar · Gantt · Reports]
+        FE2[Transactions · Budgets · Debts · Savings · Plans · Payments]
+        FE3[AI Advisor · Onboarding · Command palette · Cheatsheet]
+        FE4[Tailwind v4 · shadcn/ui · Recharts · Zustand · React Query v5]
+        FE5[react-virtual · react-hotkeys-hook · driver.js]
+    end
+
+    subgraph BE["BACKEND — Python 3.11+ / FastAPI"]
+        direction LR
+        BE1[Auth · Plans · Transactions search · Budgets · Savings]
+        BE2[Debts · Payments Stripe · Reports CSV/PDF]
+        BE3[Notifications · AI Claude tool_use]
+        BE4[SQLAlchemy 2.0 · Alembic · Pydantic v2]
+        BE5[WeasyPrint · matplotlib · Jinja2]
+    end
+
+    DB[(SQLite / PostgreSQL / MySQL<br/>via DATABASE_URL)]
+
+    FE -- REST / JWT cookie --> BE
+    BE --> DB
 ```
 
 ## Tech stack

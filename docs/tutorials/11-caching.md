@@ -2,6 +2,41 @@
 
 Aegis ships with a small, pluggable cache layer that sits between hot-path read endpoints and the database. This page explains what's already wrapped, when to add more, and the gotchas of running it across multiple pods.
 
+## Read + invalidate flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant API as Cached read route
+    participant Cache as Cache backend<br/>(memory / Redis / disabled)
+    participant DB as Database
+
+    rect rgb(235, 245, 255)
+    Note over User,DB: Read path
+    User->>API: GET /api/dashboard/summary
+    API->>Cache: get("dashboard:summary:{uid}")
+    alt cache hit
+        Cache-->>API: cached JSON
+        API-->>User: 200 (~3 ms)
+    else cache miss
+        Cache-->>API: None
+        API->>DB: aggregate query
+        DB-->>API: rows
+        API->>Cache: set TTL=60s
+        API-->>User: 200 (~50 ms)
+    end
+    end
+
+    rect rgb(255, 245, 235)
+    Note over User,DB: Write path
+    User->>API: POST /api/transactions/
+    API->>DB: insert
+    API->>Cache: invalidate_user(["dashboard:*"], uid)
+    API-->>User: 201
+    end
+```
+
 ## TL;DR
 
 - **What's cached today**: `/api/dashboard/summary` and `/api/dashboard/charts`, per user, 60 s TTL.
@@ -17,6 +52,21 @@ The dashboard fires four read endpoints on every page load. Each does a full sca
 The other side of the trade is correctness: a cached read after a write would show stale data. The current pattern *invalidates on every write* (see `_DASHBOARD_CACHE_SCOPES` in `backend/app/routers/transactions.py`), so a fresh transaction shows up in the dashboard immediately.
 
 ## The three backends
+
+```mermaid
+flowchart TD
+    Choice{CACHE_BACKEND}
+    Choice -- memory --> Mem[Per-process TTL dict<br/>fast · not shared across workers<br/>dev + single-pod prod]
+    Choice -- redis --> Redis[Shared cache<br/>across all pods<br/>production]
+    Choice -- disabled --> Off[Every get returns None<br/>incident-response toggle]
+
+    Redis -. unreachable at startup .-> Mem
+    note["Fallback: caching is an optimization,<br/>not a hard dependency."]
+
+    style Mem fill:#eef
+    style Redis fill:#efe
+    style Off fill:#fee
+```
 
 ```env
 CACHE_BACKEND=memory   # default
