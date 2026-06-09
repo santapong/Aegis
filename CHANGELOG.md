@@ -6,6 +6,54 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added — performance (second audit pass)
+
+- **Recharts code-split on Budgets + Reports** — both pages still
+  imported Recharts (and Reports the dashboard chart components)
+  statically. Extracted `budget-comparison-chart.tsx` /
+  `category-comparison-chart.tsx` behind `next/dynamic`. First Load JS:
+  `/budgets` 271→169 kB (−38%), `/reports` 279→164 kB (−41%).
+- **AI SDK client reuse** — `AIEngine` built a fresh Anthropic/OpenAI
+  client (new connection pool + TLS handshake) per request; now cached
+  per credential set via module-level `@lru_cache` factories.
+- **SQL aggregation on `trips.trip_summary` and
+  `AIEngine._gather_context`** — both loaded full row sets and summed in
+  Python; now bounded `GROUP BY` / CASE-bucket aggregate queries, same
+  pattern as the first-pass dashboard rewrites.
+- **`notifications(user_id, created_at)` index** (v0.9.9 migration) for
+  the list endpoint's `ORDER BY created_at DESC`.
+- **`uvicorn[standard]`** — uvloop + httptools.
+- **In-memory rate limiter GC amortized** — the O(unique-clients) size
+  probe ran per request; now every 256th hit.
+- **Frontend list polish** — `placeholderData: keepPreviousData` on
+  Investments/Plans/Trips/Payments "Load more" queries (no more
+  skeleton flash), Payments migrated from `useEffect` fetching to React
+  Query, calendar months cached (`staleTime` 5 min), TradingView embeds
+  lazy-mount via IntersectionObserver instead of one eager script per
+  holding, transactions desktop row memoized against modal-typing
+  re-renders.
+- **Redis bounded** in compose: `--maxmemory 96mb --maxmemory-policy
+  volatile-lru` (TTL'd cache keys evictable; arq queue keys never).
+  Compose healthchecks moved to 10–30 s steady-state with
+  `start_interval` keeping boot gating fast.
+
+### Fixed
+
+- **Frontend CI jobs failed at setup** — `test.yml` and
+  `deploy-vercel.yml` pointed setup-node's npm cache (and `npm ci`) at
+  a `package-lock.json` that doesn't exist; the repo uses `bun.lock`.
+  Test job now runs on `oven-sh/setup-bun`, deploy job drops the
+  pointless cache.
+- **`alembic upgrade head` broke on SQLite with alembic ≥1.16** — the
+  v0.9.5 tags migration used `if_exists=`/try-except guards that don't
+  work under the batch-recreate path; rewritten with inspector-based
+  existence checks (also MySQL-portable).
+- **`pip install -e backend` failed** ("Multiple top-level packages
+  discovered") — setuptools auto-discovery tripped on `app/` +
+  `alembic/`; package discovery now pinned to `app*`.
+- **ruff/bandit** moved into the `[dev]` extra and installed through the
+  cached env instead of fresh `pip install` per CI run.
+
 ### Changed — repo layout & default deployment
 
 - **Vercel-first deployment** — root [`vercel.json`](vercel.json) (already
