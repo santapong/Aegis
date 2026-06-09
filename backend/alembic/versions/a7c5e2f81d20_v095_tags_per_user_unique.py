@@ -30,22 +30,29 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
+    # Probe what form the old global unique actually took before queueing
+    # drops. The previous version guarded with `if_exists=True` and
+    # try/except around batch ops — neither works under SQLite's batch
+    # recreate path (ApplyBatchImpl rejects the kwarg on alembic 1.16+,
+    # and batch ops only execute at context exit, after the except).
+    # Inspector checks are portable to MySQL too, which has no
+    # DROP INDEX IF EXISTS.
+    bind = op.get_bind()
+    insp = sa.inspect(bind)
+    existing_indexes = {ix["name"] for ix in insp.get_indexes("tags")}
+    existing_uniques = {uc["name"] for uc in insp.get_unique_constraints("tags")}
+
+    # Index form: drop outside the batch — SQLite indexes are standalone
+    # objects, no table recreate needed.
+    if "ix_tags_name" in existing_indexes:
+        op.drop_index("ix_tags_name", table_name="tags")
+
     with op.batch_alter_table("tags") as batch:
-        # Drop the old global unique constraint on name. SQLAlchemy gave
-        # it an auto-generated name; batch_alter handles the rename
-        # round-trip on SQLite.
-        batch.drop_index("ix_tags_name", if_exists=True)
-        # Older SQLAlchemy versions created the unique as a constraint
-        # rather than an index, so attempt both. The if_exists guards
-        # keep this idempotent across deploy histories.
-        try:
-            batch.drop_constraint("tags_name_key", type_="unique")
-        except Exception:
-            pass
-        try:
-            batch.drop_constraint("uq_tags_name", type_="unique")
-        except Exception:
-            pass
+        # Constraint form: older SQLAlchemy versions created the global
+        # unique as a table constraint under either name.
+        for name in ("tags_name_key", "uq_tags_name"):
+            if name in existing_uniques:
+                batch.drop_constraint(name, type_="unique")
         batch.create_unique_constraint(
             "uq_tags_user_name", ["user_id", "name"]
         )

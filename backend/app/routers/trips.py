@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import func as sa_func
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
@@ -113,32 +114,38 @@ def trip_summary(
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
 
-    budgets = (
-        db.query(Budget)
+    # Aggregate per category in SQL (same rewrite as budgets.budget_comparison)
+    # instead of loading every budget and expense row into Python. Rows
+    # returned are bounded by distinct categories regardless of trip size.
+    budgeted_by_category: dict[str, float] = {
+        cat: float(total or 0)
+        for cat, total in db.query(
+            Budget.category,
+            sa_func.coalesce(sa_func.sum(Budget.amount), 0),
+        )
         .filter(Budget.trip_id == trip_id, Budget.user_id == current_user.id)
+        .group_by(Budget.category)
         .all()
-    )
-    transactions = (
-        db.query(Transaction)
+    }
+
+    spent_rows = (
+        db.query(
+            Transaction.category,
+            sa_func.coalesce(sa_func.sum(Transaction.amount), 0),
+            sa_func.count(Transaction.id),
+        )
         .filter(
             Transaction.trip_id == trip_id,
             Transaction.user_id == current_user.id,
             Transaction.type == TransactionType.expense,
         )
+        .group_by(Transaction.category)
         .all()
     )
-
-    budgeted_by_category: dict[str, float] = {}
-    for b in budgets:
-        budgeted_by_category[b.category] = (
-            budgeted_by_category.get(b.category, 0) + float(b.amount)
-        )
-
-    spent_by_category: dict[str, float] = {}
-    for t in transactions:
-        spent_by_category[t.category] = (
-            spent_by_category.get(t.category, 0) + float(t.amount)
-        )
+    spent_by_category: dict[str, float] = {
+        cat: float(total or 0) for cat, total, _count in spent_rows
+    }
+    transaction_count = sum(int(count) for _cat, _total, count in spent_rows)
 
     categories = sorted(set(budgeted_by_category) | set(spent_by_category))
     rollups = [
@@ -155,5 +162,5 @@ def trip_summary(
         total_budgeted=sum(budgeted_by_category.values()),
         total_spent=sum(spent_by_category.values()),
         by_category=rollups,
-        transaction_count=len(transactions),
+        transaction_count=transaction_count,
     )

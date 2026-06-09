@@ -21,6 +21,8 @@ class Notification(Base):
     __table_args__ = (
         UniqueConstraint("user_id", "dedupe_key", name="uq_notifications_user_dedupe"),
         Index("ix_notifications_user_read", "user_id", "read_at"),
+        # list_notifications: WHERE user_id ORDER BY created_at DESC LIMIT n
+        Index("ix_notifications_user_created", "user_id", "created_at"),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))

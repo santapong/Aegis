@@ -1,16 +1,31 @@
 import json
 from datetime import date, timedelta
+from functools import lru_cache
 
 import anthropic
 from fastapi import HTTPException
 from loguru import logger
 from openai import OpenAI
+from sqlalchemy import case, func as sa_func
 from sqlalchemy.orm import Session
 
 from ..config import get_settings
-from ..models.plan import Plan
+from ..models.plan import Plan, PlanStatus
 from ..models.transaction import Transaction, TransactionType
 from ..models.ai_recommendation import AIRecommendation, ActionType
+
+
+# SDK clients hold an httpx connection pool; constructing one per request
+# costs a TLS handshake on every AI call. Cache per credential set so the
+# pool is reused across requests (and across AIEngine instances).
+@lru_cache(maxsize=4)
+def _cached_anthropic_client(api_key: str, timeout: float) -> anthropic.Anthropic:
+    return anthropic.Anthropic(api_key=api_key, timeout=timeout)
+
+
+@lru_cache(maxsize=4)
+def _cached_openai_client(api_key: str, base_url: str, timeout: float) -> OpenAI:
+    return OpenAI(api_key=api_key, base_url=base_url, timeout=timeout)
 
 
 # Tool definitions — JSON Schema is identical across Anthropic and OpenAI.
@@ -118,9 +133,8 @@ class AIEngine:
         if self.provider == "anthropic":
             if not settings.anthropic_api_key:
                 self._raise_unconfigured("ANTHROPIC_API_KEY")
-            self._anthropic = anthropic.Anthropic(
-                api_key=settings.anthropic_api_key,
-                timeout=ai_timeout_s,
+            self._anthropic = _cached_anthropic_client(
+                settings.anthropic_api_key, ai_timeout_s
             )
             self._openai = None
             self.model = settings.ai_model
@@ -128,20 +142,16 @@ class AIEngine:
             if not settings.typhoon_api_key:
                 self._raise_unconfigured("TYPHOON_API_KEY")
             self._anthropic = None
-            self._openai = OpenAI(
-                api_key=settings.typhoon_api_key,
-                base_url=settings.typhoon_base_url,
-                timeout=ai_timeout_s,
+            self._openai = _cached_openai_client(
+                settings.typhoon_api_key, settings.typhoon_base_url, ai_timeout_s
             )
             self.model = settings.typhoon_model
         elif self.provider == "groq":
             if not settings.groq_api_key:
                 self._raise_unconfigured("GROQ_API_KEY")
             self._anthropic = None
-            self._openai = OpenAI(
-                api_key=settings.groq_api_key,
-                base_url=settings.groq_base_url,
-                timeout=ai_timeout_s,
+            self._openai = _cached_openai_client(
+                settings.groq_api_key, settings.groq_base_url, ai_timeout_s
             )
             self.model = settings.groq_model
         else:
@@ -210,21 +220,41 @@ class AIEngine:
     def _gather_context(self, days: int = 90) -> dict:
         cutoff = date.today() - timedelta(days=days)
 
-        plans_q = self.db.query(Plan)
-        txns_q = self.db.query(Transaction).filter(Transaction.date >= cutoff)
+        txn_filters = [Transaction.date >= cutoff]
+        plans_q = self.db.query(Plan).filter(
+            Plan.status.in_([PlanStatus.planned, PlanStatus.in_progress])
+        )
         if self.user_id:
+            txn_filters.append(Transaction.user_id == self.user_id)
             plans_q = plans_q.filter(Plan.user_id == self.user_id)
-            txns_q = txns_q.filter(Transaction.user_id == self.user_id)
-        plans = plans_q.all()
-        transactions = txns_q.all()
 
-        total_income = sum(float(t.amount) for t in transactions if t.type == TransactionType.income)
-        total_expenses = sum(float(t.amount) for t in transactions if t.type == TransactionType.expense)
+        total_income, total_expenses, txn_count = self.db.query(
+            sa_func.coalesce(
+                sa_func.sum(
+                    case((Transaction.type == TransactionType.income, Transaction.amount), else_=0)
+                ),
+                0,
+            ),
+            sa_func.coalesce(
+                sa_func.sum(
+                    case((Transaction.type == TransactionType.expense, Transaction.amount), else_=0)
+                ),
+                0,
+            ),
+            sa_func.count(Transaction.id),
+        ).filter(*txn_filters).one()
+        total_income = float(total_income)
+        total_expenses = float(total_expenses)
 
-        category_spending: dict[str, float] = {}
-        for t in transactions:
-            if t.type == TransactionType.expense:
-                category_spending[t.category] = category_spending.get(t.category, 0) + float(t.amount)
+        category_spending = {
+            category: float(total)
+            for category, total in self.db.query(
+                Transaction.category, sa_func.sum(Transaction.amount)
+            )
+            .filter(*txn_filters, Transaction.type == TransactionType.expense)
+            .group_by(Transaction.category)
+            .all()
+        }
 
         return {
             "period_days": days,
@@ -235,10 +265,9 @@ class AIEngine:
             "spending_by_category": category_spending,
             "active_plans": [
                 {"title": p.title, "amount": float(p.amount), "category": p.category.value, "status": p.status.value, "progress": p.progress}
-                for p in plans
-                if p.status.value in ("planned", "in_progress")
+                for p in plans_q.all()
             ],
-            "transaction_count": len(transactions),
+            "transaction_count": int(txn_count),
         }
 
     def analyze(self, question: str | None = None, days: int = 90) -> list[dict]:

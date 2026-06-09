@@ -41,6 +41,7 @@ class _InMemoryLimiter:
 
     def __init__(self) -> None:
         self._hits: dict[str, list[float]] = defaultdict(list)
+        self._hits_since_gc = 0
 
     def hit(self, key: str, limit: int, window: float = 60.0) -> bool:
         """Returns True if the request is allowed, False if rate-limited."""
@@ -52,11 +53,16 @@ class _InMemoryLimiter:
         bucket.append(now)
         self._hits[key] = bucket
 
-        # Garbage-collect stale buckets occasionally to bound memory.
-        if sum(len(v) for v in self._hits.values()) > 10000:
-            stale = [k for k, v in self._hits.items() if not v or now - v[-1] > window]
-            for k in stale:
-                self._hits.pop(k, None)
+        # Garbage-collect stale buckets occasionally to bound memory. The
+        # size probe walks every bucket (O(unique clients)), so amortize it
+        # over every 256th hit instead of paying it per request.
+        self._hits_since_gc += 1
+        if self._hits_since_gc >= 256:
+            self._hits_since_gc = 0
+            if sum(len(v) for v in self._hits.values()) > 10000:
+                stale = [k for k, v in self._hits.items() if not v or now - v[-1] > window]
+                for k in stale:
+                    self._hits.pop(k, None)
         return True
 
 
