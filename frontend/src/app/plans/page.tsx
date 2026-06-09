@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { plansAPI } from "@/lib/api";
 import { formatCurrency, cn, getPriorityColor } from "@/lib/utils";
@@ -124,6 +124,9 @@ export default function PlansPage() {
   const { data: rawPlans, isLoading } = useQuery<Plan[]>({
     queryKey: ["plans", categoryFilter, statusFilter, pageSize],
     queryFn: () => plansAPI.list(queryParams) as Promise<Plan[]>,
+    // "Load more" / filter changes land in a new queryKey — keep the
+    // loaded rows on screen instead of flashing a skeleton on refetch.
+    placeholderData: keepPreviousData,
   });
   const hasMore = (rawPlans?.length ?? 0) > pageSize;
   const plans = rawPlans?.slice(0, pageSize);

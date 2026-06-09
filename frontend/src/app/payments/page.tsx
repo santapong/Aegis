@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { staggerContainer, staggerItem } from "@/lib/animations";
@@ -28,25 +29,34 @@ export default function PaymentsPage() {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
-  const [payments, setPayments] = useState<Payment[]>([]);
   // `pageSize` drives the server-side `limit`; we request one extra row
   // so we can show "Load more" without a separate count call.
   const [pageSize, setPageSize] = useState(PAGE_STEP);
-  const [hasMore, setHasMore] = useState(false);
-  const [config, setConfig] = useState<StripeConfig | null>(null);
   const { toast } = useToast();
   const searchParams = useSearchParams();
 
+  const { data: rawPayments } = useQuery<Payment[]>({
+    queryKey: ["payments", pageSize],
+    queryFn: () =>
+      paymentsAPI.list({ limit: String(pageSize + 1), offset: "0" }) as Promise<
+        Payment[]
+      >,
+    // Keep the loaded rows on screen while the next page fetches.
+    placeholderData: keepPreviousData,
+  });
+  const hasMore = (rawPayments?.length ?? 0) > pageSize;
+  const payments = rawPayments?.slice(0, pageSize) ?? [];
+
+  const { data: config } = useQuery<StripeConfig>({
+    queryKey: ["payments-config"],
+    queryFn: () => paymentsAPI.config() as Promise<StripeConfig>,
+    // Static per deployment — and expected to fail when Stripe isn't
+    // configured, so don't retry into the failure.
+    retry: false,
+    staleTime: Infinity,
+  });
+
   useEffect(() => {
-    loadPayments(pageSize);
-    if (!config) {
-      paymentsAPI
-        .config()
-        .then((c) => setConfig(c as StripeConfig))
-        .catch(() => {
-          /* config may fail if Stripe isn't set up */
-        });
-    }
     const status = searchParams.get("status");
     if (status === "success") {
       toast.success("Payment completed successfully!");
@@ -54,20 +64,7 @@ export default function PaymentsPage() {
       toast.info("Payment was cancelled");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pageSize]);
-
-  const loadPayments = async (size: number) => {
-    try {
-      const rows = (await paymentsAPI.list({
-        limit: String(size + 1),
-        offset: "0",
-      })) as Payment[];
-      setHasMore(rows.length > size);
-      setPayments(rows.slice(0, size));
-    } catch {
-      // Backend may be unavailable; keep previous state.
-    }
-  };
+  }, [searchParams]);
 
   const handleCheckout = async () => {
     const amt = parseFloat(amount);

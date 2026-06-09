@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useRef } from "react";
+import { memo, useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { transactionsAPI, tagsAPI, tripsAPI } from "@/lib/api";
@@ -35,6 +35,66 @@ const WEEKEND_RULE_OPTIONS: { value: WeekendRule; label: string }[] = [
   { value: "roll_back", label: "Roll back to previous weekday" },
   { value: "roll_forward", label: "Roll forward to next weekday" },
 ];
+
+// Memoized desktop row: typing in the create/edit modal re-renders the
+// page per keystroke, and at limit=500 that used to re-render every row.
+// Props stay referentially stable (onEdit is a useCallback, onDelete a
+// state setter), so memo() skips the whole table body.
+const TransactionRow = memo(function TransactionRow({
+  tx,
+  onEdit,
+  onDelete,
+}: {
+  tx: Transaction;
+  onEdit: (tx: Transaction) => void;
+  onDelete: (id: string) => void;
+}) {
+  return (
+    <tr className="border-b border-border hover:bg-muted transition-colors">
+      <td className="px-4 py-3 text-sm">
+        {tx.date}
+        {tx.is_recurring && <RefreshCw size={12} className="inline ml-1 text-primary" />}
+      </td>
+      <td className="px-4 py-3 text-sm text-muted-foreground">{tx.description || "—"}</td>
+      <td className="px-4 py-3 text-sm capitalize">{tx.category}</td>
+      <td className="px-4 py-3">
+        <div className="flex gap-1 flex-wrap">
+          {tx.tags?.map((tag) => (
+            <span
+              key={tag.id}
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium"
+              style={{ backgroundColor: tag.color + "20", color: tag.color }}
+            >
+              {tag.name}
+            </span>
+          ))}
+        </div>
+      </td>
+      <td className="px-4 py-3">
+        <Badge variant={tx.type === "income" ? "success" : "danger"}>
+          {tx.type === "income" ? (
+            <span className="flex items-center gap-1"><ArrowUpRight size={12} /> Income</span>
+          ) : (
+            <span className="flex items-center gap-1"><ArrowDownRight size={12} /> Expense</span>
+          )}
+        </Badge>
+      </td>
+      <td className={`px-4 py-3 text-sm text-right font-medium ${tx.type === "income" ? "text-green-500" : "text-red-500"}`}>
+        {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
+      </td>
+      <td className="px-4 py-3 text-right">
+        <div className="flex items-center justify-end gap-1">
+          <button onClick={() => onEdit(tx)} className="text-muted-foreground hover:text-foreground p-1">
+            <Pencil size={14} />
+          </button>
+          <button onClick={() => onDelete(tx.id)} className="text-red-500 hover:text-red-700 p-1">
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+});
 
 export default function TransactionsPage() {
   const queryClient = useQueryClient();
@@ -166,7 +226,9 @@ export default function TransactionsPage() {
     setErrors({});
   };
 
-  const openEdit = (tx: Transaction) => {
+  // Stable identity so the memoized TransactionRow doesn't re-render
+  // when unrelated page state (modal forms, filters) changes.
+  const openEdit = useCallback((tx: Transaction) => {
     setEditingTxn(tx);
     const usesDates = Array.isArray(tx.recurrence_dates) && tx.recurrence_dates.length > 0;
     setForm({
@@ -184,7 +246,7 @@ export default function TransactionsPage() {
       trip_id: tx.trip_id ?? "",
     });
     setShowCreate(true);
-  };
+  }, []);
 
   const toggleRecurrenceDay = (day: number) => {
     setForm((prev) => {
@@ -511,49 +573,7 @@ export default function TransactionsPage() {
                         </thead>
                         <tbody>
                           {transactions.map((tx) => (
-                            <tr key={tx.id} className="border-b border-border hover:bg-muted transition-colors">
-                              <td className="px-4 py-3 text-sm">
-                                {tx.date}
-                                {tx.is_recurring && <RefreshCw size={12} className="inline ml-1 text-primary" />}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-muted-foreground">{tx.description || "\u2014"}</td>
-                              <td className="px-4 py-3 text-sm capitalize">{tx.category}</td>
-                              <td className="px-4 py-3">
-                                <div className="flex gap-1 flex-wrap">
-                                  {tx.tags?.map((tag) => (
-                                    <span
-                                      key={tag.id}
-                                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium"
-                                      style={{ backgroundColor: tag.color + "20", color: tag.color }}
-                                    >
-                                      {tag.name}
-                                    </span>
-                                  ))}
-                                </div>
-                              </td>
-                              <td className="px-4 py-3">
-                                <Badge variant={tx.type === "income" ? "success" : "danger"}>
-                                  {tx.type === "income" ? (
-                                    <span className="flex items-center gap-1"><ArrowUpRight size={12} /> Income</span>
-                                  ) : (
-                                    <span className="flex items-center gap-1"><ArrowDownRight size={12} /> Expense</span>
-                                  )}
-                                </Badge>
-                              </td>
-                              <td className={`px-4 py-3 text-sm text-right font-medium ${tx.type === "income" ? "text-green-500" : "text-red-500"}`}>
-                                {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
-                              </td>
-                              <td className="px-4 py-3 text-right">
-                                <div className="flex items-center justify-end gap-1">
-                                  <button onClick={() => openEdit(tx)} className="text-muted-foreground hover:text-foreground p-1">
-                                    <Pencil size={14} />
-                                  </button>
-                                  <button onClick={() => setDeleteId(tx.id)} className="text-red-500 hover:text-red-700 p-1">
-                                    <Trash2 size={14} />
-                                  </button>
-                                </div>
-                              </td>
-                            </tr>
+                            <TransactionRow key={tx.id} tx={tx} onEdit={openEdit} onDelete={setDeleteId} />
                           ))}
                         </tbody>
                       </table>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { investmentsAPI } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
@@ -50,6 +50,9 @@ export default function InvestmentsPage() {
         offset: "0",
       }) as Promise<Investment[]>,
     staleTime: 60_000,
+    // "Load more" bumps pageSize into a new queryKey — keep the loaded
+    // rows on screen instead of flashing a skeleton while it refetches.
+    placeholderData: keepPreviousData,
   });
   const hasMore = (rawHoldings?.length ?? 0) > pageSize;
   const holdings = rawHoldings?.slice(0, pageSize);

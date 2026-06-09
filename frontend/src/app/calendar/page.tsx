@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { calendarAPI, plansAPI } from "@/lib/api";
 import {
@@ -109,6 +109,12 @@ export default function CalendarPage() {
   const { data: events = [] } = useQuery<CalendarEvent[]>({
     queryKey: ["calendar-events", format(monthStart, "yyyy-MM-dd"), format(monthEnd, "yyyy-MM-dd")],
     queryFn: () => calendarAPI.events(format(monthStart, "yyyy-MM-dd"), format(monthEnd, "yyyy-MM-dd")) as Promise<CalendarEvent[]>,
+    // Each month is its own queryKey — keep visited months cached so
+    // paging back doesn't refetch; mutations still invalidate the
+    // whole ["calendar-events"] prefix.
+    staleTime: 5 * 60_000,
+    gcTime: 30 * 60_000,
+    placeholderData: keepPreviousData,
   });
 
   const createMutation = useMutation({
