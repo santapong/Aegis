@@ -1,11 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { transactionsAPI, dashboardAPI, reportsAPI } from "@/lib/api";
-import { SpendingChart } from "@/components/charts/spending-chart";
-import { TrendChart } from "@/components/charts/trend-chart";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -13,32 +12,28 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { staggerContainer, staggerItem } from "@/lib/animations";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
 import { formatCurrency } from "@/lib/utils";
 import { Download, FileText, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import type { CategoryComparisonMonth } from "@/types";
 
-const CATEGORY_COLORS = [
-  "#EF4444", "#6366f1", "#22C55E", "#F59E0B", "#8B5CF6",
-  "#EC4899", "#06B6D4", "#6366F1", "#10B981", "#6B7280",
-];
-
-const glassTooltipStyle = {
-  background: "var(--card)",
-  border: "1px solid var(--border)",
-  borderRadius: "12px",
-  boxShadow: "0 10px 15px -3px rgba(0,0,0,0.08)",
-  padding: "8px 12px",
-};
+// Recharts (via these chart components) stays out of this page's static
+// bundle — same split as the dashboard. ssr:false because Recharts needs
+// ResizeObserver / window APIs unavailable during SSR.
+const SpendingChart = dynamic(
+  () => import("@/components/charts/spending-chart").then((m) => m.SpendingChart),
+  { ssr: false, loading: () => <Skeleton height={300} /> }
+);
+const TrendChart = dynamic(
+  () => import("@/components/charts/trend-chart").then((m) => m.TrendChart),
+  { ssr: false, loading: () => <Skeleton height={300} /> }
+);
+const CategoryComparisonChart = dynamic(
+  () =>
+    import("@/components/charts/category-comparison-chart").then(
+      (m) => m.CategoryComparisonChart
+    ),
+  { ssr: false, loading: () => <Skeleton height={350} /> }
+);
 
 export default function ReportsPage() {
   const [exportingCsv, setExportingCsv] = useState(false);
@@ -98,6 +93,14 @@ export default function ReportsPage() {
       return row;
     });
   }, [categoryComparison, allCategories]);
+
+  const sortedBreakdown = useMemo(
+    () =>
+      summary
+        ? Object.entries(summary.by_category).sort(([, a], [, b]) => b - a)
+        : [],
+    [summary]
+  );
 
   const handleExportCsv = async () => {
     setExportingCsv(true);
@@ -213,24 +216,7 @@ export default function ReportsPage() {
         <motion.div variants={staggerItem}>
           <Card><CardContent className="p-6">
             <h2 className="text-lg font-semibold mb-4">Monthly Category Comparison</h2>
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={comparisonChartData}>
-                <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip formatter={(value: number) => formatCurrency(value)} contentStyle={glassTooltipStyle} />
-                <Legend />
-                {allCategories.map((cat, i) => (
-                  <Bar
-                    key={cat}
-                    dataKey={cat}
-                    fill={CATEGORY_COLORS[i % CATEGORY_COLORS.length]}
-                    radius={[2, 2, 0, 0]}
-                    name={cat.charAt(0).toUpperCase() + cat.slice(1)}
-                  />
-                ))}
-              </BarChart>
-            </ResponsiveContainer>
+            <CategoryComparisonChart data={comparisonChartData} categories={allCategories} />
           </CardContent></Card>
         </motion.div>
       )}
@@ -292,9 +278,7 @@ export default function ReportsPage() {
                 </tr>
               </thead>
               <tbody>
-                {Object.entries(summary.by_category)
-                  .sort(([, a], [, b]) => b - a)
-                  .map(([category, amount]) => (
+                {sortedBreakdown.map(([category, amount]) => (
                     <tr key={category} className="border-b border-border hover:bg-muted">
                       <td className="px-4 py-3 text-sm capitalize">{category}</td>
                       <td className="px-4 py-3 text-sm text-right font-medium">{formatCurrency(amount)}</td>

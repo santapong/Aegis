@@ -1,6 +1,6 @@
 # Performance backlog
 
-Tracks performance work from the audit at commit `52b2ffc` that wasn't shipped in PR #30 (the CRITICAL-only pass). Ordered by impact × effort ratio.
+Tracks performance work from the audit at commit `52b2ffc` that wasn't shipped in PR #30 (the CRITICAL-only pass). Ordered by impact × effort ratio. A second audit pass (2026-06) is tracked in its own section at the bottom.
 
 The CRITICALs are landed; what's below is **fine today**, breaks at 10k+ users or 100k+ rows.
 
@@ -119,3 +119,107 @@ If you have 1 day: pick the 5-minute migrations + React Query staleTime + the pa
 If you have 1 week: ship the SQL aggregation pass on the 4 remaining dashboard routes + cache them. Solves "the dashboard feels slow as data grows" before you ever feel it.
 
 If you have a sprint: the `dashboard/bundle` endpoint refactor. Sets up scaling for the next year.
+
+## Second audit (2026-06)
+
+A fresh pass over everything the first audit's CRITICAL/WARNING sweep didn't
+reach — secondary pages, services, infra, CI. All shipped unless marked.
+
+### Shipped — frontend
+
+- [x] **Recharts code-split on Budgets + Reports** — the dashboard got the
+  `next/dynamic` split in the first pass; these two pages still imported
+  Recharts statically (Reports also imported `SpendingChart`/`TrendChart`
+  statically). Extracted `budget-comparison-chart.tsx` +
+  `category-comparison-chart.tsx` and dynamic-imported everything.
+  First Load JS: `/budgets` 271→169 kB, `/reports` 279→164 kB.
+- [x] **Payments page → React Query** — was `useEffect`+`useState` with a
+  config→list waterfall and a full refetch from offset 0 on every
+  "Load more" (which also re-fired the Stripe success toast). Now two
+  queries with `placeholderData: keepPreviousData` and `retry: false`
+  on the config probe.
+- [x] **`keepPreviousData` on Investments / Plans / Trips lists** —
+  "Load more" bumps `pageSize` into a new queryKey, which cleared the
+  list to a skeleton while refetching. Previous rows now stay on screen.
+- [x] **Calendar month cache** — `staleTime: 5 min`, `gcTime: 30 min`,
+  `keepPreviousData`; paging back to a visited month no longer refetches.
+- [x] **TradingView embeds lazy-mount** — Investments rendered one
+  external `<script>` per holding eagerly (O(holdings) network +
+  execute). Now IntersectionObserver-gated (200 px rootMargin) +
+  `memo()` so parent re-renders don't re-inject mounted widgets.
+- [x] **Transactions desktop row memoized** — typing in the create/edit
+  modal re-rendered all rows (up to `limit=500`) per keystroke.
+  `TransactionRow` is `memo()`-ed with a `useCallback` edit handler.
+- [x] **Reports category-breakdown sort memoized.**
+
+### Shipped — backend
+
+- [x] **AI SDK clients cached per credential set** — `AIEngine.__init__`
+  built a fresh `anthropic.Anthropic()` / `OpenAI()` per request: new
+  httpx pool + TLS handshake every AI call (~50–100 ms). Now
+  `@lru_cache` module-level factories.
+- [x] **`trips.trip_summary` SQL aggregation** — was materialize-then-sum
+  over every trip budget + expense row; now two `GROUP BY category`
+  queries (same rewrite as `budgets.budget_comparison`).
+- [x] **`AIEngine._gather_context` SQL aggregation** — was loading every
+  transaction in the 90-day window and summing in Python on every AI
+  call; now one CASE-bucket totals query + one `GROUP BY category`,
+  and the plans query filters `status IN (planned, in_progress)` in SQL.
+- [x] **In-memory rate limiter GC amortized** — the size probe
+  (`sum(len(v) for v in buckets)`) ran on *every* request, O(unique
+  clients); now every 256th hit.
+- [x] **`uvicorn[standard]`** — uvloop + httptools event loop/parser.
+- [x] **`notifications(user_id, created_at)` composite index** (v0.9.9
+  migration) — the list endpoint's `ORDER BY created_at DESC` sorted the
+  user's whole history; `(user_id, read_at)` only covered the unread
+  count.
+
+### Shipped — infra / CI
+
+- [x] **CI lockfile mismatch** — `deploy-vercel.yml` and `test.yml`
+  pointed setup-node's npm cache (and `npm ci`) at
+  `frontend/package-lock.json`, which doesn't exist (repo uses
+  `bun.lock`) — the frontend jobs failed at setup. Deploy job drops the
+  cache (it only installs the Vercel CLI); test job now uses
+  `oven-sh/setup-bun` + `bun install --frozen-lockfile`.
+- [x] **v0.9.5 migration broken on SQLite + alembic ≥1.16** —
+  `batch.drop_index(if_exists=True)` is rejected by the batch-recreate
+  path, and the try/except guards around batch ops never caught
+  flush-time errors. Rewritten with inspector-based existence checks
+  (also portable to MySQL, which lacks `DROP INDEX IF EXISTS`).
+- [x] **ruff/bandit into `[dev]` extra** — were `pip install`-ed fresh
+  outside the cached env every CI run.
+- [x] **Editable-install packaging fix** — `uv pip install -e .` failed
+  with "Multiple top-level packages" (flat layout: `app/` + `alembic/`);
+  pinned `[tool.setuptools.packages.find] include = ["app*"]`.
+- [x] **Compose healthcheck cadence** — backend probe (Python
+  interpreter + HTTP + `SELECT 1`) every 10 s forever → 30 s steady-state
+  with `start_interval` keeping boot gating fast; db/redis 5 s → 10 s.
+- [x] **Redis memory bound** — `--maxmemory 96mb --maxmemory-policy
+  volatile-lru`: cache keys (always TTL'd) are evictable, arq queue keys
+  (no TTL) never are. Don't switch to `allkeys-*` while the queue shares
+  the instance.
+
+### Checked and rejected (non-issues)
+
+- **Postgres container tuning** — the official image already defaults
+  `shared_buffers=128MB`, the right ~25 % of the 512 M limit. Placebo.
+- **Backend Dockerfile layer order** — already correct: builder stage
+  installs deps from `pyproject.toml` before the code `COPY . .`.
+- **Caddy cache headers / brotli** — Next standalone already serves
+  `/_next/static` with `immutable`; Caddy passes it through and already
+  does `encode gzip zstd`. Stock Caddy has no brotli module.
+- **Notifications items+count query merge** — both queries are
+  index-backed after v0.9.9; a window-function merge buys ~2 ms.
+- **`get_current_user` short-TTL cache** — deliberate skip (product
+  call): the per-request lookup is an indexed PK hit; caching trades
+  exact revocation semantics for 1–5 ms. Revisit on remote-DB deploys.
+
+### Still open (carried from first audit)
+
+- 📋 RSC dashboard migration (design doc 003)
+- 📋 Full async SQLAlchemy migration (design doc 002)
+- 📋 arq Phase 2 — AI summaries on the queue
+- 📋 Neon pooler endpoint / `db_pool_size` config at 2+ pods
+- 📋 List virtualization (`@tanstack/react-virtual` already in deps)
+  if "Load more" pages grow past a few hundred rows

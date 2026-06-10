@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { budgetsAPI } from "@/lib/api";
@@ -14,19 +15,19 @@ import { Modal, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-  Cell,
-} from "recharts";
 import { Plus, Trash2, AlertTriangle, Pencil, Wallet } from "lucide-react";
 import type { Budget, BudgetComparisonResponse } from "@/types";
+
+// Recharts stays out of this page's static bundle — same split as the
+// dashboard charts. ssr:false because Recharts needs ResizeObserver /
+// window APIs unavailable during SSR.
+const BudgetComparisonChart = dynamic(
+  () =>
+    import("@/components/charts/budget-comparison-chart").then(
+      (m) => m.BudgetComparisonChart
+    ),
+  { ssr: false, loading: () => <Skeleton height={350} /> }
+);
 
 const defaultForm = {
   name: "",
@@ -36,14 +37,6 @@ const defaultForm = {
   period_end: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
     .toISOString()
     .split("T")[0],
-};
-
-const glassTooltipStyle = {
-  background: "var(--card)",
-  border: "1px solid var(--border)",
-  borderRadius: "12px",
-  boxShadow: "0 10px 15px -3px rgba(0,0,0,0.08)",
-  padding: "8px 12px",
 };
 
 export default function BudgetsPage() {
@@ -188,21 +181,7 @@ export default function BudgetsPage() {
           <Card>
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4">Budget vs Actual Spending</h2>
-              <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={chartData} barGap={4}>
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                  <XAxis dataKey="category" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip formatter={(value: number) => formatCurrency(value)} contentStyle={glassTooltipStyle} />
-                  <Legend />
-                  <Bar dataKey="Budget" fill="#6366f1" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Actual" radius={[4, 4, 0, 0]}>
-                    {chartData.map((entry, index) => (
-                      <Cell key={index} fill={entry.over ? "#EF4444" : "#22C55E"} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <BudgetComparisonChart data={chartData} />
             </CardContent>
           </Card>
         </motion.div>
