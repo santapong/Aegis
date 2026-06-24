@@ -1,6 +1,13 @@
 import { useAuthStore } from "@/stores/auth-store";
 import { useToastStore } from "@/stores/toast-store";
-import type { NotificationListResponse, Notification, Transaction } from "@/types";
+import type {
+  NotificationListResponse,
+  Notification,
+  Transaction,
+  SymbolSearchResponse,
+  QuoteResponse,
+  MarketStatus,
+} from "@/types";
 
 // Same-origin by default — the browser hits `/api/*` and Next.js
 // rewrites (server-side) to BACKEND_INTERNAL_URL. Override with
@@ -510,6 +517,18 @@ export const investmentsAPI = {
     }),
   summary: () => fetchJSON("/api/investments/summary"),
   delete: (id: string) => fetchDELETE(`/api/investments/${id}`),
+};
+
+export const marketAPI = {
+  search: (q: string) =>
+    fetchJSON<SymbolSearchResponse>(
+      "/api/market/search?q=" + encodeURIComponent(q)
+    ),
+  quote: (symbol: string) =>
+    fetchJSON<QuoteResponse>(
+      "/api/market/quote?symbol=" + encodeURIComponent(symbol)
+    ),
+  status: () => fetchJSON<MarketStatus>("/api/market/status"),
 };
 
 export const debtsAPI = {

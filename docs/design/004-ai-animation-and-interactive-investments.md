@@ -1,6 +1,6 @@
 # Design: AI "asking" animation + interactive stock/crypto picker
 
-**Status**: design + research. No implementation yet — this doc is the output of a design/research pass and is meant to get your call on two product decisions (live market data vs. manual prices; how far to take the watchlist) before any code lands.
+**Status**: ✅ implemented. This doc began as a design/research pass; both features have since shipped on this branch with the decisions resolved as **Finnhub + graceful manual fallback** (live market data, optional key), the **framer-motion Transmission Orb** (no new deps), and the **`units = 0` watchlist** (no migration). The original options/rationale are preserved below; see `CHANGELOG.md` (`[Unreleased]`) for the shipped summary.
 
 This covers two requested additions:
 

@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added — features
+
+- **Interactive investments picker** — `/investments` now lets you search
+  and pick a stock or cryptocurrency instead of hand-typing
+  `EXCHANGE:TICKER` strings. New `GET /api/market/{search,quote,status}`
+  endpoints proxy a pluggable market-data service (Finnhub primary +
+  keyless Binance fallback, server-side cached); it degrades to crypto-only
+  search + manual entry when no `FINNHUB_API_KEY` is set. A debounced
+  `SymbolSearch` combobox auto-fills the symbol, shows a TradingView
+  preview + live-quote chip ("Use this price"), and supports a `units=0`
+  **watchlist** (no migration; excluded from portfolio totals via a
+  `units > 0` rollup filter and a `?watchlist` list filter).
+- **AI "asking" animation** — the advisor panel's three bouncing dots are
+  replaced by a framer-motion **Transmission Orb** with
+  idle/listening/thinking/responding states and shimmer skeletons, honoring
+  `prefers-reduced-motion`. Zero new dependencies.
+- **Design doc** —
+  `docs/design/004-ai-animation-and-interactive-investments.md` captures the
+  research (data-provider comparison, animation tech) and the spec.
+
 ### Added — performance (second audit pass)
 
 - **Recharts code-split on Budgets + Reports** — both pages still

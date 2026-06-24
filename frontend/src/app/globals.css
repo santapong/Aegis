@@ -1183,3 +1183,82 @@ select:focus-visible {
   0%   { transform: translate(0, 0) scale(1); }
   100% { transform: translate(40px, -30px) scale(1.08); }
 }
+
+/* ===== Transmission Orb (AI "asking" animation) ============================== */
+/* CSS-variable-driven plasma sphere: gradient core + glow halo + orbiting spark.
+   Themes off the cosmic palette (--accent, aliased by --primary). framer-motion
+   drives the scale; CSS drives color, glow, satellite spin, and shimmer. */
+.aegis-orb {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+}
+.aegis-orb-core {
+  width: 56%;
+  height: 56%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 30%,
+    color-mix(in oklab, var(--primary, var(--accent)) 95%, white),
+    var(--primary, var(--accent)) 55%,
+    var(--accent-2, var(--primary, var(--accent))) 100%
+  );
+  filter: drop-shadow(0 0 6px var(--accent-glow, var(--primary, var(--accent))));
+}
+.aegis-orb-halo {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--accent-glow, var(--accent)) 60%, transparent) 0%,
+    transparent 70%
+  );
+  opacity: 0.5;
+}
+.aegis-orb[data-state="idle"] .aegis-orb-core { opacity: 0.62; }
+.aegis-orb[data-state="idle"] .aegis-orb-halo { opacity: 0.32; }
+.aegis-orb[data-state="listening"] .aegis-orb-halo { opacity: 0.7; }
+.aegis-orb[data-state="thinking"] .aegis-orb-core {
+  animation: pulse-glow 1.4s ease-in-out infinite;
+}
+.aegis-orb[data-state="thinking"] .aegis-orb-halo { opacity: 0.85; }
+.aegis-orb-sat {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: 0 -11px 0 -3px var(--primary, var(--accent));
+  animation: orbSpin 8s linear infinite;
+}
+.aegis-orb[data-state="idle"] .aegis-orb-sat { animation-play-state: paused; }
+.aegis-orb[data-state="thinking"] .aegis-orb-sat { animation-duration: 1.4s; }
+@keyframes orbSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Skeleton shimmer sweep — reserves list height while insights arrive. */
+.aegis-shimmer {
+  height: 64px;
+  border-radius: var(--card-radius, 12px);
+  background: linear-gradient(
+    100deg,
+    var(--card) 30%,
+    color-mix(in oklab, var(--primary, var(--accent)) 14%, var(--card)) 50%,
+    var(--card) 70%
+  );
+  background-size: 200% 100%;
+  animation: orbShimmer 1.3s linear infinite;
+}
+@keyframes orbShimmer {
+  to { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aegis-orb-sat,
+  .aegis-orb-core,
+  .aegis-shimmer {
+    animation: none !important;
+  }
+  .aegis-orb-sat { display: none; }
+}

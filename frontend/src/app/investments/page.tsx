@@ -15,9 +15,11 @@ import { Modal, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, TrendingUp, TrendingDown, LineChart, Trash2, Pencil } from "lucide-react";
+import { Plus, TrendingUp, TrendingDown, LineChart, Trash2, Pencil, Star } from "lucide-react";
 import { TradingViewWidget } from "@/components/investments/tradingview-widget";
-import type { Investment, PortfolioSummary } from "@/types";
+import { SymbolSearch } from "@/components/investments/symbol-search";
+import { marketAPI } from "@/lib/api";
+import type { Investment, PortfolioSummary, QuoteResponse, SymbolResult } from "@/types";
 
 const defaultForm = {
   name: "",
@@ -38,6 +40,9 @@ export default function InvestmentsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState(defaultForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  // When the search API is unavailable / crypto-only, the user can fall back
+  // to hand-typing the EXCHANGE:TICKER string (with the existing regex guard).
+  const [manualEntry, setManualEntry] = useState(false);
 
   const PAGE_STEP = 30;
   const [pageSize, setPageSize] = useState(PAGE_STEP);
@@ -103,6 +108,7 @@ export default function InvestmentsPage() {
     setEditing(null);
     setForm(defaultForm);
     setErrors({});
+    setManualEntry(false);
   };
 
   const openEdit = (inv: Investment) => {
@@ -116,6 +122,9 @@ export default function InvestmentsPage() {
       currency: inv.currency,
       notes: inv.notes ?? "",
     });
+    // Existing holdings already have a symbol — show the editable text field
+    // rather than forcing a re-search.
+    setManualEntry(true);
     setShowCreate(true);
   };
 
@@ -155,6 +164,61 @@ export default function InvestmentsPage() {
       updateMutation.mutate({ id: editing.id, data: payload });
     } else {
       createMutation.mutate(payload);
+    }
+  };
+
+  // Picking a result from the search auto-fills the symbol, the name (only if
+  // the user hasn't typed one), and the currency hint when the provider gives
+  // it. The manual text field stays hidden — the search drove the selection.
+  const handleSymbolSelect = (r: SymbolResult) => {
+    setForm((f) => ({
+      ...f,
+      tradingview_symbol: r.symbol,
+      name: f.name.trim() ? f.name : r.name,
+      currency: r.currency || f.currency,
+    }));
+    setErrors((e) => ({ ...e, tradingview_symbol: "", name: "" }));
+  };
+
+  // Adds a watchlist entry: a units=0 / cost_basis=0 / current_price=0 holding
+  // (just name + symbol). Reuses createMutation so it benefits from the same
+  // invalidation + toast pipeline. Requires only a valid symbol + name.
+  const addToWatchlist = () => {
+    const errs: Record<string, string> = {};
+    if (!form.name.trim()) errs.name = "Name is required";
+    if (!form.tradingview_symbol.trim()) {
+      errs.tradingview_symbol = "Pick or enter a ticker first";
+    } else if (!/^[A-Z0-9_]{2,}:[A-Z0-9._-]{1,}$/i.test(form.tradingview_symbol.trim())) {
+      errs.tradingview_symbol = "Use EXCHANGE:TICKER format (e.g. NASDAQ:AAPL)";
+    }
+    setErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+    createMutation.mutate({
+      name: form.name.trim(),
+      tradingview_symbol: form.tradingview_symbol.trim().toUpperCase(),
+      units: 0,
+      cost_basis: 0,
+      current_price: 0,
+      currency: form.currency || "USD",
+      notes: form.notes || null,
+    });
+  };
+
+  const selectedSymbol = form.tradingview_symbol.trim().toUpperCase();
+  const hasSymbol = /^[A-Z0-9_]{2,}:[A-Z0-9._-]{1,}$/i.test(selectedSymbol);
+
+  const { data: quote, isFetching: quoteLoading } = useQuery<QuoteResponse>({
+    queryKey: ["mkt-quote", selectedSymbol],
+    queryFn: () => marketAPI.quote(selectedSymbol),
+    // Only fetch once a well-formed symbol is present and the modal is open.
+    enabled: showCreate && hasSymbol,
+    staleTime: 30_000,
+  });
+
+  const useQuotePrice = () => {
+    if (quote?.price != null) {
+      setForm((f) => ({ ...f, current_price: String(quote.price) }));
+      setErrors((e) => ({ ...e, current_price: "" }));
     }
   };
 
@@ -344,15 +408,87 @@ export default function InvestmentsPage() {
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               error={errors.name}
             />
-            <Input
-              label="TradingView Symbol"
-              placeholder="NASDAQ:AAPL, SET:PTT, BINANCE:BTCUSDT"
-              value={form.tradingview_symbol}
-              onChange={(e) =>
-                setForm({ ...form, tradingview_symbol: e.target.value })
-              }
-              error={errors.tradingview_symbol}
-            />
+            {manualEntry ? (
+              <div className="space-y-1.5">
+                <Input
+                  label="TradingView Symbol"
+                  placeholder="NASDAQ:AAPL, SET:PTT, BINANCE:BTCUSDT"
+                  value={form.tradingview_symbol}
+                  onChange={(e) =>
+                    setForm({ ...form, tradingview_symbol: e.target.value })
+                  }
+                  error={errors.tradingview_symbol}
+                />
+                {!editing && (
+                  <button
+                    type="button"
+                    onClick={() => setManualEntry(false)}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Search for a symbol instead
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <SymbolSearch label="Symbol" onSelect={handleSymbolSelect} />
+                {form.tradingview_symbol ? (
+                  <p className="text-xs text-muted-foreground">
+                    Selected{" "}
+                    <span className="font-mono text-foreground">
+                      {form.tradingview_symbol}
+                    </span>
+                  </p>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setManualEntry(true)}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Enter ticker manually
+                </button>
+              </div>
+            )}
+
+            {/* Live preview once a well-formed symbol is present. */}
+            {hasSymbol && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Preview
+                  </span>
+                  {quoteLoading ? (
+                    <span className="text-xs text-muted-foreground">Loading quote…</span>
+                  ) : quote && quote.price != null ? (
+                    <span className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-2.5 py-1 text-xs">
+                      <span className="font-semibold tabular-nums">
+                        {formatCurrency(quote.price, quote.currency || form.currency)}
+                      </span>
+                      {quote.change_percent != null && (
+                        <span
+                          className={
+                            quote.change_percent >= 0 ? "text-green-500" : "text-red-500"
+                          }
+                        >
+                          {quote.change_percent >= 0 ? "+" : ""}
+                          {quote.change_percent.toFixed(2)}%
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={useQuotePrice}
+                        className="text-primary hover:underline"
+                      >
+                        Use this price
+                      </button>
+                    </span>
+                  ) : null}
+                </div>
+                <div className="overflow-hidden rounded-lg border border-border">
+                  <TradingViewWidget symbol={selectedSymbol} height={200} />
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <Input
                 label="Units"
@@ -404,6 +540,17 @@ export default function InvestmentsPage() {
             <Button variant="outline" type="button" onClick={closeForm}>
               Cancel
             </Button>
+            {!editing && (
+              <Button
+                type="button"
+                variant="secondary"
+                icon={<Star size={15} />}
+                loading={createMutation.isPending}
+                onClick={addToWatchlist}
+              >
+                Add to watchlist
+              </Button>
+            )}
             <Button
               type="submit"
               loading={createMutation.isPending || updateMutation.isPending}

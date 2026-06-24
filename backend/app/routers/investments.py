@@ -20,12 +20,17 @@ router = APIRouter(prefix="/api/investments", tags=["investments"])
 @router.get("/", response_model=list[InvestmentResponse])
 def list_investments(
     limit: int = Query(default=100, le=500),
+    watchlist: bool | None = Query(default=None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    query = db.query(Investment).filter(Investment.user_id == current_user.id)
+    if watchlist is True:
+        query = query.filter(Investment.units == 0)
+    elif watchlist is False:
+        query = query.filter(Investment.units > 0)
     return (
-        db.query(Investment)
-        .filter(Investment.user_id == current_user.id)
+        query
         .order_by(Investment.created_at.desc())
         .limit(limit)
         .all()
@@ -55,7 +60,9 @@ def portfolio_summary(
     current_user: User = Depends(get_current_user),
 ):
     holdings = (
-        db.query(Investment).filter(Investment.user_id == current_user.id).all()
+        db.query(Investment)
+        .filter(Investment.user_id == current_user.id, Investment.units > 0)
+        .all()
     )
     by_holding: list[HoldingSummary] = []
     total_cost = 0.0
