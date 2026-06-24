@@ -94,3 +94,42 @@ def test_investments_isolated_per_user(client):
     )
     assert len(client.get("/api/investments/", headers=h1).json()) == 1
     assert client.get("/api/investments/", headers=h2).json() == []
+
+
+def test_watchlist_filter_and_summary_exclusion(client):
+    """units=0 rows are watchlist entries: filterable via ?watchlist and
+    excluded from the portfolio rollup (totals AND holding_count)."""
+    headers, _ = _register(client)
+    # A real holding (units > 0)...
+    client.post(
+        "/api/investments/",
+        json={
+            "name": "Apple", "tradingview_symbol": "NASDAQ:AAPL",
+            "units": 10, "cost_basis": 1500, "current_price": 200,
+        },
+        headers=headers,
+    )
+    # ...and a watchlist entry (units == 0).
+    client.post(
+        "/api/investments/",
+        json={
+            "name": "Tesla (watch)", "tradingview_symbol": "NASDAQ:TSLA",
+            "units": 0, "cost_basis": 0, "current_price": 0,
+        },
+        headers=headers,
+    )
+
+    # Unfiltered list returns both.
+    assert len(client.get("/api/investments/", headers=headers).json()) == 2
+    # watchlist=true → only the units==0 row.
+    wl = client.get("/api/investments/?watchlist=true", headers=headers).json()
+    assert [h["name"] for h in wl] == ["Tesla (watch)"]
+    # watchlist=false → only the real holding.
+    held = client.get("/api/investments/?watchlist=false", headers=headers).json()
+    assert [h["name"] for h in held] == ["Apple"]
+
+    # Summary ignores the watchlist row entirely.
+    s = client.get("/api/investments/summary", headers=headers).json()
+    assert s["holding_count"] == 1
+    assert s["total_current_value"] == 2000.0
+    assert s["total_cost_basis"] == 1500.0
