@@ -34,6 +34,7 @@ from .routers import (
     trips,
     preferences,
     investments,
+    market,
     export,
     jobs,
 )
@@ -56,11 +57,12 @@ async def lifespan(_app: FastAPI):
     """
     logger.info("Aegis v{version} started", version=APP_VERSION)
     logger.info(
-        "config: debug={debug} db={db} ai_provider={prov} ai={ai} stripe={stripe} log_format={fmt}",
+        "config: debug={debug} db={db} ai_provider={prov} ai={ai} market={market} stripe={stripe} log_format={fmt}",
         debug=settings.debug,
         db=_db_backend(settings.database_url),
         prov=settings.ai_provider,
         ai="configured" if _ai_configured(settings) else "not_configured",
+        market=_market_mode(settings),
         stripe="configured" if settings.stripe_secret_key else "not_configured",
         fmt=settings.log_format,
     )
@@ -115,6 +117,7 @@ app.include_router(notifications.router)
 app.include_router(trips.router)
 app.include_router(preferences.router)
 app.include_router(investments.router)
+app.include_router(market.router)
 app.include_router(export.router)
 app.include_router(jobs.router)
 
@@ -122,6 +125,12 @@ app.include_router(jobs.router)
 def _db_backend(url: str) -> str:
     scheme = urlparse(url).scheme.split("+", 1)[0]
     return scheme or "unknown"
+
+
+def _market_mode(s) -> str:
+    # "finnhub" = equities + crypto search; "binance-only" = keyless
+    # crypto-only fallback (degraded). Matches MarketService topology.
+    return "finnhub" if s.finnhub_api_key else "binance-only"
 
 
 def _ai_configured(s) -> bool:

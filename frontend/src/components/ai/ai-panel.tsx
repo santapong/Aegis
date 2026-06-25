@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, MotionConfig } from "framer-motion";
 import { useAppStore } from "@/stores/app-store";
 import { aiAPI } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { slideInRight } from "@/lib/animations";
+import { AIOrb, type OrbState } from "@/components/ai/ai-orb";
 import { X, TrendingUp, Check, XCircle, CornerDownLeft } from "lucide-react";
 import type { AIRecommendation } from "@/types";
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +18,18 @@ export function AIPanel() {
   const { toast } = useToast();
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [justResolved, setJustResolved] = useState(false);
   const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
+
+  // Derive the Transmission Orb state from props the panel already tracks.
+  const orbState: OrbState = loading
+    ? "thinking"
+    : justResolved
+      ? "responding"
+      : focused || question.length > 0
+        ? "listening"
+        : "idle";
 
   const handleAnalyze = async () => {
     setLoading(true);
@@ -29,6 +41,9 @@ export function AIPanel() {
       toast.error("Failed to analyze", "Please try again later");
     } finally {
       setLoading(false);
+      // Brief "responding" bloom as insights land, then settle back to idle.
+      setJustResolved(true);
+      setTimeout(() => setJustResolved(false), 650);
     }
   };
 
@@ -52,7 +67,7 @@ export function AIPanel() {
   return (
     <AnimatePresence>
       {aiPanelOpen && (
-        <>
+        <MotionConfig reducedMotion="user">
           {/* Mobile backdrop */}
           <motion.div
             className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-[49]"
@@ -73,10 +88,7 @@ export function AIPanel() {
             <div className="flex items-center justify-between px-4 py-3 border-b border-border">
               <div className="flex items-center gap-2.5">
                 <span className="aegis-ai-badge">
-                  <span className="aegis-dot" style={{ color: "var(--primary)" }}>
-                    <span className="aegis-dot-pulse" />
-                    <span className="aegis-dot-core" />
-                  </span>
+                  <AIOrb state={orbState} />
                   CLAUDE · live
                 </span>
               </div>
@@ -137,32 +149,21 @@ export function AIPanel() {
             <ScrollArea className="flex-1">
               <div className="p-4 space-y-3">
                 {loading && (
-                  <div className="flex flex-col items-center justify-center py-10 gap-3">
-                    <div className="flex gap-1.5">
-                      <span
-                        className="w-1.5 h-1.5 rounded-full"
-                        style={{ background: "var(--primary)", animation: "aegisBounce 1.2s infinite ease-in-out" }}
-                      />
-                      <span
-                        className="w-1.5 h-1.5 rounded-full"
-                        style={{
-                          background: "var(--primary)",
-                          animation: "aegisBounce 1.2s infinite ease-in-out",
-                          animationDelay: "0.2s",
-                        }}
-                      />
-                      <span
-                        className="w-1.5 h-1.5 rounded-full"
-                        style={{
-                          background: "var(--primary)",
-                          animation: "aegisBounce 1.2s infinite ease-in-out",
-                          animationDelay: "0.4s",
-                        }}
-                      />
+                  <div className="space-y-3">
+                    <div className="flex flex-col items-center justify-center py-6 gap-3">
+                      <AIOrb state="thinking" size={40} />
+                      <p
+                        className="font-mono text-[11px] tracking-wider"
+                        style={{ color: "var(--aegis-dim)" }}
+                        aria-live="polite"
+                      >
+                        ANALYZING TRANSMISSION…
+                      </p>
                     </div>
-                    <p className="font-mono text-[11px] tracking-wider" style={{ color: "var(--aegis-dim)" }}>
-                      ANALYZING TRANSMISSION…
-                    </p>
+                    {/* Reserve list height while insights arrive — no layout shift. */}
+                    <div className="aegis-shimmer" />
+                    <div className="aegis-shimmer" />
+                    <div className="aegis-shimmer" />
                   </div>
                 )}
                 <AnimatePresence>
@@ -245,6 +246,8 @@ export function AIPanel() {
                 <input
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
+                  onFocus={() => setFocused(true)}
+                  onBlur={() => setFocused(false)}
                   onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
                   placeholder="ask claude — try “how do I save more?”"
                   className="flex-1 bg-transparent outline-none border-0 font-mono text-[12px] text-foreground placeholder:text-muted-foreground"
@@ -261,7 +264,7 @@ export function AIPanel() {
               </Button>
             </div>
           </motion.div>
-        </>
+        </MotionConfig>
       )}
     </AnimatePresence>
   );

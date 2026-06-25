@@ -9,6 +9,12 @@ import json
 import os
 
 import pytest
+
+# The MCP tool handlers import the optional `mcp` SDK (exposed via the
+# aegis-mcp script entry); it is not a declared test dependency, so skip this
+# module cleanly when the SDK isn't installed rather than failing collection.
+pytest.importorskip("mcp")
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool

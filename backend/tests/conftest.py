@@ -28,6 +28,16 @@ from app.models import (  # noqa: F401
     investment,
 )
 
+# Strict-prefix endpoints (/api/auth/*, /api/ai/*, /api/payments/*, …) carry a
+# separate, hardcoded 20/min cap that RATE_LIMIT_PER_MINUTE does NOT cover. The
+# suite registers + logs in dozens of users from a single client IP, so the
+# shared in-memory bucket for /api/auth/register trips 429s partway through the
+# run. Lift it here too — the limiter's real behaviour is covered via stubs in
+# test_market.py, not exercised across the suite.
+from app.middleware.rate_limit import RateLimitMiddleware  # noqa: E402
+
+RateLimitMiddleware._strict_limit = 10_000
+
 
 def _register(client, email="user@example.com", username="user", password="pw-at-least-8"):
     """Helper: register a fresh user and return their auth headers + id."""

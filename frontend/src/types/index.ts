@@ -122,6 +122,37 @@ export interface PortfolioSummary {
   by_holding: HoldingSummary[];
 }
 
+export type SymbolType = "stock" | "etf" | "crypto";
+
+export interface SymbolResult {
+  symbol: string;
+  name: string;
+  exchange: string;
+  type: SymbolType;
+  currency: string | null;
+}
+
+export interface SymbolSearchResponse {
+  results: SymbolResult[];
+  provider: string;
+  degraded: boolean;
+}
+
+export interface QuoteResponse {
+  symbol: string;
+  price: number | null;
+  currency: string | null;
+  change_percent: number | null;
+  as_of: string | null;
+  source: string | null;
+}
+
+export interface MarketStatus {
+  equities_supported: boolean;
+  crypto_supported: boolean;
+  providers: string[];
+}
+
 export interface KPISummary {
   total_balance: number;
   monthly_income: number;

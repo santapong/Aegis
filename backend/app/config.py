@@ -69,6 +69,20 @@ class Settings(BaseSettings):
     groq_base_url: str = "https://api.groq.com/openai/v1"
     groq_model: str = "llama-3.3-70b-versatile"
 
+    # Market data — see backend/app/services/market/. Finnhub is the
+    # primary symbol-search provider (US equities + crypto, 60 req/min
+    # free, no card). Without a key the picker degrades to crypto-only
+    # via the keyless Binance public API. Twelve Data is optional and
+    # only used to attach live equity quotes (~8 req/min free); without
+    # it equity quotes return price=None and the UI keeps manual entry.
+    # Keys stay server-side (provider free tiers are display-only).
+    finnhub_api_key: str = ""
+    twelvedata_api_key: str = ""
+    # Cache TTLs (seconds). Search results are stable enough to cache for
+    # minutes; quotes are short-lived. Both keyed GLOBALLY (not per-user).
+    market_search_ttl: int = 600
+    market_quote_ttl: int = 30
+
     # CORS
     cors_origins: list[str] = ["http://localhost:3000"]
 
