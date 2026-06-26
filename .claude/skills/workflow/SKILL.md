@@ -407,13 +407,49 @@ return { sized, sprint }
 
 ---
 
+## ADLC conformance (required)
+
+Authoring a workflow does **not** make it [ADLC](../../../docs/adlc.md)-compliant —
+the runtime runs whatever you write. Conformance is a convention this skill
+enforces. Every Aegis workflow must pass this checklist before it ships:
+
+- [ ] **Declares its phase(s).** `meta.description` (or an opening `log()`) names
+      the ADLC phase(s) the workflow enacts — Build, Verify, Review, Improve, or
+      an explicit multi-phase span. A workflow is a *phase*, not the whole loop.
+- [ ] **Honors that phase's gate** — don't fake it:
+      - **Build** → lane discipline (backend → `backend/app/`, frontend →
+        `frontend/src/`); a schema change ⇒ a reversible, batch-mode-safe Alembic
+        migration.
+      - **Verify** → a gate stage that passes only when *tests are green* **and**
+        *behavior is observed* — never tests alone.
+      - **Review** → the reviewer agent must NOT be the implementer; findings are
+        adversarially verified (refute-by-default), not taken at face value.
+      - **Ship** → **never inside a script.** CI-green + draft PR is a human /
+        main-thread gate. A workflow *returns a package for Ship*; it does not
+        self-ship.
+- [ ] **Returns upward, doesn't loop around.** Output a result the next phase (or
+      the main thread) can gate on — don't swallow a failed gate and continue.
+- [ ] **Logs what it skipped.** Any bound (top-N, no-retry, sampling, `maxRounds`)
+      is `log()`-ed, so a partial pass never reads as "covered everything".
+
+The canonical multi-phase reference is **`adlc-feature`** (saved at
+`.claude/workflows/adlc-feature.js`): it runs the automatable span
+**Plan → Build → Verify → Review** with the Verify and Review gates wired as
+loop-backs, and deliberately **stops before Ship**, returning a PR-ready package.
+Run it with `Workflow({ name: 'adlc-feature', args: { feature, acceptance } })`.
+
+---
+
 ## How this fits the ADLC
 
 | ADLC phase | Workflow that fits |
 |------------|--------------------|
+| **Plan → Build → Verify → Review** (full span) | **`adlc-feature`** — the gated full-loop workflow; stops before Ship |
 | **Build** | `feature-build` (contract → parallel lanes → verify → review) |
 | **Verify** | `migration-safety` (audit across DB targets before ship) |
 | **Review** | `review-diff` (dimensions → adversarial verify) |
 | **Improve** | `roadmap-triage` (size → rank the backlog) |
 
-See [`docs/adlc.md`](../../../docs/adlc.md) for the full loop.
+See [`docs/adlc.md`](../../../docs/adlc.md) for the full loop. **Intake** (sizing,
+`AskUserQuestion`) and **Ship** (commit, draft PR, CI-green) are driver / human
+gates that live *above* any workflow — see the conformance checklist above.
