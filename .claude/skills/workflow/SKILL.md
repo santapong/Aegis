@@ -332,7 +332,7 @@ if (!Array.isArray(items) || items.length === 0) {
     `Integrations & data, Ops & SRE). One item per line, no prose.`,
     { label: 'extract' },
   )
-  items = extracted.split('\n').map(s => s.replace(/^[-*\d.\s]+/, '').trim()).filter(Boolean)
+  items = (extracted ?? '').split('\n').map(s => s.replace(/^[-*\d.\s]+/, '').trim()).filter(Boolean)
 }
 
 phase('Size')
@@ -448,7 +448,7 @@ Run it with `Workflow({ name: 'adlc-feature', args: { feature, acceptance } })`.
 
 | ADLC phase | Workflow that fits |
 |------------|--------------------|
-| **Plan → Build → Verify → Review** (full span) | **`adlc-feature`** — the gated full-loop workflow; stops before Ship |
+| **Plan → Build → Verify → Review** (full span) | **`adlc-feature`** — the gated full-span workflow; stops before Ship |
 | **Build** | `feature-build` (contract → parallel lanes → verify → review) |
 | **Verify** | the change is **run** (`/verify` + `make test` — tests green *and* behavior observed); `migration-safety` adds a specialized pre-ship DB-target audit |
 | **Review** | `review-diff` (dimensions → adversarial verify) |
