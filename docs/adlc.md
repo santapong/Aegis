@@ -14,7 +14,7 @@ so the process is executable, not just aspirational.
 This sits *above* the existing skills. [`project-manager`](../.claude/skills/project-manager/SKILL.md)
 owns Plan + Improve, [`multi-agent-orchestration`](../.claude/skills/multi-agent-orchestration/SKILL.md)
 and [`frontend-design-team`](../.claude/skills/frontend-design-team/SKILL.md) own
-Build, [`/verify`](#4-verify) and [`/code-review`](#5-review) own the gates. The
+Build, `/verify` and `/code-review` own the gates. The
 ADLC is the spine they all hang off.
 
 ---
@@ -135,7 +135,7 @@ deterministically.
 | | |
 |---|---|
 | **Trigger** | Build reports done. |
-| **Driver** | [`/verify`](../.claude/skills/) (run the app, observe real behavior) + `make test` + a QA subagent. |
+| **Driver** | `/verify` (run the app, observe real behavior) + `make test` + a QA subagent. |
 | **Work** | Run `make test` (pytest matrix). Bring the stack up (`make dev` / `docker compose up`) and exercise the actual change in the browser or via `curl`. Trust `curl` over the UI for auth flows (per [`aegis-troubleshooting`](../.claude/skills/aegis-troubleshooting/SKILL.md)). |
 | **Gate** | **Tests green and behavior observed.** A passing test suite is necessary but not sufficient — the change must be seen working. Fails bounce to Build. |
 | **Artifact** | Test output + an observation note (or screenshot) in the PR. |
@@ -145,7 +145,7 @@ deterministically.
 | | |
 |---|---|
 | **Trigger** | Verify passed. |
-| **Driver** | [`/code-review`](../.claude/skills/) for the diff; a `/workflow` **adversarial-verify** script for high-stakes changes (spawn N skeptics per finding, kill findings a majority refute). |
+| **Driver** | `/code-review` for the diff; a `/workflow` **adversarial-verify** script for high-stakes changes (spawn N skeptics per finding, kill findings a majority refute). |
 | **Work** | An agent **other than the implementer** reviews for correctness bugs and reuse/simplification. Apply the per-PR gates from the PM skill: criteria checked, migration reversible, prompt-cache keys reviewed if AI touched, UX sign-off if a button/route/modal changed. |
 | **Gate** | Independent reviewer signs off; all PM per-PR gates satisfied. Changes requested bounce to Build. |
 | **Artifact** | Review verdict; applied fixes or filed follow-ups. |
@@ -169,7 +169,7 @@ deterministically.
 |---|---|
 | **Trigger** | Continuous — the PM skill runs this without being asked. |
 | **Driver** | [`project-manager`](../.claude/skills/project-manager/SKILL.md) continuous-improvement cadence. |
-| **Work** | Weekly: Mon triage `ROADMAP.md`, Wed UX bug-bash, Fri test/release health. Quarterly: model refresh (via [`claude-api`](../.claude/skills/) / `/claude-api`), dependency sweep, perf review, roadmap re-rank. Capture one keep / one change retro per feature. |
+| **Work** | Weekly: Mon triage `ROADMAP.md`, Wed UX bug-bash, Fri test/release health. Quarterly: model refresh (via the `claude-api` skill / `/claude-api`), dependency sweep, perf review, roadmap re-rank. Capture one keep / one change retro per feature. |
 | **Gate** | Metrics inside target (p95 < 300 ms, initial JS < 500 KB, `make test` < 60 s, 0 P0 bugs). Misses become new Intake items. |
 | **Artifact** | Re-ranked roadmap, new issues, updated metrics — which feed back into phase 0. |
 

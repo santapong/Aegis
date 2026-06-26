@@ -64,8 +64,9 @@ What exists today, so you extend rather than duplicate:
 | MCP | github, Vercel, Mermaid, … | session connect | PRs/CI, deploys, diagram validation |
 
 **Gaps (the harness roadmap):** no `.claude/agents/` custom subagents yet, no
-`.claude/settings.json` (no hooks, no permission allowlist), no saved
-`.claude/workflows/*.js`. See [Harness roadmap](#harness-roadmap).
+`.claude/settings.json` (no hooks, no permission allowlist), and only one saved
+workflow so far (`.claude/workflows/adlc-feature.js`). See
+[Harness roadmap](#harness-roadmap).
 
 ---
 
@@ -183,8 +184,8 @@ the harness executes them, the model doesn't choose to. Configure in
 
 The highest-value hook for Aegis is a **SessionStart** that guarantees a web
 session can build and test — generate `.env` (`make setup`), run migrations,
-seed. See the [`session-start-hook`](../.claude/skills/) skill for the full
-recipe. Use the [`update-config`](../.claude/skills/) skill for any
+seed. See the `session-start-hook` skill for the full
+recipe. Use the `update-config` skill for any
 `settings.json` change (permissions, env vars, hooks) rather than editing by
 hand.
 
@@ -269,9 +270,9 @@ Concrete next steps to close the gaps, in priority order:
 2. **Lane-locked custom subagents** — `aegis-backend`, `aegis-frontend`,
    `aegis-ai`, `aegis-qa` under `.claude/agents/`, so Build fan-outs can't drift
    lanes by construction.
-3. **Saved workflows** — promote the four example scripts in the `/workflow`
-   skill into `.claude/workflows/*.js` so they're callable by name (e.g.
-   `Workflow({name: "review-diff"})`).
+3. **Saved workflows** — `adlc-feature` is saved; promote the remaining example
+   scripts in the `/workflow` skill into `.claude/workflows/*.js` so they're
+   callable by name (e.g. `Workflow({name: "review-diff"})`).
 4. **Permission allowlist** — run the `fewer-permission-prompts` skill to
    allowlist the common read-only `make`/`git`/`docker` calls.
 5. **Harness CHANGELOG discipline** — note harness changes in `CHANGELOG.md`

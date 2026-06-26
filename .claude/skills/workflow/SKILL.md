@@ -266,7 +266,8 @@ const contract = await agent(
 )
 
 phase('Implement')
-const [backend, frontend] = await parallel([
+// parallel() yields null for a lane whose agent died — guard before use.
+const [backend, frontend] = (await parallel([
   () => agent(
     `Implement the BACKEND for "${feature}" behind this frozen contract:\n${contract}\n\n` +
     `Own backend/app/ only. Reversible, batch-mode-safe Alembic migration for any schema change. ` +
@@ -279,7 +280,7 @@ const [backend, frontend] = await parallel([
     `(no hard-coded colors). Do not touch backend/.`,
     { label: 'impl:frontend' },
   ),
-])
+])).map(r => r ?? '(implement lane produced no output)')
 
 phase('Verify')
 const verify = await agent(
@@ -423,7 +424,10 @@ enforces. Every Aegis workflow must pass this checklist before it ships:
       - **Verify** → a gate stage that passes only when *tests are green* **and**
         *behavior is observed* — never tests alone.
       - **Review** → the reviewer agent must NOT be the implementer; findings are
-        adversarially verified (refute-by-default), not taken at face value.
+        adversarially verified (refute-by-default), not taken at face value; and
+        the conditional PM per-PR gates hold — prompt-cache keys reviewed + cost
+        diff estimated if AI (`services/ai_engine.py`) is touched, UX sign-off if
+        a button / route / modal changed.
       - **Ship** → **never inside a script.** CI-green + draft PR is a human /
         main-thread gate. A workflow *returns a package for Ship*; it does not
         self-ship.
@@ -446,7 +450,7 @@ Run it with `Workflow({ name: 'adlc-feature', args: { feature, acceptance } })`.
 |------------|--------------------|
 | **Plan → Build → Verify → Review** (full span) | **`adlc-feature`** — the gated full-loop workflow; stops before Ship |
 | **Build** | `feature-build` (contract → parallel lanes → verify → review) |
-| **Verify** | `migration-safety` (audit across DB targets before ship) |
+| **Verify** | the change is **run** (`/verify` + `make test` — tests green *and* behavior observed); `migration-safety` adds a specialized pre-ship DB-target audit |
 | **Review** | `review-diff` (dimensions → adversarial verify) |
 | **Improve** | `roadmap-triage` (size → rank the backlog) |
 

@@ -1,21 +1,21 @@
 export const meta = {
   name: 'adlc-feature',
   description:
-    'Run the automatable span of the Aegis ADLC for one feature: Plan -> (Design) -> Build -> Verify -> Review, with the Verify and Review gates enforced as bounded loop-backs to Build. Stops before Ship (a human/CI gate) and returns a PR-ready package. See docs/adlc.md.',
+    'Run the automatable span of the Aegis ADLC for one feature: Plan -> (Design) -> Build -> Verify -> Review. The Design gate escalates on failure; the Verify and Review gates are bounded loop-backs to Build, and Review blockers are adversarially verified. Stops before Ship (a human/CI gate) and returns a PR-ready package. See docs/adlc.md.',
   phases: [
     { title: 'Plan' },
     { title: 'Design' },
     { title: 'Build' },
     { title: 'Verify' },
     { title: 'Review' },
-    { title: 'Package' },
+    { title: 'Package for Ship' },
   ],
 }
 
 // args = {
 //   feature:    'budget templates (50/30/20)',      // required
 //   acceptance: ['user can adopt a template', 'idempotent on re-adopt'],
-//   needsDesign: false,   // true -> run a Design (ADR) phase before Build
+//   needsDesign: false,   // true -> run a gated Design (ADR) phase before Build
 //   maxRounds:   2,       // bounded Build <-> gate retries before escalating
 // }
 const feature = args && args.feature
@@ -38,6 +38,13 @@ const GATE = {
   required: ['pass', 'blockers'],
 }
 
+// A skeptic's verdict on a single Review blocker (adversarial verification).
+const VERDICT = {
+  type: 'object',
+  properties: { real: { type: 'boolean' }, reason: { type: 'string' } },
+  required: ['real'],
+}
+
 // ---- Plan -----------------------------------------------------------------
 phase('Plan')
 const brief = await agent(
@@ -49,7 +56,8 @@ const brief = await agent(
   { agentType: 'Plan', phase: 'Plan' },
 )
 
-// ---- Design (conditional) -------------------------------------------------
+// ---- Design (conditional, gated) ------------------------------------------
+// docs/adlc.md section 2: Design output must be reviewed before Build consumes it.
 let design = null
 if (args.needsDesign) {
   phase('Design')
@@ -59,6 +67,25 @@ if (args.needsDesign) {
       `for the house format.`,
     { phase: 'Design' },
   )
+  // Design gate: a separate agent reads the ADR cold; escalate (don't proceed) on failure.
+  const designGate = await agent(
+    `ADLC Design gate for "${feature}". You did NOT write this ADR — read it cold and confirm it has a ` +
+      `chosen option WITH a stated reason, a reversible migration/rollback story, and Status no longer ` +
+      `"draft". pass=true only if all hold; list every blocker.\n\nADR:\n${design}`,
+    { phase: 'Design', schema: GATE, effort: 'high' },
+  )
+  if (!designGate || !designGate.pass) {
+    log('Design gate FAILED — escalating before Build')
+    return {
+      feature,
+      gatesPassed: false,
+      stoppedAt: 'Design',
+      blockers: (designGate && designGate.blockers) || ['unknown'],
+      brief,
+      design,
+      shipNote: 'Design gate failed — fix the ADR before re-running; do not proceed to Build.',
+    }
+  }
 }
 
 // ---- Build -> Verify -> Review, with the gates wired as bounded loop-backs -
@@ -97,33 +124,51 @@ while (round < maxRounds) {
     continue
   }
 
-  // Review gate: independent reviewer (not the implementer), or back to Build.
+  // Review gate: an independent reviewer (not the implementer) raises blockers;
+  // each is then adversarially verified (refute-by-default) before it can fail
+  // the gate — mirroring docs/adlc.md section 5 and the conformance checklist.
   phase('Review')
-  reviewGate = await agent(
-    `ADLC Review gate for "${feature}". You did NOT implement this — review the working-tree diff cold for ` +
-      `correctness, lane discipline, migration reversibility, and reuse/simplification. Apply the per-PR gates ` +
-      `from the project-manager skill.\n\npass=true ONLY if there are no blocking correctness issues. ` +
+  const reviewRaw = await agent(
+    `ADLC Review for "${feature}". You did NOT implement this — review the working-tree diff cold for ` +
+      `correctness, lane discipline, migration reversibility, reuse/simplification, AND the conditional ` +
+      `PM per-PR gates: if AI (backend/app/services/ai_engine.py) is touched, prompt-cache keys are reviewed ` +
+      `and the cost diff estimated; if a button / route / modal changed, UX sign-off is noted. ` +
       `List every blocker as a requested change.`,
     { label: `review:round-${round}`, phase: 'Review', schema: GATE, effort: 'high' },
   )
-  if (!reviewGate || !reviewGate.pass) {
-    feedback = `Review requested changes: ${((reviewGate && reviewGate.blockers) || ['unknown']).join('; ')}`
-    log(`Round ${round}: Review gate requested changes -> back to Build`)
+  // Adversarial verify: keep only blockers a skeptic cannot refute (null = keep, fail-safe).
+  const rawBlockers = (reviewRaw && reviewRaw.blockers) || []
+  const verified = (
+    await parallel(
+      rawBlockers.map(b => () =>
+        agent(
+          `Adversarially verify this Review blocker for "${feature}". Try to REFUTE it against the actual ` +
+            `diff; set real=false if it does not hold. Blocker: ${b}`,
+          { label: `review-verify:round-${round}`, phase: 'Review', schema: VERDICT },
+        ).then(v => ({ blocker: b, real: !v || v.real !== false })),
+      ),
+    )
+  ).filter(Boolean)
+  const realBlockers = verified.filter(x => x.real).map(x => x.blocker)
+  reviewGate = { pass: realBlockers.length === 0, blockers: realBlockers }
+  if (!reviewGate.pass) {
+    feedback = `Review requested changes (adversarially confirmed): ${realBlockers.join('; ')}`
+    log(`Round ${round}: Review gate — ${realBlockers.length} confirmed blocker(s) -> back to Build`)
     continue
   }
 
-  log(`Round ${round}: Verify PASS and Review PASS — gates green`)
+  log(`Round ${round}: Verify PASS and Review PASS (blockers refuted or none raised) — gates green`)
   break
 }
 
 // ---- Package for Ship (Ship itself is a human/CI gate, outside this script) -
-phase('Package')
+phase('Package for Ship')
 const gatesPassed = Boolean(verifyGate && verifyGate.pass && reviewGate && reviewGate.pass)
 const prDescription = await agent(
   `Summarize this ADLC run of "${feature}" into a PR-ready description: what changed, how each acceptance ` +
     `criterion is met, the migration (if any) and its reversibility, and any follow-ups for the Improve phase.\n` +
     `Brief:\n${brief}\nVerify:\n${JSON.stringify(verifyGate)}\nReview:\n${JSON.stringify(reviewGate)}`,
-  { phase: 'Package' },
+  { phase: 'Package for Ship' },
 )
 
 return {
