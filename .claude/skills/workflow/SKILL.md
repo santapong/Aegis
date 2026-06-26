@@ -417,7 +417,9 @@ enforces. Every Aegis workflow must pass this checklist before it ships:
 - [ ] **Declares its phase(s).** `meta.description` (or an opening `log()`) names
       the ADLC phase(s) the workflow enacts — Build, Verify, Review, Improve, or
       an explicit multi-phase span. A workflow is a *phase*, not the whole loop.
-- [ ] **Honors that phase's gate** — don't fake it:
+- [ ] **Honors that phase's gate** (the four below are the scriptable gates;
+      Plan/Design gates live in `docs/adlc.md`, and Improve has no script gate) —
+      don't fake it:
       - **Build** → lane discipline (backend → `backend/app/`, frontend →
         `frontend/src/`); a schema change ⇒ a reversible, batch-mode-safe Alembic
         migration.
