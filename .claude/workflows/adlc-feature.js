@@ -18,14 +18,16 @@ export const meta = {
 //   needsDesign: false,   // true -> run a gated Design (ADR) phase before Build
 //   maxRounds:   2,       // bounded Build <-> gate retries before escalating
 // }
-const feature = args && args.feature
+// args may arrive as an object or, depending on the caller, as a JSON string — normalize.
+const A = typeof args === 'string' ? JSON.parse(args || '{}') : args || {}
+const feature = A.feature
 if (!feature) {
-  log('adlc-feature: no args.feature provided. Pass { feature, acceptance, needsDesign?, maxRounds? }.')
+  log('adlc-feature: no feature provided. Pass args { feature, acceptance, needsDesign?, maxRounds? }.')
   return { error: 'missing args.feature' }
 }
 const acceptance =
-  (args.acceptance || []).map((a, i) => `AC${i + 1}: ${a}`).join('\n') || '(none specified — derive from the brief)'
-const maxRounds = args.maxRounds || 2
+  (A.acceptance || []).map((a, i) => `AC${i + 1}: ${a}`).join('\n') || '(none specified — derive from the brief)'
+const maxRounds = A.maxRounds || 2
 
 // A gate verdict: pass + the blockers that must be fixed to flip it green.
 const GATE = {
@@ -59,7 +61,7 @@ const brief = await agent(
 // ---- Design (conditional, gated) ------------------------------------------
 // docs/adlc.md section 2: Design output must be reviewed before Build consumes it.
 let design = null
-if (args.needsDesign) {
+if (A.needsDesign) {
   phase('Design')
   design = await agent(
     `Write a docs/design ADR sketch for "${feature}": Status, Context, an options table with a chosen ` +
