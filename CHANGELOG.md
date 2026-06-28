@@ -8,6 +8,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added — features
 
+- **Budget templates (50/30/20, zero-based)** — `/budgets` gains a
+  **Use a template** action that creates a full set of category budgets for
+  the current month in one click. `GET /api/budgets/templates` returns the
+  catalog (each template carries categories + income percentages summing to
+  100%); `POST /api/budgets/templates/{key}/adopt` takes a `monthly_income`
+  and inserts one `Budget` per category sized at `round(income × pct, 2)`
+  for the current period (1st → month-end). Templates allocate only to
+  **real Aegis spend categories** (rent, groceries, dining, transport,
+  utilities, subscriptions, entertainment, health, shopping, savings), so an
+  adopted budget actually tracks spend in `GET /api/budgets/comparison`
+  instead of reading $0; 50/30/20 maps onto those categories grouped into
+  needs/wants/savings tiers (50/30/20 by tier). Adoption is idempotent at the
+  application layer (re-adopting skips categories already present) with **no
+  schema change** — a DB unique constraint was considered and rejected because
+  it regressed the plain create endpoint + MCP tool and isn't NULL-safe across
+  the supported databases (see `docs/design/005-budget-templates.md`,
+  Decision 2). Covered by `backend/tests/test_budget_templates.py`.
 - **Interactive investments picker** — `/investments` now lets you search
   and pick a stock or cryptocurrency instead of hand-typing
   `EXCHANGE:TICKER` strings. New `GET /api/market/{search,quote,status}`

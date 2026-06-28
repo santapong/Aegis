@@ -15,8 +15,8 @@ import { Modal, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Trash2, AlertTriangle, Pencil, Wallet } from "lucide-react";
-import type { Budget, BudgetComparisonResponse } from "@/types";
+import { Plus, Trash2, AlertTriangle, Pencil, Wallet, LayoutTemplate } from "lucide-react";
+import type { Budget, BudgetComparisonResponse, BudgetTemplate } from "@/types";
 
 // Recharts stays out of this page's static bundle — same split as the
 // dashboard charts. ssr:false because Recharts needs ResizeObserver /
@@ -28,6 +28,60 @@ const BudgetComparisonChart = dynamic(
     ),
   { ssr: false, loading: () => <Skeleton height={350} /> }
 );
+
+// Render a template's category split. When categories carry a `tier`
+// (50/30/20: needs / wants / savings) we group them under tier headers so 9
+// rows stay readable; otherwise (zero-based) we show a flat chip list. The
+// per-category amount is previewed once the user enters their income.
+function TemplateCategories({
+  template,
+  income,
+}: {
+  template: BudgetTemplate;
+  income: number | null;
+}) {
+  const chip = (c: BudgetTemplate["categories"][number]) => (
+    <span
+      key={c.category}
+      className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs"
+    >
+      <span className="capitalize">{c.category}</span>
+      <span className="text-muted-foreground">{Math.round(c.pct * 100)}%</span>
+      {income !== null && (
+        <span className="font-medium">
+          {formatCurrency(Math.round(income * c.pct * 100) / 100)}
+        </span>
+      )}
+    </span>
+  );
+
+  const tiers = template.categories.some((c) => c.tier)
+    ? Array.from(
+        template.categories.reduce((acc, c) => {
+          const key = c.tier ?? "other";
+          (acc.get(key) ?? acc.set(key, []).get(key)!).push(c);
+          return acc;
+        }, new Map<string, BudgetTemplate["categories"]>())
+      )
+    : null;
+
+  if (!tiers) {
+    return <div className="mt-3 flex flex-wrap gap-2">{template.categories.map(chip)}</div>;
+  }
+
+  return (
+    <div className="mt-3 space-y-2">
+      {tiers.map(([tier, cats]) => (
+        <div key={tier}>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">
+            {tier} · {Math.round(cats.reduce((s, c) => s + c.pct, 0) * 100)}%
+          </p>
+          <div className="flex flex-wrap gap-2">{cats.map(chip)}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 const defaultForm = {
   name: "",
@@ -47,6 +101,9 @@ export default function BudgetsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState(defaultForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showTemplates, setShowTemplates] = useState(false);
+  const [templateIncome, setTemplateIncome] = useState("");
+  const [templateError, setTemplateError] = useState<string | null>(null);
 
   const { data: budgets } = useQuery<Budget[]>({
     queryKey: ["budgets"],
@@ -56,6 +113,13 @@ export default function BudgetsPage() {
   const { data: comparison } = useQuery<BudgetComparisonResponse>({
     queryKey: ["budget-comparison"],
     queryFn: () => budgetsAPI.comparison() as Promise<BudgetComparisonResponse>,
+  });
+
+  const { data: templates } = useQuery<BudgetTemplate[]>({
+    queryKey: ["budget-templates"],
+    queryFn: async () => (await budgetsAPI.listTemplates()).templates,
+    // The catalog is static — no need to refetch on focus.
+    staleTime: Infinity,
   });
 
   const invalidateAll = () => {
@@ -81,11 +145,42 @@ export default function BudgetsPage() {
     onError: () => toast.error("Failed to delete budget"),
   });
 
+  const adoptMutation = useMutation({
+    mutationFn: ({ key, income }: { key: string; income: number }) =>
+      budgetsAPI.adoptTemplate(key, income),
+    onSuccess: (rows) => {
+      invalidateAll();
+      closeTemplates();
+      // Server is idempotent, so a re-adopt returns existing rows without
+      // creating duplicates — phrase the toast so a no-op re-adopt still reads
+      // as success rather than implying N fresh budgets every time.
+      const n = Array.isArray(rows) ? rows.length : 0;
+      toast.success(`Template applied — ${n} budget${n === 1 ? "" : "s"} ready for this month`);
+    },
+    onError: () => toast.error("Failed to apply template"),
+  });
+
   const closeForm = () => {
     setShowForm(false);
     setEditingBudget(null);
     setForm(defaultForm);
     setErrors({});
+  };
+
+  const closeTemplates = () => {
+    setShowTemplates(false);
+    setTemplateIncome("");
+    setTemplateError(null);
+  };
+
+  const handleAdopt = (key: string) => {
+    const income = parseFloat(templateIncome);
+    if (!templateIncome || isNaN(income) || income <= 0) {
+      setTemplateError("Enter your monthly income to size the budgets");
+      return;
+    }
+    setTemplateError(null);
+    adoptMutation.mutate({ key, income });
   };
 
   const openEdit = (budget: Budget) => {
@@ -148,9 +243,18 @@ export default function BudgetsPage() {
           title="Budget Management"
           subtitle="Track your spending against budget limits"
           action={
-            <Button icon={<Plus size={16} />} onClick={() => setShowForm(true)}>
-              Add Budget
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                icon={<LayoutTemplate size={16} />}
+                onClick={() => setShowTemplates(true)}
+              >
+                Use a template
+              </Button>
+              <Button icon={<Plus size={16} />} onClick={() => setShowForm(true)}>
+                Add Budget
+              </Button>
+            </div>
           }
         />
       </motion.div>
@@ -298,6 +402,57 @@ export default function BudgetsPage() {
           action={<Button size="sm" onClick={() => setShowForm(true)} icon={<Plus size={14} />}>Add Budget</Button>}
         />
       )}
+
+      {/* Budget Templates Modal */}
+      <Modal open={showTemplates} onClose={closeTemplates} title="Start from a template" size="lg">
+        <ModalBody className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Pick a template to create budgets for this month in one click. Amounts
+            are sized from your monthly income; re-applying a template won&apos;t
+            create duplicates.
+          </p>
+          <Input
+            label="Monthly income"
+            type="number"
+            placeholder="0.00"
+            value={templateIncome}
+            onChange={(e) => setTemplateIncome(e.target.value)}
+            error={templateError ?? undefined}
+            min="0"
+            step="0.01"
+          />
+          <div className="space-y-3">
+            {(templates ?? []).map((t) => {
+              const income = parseFloat(templateIncome);
+              const hasIncome = !!templateIncome && !isNaN(income) && income > 0;
+              const adoptingThis =
+                adoptMutation.isPending && adoptMutation.variables?.key === t.key;
+              return (
+                <div key={t.key} className="rounded-lg border border-border p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="font-medium">{t.name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t.description}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      loading={adoptingThis}
+                      disabled={adoptMutation.isPending}
+                      onClick={() => handleAdopt(t.key)}
+                    >
+                      Adopt
+                    </Button>
+                  </div>
+                  <TemplateCategories template={t} income={hasIncome ? income : null} />
+                </div>
+              );
+            })}
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="outline" onClick={closeTemplates}>Close</Button>
+        </ModalFooter>
+      </Modal>
 
       {/* Create/Edit Budget Modal */}
       <Modal open={showForm} onClose={closeForm} title={editingBudget ? "Edit Budget" : "Add Budget"} size="md">

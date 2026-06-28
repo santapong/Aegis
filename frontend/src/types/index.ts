@@ -250,6 +250,22 @@ export interface BudgetComparisonResponse {
   total_spent: number;
 }
 
+export interface BudgetTemplateCategory {
+  category: string;
+  /** Share of monthly income, 0..1 (e.g. 0.5 == 50%). */
+  pct: number;
+  /** Optional grouping label (needs / wants / savings) the 50/30/20 template
+   *  uses to keep the rule recognizable. No behavior; purely presentational. */
+  tier?: string | null;
+}
+
+export interface BudgetTemplate {
+  key: string;
+  name: string;
+  description: string;
+  categories: BudgetTemplateCategory[];
+}
+
 export interface HealthScoreBreakdown {
   name: string;
   score: number;

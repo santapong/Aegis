@@ -7,6 +7,8 @@ import type {
   SymbolSearchResponse,
   QuoteResponse,
   MarketStatus,
+  Budget,
+  BudgetTemplate,
 } from "@/types";
 
 // Same-origin by default — the browser hits `/api/*` and Next.js
@@ -241,6 +243,15 @@ export const budgetsAPI = {
     if (end) params.set("period_end", end);
     return fetchJSON(`/api/budgets/comparison?${params}`);
   },
+  listTemplates: () =>
+    fetchJSON<{ templates: BudgetTemplate[] }>("/api/budgets/templates"),
+  /** Adopt a template: creates one budget per category for the current
+   *  month, sized by monthly income. Idempotent server-side. */
+  adoptTemplate: (key: string, monthlyIncome: number) =>
+    fetchJSON<Budget[]>(`/api/budgets/templates/${key}/adopt`, {
+      method: "POST",
+      body: JSON.stringify({ monthly_income: monthlyIncome }),
+    }),
 };
 
 export const tripsAPI = {
