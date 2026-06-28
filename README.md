@@ -294,6 +294,15 @@ cd backend && uv pip install -e '.[test]' && pytest
 
 Smoke tests live in `backend/tests/test_smoke.py` and cover `/api/health` plus the register → login → authorized-request flow.
 
+## Development process (ADLC)
+
+Aegis is built with an **Agentic Development Life Cycle** — a plan → build → ship loop where each phase is driven by a Claude Code harness primitive (a skill, a subagent, or a workflow). Whether you're a human or an agent, start here:
+
+- **[`CLAUDE.md`](CLAUDE.md)** — the always-loaded harness index: branch rules, commands, guardrails, and which skill to reach for.
+- **[`docs/adlc.md`](docs/adlc.md)** — the lifecycle: the eight phases, their gates, and a worked example.
+- **[`docs/harness-engineering.md`](docs/harness-engineering.md)** — how the `.claude/` harness is built and extended (skills, subagents, workflows, hooks, MCP).
+- **Skills** in [`.claude/skills/`](.claude/skills/) — `project-manager`, `multi-agent-orchestration`, `workflow`, `frontend-design-team`, `aegis-troubleshooting`.
+
 ## Deployment
 
 Aegis is designed Vercel-first: the root [`vercel.json`](vercel.json) configures Vercel's `experimentalServices` mode so a single `vercel deploy` ships both the Next.js frontend and the FastAPI backend. Five recipes are documented in [`docs/deployment/`](docs/deployment/):
