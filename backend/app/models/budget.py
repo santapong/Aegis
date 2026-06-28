@@ -10,6 +10,13 @@ from ..database import Base
 class Budget(Base):
     __tablename__ = "budgets"
 
+    # NB: budgets are intentionally NOT unique per (user, category, period).
+    # Template adoption is made idempotent in the adopt route (app-level
+    # existence check); a DB unique constraint was considered and rejected
+    # because it regresses the plain create endpoint + MCP tool and isn't
+    # NULL-safe across the supported databases. See
+    # docs/design/005-budget-templates.md, Decision 2.
+
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
     trip_id: Mapped[str | None] = mapped_column(
