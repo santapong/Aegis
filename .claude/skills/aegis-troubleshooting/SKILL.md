@@ -163,3 +163,22 @@ services:
 - **Always check `docker logs <container>`** when `docker compose ps` shows a restart loop. The compose-level error is usually too generic to act on.
 - **`grep -rn` the user-visible string** ("Session expired", error names) to find the exact throw site fast.
 - **Read the call sequence around persisted state**: state-set-after-read races (login → me → store-update) hide behind otherwise-correct-looking code.
+
+---
+
+## 6. Worker restart loop: `'staticmethod' object has no attribute 'host'`
+
+**Symptom** (`docker compose ps` shows `aegis-worker-1 Restarting`):
+
+```
+docker logs aegis-worker-1:
+  File ".../arq/connections.py", line 236, in create_pool
+    if isinstance(settings.host, str) and settings.sentinel:
+AttributeError: 'staticmethod' object has no attribute 'host'
+```
+
+**How it was found**: `docker compose ps` showed only the worker looping while backend/db/redis were healthy; `docker logs aegis-worker-1` gave the traceback inside arq's `create_pool`.
+
+**Cause**: `backend/app/worker.py` defined `WorkerSettings.redis_settings` as a `@staticmethod` (on the assumption arq *calls* it). arq never calls it — it reads the class attribute expecting a `RedisSettings` **instance**, so `create_pool` received the staticmethod object itself.
+
+**Fix**: build the instance at class-definition time via a module-level helper (`_build_redis_settings()`), keeping the loud RuntimeError when `CACHE_REDIS_URL` is unset. Safe because nothing else imports `app.worker` — only the worker container (`arq app.worker.WorkerSettings`) loads the module. Then `docker compose up -d --build worker`.

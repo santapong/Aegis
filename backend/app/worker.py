@@ -128,6 +128,16 @@ async def render_pdf_report(
 # ---------------------------------------------------------------------------
 
 
+def _build_redis_settings():
+    settings = get_settings()
+    if not settings.cache_redis_url:
+        raise RuntimeError(
+            "CACHE_REDIS_URL is not set — the worker requires Redis. "
+            "Set it in the worker service's environment."
+        )
+    return _redis_settings_from_url(settings.cache_redis_url)
+
+
 class WorkerSettings:
     """arq picks up this class when launched as ``arq app.worker.WorkerSettings``."""
 
@@ -140,22 +150,15 @@ class WorkerSettings:
     # Retry once on failure; a second failure marks the job failed.
     max_tries = 2
 
+    # arq reads this as an attribute (a RedisSettings instance) — it never
+    # calls it, so a @staticmethod here crashes create_pool at boot.
+    redis_settings = _build_redis_settings()
+
     @classmethod
     def __init_subclass__(cls, **kwargs: Any) -> None:
         # Defensive — arq itself doesn't subclass this, so the hook
         # should never fire. If it does, log so we notice.
         logger.warning("WorkerSettings subclassed by {cls}", cls=cls)
-
-    # arq calls this once to set up its Redis connection.
-    @staticmethod
-    def redis_settings():
-        settings = get_settings()
-        if not settings.cache_redis_url:
-            raise RuntimeError(
-                "CACHE_REDIS_URL is not set — the worker requires Redis. "
-                "Set it in the worker service's environment."
-            )
-        return _redis_settings_from_url(settings.cache_redis_url)
 
 
 def main() -> None:
