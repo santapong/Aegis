@@ -1,0 +1,12 @@
+flowchart TD
+    Choice{CACHE_BACKEND}
+    Choice -- memory --> Mem[Per-process TTL dict<br/>fast · not shared across workers<br/>dev + single-pod prod]
+    Choice -- redis --> Redis[Shared cache<br/>across all pods<br/>production]
+    Choice -- disabled --> Off[Every get returns None<br/>incident-response toggle]
+
+    Redis -. unreachable at startup .-> Mem
+    note["Fallback: caching is an optimization,<br/>not a hard dependency."]
+
+    style Mem fill:#eef
+    style Redis fill:#efe
+    style Off fill:#fee

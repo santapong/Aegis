@@ -21,32 +21,9 @@ ADLC is the spine they all hang off.
 
 ## The loop
 
-```mermaid
-flowchart LR
-    Intake([0 · Intake & Triage])
-    Plan[1 · Plan]
-    Design[2 · Design]
-    Build[3 · Build]
-    Verify[4 · Verify]
-    Review[5 · Review]
-    Ship[6 · Ship]
-    Improve[7 · Improve]
+![The loop](diagrams/adlc-the-loop.svg)
 
-    Intake --> Plan
-    Plan --> Design
-    Design --> Build
-    Plan -. small change .-> Build
-    Build --> Verify
-    Verify -- fails --> Build
-    Verify --> Review
-    Review -- changes requested --> Build
-    Review --> Ship
-    Ship --> Improve
-    Improve -. new work .-> Intake
-
-    classDef gate fill:#1f2937,stroke:#60a5fa,color:#e5e7eb;
-    class Verify,Review,Ship gate
-```
+<sub>Diagram source: [adlc-the-loop.mmd](diagrams/src/adlc-the-loop.mmd)</sub>
 
 Three of the boxes are **gates** (blue): Verify, Review, Ship. Work only moves
 forward through a gate when its exit criteria are met; otherwise it bounces back
@@ -72,13 +49,9 @@ the **work**, the **exit gate**, and the **artifact** it leaves behind.
 **Scaling rule.** Most work does **not** traverse all eight phases. Match the
 ceremony to the blast radius:
 
-```mermaid
-flowchart TD
-    Q{Blast radius?}
-    Q -->|"typo / copy / 1-file fix"| Fast[Build → Verify → Ship]
-    Q -->|"single-area feature"| Mid[Plan → Build → Verify → Review → Ship]
-    Q -->|"multi-area / schema / AI / design"| Full[Full loop, agents fanned out]
-```
+![0 · Intake & Triage](diagrams/adlc-0-intake-triage.svg)
+
+<sub>Diagram source: [adlc-0-intake-triage.mmd](diagrams/src/adlc-0-intake-triage.mmd)</sub>
 
 ### 1 · Plan
 
@@ -118,13 +91,9 @@ data model, or any visual change.
 
 **Orchestration vs. Workflow — the Build-phase fork:**
 
-```mermaid
-flowchart TD
-    B{What is the work shape?}
-    B -->|"Exploratory, areas interact,<br/>shape unknown until you read code"| O[multi-agent-orchestration<br/>Agent tool fan-out]
-    B -->|"Known list, fixed stages,<br/>needs loops / verify / barrier"| W[/workflow skill<br/>Workflow tool script/]
-    O -. discovers the work-list .-> W
-```
+![3 · Build](diagrams/adlc-3-build.svg)
+
+<sub>Diagram source: [adlc-3-build.mmd](diagrams/src/adlc-3-build.mmd)</sub>
 
 The two compose: scout inline or with an orchestration pass to *discover* the
 work-list, then hand the list to a `/workflow` script to *execute* it

@@ -1,6 +1,6 @@
 # Aegis — Roadmap
 
-This roadmap reflects the project state as of **v1.0.0** (2026-04-17). See
+This roadmap reflects the project state as of **v1.2.0** (2026-07-27). See
 [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
 Current status: **generally available**.
@@ -9,20 +9,9 @@ Current status: **generally available**.
 
 ## Release map
 
-```mermaid
-timeline
-    title Aegis release timeline
-    section Foundation
-        v0.1–v0.6 : Scaffold → auth → multi-db → AI tool_use
-        v0.7.0    : shadcn/ui tokens + smoke tests
-    section Polish
-        v0.8.0 : First-run & discoverability
-        v0.9.0 : Scale & export
-    section GA
-        v1.0.0 : General availability (2026-04-17)
-    section In progress
-        v1.1.0 : MCP server + Trip entity + budget overrun alerts
-```
+![Release map](docs/diagrams/roadmap-release-map.svg)
+
+<sub>Diagram source: [roadmap-release-map.mmd](docs/diagrams/src/roadmap-release-map.mmd)</sub>
 
 | Release | Theme | Status |
 |---------|-------|--------|
@@ -31,44 +20,18 @@ timeline
 | v0.8.0 | First-run & discoverability | ✅ Shipped |
 | v0.9.0 | Scale & export | ✅ Shipped |
 | **v1.0.0** | **General availability** | ✅ **Shipped** |
-| v1.1.0 | MCP server + Trip entity + budget overrun alerts | 🚧 In progress |
+| v1.1.0 | MCP server + Trip entity + budget overrun alerts | ✅ Shipped |
+| v1.2.0 | Perf audits + deploy story + market data + budget templates | ✅ Shipped |
 
 ---
 
-## Post-v1.0 direction
+## Post-v1.2 direction
 
 Captured here for continuity; not scoped.
 
-```mermaid
-mindmap
-  root((Post-v1.0))
-    Smart AI & real-time
-      WebSocket AI streaming
-      NL transaction queries
-      CSV auto-categorization
-      Tax optimization
-      Live dashboard updates
-    Feature expansion
-      Investment portfolio
-      Budget templates 50/30/20
-      Multi-currency + FX
-      Receipt attachments
-      Shared budgets
-    Integrations & data
-      Plaid bank import
-      Receipt OCR
-      SMTP + Web Push
-      Outbound webhooks
-      LINE Messaging API
-      AI categorization queue
-      More CSV connectors
-      Postgres tsvector + GIN
-    Ops & SRE
-      Async workers RQ/Celery
-      Prometheus /metrics
-      Sentry error tracking
-      Automated load testing
-```
+![Post-v1.2 direction](docs/diagrams/roadmap-post-v1-0-direction.svg)
+
+<sub>Diagram source: [roadmap-post-v1-0-direction.mmd](docs/diagrams/src/roadmap-post-v1-0-direction.mmd)</sub>
 
 ### Smart AI & real-time
 - WebSocket streaming for the AI advisor (replace current request/response).
@@ -78,8 +41,8 @@ mindmap
 - Live dashboard updates when transactions are added from another session.
 
 ### Feature expansion
-- Investment portfolio (stocks / ETF / crypto) with price feeds.
-- Budget templates (50/30/20, zero-based) that users can adopt with one click.
+- ~~Investment portfolio (stocks / ETF / crypto) with price feeds.~~ ✅ Shipped: v1.1.0 portfolio + v1.2.0 market data (Finnhub/Binance) + watchlist.
+- ~~Budget templates (50/30/20, zero-based) that users can adopt with one click.~~ ✅ Shipped in v1.2.0.
 - Multi-currency with daily FX conversion.
 - Receipt / attachment upload per transaction (image storage).
 - Shared budgets between users (household mode).
@@ -104,31 +67,9 @@ mindmap
 
 ## Architecture snapshot (current)
 
-```mermaid
-flowchart TB
-    subgraph FE["FRONTEND — Next.js 15 / React 19 / Bun"]
-        direction LR
-        FE1[Landing · Dashboard · Calendar · Gantt · Reports]
-        FE2[Transactions · Budgets · Debts · Savings · Plans · Payments]
-        FE3[AI Advisor · Onboarding · Command palette · Cheatsheet]
-        FE4[Tailwind v4 · shadcn/ui · Recharts · Zustand · React Query v5]
-        FE5[react-virtual · react-hotkeys-hook · driver.js]
-    end
+![Architecture snapshot (current)](docs/diagrams/roadmap-architecture-snapshot-current.svg)
 
-    subgraph BE["BACKEND — Python 3.11+ / FastAPI"]
-        direction LR
-        BE1[Auth · Plans · Transactions search · Budgets · Savings]
-        BE2[Debts · Payments Stripe · Reports CSV/PDF]
-        BE3[Notifications · AI Claude tool_use]
-        BE4[SQLAlchemy 2.0 · Alembic · Pydantic v2]
-        BE5[WeasyPrint · matplotlib · Jinja2]
-    end
-
-    DB[(SQLite / PostgreSQL / MySQL<br/>via DATABASE_URL)]
-
-    FE -- REST / JWT cookie --> BE
-    BE --> DB
-```
+<sub>Diagram source: [roadmap-architecture-snapshot-current.mmd](docs/diagrams/src/roadmap-architecture-snapshot-current.mmd)</sub>
 
 ## Tech stack
 

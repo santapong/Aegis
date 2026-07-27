@@ -1,0 +1,28 @@
+C4Deployment
+    title Aegis on AWS (C4 deployment view)
+
+    Deployment_Node(fehost, "Vercel / Amplify", "frontend host") {
+        Container(fe, "Frontend", "Next.js")
+    }
+
+    Deployment_Node(aws, "AWS", "single region") {
+        Deployment_Node(runner, "App Runner OR ECS Fargate", "runs the ECR image") {
+            Container(be, "Backend", "FastAPI")
+        }
+        Deployment_Node(rds, "RDS", "db.t4g.micro") {
+            ContainerDb(db, "Postgres")
+        }
+        Deployment_Node(cw, "CloudWatch", "observability") {
+            Container(logs, "Log group", "structured logs")
+        }
+        Deployment_Node(sm, "Secrets Manager", "secrets") {
+            Container(secrets, "App secrets", "JWT, Stripe, Anthropic keys")
+        }
+    }
+
+    Rel(fe, be, "/api/*", "HTTPS")
+    Rel(be, db, "SQL")
+    Rel(be, logs, "Ships logs")
+    Rel(be, secrets, "Reads at boot")
+
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")

@@ -25,17 +25,9 @@ Pick **[Vercel (all-in)](./vercel.md)** if you have no preference — the root `
 
 ## Architecture (all recipes)
 
-```mermaid
-flowchart TB
-    Browser([browser])
-    FE["Frontend (Next.js)<br/>serves the SPA<br/>proxies /api/* server-side"]
-    BE["Backend (FastAPI)<br/>JWT auth · business logic<br/>Stripe · Anthropic · WeasyPrint"]
-    DB[(Postgres)]
+![Architecture (all recipes)](../diagrams/deployment-readme-architecture-all-recipes.svg)
 
-    Browser --> FE
-    FE -- /api/* --> BE
-    BE --> DB
-```
+<sub>Diagram source: [deployment-readme-architecture-all-recipes.mmd](../diagrams/src/deployment-readme-architecture-all-recipes.mmd)</sub>
 
 The frontend never talks to the backend directly from the browser — every request goes through Next.js's `rewrites()` proxy (`frontend/next.config.ts`). This keeps auth same-origin (no CORS in the browser), lets you change backend URLs without rebuilding the frontend, and means you only need to set **one** env var (`BACKEND_INTERNAL_URL`) per environment.
 
@@ -68,28 +60,9 @@ Full list with defaults: [`backend/.env.example`](../../backend/.env.example).
 
 Aegis supports Google ID-token sign-in alongside email/password. The flow:
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User
-    participant FE as Frontend
-    participant GIS as Google Identity Services
-    participant BE as Backend
-    participant DB as Database
+![Google sign-in (optional)](../diagrams/deployment-readme-google-sign-in-optional.svg)
 
-    User->>FE: Click "Sign in with Google"
-    FE->>GIS: Request ID token (NEXT_PUBLIC_GOOGLE_CLIENT_ID)
-    GIS-->>User: Consent screen
-    User-->>GIS: Approve
-    GIS-->>FE: ID token (JWT)
-    FE->>BE: POST /api/auth/google { token }
-    BE->>GIS: Verify token signature
-    GIS-->>BE: Claims (email, sub)
-    BE->>DB: Lookup or link user by email
-    Note over BE,DB: Auto-link if email matches<br/>existing email/password user
-    BE-->>FE: Set httpOnly aegis_session cookie
-    FE-->>User: Logged in
-```
+<sub>Diagram source: [deployment-readme-google-sign-in-optional.mmd](../diagrams/src/deployment-readme-google-sign-in-optional.mmd)</sub>
 
 To enable it on any of the recipes:
 

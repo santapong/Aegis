@@ -1,0 +1,13 @@
+C4Container
+    title Shared shape of every deploy recipe (C4 container view)
+
+    Person(user, "User", "Browser")
+    Container(fe, "Frontend", "Next.js", "Serves the SPA, proxies /api/* server-side")
+    Container(be, "Backend", "FastAPI", "JWT auth, business logic, Stripe, Anthropic, WeasyPrint")
+    ContainerDb(db, "Postgres", "managed or self-hosted")
+
+    Rel(user, fe, "HTTPS")
+    Rel(fe, be, "/api/*", "server-side proxy")
+    Rel(be, db, "SQL")
+
+    UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="1")

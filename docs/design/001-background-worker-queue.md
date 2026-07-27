@@ -20,46 +20,15 @@ Going with **arq** below. Reasons: matches the codebase's existing Redis dep (al
 
 ## Architecture
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Browser
-    participant API as /api/jobs<br/>(uvicorn)
-    participant Redis as Redis<br/>(ARQ queue + result)
-    participant Worker as arq worker<br/>(separate process)
+![Architecture](../diagrams/design-001-background-worker-queue-architecture.svg)
 
-    Browser->>API: POST /api/reports/export.pdf
-    API->>Redis: enqueue job
-    API-->>Browser: 202 { job_id }
-
-    Worker->>Redis: pop job
-    Worker->>Worker: render PDF / AI
-    Worker->>Redis: write result
-
-    loop poll every 2s
-        Browser->>API: GET /api/jobs/{id}/status
-        API->>Redis: read status
-        Redis-->>API: queued | running | done
-        API-->>Browser: { status, result_url? }
-    end
-
-    Browser->>API: GET result_url
-    API-->>Browser: PDF binary
-```
+<sub>Diagram source: [design-001-background-worker-queue-architecture.mmd](../diagrams/src/design-001-background-worker-queue-architecture.mmd)</sub>
 
 ## API surface
 
-```mermaid
-stateDiagram-v2
-    [*] --> queued: POST /api/reports/export.pdf
-    queued --> running: worker pops
-    running --> done: success
-    running --> failed: exception
-    done --> [*]: GET result_url
-    failed --> [*]: client surfaces error
-    queued --> cancelled: DELETE /api/jobs/{id}
-    cancelled --> [*]
-```
+![API surface](../diagrams/design-001-background-worker-queue-api-surface.svg)
+
+<sub>Diagram source: [design-001-background-worker-queue-api-surface.mmd](../diagrams/src/design-001-background-worker-queue-api-surface.mmd)</sub>
 
 ```http
 POST /api/reports/export.pdf

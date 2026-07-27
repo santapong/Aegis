@@ -1,0 +1,9 @@
+flowchart LR
+    A[Add Holding modal] --> B[Type in SymbolSearch<br/>debounced 300ms]
+    B --> C{/api/market/search}
+    C -->|results| D[Dropdown:<br/>name · EXCHANGE:TICKER · type badge]
+    D -->|select| E[Auto-fill name + symbol<br/>+ TradingView preview + live quote chip]
+    E --> F[Use this price → current_price]
+    F --> G{{Add to portfolio}}
+    E --> H{{Add to watchlist · units=0}}
+    A -. fallback .-> M[Manual EXCHANGE:TICKER entry<br/>always available]

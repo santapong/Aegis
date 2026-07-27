@@ -6,29 +6,9 @@ The CRITICALs are landed; what's below is **fine today**, breaks at 10k+ users o
 
 ## Status overview
 
-```mermaid
-flowchart TD
-    Audit[Performance audit<br/>commit 52b2ffc]
-    Audit --> Crit[🔴 CRITICAL<br/>✅ shipped in PR #30]
-    Audit --> Warn[🟡 WARNING<br/>fix at 10k+ users / 100k+ rows]
-    Audit --> Arch[🟠 Architectural<br/>bigger refactors]
-    Audit --> Skip[🔵 Won't fix<br/>acceptable / out of scope]
+![Status overview](diagrams/performance-backlog-status-overview.svg)
 
-    Warn --> WBE[Backend<br/>cache + SQL aggregation + index work]
-    Warn --> WFE[Frontend<br/>selectors · memoization · animations]
-    Warn --> WDB[Database<br/>composite indexes]
-
-    Arch --> A1["✅ /api/dashboard/bundle"]
-    Arch --> A2["✅ arq worker queue Phase 1"]
-    Arch --> A3["✅ single-prefix cache invalidation"]
-    Arch --> A4["📋 RSC dashboard migration"]
-    Arch --> A5["📋 Async SQLAlchemy spike"]
-
-    style Crit fill:#fee
-    style Warn fill:#ffe
-    style Arch fill:#fed
-    style Skip fill:#eef
-```
+<sub>Diagram source: [performance-backlog-status-overview.mmd](diagrams/src/performance-backlog-status-overview.mmd)</sub>
 
 ## 🟡 WARNINGs — fix at scale
 
@@ -104,15 +84,9 @@ Things the audit flagged that we explicitly won't fix:
 
 ## Sequencing
 
-```mermaid
-flowchart LR
-    D1[1 day<br/>5-min migrations<br/>+ staleTime fix<br/>+ store-selector fix] --> W1[1 week<br/>SQL aggregation pass<br/>+ cache 4 dashboard routes]
-    W1 --> S1[1 sprint<br/>/api/dashboard/bundle<br/>endpoint refactor]
+![Sequencing](diagrams/performance-backlog-sequencing.svg)
 
-    style D1 fill:#efe
-    style W1 fill:#ffe
-    style S1 fill:#fed
-```
+<sub>Diagram source: [performance-backlog-sequencing.mmd](diagrams/src/performance-backlog-sequencing.mmd)</sub>
 
 If you have 1 day: pick the 5-minute migrations + React Query staleTime + the page-level store-selector fix. Stops the easy bleed.
 

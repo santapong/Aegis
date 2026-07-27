@@ -1,0 +1,11 @@
+flowchart LR
+    U10[10 users<br/>p50 80ms · p99 250ms<br/>no bottleneck]
+    U100[100 users<br/>p50 110ms · p99 600ms<br/>DB pool tight]
+    U500[500 users<br/>p50 200ms · p99 2s<br/>uvicorn + AI limits]
+    U1k[1000+ users<br/>needs horizontal scale<br/>add Redis rate-limit]
+
+    U10 --> U100 --> U500 --> U1k
+
+    U100 -. fix .-> Fix1[Redis rate-limit]
+    U500 -. fix .-> Fix2[PgBouncer<br/>txn mode]
+    U1k -. fix .-> Fix3[CDN + replicas]

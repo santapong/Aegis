@@ -1,0 +1,5 @@
+flowchart TD
+    Q{Blast radius?}
+    Q -->|"typo / copy / 1-file fix"| Fast[Build → Verify → Ship]
+    Q -->|"single-area feature"| Mid[Plan → Build → Verify → Review → Ship]
+    Q -->|"multi-area / schema / AI / design"| Full[Full loop, agents fanned out]

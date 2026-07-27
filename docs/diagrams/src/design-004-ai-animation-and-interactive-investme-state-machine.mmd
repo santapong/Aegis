@@ -1,0 +1,8 @@
+stateDiagram-v2
+    [*] --> idle
+    idle --> listening: input focused / typing
+    listening --> idle: blur + empty
+    listening --> thinking: submit (loading=true)
+    idle --> thinking: AUTO-ANALYZE
+    thinking --> responding: results arrive (loading=false)
+    responding --> idle: ~650ms settle

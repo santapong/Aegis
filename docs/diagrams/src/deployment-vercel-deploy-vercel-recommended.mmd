@@ -1,0 +1,20 @@
+C4Deployment
+    title Aegis all on Vercel (C4 deployment view)
+
+    Person(user, "User", "Browser")
+
+    Deployment_Node(vercel, "Vercel", "experimentalServices") {
+        Container(fe, "frontend", "Next.js")
+        Container(be, "backend", "Python serverless")
+    }
+
+    Deployment_Node(neon, "Neon", "managed Postgres") {
+        ContainerDb(db, "Postgres", "pooler endpoint")
+    }
+
+    Rel(user, fe, "HTTPS")
+    Rel(user, be, "/api/*", "HTTPS")
+    Rel(fe, be, "server-side calls")
+    Rel(be, db, "SQL")
+
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")

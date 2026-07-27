@@ -1,0 +1,5 @@
+flowchart LR
+    Choice{CACHE_BACKEND}
+    Choice -- memory --> Mem[Per-process TTL dict<br/>dev / single pod]
+    Choice -- redis --> Redis[Shared across pods<br/>production default]
+    Choice -- disabled --> Off[No-op<br/>incident response]

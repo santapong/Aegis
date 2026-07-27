@@ -1,0 +1,29 @@
+sequenceDiagram
+    autonumber
+    actor User
+    participant FE as Frontend
+    participant BE as Backend
+    participant DB as Database
+    participant GIS as Google Identity Services
+
+    rect rgb(235, 245, 255)
+    Note over User,DB: Email + password
+    User->>FE: Submit credentials
+    FE->>BE: POST /api/auth/login
+    BE->>DB: SELECT user, verify bcrypt
+    BE-->>FE: Set-Cookie: aegis_session (httpOnly, Secure, SameSite=Lax)
+    end
+
+    rect rgb(245, 255, 235)
+    Note over User,DB: Google ID-token
+    User->>FE: Click "Sign in with Google"
+    FE->>GIS: Request ID token
+    GIS-->>FE: JWT credential
+    FE->>BE: POST /api/auth/google { token }
+    BE->>GIS: Verify token signature
+    GIS-->>BE: Claims (email, sub)
+    BE->>DB: Lookup or auto-link by email
+    BE-->>FE: Same Set-Cookie as above
+    end
+
+    Note over FE,BE: Every subsequent request:<br/>browser sends aegis_session<br/>backend decodes JWT, resolves user

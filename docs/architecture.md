@@ -8,46 +8,9 @@ For deployment topology specifically, see [`deployment/`](deployment/). For the 
 
 Two services (frontend, backend), one database, and an optional Redis. Everything else (Stripe, the LLM provider, Neon) is an external dependency the backend talks to.
 
-```mermaid
-flowchart TB
-    Browser([Browser])
+![System overview](diagrams/architecture-system-overview.svg)
 
-    subgraph Frontend["Frontend — Next.js 15 / React 19"]
-        Pages[App Router pages]
-        State[Zustand stores<br/>+ React Query v5]
-        Rewrite[/api/* rewrite proxy/]
-    end
-
-    subgraph Backend["Backend — FastAPI / Python 3.11+"]
-        MW[Middleware stack]
-        Routers[Domain routers]
-        Services[Service layer]
-        ORM[SQLAlchemy 2.0]
-        Worker[arq worker · jobs]
-    end
-
-    subgraph External["External"]
-        Stripe([Stripe])
-        LLM([Anthropic · Typhoon · Groq])
-    end
-
-    DB[(SQLite / Postgres / MySQL)]
-    Cache[(Redis · cache + rate-limit + arq)]
-
-    Browser --> Pages
-    Pages --> State
-    State --> Rewrite
-    Rewrite --> MW
-    MW --> Routers
-    Routers --> Services
-    Services --> ORM
-    ORM --> DB
-    Services --> Cache
-    Services --> LLM
-    Services <--> Stripe
-    Worker --> Cache
-    Worker --> ORM
-```
+<sub>Diagram source: [architecture-system-overview.mmd](diagrams/src/architecture-system-overview.mmd)</sub>
 
 The frontend never talks to the backend directly from the browser. Every `/api/*` request goes through Next.js's `rewrites()` proxy in [`frontend/next.config.ts`](../frontend/next.config.ts). That keeps auth same-origin (no CORS preflight), lets the backend URL move without a frontend rebuild, and means there's only ever one env var (`BACKEND_INTERNAL_URL`) to change per environment.
 
@@ -55,22 +18,9 @@ The frontend never talks to the backend directly from the browser. Every `/api/*
 
 FastAPI, layered conventionally: middleware → router → service → ORM → DB.
 
-```mermaid
-flowchart TD
-    Req[HTTP request]
-    Req --> M1["RequestIDMiddleware<br/>(outermost — adds X-Request-ID)"]
-    M1 --> M2[CORSMiddleware]
-    M2 --> M3[GZipMiddleware<br/>≥ 500 B threshold]
-    M3 --> M4["BodySizeLimitMiddleware<br/>2 MB cap"]
-    M4 --> M5["RateLimitMiddleware<br/>Redis or in-memory fixed window"]
-    M5 --> M6["SecurityHeadersMiddleware<br/>(innermost — CSP, HSTS)"]
-    M6 --> R[Domain router]
-    R --> Deps[Dependencies:<br/>get_db · get_current_user · get_cache]
-    R --> S[Service layer<br/>ai_engine · notification · pdf_renderer · recurrence]
-    S --> ORM[SQLAlchemy session]
-    ORM --> DB[(Database)]
-    S --> Cache[(Redis cache)]
-```
+![Backend](diagrams/architecture-backend.svg)
+
+<sub>Diagram source: [architecture-backend.mmd](diagrams/src/architecture-backend.mmd)</sub>
 
 ### Layout
 
@@ -107,44 +57,9 @@ backend/app/
 
 Next.js 15 App Router with a strict server / client split.
 
-```mermaid
-flowchart TD
-    Layout["app/layout.tsx<br/>Providers · Sidebar · Notifications"]
-    Layout --> Pages
+![Frontend](diagrams/architecture-frontend.svg)
 
-    subgraph Pages["app/{route}/page.tsx — one folder per route"]
-        Welcome[welcome · login · register]
-        Dashboard[dashboard /]
-        Money[transactions · budgets · savings · debts · payments · investments]
-        Plan[plans · calendar · gantt · trips]
-        Sys[reports · settings · docs]
-    end
-
-    Pages --> Comp[components/]
-
-    subgraph Comp["components/"]
-        UI["ui/ — shadcn/ui + custom<br/>button · dialog · table · sidebar · …"]
-        Shell[shell/ — themed wrappers<br/>kpi · galaxy-card · sparkline · black-hole]
-        Charts[charts/ — Recharts wrappers<br/>spending · cashflow · trend]
-        Auth[auth/ — auth-gate · google-sign-in]
-        AI[ai/ — ai-panel]
-        Dash[dashboard/ — kpi-cards]
-        Search[search/ — command-palette]
-        Onboarding[onboarding-tour.tsx · global-shortcuts.tsx]
-    end
-
-    Pages --> Hooks
-    Comp --> Hooks
-
-    subgraph Hooks["lib/ · hooks/ · stores/"]
-        API[lib/api.ts — fetch client]
-        Util[lib/utils.ts · animations.ts]
-        Toast[hooks/use-toast.ts]
-        Auth2[stores/auth-store.ts]
-        App[stores/app-store.ts]
-        Notif[stores/notification-store.ts]
-    end
-```
+<sub>Diagram source: [architecture-frontend.mmd](diagrams/src/architecture-frontend.mmd)</sub>
 
 ### State model
 
@@ -160,45 +75,9 @@ Most pages are **client components** today — they fetch the dashboard bundle (
 
 The interesting relationships, not every column. Full schema is in [`backend/app/models/`](../backend/app/models/) and migrations are in [`backend/alembic/versions/`](../backend/alembic/versions/).
 
-```mermaid
-erDiagram
-    User ||--o{ Transaction : owns
-    User ||--o{ Budget : owns
-    User ||--o{ Plan : owns
-    User ||--o{ SavingsGoal : owns
-    User ||--o{ Debt : owns
-    User ||--o{ Investment : owns
-    User ||--o{ Trip : owns
-    User ||--o{ Payment : owns
-    User ||--o{ Notification : receives
-    User ||--o{ AIRecommendation : sees
-    User ||--|| UserPreferences : has
+![Data model](diagrams/architecture-data-model.svg)
 
-    Transaction }o--o{ Tag : "many-to-many"
-    Transaction }o--|| Trip : "optional FK"
-    Plan ||--o{ Plan : "self-referential parent_id"
-
-    User {
-        uuid id PK
-        string email UK
-        string username UK
-        string hashed_password
-        string google_subject "nullable"
-        bool is_active
-        datetime created_at
-    }
-    Transaction {
-        uuid id PK
-        uuid user_id FK
-        date date
-        decimal amount
-        string type "income · expense"
-        string category
-        string description
-        uuid trip_id FK "nullable"
-        bool is_recurring
-    }
-```
+<sub>Diagram source: [architecture-data-model.mmd](diagrams/src/architecture-data-model.mmd)</sub>
 
 Two design choices worth flagging:
 
@@ -211,37 +90,9 @@ Every FK uses `ON DELETE CASCADE` (added in v0.9.6 migration). Deleting a `User`
 
 Email + password with optional Google ID-token. Session is an httpOnly cookie carrying a 24-hour JWT.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User
-    participant FE as Frontend
-    participant BE as Backend
-    participant DB as Database
-    participant GIS as Google Identity Services
+![Authentication](diagrams/architecture-authentication.svg)
 
-    rect rgb(235, 245, 255)
-    Note over User,DB: Email + password
-    User->>FE: Submit credentials
-    FE->>BE: POST /api/auth/login
-    BE->>DB: SELECT user, verify bcrypt
-    BE-->>FE: Set-Cookie: aegis_session (httpOnly, Secure, SameSite=Lax)
-    end
-
-    rect rgb(245, 255, 235)
-    Note over User,DB: Google ID-token
-    User->>FE: Click "Sign in with Google"
-    FE->>GIS: Request ID token
-    GIS-->>FE: JWT credential
-    FE->>BE: POST /api/auth/google { token }
-    BE->>GIS: Verify token signature
-    GIS-->>BE: Claims (email, sub)
-    BE->>DB: Lookup or auto-link by email
-    BE-->>FE: Same Set-Cookie as above
-    end
-
-    Note over FE,BE: Every subsequent request:<br/>browser sends aegis_session<br/>backend decodes JWT, resolves user
-```
+<sub>Diagram source: [architecture-authentication.mmd](diagrams/src/architecture-authentication.mmd)</sub>
 
 **Auto-link**: if a Google account's `email` matches an existing email/password user, the next Google sign-in attaches `google_subject` to that user. The original password keeps working — both paths are valid.
 
@@ -249,13 +100,9 @@ sequenceDiagram
 
 Pluggable backend chosen via `CACHE_BACKEND`. Pattern: read-through with explicit invalidation on writes. Details in [`tutorials/11-caching.md`](tutorials/11-caching.md).
 
-```mermaid
-flowchart LR
-    Choice{CACHE_BACKEND}
-    Choice -- memory --> Mem[Per-process TTL dict<br/>dev / single pod]
-    Choice -- redis --> Redis[Shared across pods<br/>production default]
-    Choice -- disabled --> Off[No-op<br/>incident response]
-```
+![Caching](diagrams/architecture-caching.svg)
+
+<sub>Diagram source: [architecture-caching.mmd](diagrams/src/architecture-caching.mmd)</sub>
 
 Cached today: `/api/dashboard/{summary,charts,health-score,cashflow-forecast,bundle}` + `/api/ai/{weekly-summary,insights}`. 60 s TTL. Every transaction mutation calls `invalidate_user_all(user_id)` which drops every dashboard scope for that user.
 
@@ -267,15 +114,9 @@ Fixed-window-per-IP middleware. Redis-backed when `CACHE_BACKEND=redis`, falls b
 
 Long-running work (PDF generation, AI batch summaries) is queued onto `arq` + Redis. The worker is a separate process. Job lifecycle:
 
-```mermaid
-stateDiagram-v2
-    [*] --> queued: POST /api/reports/export.pdf?background=true
-    queued --> running: worker picks up
-    running --> done: result stored in Redis (1 h TTL)
-    running --> failed: exception (auto-retry up to N)
-    done --> [*]: GET /api/jobs/{id}/download
-    failed --> [*]: client surfaces error
-```
+![Background jobs](diagrams/architecture-background-jobs.svg)
+
+<sub>Diagram source: [architecture-background-jobs.mmd](diagrams/src/architecture-background-jobs.mmd)</sub>
 
 Backward-compat: when `CACHE_REDIS_URL` isn't set, `?background=true` falls back to inline rendering on the request thread. That keeps a single-pod dev / Vercel-Hobby deploy functional (within timeout limits). Design in [`design/001`](design/001-background-worker-queue.md).
 
@@ -283,26 +124,9 @@ Backward-compat: when `CACHE_REDIS_URL` isn't set, `?background=true` falls back
 
 Three providers swap behind one env var (`AI_PROVIDER=anthropic|typhoon|groq`). The frontend never talks to the LLM — it talks to `/api/ai/*`, which composes a user-scoped context window + the question and sends it to the configured provider. Claude in particular uses `tool_use` so the model can ask for more data (`get_transactions`, `get_budget_status`) inside one turn.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User
-    participant BE as /api/ai
-    participant DB as Database
-    participant LLM as Provider
+![AI integration](diagrams/architecture-ai-integration.svg)
 
-    User->>BE: question
-    BE->>DB: pull context (recent txns, budgets, plans)
-    BE->>LLM: prompt + context
-    loop tool_use rounds
-        LLM-->>BE: tool_call(get_transactions, …)
-        BE->>DB: execute
-        DB-->>BE: rows
-        BE-->>LLM: tool_result
-    end
-    LLM-->>BE: prose + numbers + action cards
-    BE-->>User: response
-```
+<sub>Diagram source: [architecture-ai-integration.mmd](diagrams/src/architecture-ai-integration.mmd)</sub>
 
 Tutorial-level coverage: [`tutorials/03-using-the-ai-assistant.md`](tutorials/03-using-the-ai-assistant.md).
 
@@ -310,26 +134,9 @@ Tutorial-level coverage: [`tutorials/03-using-the-ai-assistant.md`](tutorials/03
 
 Aegis supports five recipes (see [`deployment/`](deployment/)) but they collapse into two shapes:
 
-```mermaid
-flowchart LR
-    subgraph A["A — All on Vercel (default)"]
-        direction TB
-        AB([browser])
-        AV[Vercel<br/>frontend + backend<br/>experimentalServices]
-        AN[(Neon)]
-        AB --> AV --> AN
-    end
+![Deployment topology](diagrams/architecture-deployment-topology.svg)
 
-    subgraph B["B — Vercel + backend host"]
-        direction TB
-        BB([browser])
-        BV[Vercel<br/>frontend]
-        BBE[Backend host<br/>Render / Cloud Run<br/>App Runner / VPS]
-        BN[(Postgres host<br/>Neon / RDS / Cloud SQL)]
-        BB --> BV
-        BV -- /api/* --> BBE --> BN
-    end
-```
+<sub>Diagram source: [architecture-deployment-topology.mmd](diagrams/src/architecture-deployment-topology.mmd)</sub>
 
 Choice driver: do you need PDF export, the background worker queue, or AI calls > 10 s on a free tier? If no → A. If yes → B. Comparison table in [`deployment/vercel.md`](deployment/vercel.md).
 

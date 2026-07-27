@@ -1,0 +1,9 @@
+stateDiagram-v2
+    [*] --> queued: POST /api/reports/export.pdf
+    queued --> running: worker pops
+    running --> done: success
+    running --> failed: exception
+    done --> [*]: GET result_url
+    failed --> [*]: client surfaces error
+    queued --> cancelled: DELETE /api/jobs/{id}
+    cancelled --> [*]

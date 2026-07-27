@@ -2,17 +2,9 @@
 
 The fastest, cheapest path to a production Aegis. **~$7 / month** at small scale.
 
-```mermaid
-flowchart LR
-    Browser([browser])
-    Vercel["Vercel<br/>(Next.js)<br/>free Hobby"]
-    Render["Render<br/>(Aegis backend)<br/>$7 Starter"]
-    Neon[("Neon Postgres<br/>free tier")]
+![Deploy: Vercel + Neon + Render (recommended)](../diagrams/deployment-vercel-render-deploy-vercel-neon-render-recommended.svg)
 
-    Browser --> Vercel
-    Vercel -- /api/* --> Render
-    Render --> Neon
-```
+<sub>Diagram source: [deployment-vercel-render-deploy-vercel-neon-render-recommended.mmd](../diagrams/src/deployment-vercel-render-deploy-vercel-neon-render-recommended.mmd)</sub>
 
 Why this combo:
 
@@ -202,28 +194,9 @@ If any box is red, see the [troubleshooting](#troubleshooting) section or the ma
 
 ## Step 7 — Auto-deploy on `git push`
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Dev
-    participant GH as GitHub (main)
-    participant Vercel
-    participant Render
-    participant Neon
+![Step 7 — Auto-deploy on git push](../diagrams/deployment-vercel-render-step-7-auto-deploy-on-git-push.svg)
 
-    Dev->>GH: git push origin main
-    par Vercel deploy (~90s)
-        GH->>Vercel: webhook
-        Vercel->>Vercel: build Next.js
-        Vercel->>Vercel: atomic swap
-    and Render deploy (~3min)
-        GH->>Render: webhook
-        Render->>Render: build Docker image
-        Render->>Neon: alembic upgrade head
-        Render->>Render: zero-downtime swap
-    end
-    Note over Vercel,Render: Preview deploys per-PR on Vercel (free).<br/>Render preview needs Pro plan.
-```
+<sub>Diagram source: [deployment-vercel-render-step-7-auto-deploy-on-git-push.mmd](../diagrams/src/deployment-vercel-render-step-7-auto-deploy-on-git-push.mmd)</sub>
 
 Both Vercel and Render auto-deploy on every push to `main`. You get:
 
@@ -238,12 +211,9 @@ For rollbacks:
 
 ## Cost
 
-```mermaid
-pie title Fixed monthly cost (USD)
-    "Vercel Hobby" : 0
-    "Render Starter" : 7
-    "Neon Free" : 0
-```
+![Cost](../diagrams/deployment-vercel-render-cost.svg)
+
+<sub>Diagram source: [deployment-vercel-render-cost.mmd](../diagrams/src/deployment-vercel-render-cost.mmd)</sub>
 
 | Item | Plan | Cost |
 |------|------|------|

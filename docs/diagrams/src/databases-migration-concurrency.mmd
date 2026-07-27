@@ -1,0 +1,9 @@
+flowchart LR
+    Risk["Two pods<br/>roll out together<br/>both run alembic"]
+    Risk --> Race[("Race condition<br/>on schema migration")]
+
+    Fix1[Init container /<br/>pre-deploy Job] --> Safe(("✅ Safe"))
+    Fix2[Rolling deploy<br/>maxSurge=0] --> Safe
+
+    style Race fill:#fee
+    style Safe fill:#efe

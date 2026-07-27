@@ -1,0 +1,21 @@
+flowchart TD
+    Audit[Performance audit<br/>commit 52b2ffc]
+    Audit --> Crit[🔴 CRITICAL<br/>✅ shipped in PR #30]
+    Audit --> Warn[🟡 WARNING<br/>fix at 10k+ users / 100k+ rows]
+    Audit --> Arch[🟠 Architectural<br/>bigger refactors]
+    Audit --> Skip[🔵 Won't fix<br/>acceptable / out of scope]
+
+    Warn --> WBE[Backend<br/>cache + SQL aggregation + index work]
+    Warn --> WFE[Frontend<br/>selectors · memoization · animations]
+    Warn --> WDB[Database<br/>composite indexes]
+
+    Arch --> A1["✅ /api/dashboard/bundle"]
+    Arch --> A2["✅ arq worker queue Phase 1"]
+    Arch --> A3["✅ single-prefix cache invalidation"]
+    Arch --> A4["📋 RSC dashboard migration"]
+    Arch --> A5["📋 Async SQLAlchemy spike"]
+
+    style Crit fill:#fee
+    style Warn fill:#ffe
+    style Arch fill:#fed
+    style Skip fill:#eef

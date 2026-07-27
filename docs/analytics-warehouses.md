@@ -4,24 +4,9 @@ This page is for operators who want to run BI dashboards, ML feature engineering
 
 ## Architecture that works (CDC pipeline)
 
-```mermaid
-flowchart LR
-    Users([Users])
-    Aegis["Aegis backend<br/>(FastAPI)"]
-    OLTP[("Operational DB<br/>Postgres / MySQL")]
-    CDC["CDC pipeline<br/>Fivetran · Airbyte · Debezium<br/>DMS · Datastream"]
-    DW[(Warehouse<br/>Redshift · BigQuery<br/>Snowflake · ClickHouse)]
-    BI[BI tools<br/>Looker · Metabase · Superset<br/>Tableau · Hex]
+![Architecture that works (CDC pipeline)](diagrams/analytics-warehouses-architecture-that-works-cdc-pipeline.svg)
 
-    Users --> Aegis
-    Aegis --> OLTP
-    OLTP -- seconds–minutes lag --> CDC
-    CDC --> DW
-    DW --> BI
-
-    style OLTP fill:#efe
-    style DW fill:#eef
-```
+<sub>Diagram source: [analytics-warehouses-architecture-that-works-cdc-pipeline.mmd](diagrams/src/analytics-warehouses-architecture-that-works-cdc-pipeline.mmd)</sub>
 
 **The architecture that works**: Aegis owns its operational data in a transactional Postgres / MySQL. A change-data-capture (CDC) pipeline replicates that data into an analytics warehouse on a delay (seconds to minutes). BI tools (Looker, Metabase, Superset, Tableau, Hex) read the warehouse. The two databases are tuned for their own job — neither one tries to be both.
 
@@ -40,27 +25,9 @@ Pick based on your team's existing infrastructure. Cost ranges are rough — rea
 
 ## What to replicate
 
-```mermaid
-flowchart LR
-    subgraph Replicate["✅ Replicate"]
-        T[transactions — main fact]
-        P[plans · budgets · savings_goals<br/>investments · debts]
-        U[users — id, created_at, is_active]
-        Tags[tags + transaction_tags<br/>cohort analysis]
-        Pay[payments — revenue analysis]
-    end
+![What to replicate](diagrams/analytics-warehouses-what-to-replicate.svg)
 
-    subgraph Skip["🔴 Do NOT replicate"]
-        Pref[user_preferences — settings]
-        Note[notifications — transient]
-        AI[ai_recommendations — derived]
-        PII["users.hashed_password<br/>users.google_subject — PII"]
-        Meta[payments.metadata_json — Stripe IDs]
-    end
-
-    style Replicate fill:#efe
-    style Skip fill:#fee
-```
+<sub>Diagram source: [analytics-warehouses-what-to-replicate.mmd](diagrams/src/analytics-warehouses-what-to-replicate.mmd)</sub>
 
 Every row in these tables is analytics-relevant:
 

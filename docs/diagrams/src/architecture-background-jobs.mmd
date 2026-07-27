@@ -1,0 +1,7 @@
+stateDiagram-v2
+    [*] --> queued: POST /api/reports/export.pdf?background=true
+    queued --> running: worker picks up
+    running --> done: result stored in Redis (1 h TTL)
+    running --> failed: exception (auto-retry up to N)
+    done --> [*]: GET /api/jobs/{id}/download
+    failed --> [*]: client surfaces error

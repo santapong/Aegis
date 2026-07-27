@@ -2,19 +2,9 @@
 
 Run Aegis on Google Cloud. **Cloud Run** for the backend (scale-to-zero, generous free tier), **Cloud SQL Postgres** for the database, and the frontend on either Vercel (recommended) or Cloud Run / Firebase Hosting.
 
-```mermaid
-flowchart LR
-    FE["Frontend<br/>Vercel / Firebase / Cloud Run"]
-    BE["Backend<br/>Cloud Run<br/>scale-to-zero"]
-    SQL[("Cloud SQL Postgres<br/>db-f1-micro")]
-    CL["Cloud Logging"]
-    SM["Secret Manager"]
+![Deploy: GCP](../diagrams/deployment-gcp-deploy-gcp.svg)
 
-    FE -- /api/* --> BE
-    BE --> SQL
-    BE --> CL
-    BE --> SM
-```
+<sub>Diagram source: [deployment-gcp-deploy-gcp.mmd](../diagrams/src/deployment-gcp-deploy-gcp.mmd)</sub>
 
 > **Read [vercel.md](./vercel.md) first** if you don't have a specific reason to be on GCP — Cloud Run's free tier makes the GCP recipe genuinely cheap, but the setup is one or two notches more involved than `vercel deploy`.
 
@@ -230,13 +220,9 @@ Alternatively, set up a **Cloud Build trigger** from the GCP Console → Cloud B
 
 ## Cost (rough, low traffic)
 
-```mermaid
-pie title Monthly cost — Vercel + Cloud Run + Cloud SQL (USD)
-    "Cloud SQL Postgres" : 10
-    "Cloud Run backend" : 1
-    "Secret Manager + Artifact Registry" : 1
-    "Vercel Hobby" : 0
-```
+![Cost (rough, low traffic)](../diagrams/deployment-gcp-cost-rough-low-traffic.svg)
+
+<sub>Diagram source: [deployment-gcp-cost-rough-low-traffic.mmd](../diagrams/src/deployment-gcp-cost-rough-low-traffic.mmd)</sub>
 
 | Item | Plan | Cost |
 |------|------|------|

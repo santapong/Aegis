@@ -1,0 +1,20 @@
+sequenceDiagram
+    autonumber
+    actor User
+    participant FE as Frontend
+    participant GIS as Google Identity Services
+    participant BE as Backend
+    participant DB as Database
+
+    User->>FE: Click "Sign in with Google"
+    FE->>GIS: Request ID token (NEXT_PUBLIC_GOOGLE_CLIENT_ID)
+    GIS-->>User: Consent screen
+    User-->>GIS: Approve
+    GIS-->>FE: ID token (JWT)
+    FE->>BE: POST /api/auth/google { token }
+    BE->>GIS: Verify token signature
+    GIS-->>BE: Claims (email, sub)
+    BE->>DB: Lookup or link user by email
+    Note over BE,DB: Auto-link if email matches<br/>existing email/password user
+    BE-->>FE: Set httpOnly aegis_session cookie
+    FE-->>User: Logged in

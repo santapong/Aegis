@@ -1,0 +1,5 @@
+flowchart TD
+    B{What is the work shape?}
+    B -->|"Exploratory, areas interact,<br/>shape unknown until you read code"| O[multi-agent-orchestration<br/>Agent tool fan-out]
+    B -->|"Known list, fixed stages,<br/>needs loops / verify / barrier"| W[/workflow skill<br/>Workflow tool script/]
+    O -. discovers the work-list .-> W

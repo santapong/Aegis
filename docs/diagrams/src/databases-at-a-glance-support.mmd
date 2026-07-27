@@ -1,0 +1,27 @@
+flowchart TB
+    subgraph OK["✅ Tested / ⚠️ config tweak"]
+        direction LR
+        PG[PostgreSQL 13–17<br/>+ Neon · Supabase · RDS · Aurora<br/>Cloud SQL · AlloyDB · Azure DB]
+        MY[MySQL 8 / MariaDB 10.5+<br/>+ RDS · Cloud SQL · Azure · TiDB]
+        SL[SQLite — dev only]
+    end
+
+    subgraph CodeChange["🟡 Needs code change"]
+        CR[CockroachDB · retry middleware]
+        YB[YugabyteDB]
+        TS[Turso / libSQL]
+    end
+
+    subgraph No["🔴 Not supported as primary"]
+        RS[Redshift]
+        BQ[BigQuery]
+        SP[Spanner]
+        PS[PlanetScale<br/>no FKs]
+        NS[NoSQL — Mongo / Dynamo / Cosmos / Fauna]
+    end
+
+    No -. analytics target via CDC .-> Warehouse[(See analytics-warehouses.md)]
+
+    style OK fill:#efe
+    style CodeChange fill:#ffe
+    style No fill:#fee

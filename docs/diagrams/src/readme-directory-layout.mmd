@@ -1,0 +1,24 @@
+flowchart TD
+    Root([aegis/])
+    Root --> GH[.github/workflows/<br/>release.yml — GHCR multi-arch]
+    Root --> BE[backend/]
+    Root --> FE[frontend/]
+    Root --> Top[Makefile · docker-compose*.yml<br/>CHANGELOG.md · ROADMAP.md]
+
+    BE --> BEApp[app/]
+    BE --> BEAlembic[alembic/ — DB migrations]
+    BE --> BETests[tests/ — pytest smoke]
+
+    BEApp --> BEServices[services/<br/>notification · pdf_renderer · ai_engine]
+    BEApp --> BESeeds[seeds/demo.py]
+    BEApp --> BETemplates[templates/report.html — WeasyPrint]
+
+    FE --> FESrc[src/]
+    FESrc --> FEApp[app/ — Next.js App Router<br/>welcome · login · register · dashboard]
+    FESrc --> FEComp[components/]
+    FESrc --> FEStores[stores/ — zustand<br/>auth · app · notification]
+    FESrc --> FELib[lib/ — API client, utils]
+
+    FEComp --> FEUI[ui/ — shadcn + custom]
+    FEComp --> FESearch[search/ — command palette]
+    FEComp --> FEShortcuts[global-shortcuts.tsx<br/>onboarding-tour.tsx]

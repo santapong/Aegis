@@ -2,19 +2,9 @@
 
 Run Aegis on AWS. Two backend options (**App Runner** for simplicity, **ECS Fargate** for control), three frontend options (Vercel, Amplify, or Cloud Run-style container hosting), and RDS Postgres.
 
-```mermaid
-flowchart LR
-    FE["Frontend<br/>Vercel / Amplify"]
-    BE["Backend (ECR image)<br/>App Runner OR ECS Fargate"]
-    RDS[("RDS Postgres<br/>db.t4g.micro")]
-    CW["CloudWatch logs"]
-    SM["Secrets Manager"]
+![Deploy: AWS](../diagrams/deployment-aws-deploy-aws.svg)
 
-    FE -- /api/* --> BE
-    BE --> RDS
-    BE --> CW
-    BE --> SM
-```
+<sub>Diagram source: [deployment-aws-deploy-aws.mmd](../diagrams/src/deployment-aws-deploy-aws.mmd)</sub>
 
 > **Read [vercel.md](./vercel.md) first** if you don't have a specific reason to be on AWS — the default Vercel deploy is $0 on Hobby vs ~$30–60 for the AWS equivalent.
 
@@ -262,14 +252,9 @@ Add it as a job-level step after the `Build & push` step.
 
 ## Cost (rough, single AZ, low traffic)
 
-```mermaid
-pie title Monthly cost — AWS App Runner deploy (USD)
-    "App Runner" : 22
-    "RDS Postgres" : 14
-    "Secrets Manager" : 2
-    "Data transfer" : 1
-    "ECR" : 1
-```
+![Cost (rough, single AZ, low traffic)](../diagrams/deployment-aws-cost-rough-single-az-low-traffic.svg)
+
+<sub>Diagram source: [deployment-aws-cost-rough-single-az-low-traffic.mmd](../diagrams/src/deployment-aws-cost-rough-single-az-low-traffic.mmd)</sub>
 
 | Item | Plan | Cost |
 |------|------|------|

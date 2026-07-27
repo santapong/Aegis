@@ -1,0 +1,20 @@
+sequenceDiagram
+    autonumber
+    actor Dev
+    participant GH as GitHub (main)
+    participant Vercel
+    participant Render
+    participant Neon
+
+    Dev->>GH: git push origin main
+    par Vercel deploy (~90s)
+        GH->>Vercel: webhook
+        Vercel->>Vercel: build Next.js
+        Vercel->>Vercel: atomic swap
+    and Render deploy (~3min)
+        GH->>Render: webhook
+        Render->>Render: build Docker image
+        Render->>Neon: alembic upgrade head
+        Render->>Render: zero-downtime swap
+    end
+    Note over Vercel,Render: Preview deploys per-PR on Vercel (free).<br/>Render preview needs Pro plan.

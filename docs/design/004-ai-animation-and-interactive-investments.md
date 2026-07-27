@@ -38,16 +38,9 @@ Built entirely with **framer-motion** (already a dependency) + CSS — **zero ad
 
 ### State machine
 
-```mermaid
-stateDiagram-v2
-    [*] --> idle
-    idle --> listening: input focused / typing
-    listening --> idle: blur + empty
-    listening --> thinking: submit (loading=true)
-    idle --> thinking: AUTO-ANALYZE
-    thinking --> responding: results arrive (loading=false)
-    responding --> idle: ~650ms settle
-```
+![State machine](../diagrams/design-004-ai-animation-and-interactive-investme-state-machine.svg)
+
+<sub>Diagram source: [design-004-ai-animation-and-interactive-investme-state-machine.mmd](../diagrams/src/design-004-ai-animation-and-interactive-investme-state-machine.mmd)</sub>
 
 | State | Trigger | Visual | Motion |
 |-------|---------|--------|--------|
@@ -145,17 +138,9 @@ A gradient core, glow halo, an orbiting spark, and a shimmer skeleton — all of
 
 ### UX flow
 
-```mermaid
-flowchart LR
-    A[Add Holding modal] --> B[Type in SymbolSearch<br/>debounced 300ms]
-    B --> C{/api/market/search}
-    C -->|results| D[Dropdown:<br/>name · EXCHANGE:TICKER · type badge]
-    D -->|select| E[Auto-fill name + symbol<br/>+ TradingView preview + live quote chip]
-    E --> F[Use this price → current_price]
-    F --> G{{Add to portfolio}}
-    E --> H{{Add to watchlist · units=0}}
-    A -. fallback .-> M[Manual EXCHANGE:TICKER entry<br/>always available]
-```
+![UX flow](../diagrams/design-004-ai-animation-and-interactive-investme-ux-flow.svg)
+
+<sub>Diagram source: [design-004-ai-animation-and-interactive-investme-ux-flow.mmd](../diagrams/src/design-004-ai-animation-and-interactive-investme-ux-flow.mmd)</sub>
 
 1. Open **Add Holding** → focus the search → type "apple".
 2. A **300 ms-debounced** query hits `marketAPI.search("apple")`; the dropdown shows up to 10 rows: **name · `EXCHANGE:TICKER`** (mono) **· exchange · type badge** (Stock / ETF / Crypto).
@@ -238,13 +223,9 @@ These gate the implementation phase:
 
 ## Sequencing & effort
 
-```mermaid
-flowchart TD
-    WS0[WS0 · AI Orb animation<br/>frontend-only · S] -->|independent| DONE1[ship]
-    WS1[WS1 · market service + endpoints<br/>backend · M-L] --> WS3[WS3 · SymbolSearch + modal preview<br/>frontend · M]
-    WS2[WS2 · watchlist filters<br/>backend · S] --> WS3
-    WS3 --> WS4[WS4 · a11y + degraded states + QA · S]
-```
+![Sequencing & effort](../diagrams/design-004-ai-animation-and-interactive-investme-sequencing-effort.svg)
+
+<sub>Diagram source: [design-004-ai-animation-and-interactive-investme-sequencing-effort.mmd](../diagrams/src/design-004-ai-animation-and-interactive-investme-sequencing-effort.mmd)</sub>
 
 - **WS0 (AI orb)** is fully independent of B and can ship first — pure frontend, no backend, no product decision blocking it.
 - **WS1/WS2** (backend) unblock **WS3** (frontend picker); **WS4** is the polish/QA pass.

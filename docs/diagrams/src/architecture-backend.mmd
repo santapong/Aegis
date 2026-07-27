@@ -1,0 +1,25 @@
+C4Component
+    title Aegis backend — request path components (C4 level 3)
+
+    Container_Ext(frontend, "Frontend", "Next.js 15", "Proxies /api/* to the backend")
+
+    Container_Boundary(api, "Backend API — FastAPI") {
+        Component(mw, "Middleware stack", "Starlette middleware", "Outermost to innermost: RequestID adds X-Request-ID, CORS, GZip at 500 B threshold, BodySize 2 MB cap, RateLimit via Redis or in-memory fixed window, SecurityHeaders with CSP + HSTS")
+        Component(routers, "Domain routers", "FastAPI APIRouter", "transactions, budgets, plans, payments, ai, reports, trips, market, jobs")
+        Component(deps, "Dependencies", "FastAPI Depends", "get_db, get_current_user, get_cache")
+        Component(services, "Service layer", "Python", "ai_engine, notification, pdf_renderer, recurrence")
+        Component(orm, "ORM", "SQLAlchemy 2.0", "Session per request")
+    }
+
+    ContainerDb(db, "Database", "SQLite / Postgres / MySQL")
+    ContainerDb(cache, "Redis", "cache + rate-limit")
+
+    Rel(frontend, mw, "HTTP request", "/api/*")
+    Rel(mw, routers, "Dispatches to")
+    Rel(routers, deps, "Resolves")
+    Rel(routers, services, "Calls")
+    Rel(services, orm, "Uses")
+    Rel(orm, db, "SQL")
+    Rel(services, cache, "get / set")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")

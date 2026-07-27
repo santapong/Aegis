@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-07-27
+
+### Added — docs & repo structure
+
+- **C4-model diagrams as committed SVGs** — every inline ` ```mermaid `
+  block across the docs (56 diagrams, 25 files) now lives as an editable
+  source in `docs/diagrams/src/*.mmd` rendered to a committed
+  `docs/diagrams/*.svg` that the markdown embeds. Structural diagrams
+  (system overview, backend/frontend component views, deployment recipes,
+  CDC pipeline) are rewritten in mermaid C4 syntax (C4Container /
+  C4Component / C4Deployment); flows, sequences and state machines stay in
+  their native form. `scripts/render-diagrams.mjs` re-renders them (uses
+  `npx @mermaid-js/mermaid-cli` + a local Chromium-based browser; no repo
+  dependency added).
+- **Branch model** — ongoing work lands on `develop`; `main` carries
+  tagged releases. The pre-restructure `backend` / `frontend` history is
+  preserved under `archive/*` tags.
+
 ### Added — features
 
 - **Budget templates (50/30/20, zero-based)** — `/budgets` gains a
@@ -224,6 +242,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   origins allowlisted.
 - **CSV exports were unbounded** — capped at 50 000 rows
   (configurable), PDF capped at 5 000.
+
+---
+
+## [1.1.0] - 2026-05-15
+
+The v1.1 scope (PRs #24–#25). These entries were reconstructed when the
+release was tagged retroactively — the work shipped without changelog
+entries at the time.
+
+### Added
+
+- **MCP server** (`backend/app/mcp/`) — exposes Aegis to MCP clients via
+  `uv run --project ./backend aegis-mcp`: tools for transactions, budgets,
+  plans, trips, reports and the AI advisor, with per-user session auth.
+- **Trip entity** — trip CRUD with budgets and per-trip transaction
+  linking (`/api/trips`, trip summary aggregation, dedicated migration).
+- **Budget overrun alerts** — the notification emitter evaluates budget
+  thresholds on transaction mutations and raises in-app alerts.
+- **Split-schedule salary recurrence** — income recurrence supporting
+  split pay schedules.
+- **Investment portfolio** — holdings CRUD with TradingView charts
+  (`/api/investments`, `/investments` page).
+- **User preferences** entity persisting per-user settings.
 
 ---
 

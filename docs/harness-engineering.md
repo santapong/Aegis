@@ -15,19 +15,9 @@ This doc tells you how to build and maintain those primitives.
 
 ## The five primitives
 
-```mermaid
-flowchart TB
-    subgraph H["The Aegis harness"]
-        direction LR
-        S["Skills<br/>.claude/skills/*/SKILL.md"]
-        A["Subagents<br/>Agent tool · .claude/agents/"]
-        W["Workflows<br/>Workflow tool · .claude/workflows/"]
-        K["Hooks<br/>.claude/settings.json"]
-        M["MCP servers<br/>aegis-mcp + connected"]
-    end
-    C["CLAUDE.md<br/>(always-loaded index)"] --> H
-    H --> Repo["backend/ · frontend/ · docs/"]
-```
+![The five primitives](diagrams/harness-engineering-the-five-primitives.svg)
+
+<sub>Diagram source: [harness-engineering-the-five-primitives.mmd](diagrams/src/harness-engineering-the-five-primitives.mmd)</sub>
 
 | Primitive | Lives in | Loaded | Use it for |
 |-----------|----------|--------|------------|

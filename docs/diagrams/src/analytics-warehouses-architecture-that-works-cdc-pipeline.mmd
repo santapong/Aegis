@@ -1,0 +1,23 @@
+C4Container
+    title Analytics replication — CDC pipeline (C4 container view)
+
+    Person(user, "Users")
+
+    System_Boundary(aegis, "Aegis") {
+        Container(be, "Aegis backend", "FastAPI")
+        ContainerDb(oltp, "Operational DB", "Postgres / MySQL", "OLTP source of truth")
+    }
+
+    System_Boundary(analytics, "Analytics") {
+        Container_Ext(cdc, "CDC pipeline", "Fivetran / Airbyte / Debezium / DMS / Datastream", "Change-data-capture replication")
+        ContainerDb_Ext(dw, "Warehouse", "Redshift / BigQuery / Snowflake / ClickHouse")
+        Container_Ext(bi, "BI tools", "Looker / Metabase / Superset / Tableau / Hex")
+    }
+
+    Rel(user, be, "Uses")
+    Rel(be, oltp, "Reads / writes")
+    Rel(oltp, cdc, "WAL / binlog", "seconds to minutes lag")
+    Rel(cdc, dw, "Loads")
+    Rel(dw, bi, "Queries")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")

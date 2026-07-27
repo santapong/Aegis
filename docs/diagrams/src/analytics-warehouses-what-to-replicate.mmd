@@ -1,0 +1,19 @@
+flowchart LR
+    subgraph Replicate["✅ Replicate"]
+        T[transactions — main fact]
+        P[plans · budgets · savings_goals<br/>investments · debts]
+        U[users — id, created_at, is_active]
+        Tags[tags + transaction_tags<br/>cohort analysis]
+        Pay[payments — revenue analysis]
+    end
+
+    subgraph Skip["🔴 Do NOT replicate"]
+        Pref[user_preferences — settings]
+        Note[notifications — transient]
+        AI[ai_recommendations — derived]
+        PII["users.hashed_password<br/>users.google_subject — PII"]
+        Meta[payments.metadata_json — Stripe IDs]
+    end
+
+    style Replicate fill:#efe
+    style Skip fill:#fee

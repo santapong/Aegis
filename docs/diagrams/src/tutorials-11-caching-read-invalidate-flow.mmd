@@ -1,0 +1,30 @@
+sequenceDiagram
+    autonumber
+    actor User
+    participant API as Cached read route
+    participant Cache as Cache backend<br/>(memory / Redis / disabled)
+    participant DB as Database
+
+    rect rgb(235, 245, 255)
+    Note over User,DB: Read path
+    User->>API: GET /api/dashboard/summary
+    API->>Cache: get("dashboard:summary:{uid}")
+    alt cache hit
+        Cache-->>API: cached JSON
+        API-->>User: 200 (~3 ms)
+    else cache miss
+        Cache-->>API: None
+        API->>DB: aggregate query
+        DB-->>API: rows
+        API->>Cache: set TTL=60s
+        API-->>User: 200 (~50 ms)
+    end
+    end
+
+    rect rgb(255, 245, 235)
+    Note over User,DB: Write path
+    User->>API: POST /api/transactions/
+    API->>DB: insert
+    API->>Cache: invalidate_user(["dashboard:*"], uid)
+    API-->>User: 201
+    end

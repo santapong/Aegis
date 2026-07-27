@@ -1,0 +1,10 @@
+flowchart LR
+    Bank([Bank online portal]) --> Export[Export CSV<br/>date range, ≤ 5 MB]
+    Export --> Upload[Aegis · Transactions<br/>Import CSV]
+    Upload --> Detect[Auto-detect columns<br/>date · amount · type · category]
+    Detect --> Preview[Preview rows<br/>nothing saved yet]
+    Preview --> OK{Looks right?}
+    OK -- yes --> Confirm[Import N rows<br/>single DB transaction]
+    OK -- no --> Fix[Fix CSV<br/>columns, signs, dates]
+    Fix --> Upload
+    Confirm --> Refresh[Dashboard refreshes<br/>+ budgets see new categories]

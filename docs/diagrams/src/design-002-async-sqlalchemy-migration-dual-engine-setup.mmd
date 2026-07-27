@@ -1,0 +1,18 @@
+flowchart TB
+    subgraph App["Aegis backend process"]
+        direction TB
+        Routes[FastAPI routes]
+        SyncDep["Depends(get_db)<br/>sync Session"]
+        AsyncDep["Depends(get_async_db)<br/>AsyncSession"]
+        SyncEngine["sync engine<br/>psycopg2"]
+        AsyncEngine["async engine<br/>asyncpg"]
+        SyncPool[("Sync pool<br/>10 + 20")]
+        AsyncPool[("Async pool<br/>10 + 20")]
+
+        Routes --> SyncDep --> SyncEngine --> SyncPool
+        Routes --> AsyncDep --> AsyncEngine --> AsyncPool
+    end
+
+    DB[(Postgres)]
+    SyncPool --> DB
+    AsyncPool --> DB

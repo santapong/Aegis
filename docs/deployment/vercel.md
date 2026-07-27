@@ -2,22 +2,9 @@
 
 The default Aegis deployment. **Both** the Next.js frontend AND the FastAPI backend run on Vercel via `experimentalServices` multi-service mode, with Neon for Postgres. Same-origin from the browser's POV; one platform, one bill, ~$0 on Hobby.
 
-```mermaid
-flowchart LR
-    Browser([browser])
+![Deploy: Vercel (recommended)](../diagrams/deployment-vercel-deploy-vercel-recommended.svg)
 
-    subgraph Vercel["Vercel (experimentalServices)"]
-        FE["frontend<br/>(Next.js)"]
-        BE["backend<br/>(Python serverless)"]
-    end
-
-    Neon[("Neon Postgres<br/>pooler endpoint")]
-
-    Browser --> FE
-    Browser -- /api/* --> BE
-    FE --> BE
-    BE --> Neon
-```
+<sub>Diagram source: [deployment-vercel-deploy-vercel-recommended.mmd](../diagrams/src/deployment-vercel-deploy-vercel-recommended.mmd)</sub>
 
 The root [`vercel.json`](../../vercel.json) is already wired for this topology â€” `vercel deploy` from the repo root Just Works.
 
@@ -27,27 +14,9 @@ The root [`vercel.json`](../../vercel.json) is already wired for this topology â
 
 `experimentalServices` runs the backend on Vercel's serverless Python runtime. Three Aegis features don't work on that platform:
 
-```mermaid
-flowchart TD
-    Start{Feature}
-    Start --> PDF["PDF export<br/>/api/reports/export.pdf"]
-    Start --> Jobs["Background worker<br/>/api/jobs/*"]
-    Start --> AI["AI calls > 10s"]
-    Start --> Rest[Everything else]
+![Hard limitations of this path](../diagrams/deployment-vercel-hard-limitations-of-this-path.svg)
 
-    PDF -- WeasyPrint needs Cairo/Pango --> X1[("503 with JSON error")]
-    Jobs -- No long-lived processes --> X2[("Falls back to inline")]
-    AI -- 10s Hobby timeout --> X3{Tier?}
-    X3 -- Hobby --> X3a[("504 timeout")]
-    X3 -- Pro 60s --> OK1((Works))
-    Rest --> OK2((Works on either tier))
-
-    style X1 fill:#fee
-    style X2 fill:#fee
-    style X3a fill:#fee
-    style OK1 fill:#efe
-    style OK2 fill:#efe
-```
+<sub>Diagram source: [deployment-vercel-hard-limitations-of-this-path.mmd](../diagrams/src/deployment-vercel-hard-limitations-of-this-path.mmd)</sub>
 
 | Feature | Why it breaks | What happens |
 |---|---|---|

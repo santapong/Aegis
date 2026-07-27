@@ -2,25 +2,9 @@
 
 Run all three services (frontend + backend + Postgres) on a single VPS, fronted by Caddy for automatic HTTPS. **~$5–20 / month** on a $5–10 DigitalOcean droplet or equivalent Hetzner / Linode / Vultr / OVH instance.
 
-```mermaid
-flowchart TB
-    Internet([Internet<br/>TLS auto-renewed by Caddy])
-    Caddy["Caddy reverse proxy<br/>:80 / :443"]
+![Deploy: Self-hosted (Docker Compose)](../diagrams/deployment-self-hosted-deploy-self-hosted-docker-compose.svg)
 
-    subgraph VPS["Single VPS"]
-        Caddy
-        subgraph Compose["docker compose"]
-            FE["frontend :3000"]
-            BE["backend :8000"]
-            DB[("postgres :5432<br/>private network only")]
-        end
-    end
-
-    Internet --> Caddy
-    Caddy -- / --> FE
-    Caddy -- /api/* --> BE
-    BE --> DB
-```
+<sub>Diagram source: [deployment-self-hosted-deploy-self-hosted-docker-compose.mmd](../diagrams/src/deployment-self-hosted-deploy-self-hosted-docker-compose.mmd)</sub>
 
 This is the deployment story `docker-compose.prod.yml` is designed for. Caddy handles TLS via Let's Encrypt or the DNS challenge.
 
@@ -124,17 +108,9 @@ Browse `https://aegis.example.com` — register a new account, log in.
 
 ## Step 5 — Backups
 
-```mermaid
-flowchart LR
-    PG[(pgdata<br/>Docker named volume)]
-    Cron["crontab @03:00<br/>pg_dump | gzip"]
-    Local["/home/$USER/backups<br/>14-day retention"]
-    Offsite[("Backblaze B2 / S3<br/>rclone sync")]
+![Step 5 — Backups](../diagrams/deployment-self-hosted-step-5-backups.svg)
 
-    PG --> Cron
-    Cron --> Local
-    Local -- nightly --> Offsite
-```
+<sub>Diagram source: [deployment-self-hosted-step-5-backups.mmd](../diagrams/src/deployment-self-hosted-step-5-backups.mmd)</sub>
 
 The Postgres data lives in a Docker named volume `pgdata`. Back it up regularly.
 

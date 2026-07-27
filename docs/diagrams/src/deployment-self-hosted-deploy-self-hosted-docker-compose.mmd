@@ -1,0 +1,22 @@
+C4Deployment
+    title Aegis self-hosted — docker compose on one VPS (C4 deployment view)
+
+    Person(user, "User", "Internet, TLS auto-renewed by Caddy")
+
+    Deployment_Node(vps, "Single VPS", "Linux") {
+        Deployment_Node(caddy_node, "Caddy", "reverse proxy, ports 80 / 443") {
+            Container(caddy, "Caddy", "reverse proxy", "terminates TLS")
+        }
+        Deployment_Node(compose, "docker compose", "private network") {
+            Container(fe, "frontend", "Next.js", "port 3000")
+            Container(be, "backend", "FastAPI", "port 8000")
+            ContainerDb(db, "postgres", "port 5432", "private network only")
+        }
+    }
+
+    Rel(user, caddy, "HTTPS")
+    Rel(caddy, fe, "/", "reverse proxy")
+    Rel(caddy, be, "/api/*", "reverse proxy")
+    Rel(be, db, "SQL")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")

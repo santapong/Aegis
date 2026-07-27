@@ -2,7 +2,7 @@
 
 AI-powered financial planning with calendar, Gantt charts, cookie-session auth, Stripe payments, keyboard-first navigation, PDF reports, and smart recommendations powered by Claude, Typhoon, or Groq.
 
-Status: **v1.0.0 GA + post-v1 hardening pass shipped.** See [CHANGELOG.md](CHANGELOG.md) — the `[Unreleased]` section covers security (httpOnly cookies, Google sign-in, FK cascade, body-size cap), multi-DB compatibility, the cache layer, and a full performance pass (SQL aggregation, composite indexes, Recharts code-split, gzip). [ROADMAP.md](ROADMAP.md) tracks longer-term direction.
+Status: **v1.2.0 — generally available.** See [CHANGELOG.md](CHANGELOG.md) — v1.2.0 covers security (httpOnly cookies, Google sign-in, FK cascade, body-size cap), multi-DB compatibility, the cache layer, a full performance pass (SQL aggregation, composite indexes, Recharts code-split, gzip), plus market data and budget templates. [ROADMAP.md](ROADMAP.md) tracks longer-term direction.
 
 Public landing page: [`/landing`](http://localhost:3000/landing). Sign-in: email/password or **Google** (configurable via `GOOGLE_OAUTH_CLIENT_ID`).
 
@@ -10,46 +10,9 @@ For a deeper look at how the system is put together — layered backend, fronten
 
 ## Architecture at a glance
 
-```mermaid
-flowchart TB
-    Browser([Browser])
+![Architecture at a glance](docs/diagrams/readme-architecture-at-a-glance.svg)
 
-    subgraph Frontend["Frontend — Next.js 15 / React 19"]
-        Pages[App Router pages<br/>Dashboard · Transactions · Plans · AI]
-        Stores[Zustand stores<br/>+ React Query v5]
-        Rewrite[/api/* rewrite proxy/]
-    end
-
-    subgraph Backend["Backend — FastAPI / Python 3.11+"]
-        Auth[Auth · JWT cookie]
-        Routes[Domain routers<br/>transactions · budgets · plans · payments]
-        AI[AI engine<br/>Claude / Typhoon / Groq]
-        PDF[WeasyPrint PDF + matplotlib]
-        Worker[arq worker · background jobs]
-    end
-
-    subgraph Data["Storage"]
-        DB[(SQLite / Postgres / MySQL)]
-        Cache[(Redis · cache + rate-limit)]
-    end
-
-    Stripe([Stripe])
-    LLM([LLM provider])
-
-    Browser --> Pages
-    Pages --> Stores
-    Stores --> Rewrite
-    Rewrite --> Auth
-    Auth --> Routes
-    Routes --> DB
-    Routes --> Cache
-    Routes --> AI
-    AI --> LLM
-    Routes --> PDF
-    Routes --> Worker
-    Worker --> Cache
-    Routes <--> Stripe
-```
+<sub>Diagram source: [readme-architecture-at-a-glance.mmd](docs/diagrams/src/readme-architecture-at-a-glance.mmd)</sub>
 
 ## Tech Stack
 
@@ -135,26 +98,9 @@ ghcr.io/santapong/aegis-frontend:1.0.0
 
 ## First-time user flow
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User
-    participant FE as Frontend (Next.js)
-    participant BE as Backend (FastAPI)
-    participant DB as Database
+![First-time user flow](docs/diagrams/readme-first-time-user-flow.svg)
 
-    User->>FE: GET /welcome
-    FE-->>User: Landing page
-    User->>FE: Click "Create account"
-    User->>FE: Submit email + username + password
-    FE->>BE: POST /api/auth/register
-    BE->>DB: Insert user (bcrypt hash)
-    BE-->>FE: Set httpOnly aegis_session cookie
-    FE-->>User: Redirect to Dashboard
-    Note over User,FE: driver.js onboarding tour runs:<br/>Dashboard → Transactions → Budgets → AI
-    User->>FE: Press "?" or "/"
-    FE-->>User: Cheatsheet / Command palette
-```
+<sub>Diagram source: [readme-first-time-user-flow.mmd](docs/diagrams/src/readme-first-time-user-flow.mmd)</sub>
 
 1. Open http://localhost:3000/welcome for the landing page, or jump straight to `/register`.
 2. Register with email + username + password (≥8 chars).
@@ -171,38 +117,9 @@ make seed
 
 ## Features
 
-```mermaid
-mindmap
-  root((Aegis))
-    Money
-      Transactions
-        CSV import + preview
-        Recurring tracker
-        Multi-tag categorization
-      Budgets
-        Period limits
-        Budget vs actual
-      Savings goals
-      Debt tracker
-        Avalanche / snowball
-    Plan
-      Plans & Goals hierarchy
-      Calendar planner
-      Gantt chart
-      Trips
-    Insights
-      Dashboard KPIs
-      Cash-flow forecast
-      Health score
-      Anomaly detection
-      AI advisor
-    System
-      Reports CSV + PDF
-      Stripe payments
-      Notifications
-      Onboarding tour
-      Keyboard shortcuts
-```
+![Features](docs/diagrams/readme-features.svg)
+
+<sub>Diagram source: [readme-features.mmd](docs/diagrams/src/readme-features.mmd)</sub>
 
 - **Landing** — public `/welcome` marketing page (chrome-less, CTA to register).
 - **Dashboard** — KPI cards, spending charts, financial health score, cash-flow forecast, AI-generated insights.
@@ -328,32 +245,9 @@ The repo includes:
 
 ## Directory layout
 
-```mermaid
-flowchart TD
-    Root([aegis/])
-    Root --> GH[.github/workflows/<br/>release.yml — GHCR multi-arch]
-    Root --> BE[backend/]
-    Root --> FE[frontend/]
-    Root --> Top[Makefile · docker-compose*.yml<br/>CHANGELOG.md · ROADMAP.md]
+![Directory layout](docs/diagrams/readme-directory-layout.svg)
 
-    BE --> BEApp[app/]
-    BE --> BEAlembic[alembic/ — DB migrations]
-    BE --> BETests[tests/ — pytest smoke]
-
-    BEApp --> BEServices[services/<br/>notification · pdf_renderer · ai_engine]
-    BEApp --> BESeeds[seeds/demo.py]
-    BEApp --> BETemplates[templates/report.html — WeasyPrint]
-
-    FE --> FESrc[src/]
-    FESrc --> FEApp[app/ — Next.js App Router<br/>welcome · login · register · dashboard]
-    FESrc --> FEComp[components/]
-    FESrc --> FEStores[stores/ — zustand<br/>auth · app · notification]
-    FESrc --> FELib[lib/ — API client, utils]
-
-    FEComp --> FEUI[ui/ — shadcn + custom]
-    FEComp --> FESearch[search/ — command palette]
-    FEComp --> FEShortcuts[global-shortcuts.tsx<br/>onboarding-tour.tsx]
-```
+<sub>Diagram source: [readme-directory-layout.mmd](docs/diagrams/src/readme-directory-layout.mmd)</sub>
 
 ## License
 

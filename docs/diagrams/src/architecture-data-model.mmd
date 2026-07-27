@@ -1,0 +1,37 @@
+erDiagram
+    User ||--o{ Transaction : owns
+    User ||--o{ Budget : owns
+    User ||--o{ Plan : owns
+    User ||--o{ SavingsGoal : owns
+    User ||--o{ Debt : owns
+    User ||--o{ Investment : owns
+    User ||--o{ Trip : owns
+    User ||--o{ Payment : owns
+    User ||--o{ Notification : receives
+    User ||--o{ AIRecommendation : sees
+    User ||--|| UserPreferences : has
+
+    Transaction }o--o{ Tag : "many-to-many"
+    Transaction }o--|| Trip : "optional FK"
+    Plan ||--o{ Plan : "self-referential parent_id"
+
+    User {
+        uuid id PK
+        string email UK
+        string username UK
+        string hashed_password
+        string google_subject "nullable"
+        bool is_active
+        datetime created_at
+    }
+    Transaction {
+        uuid id PK
+        uuid user_id FK
+        date date
+        decimal amount
+        string type "income · expense"
+        string category
+        string description
+        uuid trip_id FK "nullable"
+        bool is_recurring
+    }

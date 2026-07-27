@@ -1,0 +1,18 @@
+sequenceDiagram
+    autonumber
+    actor User
+    participant FE as Frontend (Next.js)
+    participant BE as Backend (FastAPI)
+    participant DB as Database
+
+    User->>FE: GET /welcome
+    FE-->>User: Landing page
+    User->>FE: Click "Create account"
+    User->>FE: Submit email + username + password
+    FE->>BE: POST /api/auth/register
+    BE->>DB: Insert user (bcrypt hash)
+    BE-->>FE: Set httpOnly aegis_session cookie
+    FE-->>User: Redirect to Dashboard
+    Note over User,FE: driver.js onboarding tour runs:<br/>Dashboard → Transactions → Budgets → AI
+    User->>FE: Press "?" or "/"
+    FE-->>User: Cheatsheet / Command palette

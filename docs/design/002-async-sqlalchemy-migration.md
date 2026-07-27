@@ -4,26 +4,9 @@
 
 ## Dual-engine setup
 
-```mermaid
-flowchart TB
-    subgraph App["Aegis backend process"]
-        direction TB
-        Routes[FastAPI routes]
-        SyncDep["Depends(get_db)<br/>sync Session"]
-        AsyncDep["Depends(get_async_db)<br/>AsyncSession"]
-        SyncEngine["sync engine<br/>psycopg2"]
-        AsyncEngine["async engine<br/>asyncpg"]
-        SyncPool[("Sync pool<br/>10 + 20")]
-        AsyncPool[("Async pool<br/>10 + 20")]
+![Dual-engine setup](../diagrams/design-002-async-sqlalchemy-migration-dual-engine-setup.svg)
 
-        Routes --> SyncDep --> SyncEngine --> SyncPool
-        Routes --> AsyncDep --> AsyncEngine --> AsyncPool
-    end
-
-    DB[(Postgres)]
-    SyncPool --> DB
-    AsyncPool --> DB
-```
+<sub>Diagram source: [design-002-async-sqlalchemy-migration-dual-engine-setup.mmd](../diagrams/src/design-002-async-sqlalchemy-migration-dual-engine-setup.mmd)</sub>
 
 ## What was shipped
 
@@ -53,26 +36,9 @@ Verdict: **don't convert anything until you hit the second scale tier**. The wor
 
 ## When to migrate a specific router
 
-```mermaid
-flowchart TD
-    Route{Route shape}
-    Route --> Q1{Slow external<br/>dep AI/Stripe?}
-    Route --> Q2{Streams large<br/>response NDJSON/SSE?}
-    Route --> Q3{Parallel<br/>queries?}
-    Route --> Q4{Quick SELECT<br/>LIMIT 1?}
+![When to migrate a specific router](../diagrams/design-002-async-sqlalchemy-migration-when-to-migrate-a-specific-router.svg)
 
-    Q1 -- yes --> Migrate((Migrate))
-    Q2 -- yes --> Migrate
-    Q3 -- yes --> Migrate
-    Q4 -- yes --> Skip((Skip — overhead<br/>eats the gain))
-
-    Q1 -- no --> Skip
-    Q2 -- no --> Skip
-    Q3 -- no --> Skip
-
-    style Migrate fill:#efe
-    style Skip fill:#fee
-```
+<sub>Diagram source: [design-002-async-sqlalchemy-migration-when-to-migrate-a-specific-router.mmd](../diagrams/src/design-002-async-sqlalchemy-migration-when-to-migrate-a-specific-router.mmd)</sub>
 
 Use these triggers:
 

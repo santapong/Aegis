@@ -1,0 +1,5 @@
+flowchart TD
+    WS0[WS0 · AI Orb animation<br/>frontend-only · S] -->|independent| DONE1[ship]
+    WS1[WS1 · market service + endpoints<br/>backend · M-L] --> WS3[WS3 · SymbolSearch + modal preview<br/>frontend · M]
+    WS2[WS2 · watchlist filters<br/>backend · S] --> WS3
+    WS3 --> WS4[WS4 · a11y + degraded states + QA · S]

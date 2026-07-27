@@ -1,0 +1,22 @@
+C4Deployment
+    title Aegis on Vercel + Neon + Render (C4 deployment view)
+
+    Person(user, "User", "Browser")
+
+    Deployment_Node(vercel, "Vercel", "free Hobby") {
+        Container(fe, "Frontend", "Next.js")
+    }
+
+    Deployment_Node(render, "Render", "Starter, 7 USD/month") {
+        Container(be, "Aegis backend", "FastAPI")
+    }
+
+    Deployment_Node(neon, "Neon", "free tier") {
+        ContainerDb(db, "Postgres")
+    }
+
+    Rel(user, fe, "HTTPS")
+    Rel(fe, be, "/api/*", "server-side proxy")
+    Rel(be, db, "SQL")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="3")

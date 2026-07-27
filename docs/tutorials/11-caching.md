@@ -4,38 +4,9 @@ Aegis ships with a small, pluggable cache layer that sits between hot-path read 
 
 ## Read + invalidate flow
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User
-    participant API as Cached read route
-    participant Cache as Cache backend<br/>(memory / Redis / disabled)
-    participant DB as Database
+![Read + invalidate flow](../diagrams/tutorials-11-caching-read-invalidate-flow.svg)
 
-    rect rgb(235, 245, 255)
-    Note over User,DB: Read path
-    User->>API: GET /api/dashboard/summary
-    API->>Cache: get("dashboard:summary:{uid}")
-    alt cache hit
-        Cache-->>API: cached JSON
-        API-->>User: 200 (~3 ms)
-    else cache miss
-        Cache-->>API: None
-        API->>DB: aggregate query
-        DB-->>API: rows
-        API->>Cache: set TTL=60s
-        API-->>User: 200 (~50 ms)
-    end
-    end
-
-    rect rgb(255, 245, 235)
-    Note over User,DB: Write path
-    User->>API: POST /api/transactions/
-    API->>DB: insert
-    API->>Cache: invalidate_user(["dashboard:*"], uid)
-    API-->>User: 201
-    end
-```
+<sub>Diagram source: [tutorials-11-caching-read-invalidate-flow.mmd](../diagrams/src/tutorials-11-caching-read-invalidate-flow.mmd)</sub>
 
 ## TL;DR
 
@@ -53,20 +24,9 @@ The other side of the trade is correctness: a cached read after a write would sh
 
 ## The three backends
 
-```mermaid
-flowchart TD
-    Choice{CACHE_BACKEND}
-    Choice -- memory --> Mem[Per-process TTL dict<br/>fast · not shared across workers<br/>dev + single-pod prod]
-    Choice -- redis --> Redis[Shared cache<br/>across all pods<br/>production]
-    Choice -- disabled --> Off[Every get returns None<br/>incident-response toggle]
+![The three backends](../diagrams/tutorials-11-caching-the-three-backends.svg)
 
-    Redis -. unreachable at startup .-> Mem
-    note["Fallback: caching is an optimization,<br/>not a hard dependency."]
-
-    style Mem fill:#eef
-    style Redis fill:#efe
-    style Off fill:#fee
-```
+<sub>Diagram source: [tutorials-11-caching-the-three-backends.mmd](../diagrams/src/tutorials-11-caching-the-three-backends.mmd)</sub>
 
 ```env
 CACHE_BACKEND=memory   # default

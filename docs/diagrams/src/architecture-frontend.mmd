@@ -1,0 +1,22 @@
+C4Component
+    title Aegis frontend — component view (C4 level 3)
+
+    Container_Boundary(fe, "Frontend — Next.js 15 App Router") {
+        Component(layout, "Root layout", "app/layout.tsx", "Providers, Sidebar, Notifications")
+        Component(pages, "Route pages", "app/{route}/page.tsx", "welcome / login / register, dashboard, transactions / budgets / savings / debts / payments / investments, plans / calendar / gantt / trips, reports / settings / docs")
+        Component(ui, "ui/", "shadcn/ui + custom", "button, dialog, table, sidebar")
+        Component(shell, "shell/", "Themed wrappers", "kpi, galaxy-card, sparkline, black-hole")
+        Component(charts, "charts/", "Recharts wrappers", "spending, cashflow, trend")
+        Component(feature, "Feature components", "auth/ ai/ dashboard/ search/", "auth-gate, google-sign-in, ai-panel, kpi-cards, command-palette, onboarding tour + global shortcuts")
+        Component(lib, "lib/ hooks/ stores/", "TypeScript", "api.ts fetch client, utils + animations, use-toast, auth / app / notification Zustand stores")
+    }
+
+    Rel(layout, pages, "Renders")
+    Rel(pages, ui, "Composes")
+    Rel(pages, shell, "Composes")
+    Rel(pages, charts, "Composes")
+    Rel(pages, feature, "Composes")
+    Rel(pages, lib, "Fetches + state via")
+    Rel(feature, lib, "Uses")
+
+    UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="1")

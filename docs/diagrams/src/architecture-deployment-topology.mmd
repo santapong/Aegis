@@ -1,0 +1,31 @@
+C4Deployment
+    title Aegis — deployment topologies (C4 deployment view)
+
+    Deployment_Node(optA, "Option A — all on Vercel (default)", "") {
+        Deployment_Node(av, "Vercel", "experimentalServices") {
+            Container(afe, "Frontend", "Next.js")
+            Container(abe, "Backend", "Python serverless")
+        }
+        Deployment_Node(an, "Neon", "managed Postgres") {
+            ContainerDb(adb, "Postgres", "pooler endpoint")
+        }
+    }
+
+    Deployment_Node(optB, "Option B — Vercel + backend host", "") {
+        Deployment_Node(bv, "Vercel", "CDN + SSR") {
+            Container(bfe, "Frontend", "Next.js")
+        }
+        Deployment_Node(bh, "Backend host", "Render / Cloud Run / App Runner / VPS") {
+            Container(bbe, "Backend", "FastAPI")
+        }
+        Deployment_Node(bp, "Postgres host", "Neon / RDS / Cloud SQL") {
+            ContainerDb(bdb, "Postgres")
+        }
+    }
+
+    Rel(afe, abe, "/api/*")
+    Rel(abe, adb, "SQL")
+    Rel(bfe, bbe, "/api/*", "server-side proxy")
+    Rel(bbe, bdb, "SQL")
+
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")

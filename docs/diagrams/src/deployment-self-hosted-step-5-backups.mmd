@@ -1,0 +1,9 @@
+flowchart LR
+    PG[(pgdata<br/>Docker named volume)]
+    Cron["crontab @03:00<br/>pg_dump | gzip"]
+    Local["/home/$USER/backups<br/>14-day retention"]
+    Offsite[("Backblaze B2 / S3<br/>rclone sync")]
+
+    PG --> Cron
+    Cron --> Local
+    Local -- nightly --> Offsite

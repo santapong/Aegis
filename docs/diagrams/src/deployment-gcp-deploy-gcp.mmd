@@ -1,0 +1,28 @@
+C4Deployment
+    title Aegis on GCP (C4 deployment view)
+
+    Deployment_Node(fehost, "Vercel / Firebase / Cloud Run", "frontend host") {
+        Container(fe, "Frontend", "Next.js")
+    }
+
+    Deployment_Node(gcp, "Google Cloud", "single region") {
+        Deployment_Node(run, "Cloud Run", "scale-to-zero") {
+            Container(be, "Backend", "FastAPI")
+        }
+        Deployment_Node(sql, "Cloud SQL", "db-f1-micro") {
+            ContainerDb(db, "Postgres")
+        }
+        Deployment_Node(cl, "Cloud Logging", "observability") {
+            Container(logs, "Log sink", "structured logs")
+        }
+        Deployment_Node(sm, "Secret Manager", "secrets") {
+            Container(secrets, "App secrets", "JWT, Stripe, Anthropic keys")
+        }
+    }
+
+    Rel(fe, be, "/api/*", "HTTPS")
+    Rel(be, db, "SQL")
+    Rel(be, logs, "Ships logs")
+    Rel(be, secrets, "Reads at boot")
+
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")

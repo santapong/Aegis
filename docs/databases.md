@@ -6,35 +6,9 @@ The short version: **PostgreSQL is the recommended primary; MySQL/MariaDB is a f
 
 ## At-a-glance support
 
-```mermaid
-flowchart TB
-    subgraph OK["✅ Tested / ⚠️ config tweak"]
-        direction LR
-        PG[PostgreSQL 13–17<br/>+ Neon · Supabase · RDS · Aurora<br/>Cloud SQL · AlloyDB · Azure DB]
-        MY[MySQL 8 / MariaDB 10.5+<br/>+ RDS · Cloud SQL · Azure · TiDB]
-        SL[SQLite — dev only]
-    end
+![At-a-glance support](diagrams/databases-at-a-glance-support.svg)
 
-    subgraph CodeChange["🟡 Needs code change"]
-        CR[CockroachDB · retry middleware]
-        YB[YugabyteDB]
-        TS[Turso / libSQL]
-    end
-
-    subgraph No["🔴 Not supported as primary"]
-        RS[Redshift]
-        BQ[BigQuery]
-        SP[Spanner]
-        PS[PlanetScale<br/>no FKs]
-        NS[NoSQL — Mongo / Dynamo / Cosmos / Fauna]
-    end
-
-    No -. analytics target via CDC .-> Warehouse[(See analytics-warehouses.md)]
-
-    style OK fill:#efe
-    style CodeChange fill:#ffe
-    style No fill:#fee
-```
+<sub>Diagram source: [databases-at-a-glance-support.mmd](diagrams/src/databases-at-a-glance-support.mmd)</sub>
 
 ## Quick recommendation by use case
 
@@ -158,17 +132,9 @@ Aegis runs a single `engine`. Read replicas would require splitting reads from w
 
 ### Migration concurrency
 
-```mermaid
-flowchart LR
-    Risk["Two pods<br/>roll out together<br/>both run alembic"]
-    Risk --> Race[("Race condition<br/>on schema migration")]
+![Migration concurrency](diagrams/databases-migration-concurrency.svg)
 
-    Fix1[Init container /<br/>pre-deploy Job] --> Safe(("✅ Safe"))
-    Fix2[Rolling deploy<br/>maxSurge=0] --> Safe
-
-    style Race fill:#fee
-    style Safe fill:#efe
-```
+<sub>Diagram source: [databases-migration-concurrency.mmd](diagrams/src/databases-migration-concurrency.mmd)</sub>
 
 `docker-entrypoint.sh` runs `alembic upgrade head` on container start. Two pods rolling out simultaneously can race the migration. Two safer patterns:
 

@@ -1,0 +1,11 @@
+flowchart TB
+    subgraph H["The Aegis harness"]
+        direction LR
+        S["Skills<br/>.claude/skills/*/SKILL.md"]
+        A["Subagents<br/>Agent tool · .claude/agents/"]
+        W["Workflows<br/>Workflow tool · .claude/workflows/"]
+        K["Hooks<br/>.claude/settings.json"]
+        M["MCP servers<br/>aegis-mcp + connected"]
+    end
+    C["CLAUDE.md<br/>(always-loaded index)"] --> H
+    H --> Repo["backend/ · frontend/ · docs/"]

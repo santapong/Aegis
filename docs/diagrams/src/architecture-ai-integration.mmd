@@ -1,0 +1,18 @@
+sequenceDiagram
+    autonumber
+    actor User
+    participant BE as /api/ai
+    participant DB as Database
+    participant LLM as Provider
+
+    User->>BE: question
+    BE->>DB: pull context (recent txns, budgets, plans)
+    BE->>LLM: prompt + context
+    loop tool_use rounds
+        LLM-->>BE: tool_call(get_transactions, …)
+        BE->>DB: execute
+        DB-->>BE: rows
+        BE-->>LLM: tool_result
+    end
+    LLM-->>BE: prose + numbers + action cards
+    BE-->>User: response

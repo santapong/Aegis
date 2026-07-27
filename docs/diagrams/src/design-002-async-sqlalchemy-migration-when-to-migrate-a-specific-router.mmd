@@ -1,0 +1,18 @@
+flowchart TD
+    Route{Route shape}
+    Route --> Q1{Slow external<br/>dep AI/Stripe?}
+    Route --> Q2{Streams large<br/>response NDJSON/SSE?}
+    Route --> Q3{Parallel<br/>queries?}
+    Route --> Q4{Quick SELECT<br/>LIMIT 1?}
+
+    Q1 -- yes --> Migrate((Migrate))
+    Q2 -- yes --> Migrate
+    Q3 -- yes --> Migrate
+    Q4 -- yes --> Skip((Skip — overhead<br/>eats the gain))
+
+    Q1 -- no --> Skip
+    Q2 -- no --> Skip
+    Q3 -- no --> Skip
+
+    style Migrate fill:#efe
+    style Skip fill:#fee
