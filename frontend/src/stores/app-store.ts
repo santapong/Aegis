@@ -25,12 +25,14 @@ interface AppSettings {
 
 interface AppState {
   sidebarOpen: boolean;
+  collapsedClusters: string[];
   theme: CosmicTheme;
   aiPanelOpen: boolean;
   hasSeenTour: boolean;
   settings: AppSettings;
   settingsHydrated: boolean;
   toggleSidebar: () => void;
+  toggleCluster: (label: string) => void;
   setTheme: (theme: CosmicTheme) => void;
   toggleAIPanel: () => void;
   setHasSeenTour: (seen: boolean) => void;
@@ -71,12 +73,19 @@ export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       sidebarOpen: true,
+      collapsedClusters: ["System"],
       theme: "observatory",
       aiPanelOpen: false,
       hasSeenTour: false,
       settings: { ...defaultSettings },
       settingsHydrated: false,
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+      toggleCluster: (label) =>
+        set((s) => ({
+          collapsedClusters: s.collapsedClusters.includes(label)
+            ? s.collapsedClusters.filter((l) => l !== label)
+            : [...s.collapsedClusters, label],
+        })),
       setTheme: (theme) => {
         if (!isCosmicTheme(theme)) return;
         set({ theme });
@@ -127,6 +136,7 @@ export const useAppStore = create<AppState>()(
       },
       partialize: (state) => ({
         sidebarOpen: state.sidebarOpen,
+        collapsedClusters: state.collapsedClusters,
         theme: state.theme,
         settings: state.settings,
         hasSeenTour: state.hasSeenTour,

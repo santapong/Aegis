@@ -27,6 +27,7 @@ import {
   Sparkles,
   BookOpen,
   Compass,
+  ChevronDown,
   type LucideIcon,
 } from "lucide-react";
 import { Sparkline } from "@/components/shell/sparkline";
@@ -131,6 +132,8 @@ export function Sidebar() {
   // sidebar (with motion + sparklines) on every unrelated state change.
   const sidebarOpen = useAppStore((s) => s.sidebarOpen);
   const toggleSidebar = useAppStore((s) => s.toggleSidebar);
+  const collapsedClusters = useAppStore((s) => s.collapsedClusters);
+  const toggleCluster = useAppStore((s) => s.toggleCluster);
   const toggleAIPanel = useAppStore((s) => s.toggleAIPanel);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
@@ -260,20 +263,36 @@ export function Sidebar() {
         )}
 
         <nav className="flex-1 px-2.5 py-4 overflow-y-auto flex flex-col gap-5">
-          {clusters.map((cluster) => (
+          {clusters.map((cluster) => {
+            // A collapsed cluster stays open while it holds the active route,
+            // so the current location is never hidden from the user.
+            const hasActive = cluster.items.some((i) => i.href === pathname);
+            const collapsed =
+              sidebarOpen && !hasActive && collapsedClusters.includes(cluster.label);
+            return (
             <div key={cluster.label} className="flex flex-col gap-1">
               {sidebarOpen && (
-                <p
-                  className="px-2 pb-1.5 font-mono uppercase"
+                <button
+                  onClick={() => toggleCluster(cluster.label)}
+                  aria-expanded={!collapsed}
+                  className="flex items-center justify-between px-2 pb-1.5 font-mono uppercase transition-colors"
                   style={{
                     fontSize: "9.5px",
                     letterSpacing: "1.8px",
                     color: "var(--dim-2)",
                   }}
                 >
-                  Cluster · {cluster.index} · {cluster.label}
-                </p>
+                  <span>Cluster · {cluster.index} · {cluster.label}</span>
+                  <ChevronDown
+                    size={12}
+                    style={{
+                      transition: "transform 0.2s",
+                      transform: collapsed ? "rotate(-90deg)" : "none",
+                    }}
+                  />
+                </button>
               )}
+              {!collapsed && (
               <div className="flex flex-col gap-0.5">
                 {cluster.items.map((item) => {
                   const Icon = item.icon;
@@ -327,8 +346,10 @@ export function Sidebar() {
                   );
                 })}
               </div>
+              )}
             </div>
-          ))}
+            );
+          })}
 
           {sidebarOpen && (
             <div className="flex flex-col gap-1 mt-2">
