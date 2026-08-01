@@ -93,7 +93,7 @@ export default function WelcomePage() {
           step 02 of 04 · connect institutions
         </div>
         <h1
-          className="text-[44px] leading-[1.05] mb-4"
+          className="text-[42px] leading-[1.05] mb-4"
           style={{
             fontFamily: "var(--display-font)",
             fontStyle: "var(--display-style)",
@@ -105,7 +105,7 @@ export default function WelcomePage() {
           Where should Aegis read from?
         </h1>
         <p
-          className="font-mono text-[13px] leading-[1.65] max-w-[60ch] mb-8"
+          className="font-mono text-sm leading-[1.65] max-w-[60ch] mb-8"
           style={{ color: "var(--fg-2)" }}
         >
           Pick the accounts you want mapped. Read-only by default. You can add or
@@ -165,7 +165,7 @@ export default function WelcomePage() {
               </span>
               <div className="min-w-0">
                 <div
-                  className="font-medium text-[13px] truncate"
+                  className="font-medium text-sm truncate"
                   style={{ color: "var(--fg)" }}
                 >
                   {b.name}

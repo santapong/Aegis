@@ -113,7 +113,7 @@ export default function SettingsPage() {
                     </span>
                   </div>
                   <p
-                    className="text-[12.5px] mb-4 font-mono"
+                    className="text-xs mb-4 font-mono"
                     style={{ color: "var(--dim)" }}
                   >
                     Pick a cosmic theme. Switches instantly, persists across sessions.
@@ -231,7 +231,7 @@ export default function SettingsPage() {
                     <h3 className="card-title">Default Date Range</h3>
                   </div>
                   <p
-                    className="text-[12.5px] mb-3 font-mono"
+                    className="text-xs mb-3 font-mono"
                     style={{ color: "var(--dim)" }}
                   >
                     How many days of data to show by default in reports and filters.
@@ -286,7 +286,7 @@ export default function SettingsPage() {
                         <h3 className="card-title">AI Auto-Suggestions</h3>
                       </div>
                       <p
-                        className="text-[12.5px] mt-1 font-mono"
+                        className="text-xs mt-1 font-mono"
                         style={{ color: "var(--dim)" }}
                       >
                         Automatically analyze spending and provide recommendations.
@@ -334,7 +334,7 @@ export default function SettingsPage() {
                         </h3>
                       </div>
                       <p
-                        className="text-[12.5px] mt-1 font-mono"
+                        className="text-xs mt-1 font-mono"
                         style={{ color: "var(--dim)" }}
                       >
                         Replay the first-run walkthrough on your next visit.
@@ -409,7 +409,7 @@ export default function SettingsPage() {
                     </h3>
                   </div>
                   <p
-                    className="text-[12.5px] mb-4 font-mono"
+                    className="text-xs mb-4 font-mono"
                     style={{ color: "var(--dim)" }}
                   >
                     Reset all settings to their default values. This cannot be undone.

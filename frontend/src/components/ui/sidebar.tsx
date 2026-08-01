@@ -229,7 +229,7 @@ export function Sidebar() {
                   AEG<span style={{ color: "var(--accent)" }}>IS</span>
                 </div>
                 <div
-                  className="font-mono text-[9.5px] tracking-[1.4px] uppercase"
+                  className="font-mono text-[10px] tracking-[1.4px] uppercase"
                   style={{ color: "var(--dim)" }}
                 >
                   money / galaxy
@@ -277,7 +277,7 @@ export function Sidebar() {
                   aria-expanded={!collapsed}
                   className="flex items-center justify-between px-2 pb-1.5 font-mono uppercase transition-colors"
                   style={{
-                    fontSize: "9.5px",
+                    fontSize: "10px",
                     letterSpacing: "1.8px",
                     color: "var(--dim-2)",
                   }}
@@ -308,7 +308,7 @@ export function Sidebar() {
                         sidebarOpen ? "gap-2.5 px-2.5 py-1.5" : "justify-center px-2 py-2"
                       )}
                       style={{
-                        fontSize: "12.5px",
+                        fontSize: "12px",
                         letterSpacing: "0.2px",
                         borderRadius: "4px",
                         color: isActive ? "var(--accent)" : "var(--fg-2)",
@@ -356,7 +356,7 @@ export function Sidebar() {
               <p
                 className="px-2 pb-1.5 font-mono uppercase"
                 style={{
-                  fontSize: "9.5px",
+                  fontSize: "10px",
                   letterSpacing: "1.8px",
                   color: "var(--dim-2)",
                 }}
@@ -397,7 +397,7 @@ export function Sidebar() {
           >
             <Bot size={14} />
             {sidebarOpen && (
-              <span className="text-[12.5px] font-mono">AI Advisor</span>
+              <span className="text-xs font-mono">AI Advisor</span>
             )}
           </button>
 
@@ -440,7 +440,7 @@ export function Sidebar() {
               >
                 <LogOut size={14} />
                 {sidebarOpen && (
-                  <span className="text-[12.5px] font-mono">Sign out</span>
+                  <span className="text-xs font-mono">Sign out</span>
                 )}
               </button>
             </>

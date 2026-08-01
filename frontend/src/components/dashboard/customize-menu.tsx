@@ -65,7 +65,7 @@ export function CustomizeMenu({ order }: { order: DashboardWidgetId[] }) {
               className="flex items-center gap-2 rounded px-1.5 py-1.5"
               style={{ opacity: hidden.includes(id) ? 0.55 : 1 }}
             >
-              <span className="flex-1 text-[12.5px]" style={{ color: "var(--fg-2)" }}>
+              <span className="flex-1 text-xs" style={{ color: "var(--fg-2)" }}>
                 {WIDGET_LABELS[id]}
               </span>
               <button

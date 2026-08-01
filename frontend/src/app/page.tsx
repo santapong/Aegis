@@ -301,7 +301,7 @@ export default function DashboardPage() {
                 initial={hasMounted ? false : { opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={hasMounted ? { duration: 0 } : { delay: i * 0.06 }}
-                className="grid items-start gap-3.5 py-2.5"
+                className="grid items-start gap-3 py-2.5"
                 style={{
                   gridTemplateColumns: "70px 1fr auto",
                   borderBottom: i < anomalies.anomalies.slice(0, 5).length - 1 ? "1px dashed var(--aegis-line)" : "none",
@@ -414,7 +414,7 @@ export default function DashboardPage() {
                     {String(i + 1).padStart(2, "0")} · {insight.type.toUpperCase()}
                   </div>
                   <div className="text-sm font-medium text-foreground mb-1.5">{insight.title}</div>
-                  <div className="text-[13px] leading-relaxed" style={{ color: "var(--aegis-fg-2)" }}>
+                  <div className="text-sm leading-relaxed" style={{ color: "var(--aegis-fg-2)" }}>
                     {insight.message}
                   </div>
                   <div className="flex items-center justify-between font-mono text-[11px] mt-2.5">
