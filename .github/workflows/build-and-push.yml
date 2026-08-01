@@ -27,6 +27,12 @@ jobs:
   publish:
     name: Build & publish ${{ matrix.image }}
     runs-on: ubuntu-latest
+    # The secrets context is not allowed in step-level `if:` expressions
+    # (the workflow fails validation with no jobs created), so presence
+    # checks are hoisted into env booleans, which may read secrets.
+    env:
+      HAS_AWS: ${{ secrets.AWS_DEPLOY_ROLE_ARN != '' }}
+      HAS_GCP: ${{ secrets.GCP_DEPLOY_SA_KEY != '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -63,18 +69,18 @@ jobs:
 
       # --- ECR (conditional) -------------------------------------------------
       - name: Configure AWS credentials
-        if: ${{ vars.ECR_REGISTRY != '' && secrets.AWS_DEPLOY_ROLE_ARN != '' }}
+        if: ${{ vars.ECR_REGISTRY != '' && env.HAS_AWS == 'true' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
           aws-region: ${{ vars.ECR_REGION }}
 
       - name: Log in to ECR
-        if: ${{ vars.ECR_REGISTRY != '' && secrets.AWS_DEPLOY_ROLE_ARN != '' }}
+        if: ${{ vars.ECR_REGISTRY != '' && env.HAS_AWS == 'true' }}
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: ECR metadata
-        if: ${{ vars.ECR_REGISTRY != '' && secrets.AWS_DEPLOY_ROLE_ARN != '' }}
+        if: ${{ vars.ECR_REGISTRY != '' && env.HAS_AWS == 'true' }}
         id: meta_ecr
         uses: docker/metadata-action@v5
         with:
@@ -85,18 +91,18 @@ jobs:
 
       # --- Artifact Registry (conditional) -----------------------------------
       - name: Authenticate to Google Cloud
-        if: ${{ vars.GAR_PROJECT != '' && secrets.GCP_DEPLOY_SA_KEY != '' }}
+        if: ${{ vars.GAR_PROJECT != '' && env.HAS_GCP == 'true' }}
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_DEPLOY_SA_KEY }}
 
       - name: Log in to Artifact Registry
-        if: ${{ vars.GAR_PROJECT != '' && secrets.GCP_DEPLOY_SA_KEY != '' }}
+        if: ${{ vars.GAR_PROJECT != '' && env.HAS_GCP == 'true' }}
         run: |
           gcloud auth configure-docker ${{ vars.GAR_LOCATION }}-docker.pkg.dev --quiet
 
       - name: Artifact Registry metadata
-        if: ${{ vars.GAR_PROJECT != '' && secrets.GCP_DEPLOY_SA_KEY != '' }}
+        if: ${{ vars.GAR_PROJECT != '' && env.HAS_GCP == 'true' }}
         id: meta_gar
         uses: docker/metadata-action@v5
         with:
