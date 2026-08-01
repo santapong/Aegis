@@ -6,13 +6,14 @@ import { motion } from "framer-motion";
 import dynamic from "next/dynamic";
 import { dashboardAPI } from "@/lib/api";
 import { KPICards } from "@/components/dashboard/kpi-cards";
+import { CustomizeMenu } from "@/components/dashboard/customize-menu";
 import { ProgressRing } from "@/components/charts/progress-ring";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { staggerContainer, staggerItem } from "@/lib/animations";
-import { useAppStore } from "@/stores/app-store";
+import { useAppStore, type DashboardWidgetId } from "@/stores/app-store";
 import { formatCurrency } from "@/lib/utils";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
@@ -101,6 +102,17 @@ function QueryErrorCard({
   );
 }
 
+/** Grid span per widget — half-width widgets pair up on lg screens. */
+const WIDGET_SPAN: Record<DashboardWidgetId, string> = {
+  kpi: "lg:col-span-2",
+  health: "",
+  anomalies: "",
+  spending: "",
+  trend: "",
+  insights: "lg:col-span-2",
+  cashflow: "lg:col-span-2",
+};
+
 export default function DashboardPage() {
   // After the page first mounts, suppress per-item entry animations so
   // React Query refetches don't re-fire the staggered fade-in on
@@ -111,19 +123,17 @@ export default function DashboardPage() {
     setHasMounted(true);
   }, []);
 
-  // Selector — without this the dashboard re-renders on every unrelated
+  // Selectors — without these the dashboard re-renders on every unrelated
   // app-store write (theme change, panel toggle, settings hydrate).
   const toggleAIPanel = useAppStore((s) => s.toggleAIPanel);
+  const widgetOrder = useAppStore((s) => s.dashboardOrder);
+  const hiddenWidgets = useAppStore((s) => s.dashboardHidden);
 
   // ONE round-trip for the entire dashboard. Replaces 6 separate
   // useQuery calls (summary + charts + health + cashflow + anomalies +
   // insights). Backend bundles them server-side and caches the bundle
   // as a single key; mutations invalidate everything atomically via
   // _GLOBAL_USER_SCOPES.
-  //
-  // Each sub-field is destructured below so the rest of the component
-  // continues to read `summary`, `charts`, etc. as before — only the
-  // fetch shape changed, not the consumers.
   type DashboardBundle = {
     summary: KPISummary;
     charts: DashboardCharts;
@@ -150,26 +160,6 @@ export default function DashboardPage() {
   const anomalies = bundle?.anomalies;
   const insights = bundle?.insights;
 
-  // Loading / error state collapses to the single bundle query.
-  const summaryLoading = bundleLoading;
-  const chartsLoading = bundleLoading;
-  const healthLoading = bundleLoading;
-  const summaryError = bundleError;
-  const chartsError = bundleError;
-  const healthError = bundleError;
-  const cashflowError = bundleError;
-  const anomaliesError = bundleError;
-  const insightsError = bundleError;
-
-  // Refetch helpers preserved so the existing "Retry" buttons keep
-  // working — each now triggers the same single bundle refetch.
-  const refetchSummary = refetchBundle;
-  const refetchCharts = refetchBundle;
-  const refetchHealth = refetchBundle;
-  const refetchCashflow = refetchBundle;
-  const refetchAnomalies = refetchBundle;
-  const refetchInsights = refetchBundle;
-
   const gradeColor = (grade: string) => {
     switch (grade) {
       case "A":
@@ -189,9 +179,308 @@ export default function DashboardPage() {
   const today = new Date();
   const eyebrow = `DSH · ${today.toISOString().slice(0, 10)} · ${today.toLocaleDateString("en-US", { weekday: "short" })}`;
 
+  /* ===== Widget renderers ==================================================
+     Each returns the widget's content, or null to skip its grid cell
+     entirely (e.g. no insights yet). Order/visibility come from the app
+     store; the CustomizeMenu in the header edits both. */
+
+  const renderKPI = () =>
+    bundleError ? (
+      <Card>
+        <CardContent className="p-6">
+          <QueryErrorCard
+            message={bundleError.message || "Failed to load summary."}
+            onRetry={() => refetchBundle()}
+          />
+        </CardContent>
+      </Card>
+    ) : bundleLoading ? (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <Skeleton key={i} height={120} />
+        ))}
+      </div>
+    ) : summary ? (
+      <KPICards data={summary} />
+    ) : null;
+
+  const renderHealth = () =>
+    bundleError ? (
+      <Card>
+        <CardContent className="p-6">
+          <CardHead code="HLT" title="Financial health" />
+          <QueryErrorCard
+            message={bundleError.message || "Failed to load health score."}
+            onRetry={() => refetchBundle()}
+          />
+        </CardContent>
+      </Card>
+    ) : bundleLoading ? (
+      <Skeleton height={240} />
+    ) : healthScore ? (
+      <Card>
+        <CardContent className="p-6">
+          <CardHead code="HLT" title="Financial health" action={<>overall · {healthScore.grade}</>} />
+          <div className="grid grid-cols-[140px_1fr] gap-6 items-center">
+            <div className="flex flex-col items-center gap-1 p-3 rounded-md" style={{ border: "1px dashed var(--aegis-line)" }}>
+              <ProgressRing
+                value={healthScore.overall_score}
+                max={100}
+                size={96}
+                strokeWidth={6}
+                color={gradeColor(healthScore.grade)}
+                label={
+                  <span className="aegis-display" style={{ fontSize: 48, lineHeight: 1, color: gradeColor(healthScore.grade) }}>
+                    {healthScore.grade}
+                  </span>
+                }
+                sublabel={
+                  <span className="font-mono text-[11px] tabular-nums" style={{ color: "var(--foreground)" }}>
+                    {healthScore.overall_score}
+                    <span style={{ color: "var(--aegis-dim)" }}>/100</span>
+                  </span>
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              {healthScore.breakdown.map((b) => (
+                <div
+                  key={b.name}
+                  className="grid items-center gap-2.5 font-mono text-[11px]"
+                  style={{ gridTemplateColumns: "130px 1fr 50px" }}
+                >
+                  <span style={{ color: "var(--aegis-fg-2)" }}>{b.name}</span>
+                  <div className="h-1 overflow-hidden rounded" style={{ background: "var(--aegis-panel-2)" }}>
+                    <motion.div
+                      className="h-full"
+                      style={{ background: "var(--aegis-ok)" }}
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(b.score / b.max_score) * 100}%` }}
+                      transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
+                    />
+                  </div>
+                  <span className="text-right tabular-nums" style={{ color: "var(--aegis-dim)" }}>
+                    {b.score}/{b.max_score}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    ) : null;
+
+  const renderAnomalies = () => (
+    <Card>
+      <CardContent className="p-6">
+        <CardHead
+          code="ALT"
+          title="Anomalies"
+          action={
+            <>
+              <span
+                className="aegis-dot"
+                style={{ color: "var(--aegis-warn)" }}
+              >
+                <span className="aegis-dot-core" />
+              </span>
+              {anomalies?.total_count ?? 0} signals
+            </>
+          }
+        />
+        {bundleError ? (
+          <QueryErrorCard
+            message={bundleError.message || "Failed to load anomalies."}
+            onRetry={() => refetchBundle()}
+          />
+        ) : anomalies && anomalies.anomalies.length > 0 ? (
+          <div className="flex flex-col">
+            {anomalies.anomalies.slice(0, 5).map((a, i) => (
+              <motion.div
+                key={a.transaction_id}
+                initial={hasMounted ? false : { opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={hasMounted ? { duration: 0 } : { delay: i * 0.06 }}
+                className="grid items-start gap-3 py-2.5"
+                style={{
+                  gridTemplateColumns: "70px 1fr auto",
+                  borderBottom: i < anomalies.anomalies.slice(0, 5).length - 1 ? "1px dashed var(--aegis-line)" : "none",
+                }}
+              >
+                <span className="font-mono text-[11px] pt-0.5" style={{ color: "var(--aegis-dim)" }}>
+                  {a.date.slice(5)}
+                </span>
+                <div>
+                  <div className="flex items-baseline gap-3 font-mono text-[12px] text-foreground">
+                    <span className="capitalize">{a.category}</span>
+                    <span className="tabular-nums" style={{ color: "var(--aegis-warn)" }}>
+                      {formatCurrency(a.amount)}
+                    </span>
+                    <span className="ml-auto tabular-nums" style={{ color: "var(--aegis-warn)" }}>
+                      {a.deviation_ratio.toFixed(1)}×
+                    </span>
+                  </div>
+                  <p className="mt-1 text-[12px]" style={{ color: "var(--aegis-fg-2)" }}>
+                    {a.description ?? `${a.deviation_ratio.toFixed(1)}× the average for this category (${formatCurrency(a.average_for_category)}).`}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground text-center py-6">No unusual spending detected</p>
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const renderSpending = () => (
+    <Card>
+      <CardContent className="p-6">
+        <CardHead code="SPD" title="Spending · this month" action={<>by category</>} />
+        {bundleError ? (
+          <QueryErrorCard
+            message={bundleError.message || "Failed to load spending chart."}
+            onRetry={() => refetchBundle()}
+          />
+        ) : bundleLoading ? (
+          <Skeleton height={300} />
+        ) : (
+          <SpendingChart data={charts?.spending_by_category ?? []} />
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const renderTrend = () => (
+    <Card>
+      <CardContent className="p-6">
+        <CardHead code="TRD" title="Monthly trend" action={<>income vs expenses</>} />
+        {bundleError ? (
+          <QueryErrorCard
+            message={bundleError.message || "Failed to load trend chart."}
+            onRetry={() => refetchBundle()}
+          />
+        ) : bundleLoading ? (
+          <Skeleton height={300} />
+        ) : (
+          <TrendChart data={charts?.monthly_trend ?? []} />
+        )}
+      </CardContent>
+    </Card>
+  );
+
+  const renderInsights = () => {
+    if (bundleError) {
+      return (
+        <Card>
+          <CardContent className="p-6">
+            <CardHead code="INS" title="Insights" />
+            <QueryErrorCard
+              message={bundleError.message || "Failed to load insights."}
+              onRetry={() => refetchBundle()}
+            />
+          </CardContent>
+        </Card>
+      );
+    }
+    if (!insights || insights.length === 0) return null;
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <CardHead
+            code="INS"
+            title="Insights"
+            action={<>auto-generated · last refresh just now</>}
+          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {insights.map((insight, i) => {
+              const tint =
+                insight.type === "positive"
+                  ? "var(--aegis-ok)"
+                  : insight.type === "warning"
+                    ? "var(--aegis-warn)"
+                    : "var(--primary)";
+              return (
+                <motion.div
+                  key={i}
+                  initial={hasMounted ? false : { opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={hasMounted ? { duration: 0 } : { delay: i * 0.08 }}
+                  className="aegis-insight"
+                  style={{ "--insight-tint": tint } as React.CSSProperties}
+                >
+                  <div className="aegis-insight-kicker">
+                    {String(i + 1).padStart(2, "0")} · {insight.type.toUpperCase()}
+                  </div>
+                  <div className="text-sm font-medium text-foreground mb-1.5">{insight.title}</div>
+                  <div className="text-sm leading-relaxed" style={{ color: "var(--aegis-fg-2)" }}>
+                    {insight.message}
+                  </div>
+                  <div className="flex items-center justify-between font-mono text-[11px] mt-2.5">
+                    <span className="tabular-nums" style={{ color: tint }}>
+                      {insight.metric}
+                    </span>
+                    <span style={{ color: "var(--aegis-dim)" }}>act on this →</span>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const renderCashflow = () => {
+    if (bundleError) {
+      return (
+        <Card>
+          <CardContent className="p-6">
+            <CardHead code="CFL" title="Cash flow forecast" />
+            <QueryErrorCard
+              message={bundleError.message || "Failed to load cash flow forecast."}
+              onRetry={() => refetchBundle()}
+            />
+          </CardContent>
+        </Card>
+      );
+    }
+    if (!cashflow || cashflow.forecast.length === 0) return null;
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <CardHead
+            code="CFL"
+            title="Cash flow forecast"
+            action={
+              <>
+                current balance ·{" "}
+                <span style={{ color: "var(--foreground)" }} className="tabular-nums">
+                  {formatCurrency(cashflow.current_balance)}
+                </span>
+              </>
+            }
+          />
+          <CashflowChart data={cashflow.forecast} />
+        </CardContent>
+      </Card>
+    );
+  };
+
+  const widgetRenderers: Record<DashboardWidgetId, () => React.ReactNode> = {
+    kpi: renderKPI,
+    health: renderHealth,
+    anomalies: renderAnomalies,
+    spending: renderSpending,
+    trend: renderTrend,
+    insights: renderInsights,
+    cashflow: renderCashflow,
+  };
+
   return (
     <motion.div
-      className="space-y-7 max-w-7xl mx-auto"
+      className="max-w-7xl mx-auto"
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
@@ -215,298 +504,33 @@ export default function DashboardPage() {
             )
           }
           action={
-            <Button
-              onClick={toggleAIPanel}
-              className="font-mono text-[11px] tracking-wide"
-            >
-              ASK CLAUDE
-            </Button>
+            <div className="flex items-center gap-2">
+              <CustomizeMenu order={widgetOrder} />
+              <Button
+                onClick={toggleAIPanel}
+                className="font-mono text-[11px] tracking-wide"
+              >
+                ASK CLAUDE
+              </Button>
+            </div>
           }
         />
       </motion.div>
 
-      {/* KPI rail — single grid, hairline dividers, italic serif numerals. */}
-      <motion.div variants={staggerItem}>
-        {summaryError ? (
-          <Card>
-            <CardContent className="p-6">
-              <QueryErrorCard
-                message={summaryError.message || "Failed to load summary."}
-                onRetry={() => refetchSummary()}
-              />
-            </CardContent>
-          </Card>
-        ) : summaryLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} height={120} />
-            ))}
-          </div>
-        ) : summary ? (
-          <KPICards data={summary} />
-        ) : null}
-      </motion.div>
-
-      {/* Health Score + Anomaly Alerts */}
-      <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {healthError ? (
-          <Card>
-            <CardContent className="p-6">
-              <CardHead code="HLT" title="Financial health" />
-              <QueryErrorCard
-                message={healthError.message || "Failed to load health score."}
-                onRetry={() => refetchHealth()}
-              />
-            </CardContent>
-          </Card>
-        ) : healthLoading ? (
-          <Skeleton height={240} />
-        ) : healthScore ? (
-          <Card>
-            <CardContent className="p-6">
-              <CardHead code="HLT" title="Financial health" action={<>overall · {healthScore.grade}</>} />
-              <div className="grid grid-cols-[140px_1fr] gap-6 items-center">
-                <div className="flex flex-col items-center gap-1 p-3 rounded-md" style={{ border: "1px dashed var(--aegis-line)" }}>
-                  <ProgressRing
-                    value={healthScore.overall_score}
-                    max={100}
-                    size={96}
-                    strokeWidth={6}
-                    color={gradeColor(healthScore.grade)}
-                    label={
-                      <span className="aegis-display" style={{ fontSize: 48, lineHeight: 1, color: gradeColor(healthScore.grade) }}>
-                        {healthScore.grade}
-                      </span>
-                    }
-                    sublabel={
-                      <span className="font-mono text-[11px] tabular-nums" style={{ color: "var(--foreground)" }}>
-                        {healthScore.overall_score}
-                        <span style={{ color: "var(--aegis-dim)" }}>/100</span>
-                      </span>
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  {healthScore.breakdown.map((b) => (
-                    <div
-                      key={b.name}
-                      className="grid items-center gap-2.5 font-mono text-[11px]"
-                      style={{ gridTemplateColumns: "130px 1fr 50px" }}
-                    >
-                      <span style={{ color: "var(--aegis-fg-2)" }}>{b.name}</span>
-                      <div className="h-1 overflow-hidden rounded" style={{ background: "var(--aegis-panel-2)" }}>
-                        <motion.div
-                          className="h-full"
-                          style={{ background: "var(--aegis-ok)" }}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${(b.score / b.max_score) * 100}%` }}
-                          transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
-                        />
-                      </div>
-                      <span className="text-right tabular-nums" style={{ color: "var(--aegis-dim)" }}>
-                        {b.score}/{b.max_score}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ) : null}
-
-        {/* Anomaly Alerts — dashed-bottom row dividers, no zebra. */}
-        <Card>
-          <CardContent className="p-6">
-            <CardHead
-              code="ALT"
-              title="Anomalies"
-              action={
-                <>
-                  <span
-                    className="aegis-dot"
-                    style={{ color: "var(--aegis-warn)" }}
-                  >
-                    <span className="aegis-dot-core" />
-                  </span>
-                  {anomalies?.total_count ?? 0} signals
-                </>
-              }
-            />
-            {anomaliesError ? (
-              <QueryErrorCard
-                message={anomaliesError.message || "Failed to load anomalies."}
-                onRetry={() => refetchAnomalies()}
-              />
-            ) : anomalies && anomalies.anomalies.length > 0 ? (
-              <div className="flex flex-col">
-                {anomalies.anomalies.slice(0, 5).map((a, i) => (
-                  <motion.div
-                    key={a.transaction_id}
-                    initial={hasMounted ? false : { opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={hasMounted ? { duration: 0 } : { delay: i * 0.06 }}
-                    className="grid items-start gap-3.5 py-2.5"
-                    style={{
-                      gridTemplateColumns: "70px 1fr auto",
-                      borderBottom: i < anomalies.anomalies.slice(0, 5).length - 1 ? "1px dashed var(--aegis-line)" : "none",
-                    }}
-                  >
-                    <span className="font-mono text-[11px] pt-0.5" style={{ color: "var(--aegis-dim)" }}>
-                      {a.date.slice(5)}
-                    </span>
-                    <div>
-                      <div className="flex items-baseline gap-3 font-mono text-[12px] text-foreground">
-                        <span className="capitalize">{a.category}</span>
-                        <span className="tabular-nums" style={{ color: "var(--aegis-warn)" }}>
-                          {formatCurrency(a.amount)}
-                        </span>
-                        <span className="ml-auto tabular-nums" style={{ color: "var(--aegis-warn)" }}>
-                          {a.deviation_ratio.toFixed(1)}×
-                        </span>
-                      </div>
-                      <p className="mt-1 text-[12px]" style={{ color: "var(--aegis-fg-2)" }}>
-                        {a.description ?? `${a.deviation_ratio.toFixed(1)}× the average for this category (${formatCurrency(a.average_for_category)}).`}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground text-center py-6">No unusual spending detected</p>
-            )}
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Charts */}
-      <motion.div variants={staggerItem} className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <Card>
-          <CardContent className="p-6">
-            <CardHead code="SPD" title="Spending · this month" action={<>by category</>} />
-            {chartsError ? (
-              <QueryErrorCard
-                message={chartsError.message || "Failed to load spending chart."}
-                onRetry={() => refetchCharts()}
-              />
-            ) : chartsLoading ? (
-              <Skeleton height={300} />
-            ) : (
-              <SpendingChart data={charts?.spending_by_category ?? []} />
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <CardHead code="TRD" title="Monthly trend" action={<>income vs expenses</>} />
-            {chartsError ? (
-              <QueryErrorCard
-                message={chartsError.message || "Failed to load trend chart."}
-                onRetry={() => refetchCharts()}
-              />
-            ) : chartsLoading ? (
-              <Skeleton height={300} />
-            ) : (
-              <TrendChart data={charts?.monthly_trend ?? []} />
-            )}
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Financial Insights */}
-      {insightsError ? (
-        <motion.div variants={staggerItem}>
-          <Card>
-            <CardContent className="p-6">
-              <CardHead code="INS" title="Insights" />
-              <QueryErrorCard
-                message={insightsError.message || "Failed to load insights."}
-                onRetry={() => refetchInsights()}
-              />
-            </CardContent>
-          </Card>
-        </motion.div>
-      ) : insights && insights.length > 0 && (
-        <motion.div variants={staggerItem}>
-          <Card>
-            <CardContent className="p-6">
-              <CardHead
-                code="INS"
-                title="Insights"
-                action={<>auto-generated · last refresh just now</>}
-              />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {insights.map((insight, i) => {
-                  const tint =
-                    insight.type === "positive"
-                      ? "var(--aegis-ok)"
-                      : insight.type === "warning"
-                        ? "var(--aegis-warn)"
-                        : "var(--primary)";
-                  return (
-                    <motion.div
-                      key={i}
-                      initial={hasMounted ? false : { opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={hasMounted ? { duration: 0 } : { delay: i * 0.08 }}
-                      className="aegis-insight"
-                      style={{ "--insight-tint": tint } as React.CSSProperties}
-                    >
-                      <div className="aegis-insight-kicker">
-                        {String(i + 1).padStart(2, "0")} · {insight.type.toUpperCase()}
-                      </div>
-                      <div className="text-sm font-medium text-foreground mb-1.5">{insight.title}</div>
-                      <div className="text-[13px] leading-relaxed" style={{ color: "var(--aegis-fg-2)" }}>
-                        {insight.message}
-                      </div>
-                      <div className="flex items-center justify-between font-mono text-[11px] mt-2.5">
-                        <span className="tabular-nums" style={{ color: tint }}>
-                          {insight.metric}
-                        </span>
-                        <span style={{ color: "var(--aegis-dim)" }}>act on this →</span>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
-
-      {/* Cash Flow Forecast */}
-      {cashflowError ? (
-        <motion.div variants={staggerItem}>
-          <Card>
-            <CardContent className="p-6">
-              <CardHead code="CFL" title="Cash flow forecast" />
-              <QueryErrorCard
-                message={cashflowError.message || "Failed to load cash flow forecast."}
-                onRetry={() => refetchCashflow()}
-              />
-            </CardContent>
-          </Card>
-        </motion.div>
-      ) : cashflow && cashflow.forecast.length > 0 && (
-        <motion.div variants={staggerItem}>
-          <Card>
-            <CardContent className="p-6">
-              <CardHead
-                code="CFL"
-                title="Cash flow forecast"
-                action={
-                  <>
-                    current balance ·{" "}
-                    <span style={{ color: "var(--foreground)" }} className="tabular-nums">
-                      {formatCurrency(cashflow.current_balance)}
-                    </span>
-                  </>
-                }
-              />
-              <CashflowChart data={cashflow.forecast} />
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
+      {/* Widget grid — order and visibility are user-configurable. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-7">
+        {widgetOrder
+          .filter((id) => !hiddenWidgets.includes(id))
+          .map((id) => {
+            const content = widgetRenderers[id]();
+            if (!content) return null;
+            return (
+              <motion.div key={id} variants={staggerItem} className={WIDGET_SPAN[id]}>
+                {content}
+              </motion.div>
+            );
+          })}
+      </div>
 
       <AIPanel />
     </motion.div>

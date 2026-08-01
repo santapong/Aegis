@@ -345,6 +345,14 @@ body {
 }
 
 /* ===== Type utilities ========================================================= */
+/* ===== Type scale ============================================================
+   The full set of sizes used app-wide — do not introduce sizes between steps:
+     10px  micro labels, eyebrows, chart ticks (mono, tracked, uppercase)
+     11px  mono metadata, kbd hints, card-head actions
+     12px  = text-xs — UI labels, nav items, dense body
+     14px  = text-sm — body copy, card titles
+     16px  = text-base   18px = text-lg   24px = text-2xl  headings
+     34px / 42px  marketing display (serif hero)   48px  health grade numeral */
 .font-mono   { font-family: var(--font-mono); }
 .font-serif  { font-family: var(--font-serif); }
 .tabular-nums { font-variant-numeric: tabular-nums; }
@@ -382,6 +390,18 @@ select:focus-visible {
   outline-offset: 0;
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* ===== Data-screen restraint ================================================== */
+/* Set on <body> by Backdrop for every non-marketing route: data screens sit on
+   the plain base surface with no glow, regardless of the active theme. */
+body.route-app {
+  --hero-glow: 0 0 0 transparent;
+  --line-glow: drop-shadow(0 0 0 transparent);
+  --ring-glow: none;
+}
+body.route-app .bd-base {
+  background: linear-gradient(180deg, var(--void) 0%, var(--void-2) 100%);
 }
 
 /* ===== Cosmic backdrop ======================================================== */

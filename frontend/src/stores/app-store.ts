@@ -23,14 +23,44 @@ interface AppSettings {
   aiAutoSuggestions: boolean;
 }
 
+/** Canonical dashboard widget order — new widgets must be appended here. */
+export const DASHBOARD_WIDGET_IDS = [
+  "kpi",
+  "health",
+  "anomalies",
+  "spending",
+  "trend",
+  "insights",
+  "cashflow",
+] as const;
+
+export type DashboardWidgetId = (typeof DASHBOARD_WIDGET_IDS)[number];
+
+/** Persisted order reconciled with the canonical list: drop unknown ids,
+ *  append widgets shipped after the user's copy was persisted. */
+function reconcileWidgetOrder(order: string[]): DashboardWidgetId[] {
+  const known = order.filter((id): id is DashboardWidgetId =>
+    (DASHBOARD_WIDGET_IDS as readonly string[]).includes(id)
+  );
+  const missing = DASHBOARD_WIDGET_IDS.filter((id) => !known.includes(id));
+  return [...known, ...missing];
+}
+
 interface AppState {
   sidebarOpen: boolean;
+  collapsedClusters: string[];
+  dashboardOrder: DashboardWidgetId[];
+  dashboardHidden: string[];
   theme: CosmicTheme;
   aiPanelOpen: boolean;
   hasSeenTour: boolean;
   settings: AppSettings;
   settingsHydrated: boolean;
   toggleSidebar: () => void;
+  toggleCluster: (label: string) => void;
+  moveWidget: (id: DashboardWidgetId, dir: -1 | 1) => void;
+  toggleWidget: (id: DashboardWidgetId) => void;
+  resetWidgets: () => void;
   setTheme: (theme: CosmicTheme) => void;
   toggleAIPanel: () => void;
   setHasSeenTour: (seen: boolean) => void;
@@ -71,12 +101,38 @@ export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
       sidebarOpen: true,
+      collapsedClusters: ["System"],
+      dashboardOrder: [...DASHBOARD_WIDGET_IDS],
+      dashboardHidden: [],
       theme: "observatory",
       aiPanelOpen: false,
       hasSeenTour: false,
       settings: { ...defaultSettings },
       settingsHydrated: false,
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+      toggleCluster: (label) =>
+        set((s) => ({
+          collapsedClusters: s.collapsedClusters.includes(label)
+            ? s.collapsedClusters.filter((l) => l !== label)
+            : [...s.collapsedClusters, label],
+        })),
+      moveWidget: (id, dir) =>
+        set((s) => {
+          const order = reconcileWidgetOrder(s.dashboardOrder);
+          const i = order.indexOf(id);
+          const j = i + dir;
+          if (i < 0 || j < 0 || j >= order.length) return {};
+          [order[i], order[j]] = [order[j], order[i]];
+          return { dashboardOrder: order };
+        }),
+      toggleWidget: (id) =>
+        set((s) => ({
+          dashboardHidden: s.dashboardHidden.includes(id)
+            ? s.dashboardHidden.filter((w) => w !== id)
+            : [...s.dashboardHidden, id],
+        })),
+      resetWidgets: () =>
+        set({ dashboardOrder: [...DASHBOARD_WIDGET_IDS], dashboardHidden: [] }),
       setTheme: (theme) => {
         if (!isCosmicTheme(theme)) return;
         set({ theme });
@@ -127,6 +183,9 @@ export const useAppStore = create<AppState>()(
       },
       partialize: (state) => ({
         sidebarOpen: state.sidebarOpen,
+        collapsedClusters: state.collapsedClusters,
+        dashboardOrder: state.dashboardOrder,
+        dashboardHidden: state.dashboardHidden,
         theme: state.theme,
         settings: state.settings,
         hasSeenTour: state.hasSeenTour,

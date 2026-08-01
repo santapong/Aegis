@@ -21,13 +21,13 @@ import {
   PiggyBank,
   TrendingUp,
   Banknote,
-  Receipt,
   Calendar as CalendarIcon,
   GanttChartSquare,
   Plane,
   Sparkles,
   BookOpen,
   Compass,
+  ChevronDown,
   type LucideIcon,
 } from "lucide-react";
 import { Sparkline } from "@/components/shell/sparkline";
@@ -103,7 +103,6 @@ const clusters: NavCluster[] = [
       { href: "/savings", label: "Savings", code: "SAV", icon: PiggyBank, k: "⌘⇧5" },
       { href: "/investments", label: "Investments", code: "INV", icon: TrendingUp, k: "⌘⇧6" },
       { href: "/debts", label: "Debts", code: "DBT", icon: Banknote, k: "⌘⇧7" },
-      { href: "/payments", label: "Payments", code: "PAY", icon: Receipt, k: "⌘⇧8" },
     ],
   },
   {
@@ -133,6 +132,8 @@ export function Sidebar() {
   // sidebar (with motion + sparklines) on every unrelated state change.
   const sidebarOpen = useAppStore((s) => s.sidebarOpen);
   const toggleSidebar = useAppStore((s) => s.toggleSidebar);
+  const collapsedClusters = useAppStore((s) => s.collapsedClusters);
+  const toggleCluster = useAppStore((s) => s.toggleCluster);
   const toggleAIPanel = useAppStore((s) => s.toggleAIPanel);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
@@ -228,7 +229,7 @@ export function Sidebar() {
                   AEG<span style={{ color: "var(--accent)" }}>IS</span>
                 </div>
                 <div
-                  className="font-mono text-[9.5px] tracking-[1.4px] uppercase"
+                  className="font-mono text-[10px] tracking-[1.4px] uppercase"
                   style={{ color: "var(--dim)" }}
                 >
                   money / galaxy
@@ -262,20 +263,36 @@ export function Sidebar() {
         )}
 
         <nav className="flex-1 px-2.5 py-4 overflow-y-auto flex flex-col gap-5">
-          {clusters.map((cluster) => (
+          {clusters.map((cluster) => {
+            // A collapsed cluster stays open while it holds the active route,
+            // so the current location is never hidden from the user.
+            const hasActive = cluster.items.some((i) => i.href === pathname);
+            const collapsed =
+              sidebarOpen && !hasActive && collapsedClusters.includes(cluster.label);
+            return (
             <div key={cluster.label} className="flex flex-col gap-1">
               {sidebarOpen && (
-                <p
-                  className="px-2 pb-1.5 font-mono uppercase"
+                <button
+                  onClick={() => toggleCluster(cluster.label)}
+                  aria-expanded={!collapsed}
+                  className="flex items-center justify-between px-2 pb-1.5 font-mono uppercase transition-colors"
                   style={{
-                    fontSize: "9.5px",
+                    fontSize: "10px",
                     letterSpacing: "1.8px",
                     color: "var(--dim-2)",
                   }}
                 >
-                  Cluster · {cluster.index} · {cluster.label}
-                </p>
+                  <span>Cluster · {cluster.index} · {cluster.label}</span>
+                  <ChevronDown
+                    size={12}
+                    style={{
+                      transition: "transform 0.2s",
+                      transform: collapsed ? "rotate(-90deg)" : "none",
+                    }}
+                  />
+                </button>
               )}
+              {!collapsed && (
               <div className="flex flex-col gap-0.5">
                 {cluster.items.map((item) => {
                   const Icon = item.icon;
@@ -291,7 +308,7 @@ export function Sidebar() {
                         sidebarOpen ? "gap-2.5 px-2.5 py-1.5" : "justify-center px-2 py-2"
                       )}
                       style={{
-                        fontSize: "12.5px",
+                        fontSize: "12px",
                         letterSpacing: "0.2px",
                         borderRadius: "4px",
                         color: isActive ? "var(--accent)" : "var(--fg-2)",
@@ -329,15 +346,17 @@ export function Sidebar() {
                   );
                 })}
               </div>
+              )}
             </div>
-          ))}
+            );
+          })}
 
           {sidebarOpen && (
             <div className="flex flex-col gap-1 mt-2">
               <p
                 className="px-2 pb-1.5 font-mono uppercase"
                 style={{
-                  fontSize: "9.5px",
+                  fontSize: "10px",
                   letterSpacing: "1.8px",
                   color: "var(--dim-2)",
                 }}
@@ -378,7 +397,7 @@ export function Sidebar() {
           >
             <Bot size={14} />
             {sidebarOpen && (
-              <span className="text-[12.5px] font-mono">AI Advisor</span>
+              <span className="text-xs font-mono">AI Advisor</span>
             )}
           </button>
 
@@ -421,7 +440,7 @@ export function Sidebar() {
               >
                 <LogOut size={14} />
                 {sidebarOpen && (
-                  <span className="text-[12.5px] font-mono">Sign out</span>
+                  <span className="text-xs font-mono">Sign out</span>
                 )}
               </button>
             </>

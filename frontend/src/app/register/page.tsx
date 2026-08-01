@@ -129,7 +129,7 @@ export default function RegisterPage() {
             {FEATURE_BULLETS.map((f) => (
               <li
                 key={f}
-                className="flex items-start gap-3 font-mono text-[12.5px]"
+                className="flex items-start gap-3 font-mono text-xs"
                 style={{ color: "var(--fg-2)" }}
               >
                 <Check size={14} style={{ color: "var(--accent)", marginTop: 2 }} />

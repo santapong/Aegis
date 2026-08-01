@@ -23,6 +23,14 @@ COPY . .
 ARG NEXT_PUBLIC_API_URL=""
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
+# With `output: standalone`, next.config's rewrites() runs at BUILD time
+# and the result is frozen into the standalone server — the runtime env
+# var is ignored. Bake the in-network backend URL here; without it the
+# config falls back to http://localhost:8000, which inside the container
+# is the frontend itself (ECONNREFUSED on every proxied /api call).
+ARG BACKEND_INTERNAL_URL="http://backend:8000"
+ENV BACKEND_INTERNAL_URL=${BACKEND_INTERNAL_URL}
+
 RUN bun run build
 
 # ---------- Production stage ----------
@@ -48,8 +56,9 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# BACKEND_INTERNAL_URL is read at request time by the rewrite proxy.
-# Set it per environment (compose service name in Docker, public HTTPS
-# URL on Vercel/ECS/Cloud Run).
+# NOTE: BACKEND_INTERNAL_URL is NOT read at request time in this image —
+# standalone output freezes the rewrite destination at build time (see
+# the builder stage). Rebuild with --build-arg BACKEND_INTERNAL_URL=…
+# to point the proxy elsewhere.
 
 CMD ["node", "server.js"]

@@ -81,7 +81,7 @@ export default function LoginPage() {
             Welcome back to the bridge.
           </h1>
           <p
-            className="font-mono text-[13px] leading-[1.65] max-w-[44ch]"
+            className="font-mono text-sm leading-[1.65] max-w-[44ch]"
             style={{ color: "var(--fg-2)" }}
           >
             Pick up where you left off. Your last sync was{" "}
@@ -124,7 +124,7 @@ export default function LoginPage() {
               }}
             />
             <span
-              className="text-[15px]"
+              className="text-base"
               style={{
                 fontFamily: "var(--display-font)",
                 fontStyle: "var(--display-style)",

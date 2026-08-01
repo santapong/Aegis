@@ -90,7 +90,7 @@ export function TrendChart({ data }: TrendChartProps) {
           stroke={COL_INCOME}
           strokeDasharray="3 3"
           strokeOpacity={0.4}
-          label={{ value: "avg", position: "right", fontSize: 9, fontFamily: "var(--font-mono)", fill: "var(--muted-foreground)" }}
+          label={{ value: "avg", position: "right", fontSize: 10, fontFamily: "var(--font-mono)", fill: "var(--muted-foreground)" }}
         />
         <ReferenceLine
           y={avgExpenses}

@@ -34,7 +34,6 @@ export function GlobalShortcuts() {
   useHotkeys("g>s", () => router.push("/savings"), opts);
   useHotkeys("g>v", () => router.push("/investments"), opts);
   useHotkeys("g>x", () => router.push("/debts"), opts);
-  useHotkeys("g>y", () => router.push("/payments"), opts);
   useHotkeys("g>g", () => router.push("/gantt"), opts);
   useHotkeys("g>p", () => router.push("/plans"), opts);
   useHotkeys("g>i", () => router.push("/trips"), opts);
@@ -52,7 +51,6 @@ export function GlobalShortcuts() {
   useHotkeys("meta+shift+5, ctrl+shift+5", () => router.push("/savings"), opts);
   useHotkeys("meta+shift+6, ctrl+shift+6", () => router.push("/investments"), opts);
   useHotkeys("meta+shift+7, ctrl+shift+7", () => router.push("/debts"), opts);
-  useHotkeys("meta+shift+8, ctrl+shift+8", () => router.push("/payments"), opts);
   useHotkeys(
     "meta+shift+comma, ctrl+shift+comma",
     () => router.push("/settings"),
