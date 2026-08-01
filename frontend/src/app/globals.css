@@ -384,6 +384,18 @@ select:focus-visible {
   box-shadow: 0 0 0 1px var(--accent);
 }
 
+/* ===== Data-screen restraint ================================================== */
+/* Set on <body> by Backdrop for every non-marketing route: data screens sit on
+   the plain base surface with no glow, regardless of the active theme. */
+body.route-app {
+  --hero-glow: 0 0 0 transparent;
+  --line-glow: drop-shadow(0 0 0 transparent);
+  --ring-glow: none;
+}
+body.route-app .bd-base {
+  background: linear-gradient(180deg, var(--void) 0%, var(--void-2) 100%);
+}
+
 /* ===== Cosmic backdrop ======================================================== */
 .backdrop {
   position: fixed;

@@ -21,7 +21,6 @@ import {
   PiggyBank,
   TrendingUp,
   Banknote,
-  Receipt,
   Calendar as CalendarIcon,
   GanttChartSquare,
   Plane,
@@ -103,7 +102,6 @@ const clusters: NavCluster[] = [
       { href: "/savings", label: "Savings", code: "SAV", icon: PiggyBank, k: "⌘⇧5" },
       { href: "/investments", label: "Investments", code: "INV", icon: TrendingUp, k: "⌘⇧6" },
       { href: "/debts", label: "Debts", code: "DBT", icon: Banknote, k: "⌘⇧7" },
-      { href: "/payments", label: "Payments", code: "PAY", icon: Receipt, k: "⌘⇧8" },
     ],
   },
   {
