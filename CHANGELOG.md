@@ -6,6 +6,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-08-01
+
+### Changed — UX restraint pass
+
+- **Cosmic backdrop confined to marketing routes** — the starfield, grid
+  lattice, constellation and black-hole layers now render only on
+  `/landing`, `/welcome`, `/login` and `/register`. Data screens sit on a
+  plain two-stop gradient with the glow tokens zeroed (`body.route-app`),
+  under every theme.
+- **Collapsible sidebar clusters** — each nav cluster header toggles its
+  group; state persists, System starts collapsed, and the cluster holding
+  the active route always stays open.
+- **Type scale consolidated** — 15 ad-hoc font sizes merged into a
+  documented 9-step scale (see the comment block in `globals.css`);
+  chart tick sizes unified at 10px.
+
+### Added
+
+- **Customizable dashboard widgets** — every dashboard section (KPI rail,
+  health, anomalies, spending, trend, insights, cashflow) can be hidden
+  and reordered via the new **Customize** popover; layout persists and
+  resets in one click. Widget ids reconcile against the canonical list so
+  future widgets appear automatically.
+
+### Removed
+
+- **Payments (Stripe) page hidden** — sidebar entry and its shortcuts
+  (`g>y`, `Ctrl+Shift+8`) removed; the `/payments` route remains for easy
+  restore.
+
+### Fixed
+
+- **Worker startup** — arq reads `redis_settings` as an attribute, not a
+  callable.
+- **Compose defaults** — backend wired to Redis by default; frontend
+  standalone build no longer bakes `localhost:8000` into the `/api` proxy.
+
 ## [1.2.0] - 2026-07-27
 
 ### Added — docs & repo structure
