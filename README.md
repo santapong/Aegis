@@ -131,7 +131,7 @@ make seed
 - **Calendar Planner** — monthly / weekly views, drag-drop rescheduling.
 - **Gantt Chart** — timeline visualization with zoom levels, mobile touch scrolling.
 - **Reports** — category comparison, trend analysis, CSV **and PDF** export (WeasyPrint).
-- **Payments** — Stripe test-mode checkout with webhook-driven status updates.
+- **Payments** — Stripe test-mode checkout with webhook-driven status updates. The API remains active; the frontend page is hidden from navigation since v1.3.0 (route `/payments` kept for easy restore).
 - **AI Advisor** — spending analysis, budget recommendations, 6-month forecasting, weekly summary.
 - **Notifications** — server-backed budget / bill / goal / anomaly alerts with idempotent dedupe keys.
 - **Onboarding tour** — first-run walkthrough (`driver.js`), replayable from Settings.

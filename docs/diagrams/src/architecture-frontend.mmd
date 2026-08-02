@@ -2,21 +2,26 @@ C4Component
     title Aegis frontend — component view (C4 level 3)
 
     Container_Boundary(fe, "Frontend — Next.js 15 App Router") {
-        Component(layout, "Root layout", "app/layout.tsx", "Providers, Sidebar, Notifications")
-        Component(pages, "Route pages", "app/{route}/page.tsx", "welcome / login / register, dashboard, transactions / budgets / savings / debts / payments / investments, plans / calendar / gantt / trips, reports / settings / docs")
-        Component(ui, "ui/", "shadcn/ui + custom", "button, dialog, table, sidebar")
+        Component(layout, "Root layout", "app/layout.tsx", "Providers, Sidebar, Backdrop, Notifications")
+        Component(backdrop, "Backdrop", "shell/backdrop.tsx", "Cosmic layers (stars, grid, constellation, black hole) on marketing routes only; data routes get a plain surface + body.route-app zeroes glow tokens")
+        Component(pages, "Route pages", "app/{route}/page.tsx", "welcome / login / register, dashboard (widget grid), transactions / budgets / savings / debts / investments, plans / calendar / gantt / trips, reports / settings / docs; /payments exists but is hidden from nav")
+        Component(widgets, "Dashboard widgets", "dashboard/", "7 sections (KPI rail, health, anomalies, spending, trend, insights, cashflow) rendered from persisted order; customize-menu hides / reorders / resets")
+        Component(ui, "ui/", "shadcn/ui + custom", "button, dialog, table, sidebar (collapsible nav clusters, persisted)")
         Component(shell, "shell/", "Themed wrappers", "kpi, galaxy-card, sparkline, black-hole")
         Component(charts, "charts/", "Recharts wrappers", "spending, cashflow, trend")
-        Component(feature, "Feature components", "auth/ ai/ dashboard/ search/", "auth-gate, google-sign-in, ai-panel, kpi-cards, command-palette, onboarding tour + global shortcuts")
-        Component(lib, "lib/ hooks/ stores/", "TypeScript", "api.ts fetch client, utils + animations, use-toast, auth / app / notification Zustand stores")
+        Component(feature, "Feature components", "auth/ ai/ search/", "auth-gate, google-sign-in, ai-panel, command-palette, onboarding tour + global shortcuts")
+        Component(lib, "lib/ hooks/ stores/", "TypeScript", "api.ts fetch client, utils + animations, use-toast, auth / app / notification Zustand stores; app store persists theme, cluster collapse, widget order")
     }
 
+    Rel(layout, backdrop, "Mounts once")
     Rel(layout, pages, "Renders")
+    Rel(pages, widgets, "Dashboard renders")
     Rel(pages, ui, "Composes")
     Rel(pages, shell, "Composes")
     Rel(pages, charts, "Composes")
     Rel(pages, feature, "Composes")
     Rel(pages, lib, "Fetches + state via")
+    Rel(widgets, lib, "Order / visibility from app store")
     Rel(feature, lib, "Uses")
 
-    UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="1")
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
