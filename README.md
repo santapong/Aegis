@@ -2,7 +2,7 @@
 
 AI-powered financial planning with calendar, Gantt charts, cookie-session auth, Stripe payments, keyboard-first navigation, PDF reports, and smart recommendations powered by Claude, Typhoon, or Groq.
 
-Status: **v1.2.0 — generally available.** See [CHANGELOG.md](CHANGELOG.md) — v1.2.0 covers security (httpOnly cookies, Google sign-in, FK cascade, body-size cap), multi-DB compatibility, the cache layer, a full performance pass (SQL aggregation, composite indexes, Recharts code-split, gzip), plus market data and budget templates. [ROADMAP.md](ROADMAP.md) tracks longer-term direction.
+Status: **v1.3.0 — generally available.** See [CHANGELOG.md](CHANGELOG.md) — v1.3.0 is a UX restraint pass (cosmic backdrop confined to marketing routes, collapsible sidebar clusters, a customizable dashboard widget grid, a consolidated 9-step type scale), on top of v1.2.0's security work (httpOnly cookies, Google sign-in, FK cascade, body-size cap), multi-DB compatibility, the cache layer, and a full performance pass. [ROADMAP.md](ROADMAP.md) tracks longer-term direction.
 
 Public landing page: [`/landing`](http://localhost:3000/landing). Sign-in: email/password or **Google** (configurable via `GOOGLE_OAUTH_CLIENT_ID`).
 
@@ -12,7 +12,7 @@ For a deeper look at how the system is put together — layered backend, fronten
 
 ![Architecture at a glance](docs/diagrams/readme-architecture-at-a-glance.svg)
 
-<sub>Diagram source: [readme-architecture-at-a-glance.mmd](docs/diagrams/src/readme-architecture-at-a-glance.mmd)</sub>
+<sub>Diagram source: [readme-architecture-at-a-glance.mmd](docs/diagrams/src/readme-architecture-at-a-glance.mmd) · [C4 model](https://c4model.com/); colour palette and conventions in [THEME.md](docs/diagrams/THEME.md)</sub>
 
 ## Tech Stack
 

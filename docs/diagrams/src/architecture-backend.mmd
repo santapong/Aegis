@@ -1,25 +1,45 @@
-C4Component
-    title Aegis backend — request path components (C4 level 3)
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "ui-sans-serif, -apple-system, Segoe UI, Roboto, sans-serif",
+    "fontSize": "14px",
+    "lineColor": "#64748b",
+    "edgeLabelBackground": "#ffffff",
+    "primaryTextColor": "#0f2b36"
+  },
+  "flowchart": { "curve": "basis", "nodeSpacing": 55, "rankSpacing": 70, "padding": 12 }
+}}%%
+%% Aegis backend — request path components (C4 level 3).
+%% C4 model, flowchart syntax: see THEME.md.
+flowchart TB
+    frontend["<b>Frontend</b><br/><small><i>Next.js 15</i></small><br/><small>Proxies /api/* to the backend</small>"]
 
-    Container_Ext(frontend, "Frontend", "Next.js 15", "Proxies /api/* to the backend")
+    subgraph api["Backend API — FastAPI"]
+        direction TB
+        mw["<b>Middleware stack</b><br/><small><i>Starlette middleware</i></small><br/><small>outermost → innermost:<br/>RequestID · CORS · GZip 500 B · BodySize 2 MB<br/>RateLimit · SecurityHeaders CSP + HSTS</small>"]
+        routers["<b>Domain routers</b><br/><small><i>FastAPI APIRouter</i></small><br/><small>transactions · budgets · plans · payments<br/>ai · reports · trips · market · jobs</small>"]
+        deps["<b>Dependencies</b><br/><small><i>FastAPI Depends</i></small><br/><small>get_db · get_current_user · get_cache</small>"]
+        services["<b>Service layer</b><br/><small><i>Python</i></small><br/><small>ai_engine · notification<br/>pdf_renderer · recurrence</small>"]
+        orm["<b>ORM</b><br/><small><i>SQLAlchemy 2.0</i></small><br/><small>Session per request</small>"]
+    end
 
-    Container_Boundary(api, "Backend API — FastAPI") {
-        Component(mw, "Middleware stack", "Starlette middleware", "Outermost to innermost: RequestID adds X-Request-ID, CORS, GZip at 500 B threshold, BodySize 2 MB cap, RateLimit via Redis or in-memory fixed window, SecurityHeaders with CSP + HSTS")
-        Component(routers, "Domain routers", "FastAPI APIRouter", "transactions, budgets, plans, payments, ai, reports, trips, market, jobs")
-        Component(deps, "Dependencies", "FastAPI Depends", "get_db, get_current_user, get_cache")
-        Component(services, "Service layer", "Python", "ai_engine, notification, pdf_renderer, recurrence")
-        Component(orm, "ORM", "SQLAlchemy 2.0", "Session per request")
-    }
+    db[("<b>Database</b><br/><small><i>SQLite · Postgres · MySQL</i></small>")]
+    cache[("<b>Redis</b><br/><small><i>cache · rate-limit</i></small>")]
 
-    ContainerDb(db, "Database", "SQLite / Postgres / MySQL")
-    ContainerDb(cache, "Redis", "cache + rate-limit")
+    frontend -->|"HTTP request<br/>/api/*"| mw
+    mw -->|"dispatches to"| routers
+    routers -->|"resolves"| deps
+    routers -->|"calls"| services
+    services -->|"uses"| orm
+    orm -->|"SQL"| db
+    services -->|"get / set"| cache
 
-    Rel(frontend, mw, "HTTP request", "/api/*")
-    Rel(mw, routers, "Dispatches to")
-    Rel(routers, deps, "Resolves")
-    Rel(routers, services, "Calls")
-    Rel(services, orm, "Uses")
-    Rel(orm, db, "SQL")
-    Rel(services, cache, "get / set")
+    classDef container fill:#e0f5fd,stroke:#0891b2,stroke-width:1.5px,color:#0e3a49
+    classDef datastore fill:#cbeefb,stroke:#0e7490,stroke-width:1.5px,color:#0e3a49
+    classDef external fill:#f1f5f9,stroke:#94a3b8,stroke-width:1.5px,color:#475569,stroke-dasharray:4 3
 
-    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+    class mw,routers,deps,services,orm container
+    class db,cache datastore
+    class frontend external
+
+    style api fill:#fbfdfe,stroke:#94a3b8,stroke-width:1.2px,color:#0f2b36,stroke-dasharray:6 4

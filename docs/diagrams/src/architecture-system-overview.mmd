@@ -1,26 +1,47 @@
-C4Container
-    title Aegis — container view (C4 level 2)
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "ui-sans-serif, -apple-system, Segoe UI, Roboto, sans-serif",
+    "fontSize": "14px",
+    "lineColor": "#64748b",
+    "edgeLabelBackground": "#ffffff",
+    "primaryTextColor": "#0f2b36"
+  },
+  "flowchart": { "curve": "basis", "nodeSpacing": 55, "rankSpacing": 75, "padding": 12 }
+}}%%
+%% Aegis — container view (C4 level 2). C4 model, flowchart syntax: see THEME.md.
+flowchart TB
+    user(["<b>User</b><br/><small>Manages personal finances<br/>in the browser</small>"])
 
-    Person(user, "User", "Manages personal finances in the browser")
+    subgraph aegis["Aegis"]
+        direction LR
+        frontend["<b>Frontend</b><br/><small><i>Next.js 15 · React 19</i></small><br/><small>App Router pages · Zustand<br/>React Query v5 · /api/* proxy</small>"]
+        backend["<b>Backend API</b><br/><small><i>FastAPI · Python 3.11+</i></small><br/><small>Middleware stack · domain routers<br/>service layer</small>"]
+        worker["<b>Worker</b><br/><small><i>arq</i></small><br/><small>Background jobs</small>"]
+        db[("<b>Database</b><br/><small><i>SQLite · Postgres · MySQL</i></small><br/><small>Domain data, via DATABASE_URL</small>")]
+        cache[("<b>Redis</b><br/><small><i>cache · rate-limit · arq queue</i></small>")]
+    end
 
-    System_Boundary(aegis, "Aegis") {
-        Container(frontend, "Frontend", "Next.js 15 / React 19", "App Router pages, Zustand stores + React Query v5, /api/* rewrite proxy")
-        Container(backend, "Backend API", "FastAPI / Python 3.11+", "Middleware stack, domain routers, service layer")
-        Container(worker, "Worker", "arq", "Background jobs")
-        ContainerDb(db, "Database", "SQLite / Postgres / MySQL", "Domain data, selected via DATABASE_URL")
-        ContainerDb(cache, "Redis", "cache + rate-limit + arq queue")
-    }
+    stripe["<b>Stripe</b><br/><small><i>Payments · test mode</i></small>"]
+    llm["<b>LLM providers</b><br/><small><i>Anthropic · Typhoon · Groq</i></small>"]
 
-    System_Ext(stripe, "Stripe", "Payments: checkout + webhooks, test mode")
-    System_Ext(llm, "LLM providers", "Anthropic / Typhoon / Groq")
+    user -->|"HTTPS"| frontend
+    frontend -->|"REST /api/*<br/>JSON · JWT cookie"| backend
+    backend -->|"reads / writes<br/>SQLAlchemy 2.0"| db
+    backend -->|"cache · rate-limit<br/>enqueue"| cache
+    worker -->|"dequeues jobs"| cache
+    worker -->|"reads / writes"| db
+    backend -.->|"AI advisor calls · tool_use"| llm
+    backend -.->|"checkout + webhooks"| stripe
 
-    Rel(user, frontend, "Uses", "HTTPS")
-    Rel(frontend, backend, "REST /api/*", "JSON, JWT cookie")
-    Rel(backend, db, "Reads / writes", "SQLAlchemy 2.0")
-    Rel(backend, cache, "Caches, rate-limits, enqueues")
-    Rel(backend, llm, "AI advisor calls", "tool_use")
-    BiRel(backend, stripe, "Checkout + webhooks")
-    Rel(worker, cache, "Dequeues jobs")
-    Rel(worker, db, "Reads / writes")
+    classDef person fill:#e2e8f0,stroke:#475569,stroke-width:1.5px,color:#1e293b
+    classDef container fill:#e0f5fd,stroke:#0891b2,stroke-width:1.5px,color:#0e3a49
+    classDef datastore fill:#cbeefb,stroke:#0e7490,stroke-width:1.5px,color:#0e3a49
+    classDef external fill:#f1f5f9,stroke:#94a3b8,stroke-width:1.5px,color:#475569,stroke-dasharray:4 3
 
-    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+    class user person
+    class frontend,backend,worker container
+    class db,cache datastore
+    class stripe,llm external
+
+    style aegis fill:#fbfdfe,stroke:#94a3b8,stroke-width:1.2px,color:#0f2b36,stroke-dasharray:6 4

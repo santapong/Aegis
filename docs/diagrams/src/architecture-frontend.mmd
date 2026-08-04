@@ -1,27 +1,43 @@
-C4Component
-    title Aegis frontend — component view (C4 level 3)
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "ui-sans-serif, -apple-system, Segoe UI, Roboto, sans-serif",
+    "fontSize": "14px",
+    "lineColor": "#64748b",
+    "edgeLabelBackground": "#ffffff",
+    "primaryTextColor": "#0f2b36"
+  },
+  "flowchart": { "curve": "basis", "nodeSpacing": 50, "rankSpacing": 65, "padding": 12 }
+}}%%
+%% Aegis frontend — component view (C4 level 3).
+%% C4 model, flowchart syntax: see THEME.md.
+flowchart TB
+    subgraph fe["Frontend — Next.js 15 App Router"]
+        direction TB
+        layout["<b>Root layout</b><br/><small><i>app/layout.tsx</i></small><br/><small>Providers · Sidebar · Backdrop · Notifications</small>"]
+        backdrop["<b>Backdrop</b><br/><small><i>shell/backdrop.tsx</i></small><br/><small>Cosmic layers on marketing routes only;<br/>body.route-app zeroes glow tokens</small>"]
+        pages["<b>Route pages</b><br/><small><i>app/{route}/page.tsx</i></small><br/><small>welcome · login · register · dashboard<br/>transactions · budgets · savings · debts · investments<br/>plans · calendar · gantt · trips · reports · settings · docs<br/>(/payments exists but is hidden from nav)</small>"]
+        widgets["<b>Dashboard widgets</b><br/><small><i>dashboard/</i></small><br/><small>7 sections from persisted order;<br/>customize-menu hides / reorders / resets</small>"]
+        ui["<b>ui/</b><br/><small><i>shadcn/ui + custom</i></small><br/><small>button · dialog · table<br/>sidebar with collapsible clusters</small>"]
+        shell["<b>shell/</b><br/><small><i>Themed wrappers</i></small><br/><small>kpi · galaxy-card · sparkline · black-hole</small>"]
+        charts["<b>charts/</b><br/><small><i>Recharts wrappers</i></small><br/><small>spending · cashflow · trend</small>"]
+        feature["<b>Feature components</b><br/><small><i>auth/ ai/ search/</i></small><br/><small>auth-gate · google-sign-in · ai-panel<br/>command-palette · onboarding tour</small>"]
+        lib["<b>lib/ hooks/ stores/</b><br/><small><i>TypeScript</i></small><br/><small>api.ts fetch client · utils · animations · use-toast<br/>auth / app / notification Zustand stores<br/>app store persists theme, clusters, widget order</small>"]
+    end
 
-    Container_Boundary(fe, "Frontend — Next.js 15 App Router") {
-        Component(layout, "Root layout", "app/layout.tsx", "Providers, Sidebar, Backdrop, Notifications")
-        Component(backdrop, "Backdrop", "shell/backdrop.tsx", "Cosmic layers (stars, grid, constellation, black hole) on marketing routes only; data routes get a plain surface + body.route-app zeroes glow tokens")
-        Component(pages, "Route pages", "app/{route}/page.tsx", "welcome / login / register, dashboard (widget grid), transactions / budgets / savings / debts / investments, plans / calendar / gantt / trips, reports / settings / docs; /payments exists but is hidden from nav")
-        Component(widgets, "Dashboard widgets", "dashboard/", "7 sections (KPI rail, health, anomalies, spending, trend, insights, cashflow) rendered from persisted order; customize-menu hides / reorders / resets")
-        Component(ui, "ui/", "shadcn/ui + custom", "button, dialog, table, sidebar (collapsible nav clusters, persisted)")
-        Component(shell, "shell/", "Themed wrappers", "kpi, galaxy-card, sparkline, black-hole")
-        Component(charts, "charts/", "Recharts wrappers", "spending, cashflow, trend")
-        Component(feature, "Feature components", "auth/ ai/ search/", "auth-gate, google-sign-in, ai-panel, command-palette, onboarding tour + global shortcuts")
-        Component(lib, "lib/ hooks/ stores/", "TypeScript", "api.ts fetch client, utils + animations, use-toast, auth / app / notification Zustand stores; app store persists theme, cluster collapse, widget order")
-    }
+    layout -->|"mounts once"| backdrop
+    layout -->|"renders"| pages
+    pages -->|"dashboard renders"| widgets
+    pages -->|"composes"| ui
+    pages -->|"composes"| shell
+    pages -->|"composes"| charts
+    pages -->|"composes"| feature
+    pages -->|"fetches + state via"| lib
+    widgets -->|"order / visibility<br/>from app store"| lib
+    feature -->|"uses"| lib
 
-    Rel(layout, backdrop, "Mounts once")
-    Rel(layout, pages, "Renders")
-    Rel(pages, widgets, "Dashboard renders")
-    Rel(pages, ui, "Composes")
-    Rel(pages, shell, "Composes")
-    Rel(pages, charts, "Composes")
-    Rel(pages, feature, "Composes")
-    Rel(pages, lib, "Fetches + state via")
-    Rel(widgets, lib, "Order / visibility from app store")
-    Rel(feature, lib, "Uses")
+    classDef container fill:#e0f5fd,stroke:#0891b2,stroke-width:1.5px,color:#0e3a49
 
-    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+    class layout,backdrop,pages,widgets,ui,shell,charts,feature,lib container
+
+    style fe fill:#fbfdfe,stroke:#94a3b8,stroke-width:1.2px,color:#0f2b36,stroke-dasharray:6 4

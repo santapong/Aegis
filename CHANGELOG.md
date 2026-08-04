@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed — diagram readability
+
+- **Structural diagrams redrawn as themed flowcharts** — the seven C4
+  diagrams that used mermaid's `C4Container` / `C4Component` syntax are now
+  `flowchart` sources. They keep the **C4 model** (same levels, same
+  person / container / datastore / external roles); only the renderer
+  changes. Mermaid's C4 renderer places shapes on a fixed grid and draws
+  every relationship as a straight line between shape centres, so edges cut
+  through boxes and labels collided — the container view was unreadable.
+  `flowchart` uses dagre, which routes links around shapes.
+- **Diagram colour theme** — roles now carry colour, on a light cyan/slate
+  scale derived from the app accent (`--accent: #5ad8ff`) and legible on the
+  white render background in both GitHub themes. Palette, conventions and
+  the rationale are documented in `docs/diagrams/THEME.md`.
+- Non-structural diagrams (flows, sequences, state machines) are unchanged.
+
 ## [1.3.0] - 2026-08-01
 
 ### Changed — UX restraint pass

@@ -1,23 +1,49 @@
-C4Container
-    title Analytics replication — CDC pipeline (C4 container view)
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "ui-sans-serif, -apple-system, Segoe UI, Roboto, sans-serif",
+    "fontSize": "14px",
+    "lineColor": "#64748b",
+    "edgeLabelBackground": "#ffffff",
+    "primaryTextColor": "#0f2b36"
+  },
+  "flowchart": { "curve": "basis", "nodeSpacing": 55, "rankSpacing": 70, "padding": 12 }
+}}%%
+%% Analytics replication — CDC pipeline (C4 container view).
+%% C4 model, flowchart syntax: see THEME.md.
+flowchart LR
+    user(["<b>Users</b>"])
 
-    Person(user, "Users")
+    subgraph aegis["Aegis"]
+        direction TB
+        be["<b>Aegis backend</b><br/><small><i>FastAPI</i></small>"]
+        oltp[("<b>Operational DB</b><br/><small><i>Postgres · MySQL</i></small><br/><small>OLTP source of truth</small>")]
+    end
 
-    System_Boundary(aegis, "Aegis") {
-        Container(be, "Aegis backend", "FastAPI")
-        ContainerDb(oltp, "Operational DB", "Postgres / MySQL", "OLTP source of truth")
-    }
+    subgraph analytics["Analytics"]
+        direction TB
+        cdc["<b>CDC pipeline</b><br/><small><i>Fivetran · Airbyte · Debezium<br/>DMS · Datastream</i></small><br/><small>Change-data-capture replication</small>"]
+        dw[("<b>Warehouse</b><br/><small><i>Redshift · BigQuery<br/>Snowflake · ClickHouse</i></small>")]
+        bi["<b>BI tools</b><br/><small><i>Looker · Metabase · Superset<br/>Tableau · Hex</i></small>"]
+    end
 
-    System_Boundary(analytics, "Analytics") {
-        Container_Ext(cdc, "CDC pipeline", "Fivetran / Airbyte / Debezium / DMS / Datastream", "Change-data-capture replication")
-        ContainerDb_Ext(dw, "Warehouse", "Redshift / BigQuery / Snowflake / ClickHouse")
-        Container_Ext(bi, "BI tools", "Looker / Metabase / Superset / Tableau / Hex")
-    }
+    user -->|"uses"| be
+    be -->|"reads / writes"| oltp
+    oltp -.->|"WAL / binlog<br/>seconds to minutes lag"| cdc
+    cdc -->|"loads"| dw
+    dw -->|"queries"| bi
 
-    Rel(user, be, "Uses")
-    Rel(be, oltp, "Reads / writes")
-    Rel(oltp, cdc, "WAL / binlog", "seconds to minutes lag")
-    Rel(cdc, dw, "Loads")
-    Rel(dw, bi, "Queries")
+    classDef person fill:#e2e8f0,stroke:#475569,stroke-width:1.5px,color:#1e293b
+    classDef container fill:#e0f5fd,stroke:#0891b2,stroke-width:1.5px,color:#0e3a49
+    classDef datastore fill:#cbeefb,stroke:#0e7490,stroke-width:1.5px,color:#0e3a49
+    classDef external fill:#f1f5f9,stroke:#94a3b8,stroke-width:1.5px,color:#475569,stroke-dasharray:4 3
+    classDef externalstore fill:#e8eef4,stroke:#94a3b8,stroke-width:1.5px,color:#475569,stroke-dasharray:4 3
 
-    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")
+    class user person
+    class be container
+    class oltp datastore
+    class cdc,bi external
+    class dw externalstore
+
+    style aegis fill:#fbfdfe,stroke:#94a3b8,stroke-width:1.2px,color:#0f2b36,stroke-dasharray:6 4
+    style analytics fill:#f8fafc,stroke:#94a3b8,stroke-width:1.2px,color:#0f2b36,stroke-dasharray:6 4

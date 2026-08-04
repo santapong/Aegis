@@ -4,6 +4,8 @@ A map of how Aegis is put together. Read this before the design docs in [`design
 
 For deployment topology specifically, see [`deployment/`](deployment/). For the data model in storage terms, see [`databases.md`](databases.md).
 
+Structural diagrams here follow the [C4 model](https://c4model.com/) — colour carries the role of each element (container, datastore, external system). The palette and the drawing conventions are in [`diagrams/THEME.md`](diagrams/THEME.md).
+
 ## System overview
 
 Two services (frontend, backend), one database, and an optional Redis. Everything else (Stripe, the LLM provider, Neon) is an external dependency the backend talks to.
