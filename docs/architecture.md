@@ -12,7 +12,7 @@ Two services (frontend, backend), one database, and an optional Redis. Everythin
 
 ![System overview](diagrams/architecture-system-overview.svg)
 
-<sub>Diagram source: [architecture-system-overview.mmd](diagrams/src/architecture-system-overview.mmd)</sub>
+<sub>Hand-authored SVG: [architecture-system-overview.svg](diagrams/architecture-system-overview.svg) · conventions in [THEME.md](diagrams/THEME.md)</sub>
 
 The frontend never talks to the backend directly from the browser. Every `/api/*` request goes through Next.js's `rewrites()` proxy in [`frontend/next.config.ts`](../frontend/next.config.ts). That keeps auth same-origin (no CORS preflight), lets the backend URL move without a frontend rebuild, and means there's only ever one env var (`BACKEND_INTERNAL_URL`) to change per environment.
 
@@ -22,7 +22,7 @@ FastAPI, layered conventionally: middleware → router → service → ORM → D
 
 ![Backend](diagrams/architecture-backend.svg)
 
-<sub>Diagram source: [architecture-backend.mmd](diagrams/src/architecture-backend.mmd)</sub>
+<sub>Hand-authored SVG: [architecture-backend.svg](diagrams/architecture-backend.svg) · conventions in [THEME.md](diagrams/THEME.md)</sub>
 
 ### Layout
 
@@ -61,7 +61,7 @@ Next.js 15 App Router with a strict server / client split.
 
 ![Frontend](diagrams/architecture-frontend.svg)
 
-<sub>Diagram source: [architecture-frontend.mmd](diagrams/src/architecture-frontend.mmd)</sub>
+<sub>Hand-authored SVG: [architecture-frontend.svg](diagrams/architecture-frontend.svg) · conventions in [THEME.md](diagrams/THEME.md)</sub>
 
 ### State model
 

@@ -6,21 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-### Changed — diagram readability
+### Changed — structural diagrams are now hand-authored SVG
 
-- **Structural diagrams redrawn as themed flowcharts** — the seven C4
-  diagrams that used mermaid's `C4Container` / `C4Component` syntax are now
-  `flowchart` sources. They keep the **C4 model** (same levels, same
-  person / container / datastore / external roles); only the renderer
-  changes. Mermaid's C4 renderer places shapes on a fixed grid and draws
-  every relationship as a straight line between shape centres, so edges cut
-  through boxes and labels collided — the container view was unreadable.
-  `flowchart` uses dagre, which routes links around shapes.
-- **Diagram colour theme** — roles now carry colour, on a light cyan/slate
-  scale derived from the app accent (`--accent: #5ad8ff`) and legible on the
-  white render background in both GitHub themes. Palette, conventions and
-  the rationale are documented in `docs/diagrams/THEME.md`.
-- Non-structural diagrams (flows, sequences, state machines) are unchanged.
+- **The seven C4 diagrams are drawn by hand and no longer generated.** Their
+  `.svg` files are now the source and are edited directly; the matching
+  `docs/diagrams/src/*.mmd` files are deleted. Affected: the README
+  at-a-glance view, the container and component views in
+  `docs/architecture.md`, the ROADMAP snapshot, the deployment recipe shape,
+  and the analytics CDC pipeline.
+- **Why.** Mermaid's `C4Container` / `C4Component` renderer lays shapes on a
+  fixed grid and draws relationships as straight lines between shape centres,
+  so edges cut through boxes and labels collided. Mermaid `flowchart` fixed
+  the crossings but left placement to dagre, with no way to express which
+  element a diagram is about. Hand-placed coordinates cost more per diagram
+  and buy deliberate composition — the backend view reads top to bottom
+  because that is the order a request travels.
+- **Own theme, derived from the product.** Dark canvas (`--void: #050810`)
+  with the app's cyan accent, matching `frontend/src/app/globals.css`. Roles
+  carry colour: cyan containers, green datastores, muted dashed externals.
+  Because the canvas is opaque, the diagrams look the same in GitHub's light
+  and dark themes. Palette and conventions are in `docs/diagrams/THEME.md`.
+- Every structural diagram now carries `role="img"` with `<title>` and a
+  plain-English `<desc>` for screen readers.
+- The C4 **model** is unchanged — same levels, same roles, same boundaries.
+- `scripts/render-diagrams.mjs` still renders the other 49 diagrams (flows,
+  sequences, state machines, ER) from `.mmd`. Those keep mermaid's default
+  white canvas, so the two families do not yet match visually.
 
 ## [1.3.0] - 2026-08-01
 

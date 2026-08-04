@@ -12,7 +12,7 @@ For a deeper look at how the system is put together — layered backend, fronten
 
 ![Architecture at a glance](docs/diagrams/readme-architecture-at-a-glance.svg)
 
-<sub>Diagram source: [readme-architecture-at-a-glance.mmd](docs/diagrams/src/readme-architecture-at-a-glance.mmd) · [C4 model](https://c4model.com/); colour palette and conventions in [THEME.md](docs/diagrams/THEME.md)</sub>
+<sub>Hand-authored SVG: [readme-architecture-at-a-glance.svg](docs/diagrams/readme-architecture-at-a-glance.svg) · [C4 model](https://c4model.com/) · palette and conventions in [THEME.md](docs/diagrams/THEME.md)</sub>
 
 ## Tech Stack
 

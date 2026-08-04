@@ -69,7 +69,7 @@ Captured here for continuity; not scoped.
 
 ![Architecture snapshot (current)](docs/diagrams/roadmap-architecture-snapshot-current.svg)
 
-<sub>Diagram source: [roadmap-architecture-snapshot-current.mmd](docs/diagrams/src/roadmap-architecture-snapshot-current.mmd)</sub>
+<sub>Hand-authored SVG: [roadmap-architecture-snapshot-current.svg](docs/diagrams/roadmap-architecture-snapshot-current.svg) · conventions in [THEME.md](docs/diagrams/THEME.md)</sub>
 
 ## Tech stack
 
