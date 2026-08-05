@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added — design doc: AI provider configuration
+
+- **[`docs/design/006-ai-provider-configuration.md`](docs/design/006-ai-provider-configuration.md)**
+  — scopes an in-app AI settings surface: a provider/model picker fed by the
+  provider's own model list (rather than a hard-coded catalog that goes stale),
+  token-usage metering, a cost estimate labelled with the date its prices were
+  captured, and operator storage of the provider key. Records that Aegis's
+  deployment posture is **single-operator self-host** (no subscription tier, no
+  `role` field, single-instance deploy recipes), which is what makes an in-app
+  key field acceptable. Chooses a general `user_secrets` store over an
+  `api_key` column on `User` so the planned LINE Messaging token reuses the
+  same mechanism. Design only — no implementation.
+
+  Three defects found while scoping and recorded there for follow-up: the
+  Anthropic default in `config.py` is a dated snapshot rather than an alias;
+  `AIEngine._call_tool` discards `response.usage`, so nothing meters the AI
+  layer; and `settings/page.tsx` hard-codes `Version 1.0.0` and
+  `AI Engine: Claude (Anthropic)`, both wrong on a current Groq or Typhoon
+  deploy.
+
 ### Changed — structural diagrams are now hand-authored SVG
 
 - **The seven C4 diagrams are drawn by hand and no longer generated.** Their
