@@ -9,7 +9,7 @@ Covers the two behaviours the design doc leans on
 """
 import pytest
 
-from app.cache import reset_cache_for_tests
+from app.cache import get_cache
 from app.models.user_preferences import UserPreferences
 from app.services import ai_engine as ai_engine_module
 
@@ -18,11 +18,19 @@ from .conftest import _register
 
 @pytest.fixture(autouse=True)
 def _clear_models_cache():
-    """The model list is cached per provider for an hour. Without this the
-    first test to populate it would leak its stub into every later test."""
-    reset_cache_for_tests()
+    """Drop the cached model list around every test.
+
+    Must delete the *keys*, not just call `reset_cache_for_tests()`. That
+    helper only drops the process-local singleton, which is enough for the
+    in-memory backend but a no-op against a shared store — and CI runs the
+    suite with CACHE_BACKEND=redis. Without this, the first test to populate
+    the cache leaks its stubbed list into every later test, and the
+    provider-unreachable cases silently get a cache hit instead of exercising
+    the failure path.
+    """
+    get_cache().delete_prefix("ai:models:")
     yield
-    reset_cache_for_tests()
+    get_cache().delete_prefix("ai:models:")
 
 
 def _stub_models(monkeypatch, models):
