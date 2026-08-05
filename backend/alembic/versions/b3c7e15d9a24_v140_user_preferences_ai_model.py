@@ -1,4 +1,4 @@
-"""v1.3.0 AI model picker — nullable ai_model on user_preferences
+"""v1.4.0 AI model picker — nullable ai_model on user_preferences
 
 Adds the operator's chosen model for the currently-configured AI provider.
 NULL means "use the env default", so an existing deploy that never opens the

@@ -3,7 +3,12 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useAppStore, COSMIC_THEMES, type CosmicTheme } from "@/stores/app-store";
-import { aiAPI, preferencesAPI, type AIModelsPayload } from "@/lib/api";
+import {
+  aiAPI,
+  preferencesAPI,
+  type AIModelsPayload,
+  type AIUsagePayload,
+} from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +23,18 @@ import { cn } from "@/lib/utils";
 
 /** Injected from package.json by next.config.ts. */
 const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "dev";
+
+/**
+ * Per-call AI costs are fractions of a cent, so the usual 2-decimal currency
+ * format would render every row as "$0.00" and make the panel useless. Show
+ * enough precision to distinguish a cheap model from an expensive one.
+ */
+function formatUsd(value: number): string {
+  if (value === 0) return "$0";
+  if (value < 0.01) return `$${value.toFixed(5)}`;
+  if (value < 1) return `$${value.toFixed(3)}`;
+  return `$${value.toFixed(2)}`;
+}
 
 interface ThemeMeta {
   name: CosmicTheme;
@@ -65,6 +82,7 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState("appearance");
   const [showReset, setShowReset] = useState(false);
   const [aiModels, setAiModels] = useState<AIModelsPayload | null>(null);
+  const [aiUsage, setAiUsage] = useState<AIUsagePayload | null>(null);
   const [modelSaving, setModelSaving] = useState(false);
 
   // The catalog is fetched rather than hard-coded so a retired model drops
@@ -78,6 +96,14 @@ export default function SettingsPage() {
       .models()
       .then((data) => {
         if (!cancelled) setAiModels(data);
+      })
+      .catch(() => {
+        /* leave null — the card renders its loading copy */
+      });
+    aiAPI
+      .usage()
+      .then((data) => {
+        if (!cancelled) setAiUsage(data);
       })
       .catch(() => {
         /* leave null — the card renders its loading copy */
@@ -423,6 +449,84 @@ export default function SettingsPage() {
                       })),
                     ]}
                   />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6 space-y-3">
+                  <div className="aegis-card-head mb-2 pb-0 border-0">
+                    <CodeChip>USE</CodeChip>
+                    <h3 className="card-title">AI Usage</h3>
+                  </div>
+
+                  {!aiUsage ? (
+                    <p className="text-xs font-mono" style={{ color: "var(--dim)" }}>
+                      Loading usage…
+                    </p>
+                  ) : aiUsage.total_calls === 0 ? (
+                    <p className="text-xs font-mono" style={{ color: "var(--dim)" }}>
+                      No AI calls in the last {aiUsage.period_days} days.
+                    </p>
+                  ) : (
+                    <>
+                      <div className="flex flex-wrap gap-x-6 gap-y-1 font-mono text-[12px]">
+                        <span>
+                          <span style={{ color: "var(--dim)" }}>calls </span>
+                          {aiUsage.total_calls}
+                        </span>
+                        <span>
+                          <span style={{ color: "var(--dim)" }}>in </span>
+                          {aiUsage.total_input_tokens.toLocaleString()}
+                        </span>
+                        <span>
+                          <span style={{ color: "var(--dim)" }}>out </span>
+                          {aiUsage.total_output_tokens.toLocaleString()}
+                        </span>
+                        {aiUsage.estimated_cost_usd !== null && (
+                          <span>
+                            <span style={{ color: "var(--dim)" }}>est. </span>
+                            {formatUsd(aiUsage.estimated_cost_usd)}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="space-y-1 font-mono text-[12px]">
+                        {aiUsage.by_model.map((m) => (
+                          <div
+                            key={m.model}
+                            className="flex justify-between gap-3 py-1"
+                            style={{ borderBottom: "1px dashed var(--pane-edge)" }}
+                          >
+                            <span className="truncate">{m.model}</span>
+                            <span style={{ color: "var(--dim)" }}>
+                              {m.calls} ·{" "}
+                              {m.estimated_cost_usd !== null
+                                ? formatUsd(m.estimated_cost_usd)
+                                : "no price"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Token counts are measured and exact. The cost is
+                          derived, so its provenance is stated rather than
+                          presented as fact. */}
+                      <p className="text-xs font-mono" style={{ color: "var(--dim)" }}>
+                        Token counts are measured.
+                        {aiUsage.by_model.some((m) => m.cost_source === "table")
+                          ? ` Costs marked from the built-in table use prices as of ${aiUsage.prices_as_of}.`
+                          : " Costs use the provider's own published prices."}
+                      </p>
+
+                      {aiUsage.models_missing_price.length > 0 && (
+                        <p className="text-xs font-mono" style={{ color: "var(--dim)" }}>
+                          No price available for{" "}
+                          {aiUsage.models_missing_price.join(", ")} — excluded
+                          from the total.
+                        </p>
+                      )}
+                    </>
+                  )}
                 </CardContent>
               </Card>
 

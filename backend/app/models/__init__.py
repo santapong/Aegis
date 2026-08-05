@@ -3,6 +3,7 @@ from .plan import Plan
 from .transaction import Transaction
 from .budget import Budget
 from .ai_recommendation import AIRecommendation
+from .ai_usage import AIUsage
 from .tag import Tag
 from .savings_goal import SavingsGoal
 from .debt import Debt
@@ -13,7 +14,7 @@ from .user_preferences import UserPreferences
 from .investment import Investment
 
 __all__ = [
-    "User", "Plan", "Transaction", "Budget", "AIRecommendation",
+    "User", "Plan", "Transaction", "Budget", "AIRecommendation", "AIUsage",
     "Tag", "SavingsGoal", "Debt", "Payment",
     "Notification", "NotificationType",
     "Trip", "TripStatus",

@@ -6,6 +6,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added — AI usage metering and cost panel (design 006, steps 2-3)
+
+- **`ai_usage` table** (migration `c4d8f26a1b73`) — one row per successful
+  provider call, written from `AIEngine._call_tool`. `response.usage` was
+  previously discarded, so nothing measured the AI layer at all. Metering
+  inherits `_call_tool`'s contract and can never fail the request: a failed
+  write is logged, rolled back and dropped, because a missing row beats a 500
+  on a call the provider already answered and already billed.
+- **`GET /api/ai/usage`** — call counts and token totals per model for a
+  window, plus an estimated cost. Token counts are *measured*; cost is
+  *derived*, preferring the provider's own published per-token prices and
+  falling back to a static table stamped `PRICES_AS_OF`. A model neither
+  source prices is reported with its usage and no cost, and named in
+  `models_missing_price`, so a short total is visible rather than silent.
+- **Settings → AI Usage card** rendering both, with the cost provenance
+  stated rather than presented as fact.
+
+### Changed — the model picker now hides models that cannot work
+
+Running step 1 against the live Groq catalog showed 15 models offered of which
+only 7 can serve `/api/ai/*`; the rest fail silently into the placeholder
+recommendation, since every call pins `tool_choice` to one tool. Two
+independent checks are needed — Groq's speech models (`whisper-*`,
+`orpheus-*`) publish no `supported_features` so a features-only filter keeps
+them, while `groq/compound` and `allam-2-7b` are text-to-text but list no
+`tools` so a modality-only filter keeps those. Both are tri-state: only an
+explicit `False` disqualifies, so a provider publishing no metadata keeps its
+whole catalog.
+
+This also corrects the design doc's claim that no provider API returns
+pricing — Groq's model objects carry per-token prices, so a Groq deploy needs
+no hand-maintained price table at all.
+
 ### Added — AI model picker (design 006, step 1)
 
 - **`GET /api/ai/models`** — lists the models the configured provider
@@ -30,7 +63,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and model from `GET /api/ai/models`.
 - `Version` was a hard-coded `1.0.0` literal while the repo shipped v1.2.0. It
   is now injected from `package.json` at build time via `next.config.ts`, and
-  `frontend/package.json` is bumped to `1.2.0` to match the released version.
+  `frontend/package.json` is bumped to `1.3.0` to match the latest tag.
 
 ### Added — design doc: AI provider configuration
 

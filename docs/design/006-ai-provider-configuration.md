@@ -1,6 +1,8 @@
 # Design: AI provider configuration — in-app model picker, usage metering, and operator key storage
 
-**Status**: proposed. Not implemented. Branch `claude/ai-provider-configuration`.
+**Status**: steps 1–3 implemented on `claude/ai-provider-configuration`; step 4
+outstanding. Two decisions were corrected by building them — see the
+*Corrections from implementation* section at the end.
 
 **Context**: Aegis already swaps between three AI providers (`anthropic`,
 `typhoon`, `groq`) behind one env var, but every part of that choice —
@@ -263,3 +265,62 @@ alias-style ID (F1).
   response when upstream is unreachable.
 - Manual: with `AI_PROVIDER=groq` and no `ANTHROPIC_API_KEY` set,
   `/api/ai/analyze` and `/api/ai/forecast` both succeed and both record usage.
+
+---
+
+## Corrections from implementation
+
+Running steps 1–3 against a live Groq account contradicted two things asserted
+above. Both are corrected here rather than quietly patched, because the
+reasoning in the original decisions is what a future reader will rely on.
+
+### Decision 2's "not in scope" was wrong — capability filtering is required
+
+The original text deferred capability filtering as "a follow-up if it proves to
+be a real support burden." It is a burden immediately: of the **15** models
+Groq's catalog returns, only **7** can serve `/api/ai/*`. Selecting any of the
+other 8 fails silently into the placeholder recommendation, because every call
+pins `tool_choice` to a single tool.
+
+Filtering also turned out to need **two** independent signals, which is why a
+naive first attempt still let speech models through:
+
+| Disqualifier | Example | Why the other check misses it |
+|---|---|---|
+| Not text-to-text | `whisper-*` (audio→transcription), `orpheus-*` (text→speech) | Publishes no `supported_features` at all, so a features-only filter keeps it |
+| No tool support | `groq/compound`, `allam-2-7b` | Text-to-text, so a modality-only filter keeps it |
+
+Both checks are tri-state; only an explicit `False` disqualifies, so a provider
+publishing no metadata (Typhoon) keeps its whole catalog. Hiding a usable model
+is the worse failure.
+
+### Decision 3's premise was wrong — Groq *does* publish pricing
+
+The original text asserted flatly: "**No provider API returns pricing.** There
+is no endpoint for dollars-per-token on Anthropic, Groq, or Typhoon." That is
+false for Groq, whose model objects carry a per-token `pricing` block
+(`prompt`, `completion`, …) alongside `supported_features` and modality
+metadata.
+
+The conclusion — measure usage first, derive cost on top — still holds, and the
+static table is still needed for Anthropic. But the preference order changes:
+
+1. **Provider-published prices** where available (Groq). Always current, zero
+   maintenance.
+2. **The dated static table** otherwise (Anthropic), stamped `PRICES_AS_OF` and
+   rendered with that date attached.
+
+Each usage row reports which source priced it (`cost_source`), and a model
+neither source knows is returned with its usage and **no** cost, named in
+`models_missing_price` so a short total is visible rather than silent.
+
+This makes the staleness surface strictly smaller than designed: on a Groq
+deploy — the recommended starting point — no hand-maintained price is involved
+at all.
+
+### Measured cost, for calibration
+
+One live `analyze` call on `llama-3.3-70b-versatile`: **415 input / 152 output
+tokens**, priced from Groq's own figures at **$0.00036**. Roughly $0.36 per
+thousand calls, which is the concrete number behind "start on the free tier and
+only pay when quality is the constraint."

@@ -14,6 +14,7 @@ from ..config import get_settings
 from ..models.plan import Plan, PlanStatus
 from ..models.transaction import Transaction, TransactionType
 from ..models.ai_recommendation import AIRecommendation, ActionType
+from ..models.ai_usage import AIUsage
 from ..models.user_preferences import UserPreferences
 
 
@@ -358,8 +359,49 @@ class AIEngine:
             },
         )
 
-    def _call_tool(self, system_prompt: str, user_message: str, tool: dict) -> dict | None:
-        """Force a single tool call and return its parsed input dict, or None on failure."""
+    def _record_usage(self, operation: str, input_tokens: int, output_tokens: int) -> None:
+        """Persist one AIUsage row. Never raises.
+
+        Metering exists to observe the AI feature, so it must not be able to
+        break it: a failed write is logged and dropped. A missing row is a far
+        better outcome than a 500 on a call the provider already answered (and
+        already billed).
+
+        Rolls back on failure so a poisoned session can't take the caller's
+        own commit down with it — `analyze()` commits recommendations on the
+        same Session immediately after this runs.
+        """
+        try:
+            self.db.add(
+                AIUsage(
+                    user_id=self.user_id,
+                    provider=self.provider,
+                    model=self.model,
+                    operation=operation,
+                    input_tokens=int(input_tokens or 0),
+                    output_tokens=int(output_tokens or 0),
+                )
+            )
+            self.db.commit()
+        except Exception as e:
+            logger.warning("ai usage metering failed: {}", e)
+            try:
+                self.db.rollback()
+            except Exception:  # pragma: no cover - defensive
+                pass
+
+    def _call_tool(
+        self,
+        system_prompt: str,
+        user_message: str,
+        tool: dict,
+        operation: str = "unknown",
+    ) -> dict | None:
+        """Force a single tool call and return its parsed input dict, or None on failure.
+
+        Also meters the call. `operation` names the entry point so usage can be
+        attributed; it is metadata only and never reaches the provider.
+        """
         if self.provider == "anthropic":
             try:
                 response = self._anthropic.messages.create(
@@ -369,6 +411,12 @@ class AIEngine:
                     messages=[{"role": "user", "content": user_message}],
                     tools=[tool],
                     tool_choice={"type": "tool", "name": tool["name"]},
+                )
+                usage = getattr(response, "usage", None)
+                self._record_usage(
+                    operation,
+                    getattr(usage, "input_tokens", 0),
+                    getattr(usage, "output_tokens", 0),
                 )
                 return _extract_anthropic_tool_input(response, tool["name"])
             except Exception as e:
@@ -394,6 +442,12 @@ class AIEngine:
                 ],
                 tools=[openai_tool],
                 tool_choice={"type": "function", "function": {"name": tool["name"]}},
+            )
+            usage = getattr(response, "usage", None)
+            self._record_usage(
+                operation,
+                getattr(usage, "prompt_tokens", 0),
+                getattr(usage, "completion_tokens", 0),
             )
             choice = response.choices[0]
             tool_calls = getattr(choice.message, "tool_calls", None) or []
@@ -470,7 +524,9 @@ Be specific with numbers and percentages. Provide 3-5 recommendations."""
 
 {"Question: " + question if question else "Please analyze my finances and give recommendations."}"""
 
-        result = self._call_tool(system_prompt, user_message, ANALYZE_TOOL)
+        result = self._call_tool(
+            system_prompt, user_message, ANALYZE_TOOL, operation="analyze"
+        )
         recommendations = (result or {}).get("recommendations") or [
             {"recommendation": "Unable to generate AI recommendations at this time.", "confidence": 0.5, "category": "general", "action_type": "alert"}
         ]
@@ -512,7 +568,9 @@ Be specific with numbers and percentages. Provide 3-5 recommendations."""
 Monthly averages: income={monthly_income:.2f}, expenses={monthly_expenses:.2f}
 Please forecast my finances for the next {months_ahead} months."""
 
-        forecast = self._call_tool(system_prompt, user_message, FORECAST_TOOL)
+        forecast = self._call_tool(
+            system_prompt, user_message, FORECAST_TOOL, operation="forecast"
+        )
         if not forecast:
             forecast = {
                 "projected_balance": (monthly_income - monthly_expenses) * months_ahead,

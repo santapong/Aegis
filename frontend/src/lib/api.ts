@@ -320,8 +320,35 @@ export interface AIModelsPayload {
   error: string | null;
 }
 
+/** Wire shape for GET /api/ai/usage. */
+export interface AIUsageModelRow {
+  model: string;
+  provider: string;
+  calls: number;
+  input_tokens: number;
+  output_tokens: number;
+  /** null when neither the provider nor the static table prices this model. */
+  estimated_cost_usd: number | null;
+  /** "provider" (live) or "table" (static, see prices_as_of). */
+  cost_source: string | null;
+}
+
+export interface AIUsagePayload {
+  period_days: number;
+  total_calls: number;
+  total_input_tokens: number;
+  total_output_tokens: number;
+  /** Sum over priced rows only; null when nothing could be priced. */
+  estimated_cost_usd: number | null;
+  /** Models excluded from the total because no price was available. */
+  models_missing_price: string[];
+  prices_as_of: string;
+  by_model: AIUsageModelRow[];
+}
+
 export const aiAPI = {
   models: () => fetchJSON<AIModelsPayload>("/api/ai/models"),
+  usage: (days = 30) => fetchJSON<AIUsagePayload>(`/api/ai/usage?days=${days}`),
   analyze: (question?: string) =>
     fetchJSON("/api/ai/analyze", {
       method: "POST",
