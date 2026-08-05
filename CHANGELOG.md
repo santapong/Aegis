@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added — AI model picker (design 006, step 1)
+
+- **`GET /api/ai/models`** — lists the models the configured provider
+  currently offers, **fetched from the provider** rather than hard-coded, so a
+  retired model drops out of the picker instead of 404-ing at request time.
+  Cached per provider for an hour via the existing `CACHE_BACKEND`. An
+  unreachable provider degrades to `stale: true` plus the model in effect —
+  never a 500 and never an empty dropdown — and a failed fetch is deliberately
+  *not* cached so the next render retries.
+- **`user_preferences.ai_model`** (nullable, migration `b3c7e15d9a24`) — a
+  per-user model override. NULL means "use the env default", so a deploy that
+  never opens the picker behaves exactly as before. `AIEngine` resolves the
+  override at construction and falls back to the env model if the preferences
+  read fails, inheriting `_call_tool`'s never-break-the-feature contract.
+- **Settings → AI Model card** — a picker driven by the endpoint above, with a
+  "use server default" option that clears the override.
+
+### Fixed — two stale strings on the settings page
+
+- `AI Engine` claimed `Claude (Anthropic) + tool_use` unconditionally, which
+  was wrong on any Groq or Typhoon deploy. It now reports the live provider
+  and model from `GET /api/ai/models`.
+- `Version` was a hard-coded `1.0.0` literal while the repo shipped v1.2.0. It
+  is now injected from `package.json` at build time via `next.config.ts`, and
+  `frontend/package.json` is bumped to `1.2.0` to match the released version.
+
 ### Added — design doc: AI provider configuration
 
 - **[`docs/design/006-ai-provider-configuration.md`](docs/design/006-ai-provider-configuration.md)**

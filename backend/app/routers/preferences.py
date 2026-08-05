@@ -51,6 +51,11 @@ def update_preferences(
     # exclude_unset so a partial PUT doesn't clobber fields the client
     # didn't include in the payload.
     for key, val in data.model_dump(exclude_unset=True).items():
+        # Empty string clears the model override back to the env default.
+        # Without this a client that renders "" for "no selection" would
+        # pin the model to a blank string and every AI call would 404.
+        if key == "ai_model" and val == "":
+            val = None
         setattr(prefs, key, val)
     db.commit()
     db.refresh(prefs)

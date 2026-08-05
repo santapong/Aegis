@@ -54,3 +54,24 @@ class InsightItem(BaseModel):
     title: str
     message: str
     metric: str
+
+
+class AIModelsResponse(BaseModel):
+    """What the settings page needs to render the model picker."""
+
+    provider: str
+    # The model actually in effect right now: the stored override if the user
+    # set one, otherwise the env default.
+    current: str
+    # The env default, so the UI can label the "use default" option and show
+    # what clearing the override falls back to.
+    default: str
+    # None when the user has no override stored (i.e. `current == default`).
+    override: str | None
+    models: list[str]
+    # True when the upstream list could not be fetched and `models` is just
+    # the current model echoed back. The UI shows "couldn't list alternatives"
+    # rather than an empty dropdown.
+    stale: bool
+    # Populated only when stale, for the UI to surface the reason.
+    error: str | None = None

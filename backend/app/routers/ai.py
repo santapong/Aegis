@@ -3,19 +3,103 @@ from sqlalchemy import case, func as sa_func
 from sqlalchemy.orm import Session
 from datetime import date, timedelta
 
+from loguru import logger
+
 from ..cache import get_cache, user_scope
 from ..config import get_settings
 from ..database import get_db
 from ..models.transaction import Transaction, TransactionType
 from ..models.ai_recommendation import AIRecommendation
 from ..models.user import User
-from ..schemas.ai import AIAnalyzeRequest, AIRecommendationResponse, AIForecastResponse, WeeklySummaryResponse, InsightItem
-from ..services.ai_engine import AIEngine
+from ..models.user_preferences import UserPreferences
+from ..schemas.ai import (
+    AIAnalyzeRequest,
+    AIForecastResponse,
+    AIModelsResponse,
+    AIRecommendationResponse,
+    InsightItem,
+    WeeklySummaryResponse,
+)
+from ..services.ai_engine import (
+    AIEngine,
+    configured_provider_and_model,
+    list_provider_models,
+)
 from ..auth import get_current_user
 
 _settings = get_settings()
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
+
+# Model catalogs change on the order of weeks; an hour of staleness in a
+# settings dropdown is invisible, while an uncached fetch would put a
+# third-party round-trip on every settings page render.
+_MODELS_CACHE_TTL_S = 3600
+
+
+@router.get("/models", response_model=AIModelsResponse)
+def list_models(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Models the configured provider currently offers, for the settings picker.
+
+    Fetched from the provider rather than hard-coded, so a retired model
+    disappears from the dropdown instead of 404-ing at request time.
+
+    Degrades instead of failing: when the upstream call errors the response
+    carries `stale: true` and a single-entry list containing the model in
+    effect, so the settings page can say "you are on X, we could not list
+    alternatives" rather than rendering an empty dropdown or a 500.
+    """
+    provider, default_model = configured_provider_and_model()
+
+    override = (
+        db.query(UserPreferences.ai_model)
+        .filter(UserPreferences.user_id == current_user.id)
+        .scalar()
+    ) or None
+    current = override or default_model
+
+    # Cached per provider, not per user — the catalog is a property of the
+    # provider, and every user on this deploy shares one set of credentials
+    # (see docs/design/006, Decision 1).
+    cache = get_cache()
+    cache_key = f"ai:models:{provider}"
+    models = cache.get(cache_key)
+
+    if models is None:
+        try:
+            models = list_provider_models()
+            cache.set(cache_key, models, ttl=_MODELS_CACHE_TTL_S)
+        except Exception as e:
+            logger.warning("model list fetch failed for {}: {}", provider, e)
+            # Never cache a failure — the next render should retry rather
+            # than serve a degraded list for the full TTL.
+            return AIModelsResponse(
+                provider=provider,
+                current=current,
+                default=default_model,
+                override=override,
+                models=[current] if current else [],
+                stale=True,
+                error=str(e),
+            )
+
+    # Keep the in-effect model selectable even if the provider stopped
+    # listing it, otherwise the picker would silently drop the user's
+    # current selection and look like it reset itself.
+    if current and current not in models:
+        models = [current, *models]
+
+    return AIModelsResponse(
+        provider=provider,
+        current=current,
+        default=default_model,
+        override=override,
+        models=models,
+        stale=False,
+    )
 
 
 @router.post("/analyze", response_model=list[AIRecommendationResponse])

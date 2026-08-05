@@ -300,7 +300,28 @@ export const ganttAPI = {
   },
 };
 
+/**
+ * Wire shape for GET /api/ai/models — what the settings picker renders.
+ *
+ * `stale: true` means the provider's model list could not be fetched and
+ * `models` is just `current` echoed back; the UI should say so rather than
+ * present a one-item dropdown as if it were the full catalog.
+ */
+export interface AIModelsPayload {
+  provider: string;
+  /** The model actually in effect: the override if set, else `default`. */
+  current: string;
+  /** The server's env default — what clearing the override falls back to. */
+  default: string;
+  /** null when no override is stored. */
+  override: string | null;
+  models: string[];
+  stale: boolean;
+  error: string | null;
+}
+
 export const aiAPI = {
+  models: () => fetchJSON<AIModelsPayload>("/api/ai/models"),
   analyze: (question?: string) =>
     fetchJSON("/api/ai/analyze", {
       method: "POST",
@@ -502,6 +523,8 @@ export interface PreferencesPayload {
   default_date_range_days: number;
   items_per_page: number;
   ai_auto_suggestions: boolean;
+  /** null = follow the server's env default. Send "" to clear an override. */
+  ai_model: string | null;
 }
 
 export const preferencesAPI = {

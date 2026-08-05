@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useAppStore, COSMIC_THEMES, type CosmicTheme } from "@/stores/app-store";
+import { aiAPI, preferencesAPI, type AIModelsPayload } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 import { Card, CardContent } from "@/components/ui/card";
@@ -14,6 +15,9 @@ import { PageHead } from "@/components/shell/page-head";
 import { CodeChip } from "@/components/shell/code-chip";
 import { Shield, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+/** Injected from package.json by next.config.ts. */
+const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "dev";
 
 interface ThemeMeta {
   name: CosmicTheme;
@@ -60,6 +64,55 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("appearance");
   const [showReset, setShowReset] = useState(false);
+  const [aiModels, setAiModels] = useState<AIModelsPayload | null>(null);
+  const [modelSaving, setModelSaving] = useState(false);
+
+  // The catalog is fetched rather than hard-coded so a retired model drops
+  // out of the picker instead of 404-ing at request time. The endpoint never
+  // throws for an unreachable provider — it returns `stale: true` — so a
+  // rejection here means the request itself failed (offline, auth), and the
+  // card stays in its loading state rather than showing a wrong list.
+  useEffect(() => {
+    let cancelled = false;
+    aiAPI
+      .models()
+      .then((data) => {
+        if (!cancelled) setAiModels(data);
+      })
+      .catch(() => {
+        /* leave null — the card renders its loading copy */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleModelChange = async (value: string) => {
+    const next = value === "" ? null : value;
+    setModelSaving(true);
+    try {
+      // Deliberately NOT `updateSettings` here. That helper fires its PUT
+      // with `.catch(() => {})` and returns void, so a failed save is
+      // indistinguishable from a successful one — the user would see the
+      // model change locally and silently revert on the next page load.
+      // Writing directly is the only way to observe the result.
+      await preferencesAPI.update({ ai_model: next ?? "" });
+      // Mirror into the store without triggering a second PUT.
+      useAppStore.setState((s) => ({
+        settings: { ...s.settings, aiModel: next },
+      }));
+      setAiModels(await aiAPI.models());
+      toast.success(
+        next ? `AI model set to ${next}` : "AI model reset to server default"
+      );
+    } catch {
+      // Nothing to roll back — the store is only written after the save
+      // succeeds, so the <select> still shows the previous value.
+      toast.error("Could not save the model choice");
+    } finally {
+      setModelSaving(false);
+    }
+  };
 
   const handleReset = () => {
     resetSettings();
@@ -323,6 +376,57 @@ export default function SettingsPage() {
               </Card>
 
               <Card>
+                <CardContent className="p-6 space-y-3">
+                  <div className="aegis-card-head mb-2 pb-0 border-0">
+                    <CodeChip>MDL</CodeChip>
+                    <h3 className="card-title">AI Model</h3>
+                  </div>
+                  <p
+                    className="text-xs font-mono"
+                    style={{ color: "var(--dim)" }}
+                  >
+                    {aiModels
+                      ? `Provider: ${aiModels.provider}. Listed live from the provider, so retired models drop off automatically.`
+                      : "Loading the provider's model list…"}
+                  </p>
+
+                  {aiModels?.stale && (
+                    <p
+                      className="text-xs font-mono"
+                      style={{ color: "var(--warn, #e8a85c)" }}
+                    >
+                      Could not reach {aiModels.provider} to list models
+                      {aiModels.error ? ` (${aiModels.error})` : ""}. Showing the
+                      model currently in effect only.
+                    </p>
+                  )}
+
+                  <Select
+                    label="Model"
+                    // Driven by the server's `override`, not the persisted
+                    // store copy — the store hydrates asynchronously and
+                    // could briefly disagree with what the backend will
+                    // actually use for the next AI call.
+                    value={aiModels?.override ?? ""}
+                    disabled={!aiModels || modelSaving}
+                    onChange={(e) => handleModelChange(e.target.value)}
+                    options={[
+                      {
+                        value: "",
+                        label: aiModels
+                          ? `Use server default (${aiModels.default})`
+                          : "Use server default",
+                      },
+                      ...(aiModels?.models ?? []).map((m) => ({
+                        value: m,
+                        label: m,
+                      })),
+                    ]}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between gap-4">
                     <div>
@@ -382,10 +486,21 @@ export default function SettingsPage() {
 
                   <div className="space-y-3 font-mono text-[12px]">
                     {[
-                      ["Version", "1.0.0"],
+                      // Sourced from package.json at build time rather than
+                      // typed in here — a hardcoded literal had drifted to
+                      // 1.0.0 while the repo shipped 1.2.0.
+                      ["Version", APP_VERSION],
                       ["Frontend", "Next.js 15 + React 19 + shadcn/ui"],
                       ["Backend", "FastAPI + SQLAlchemy"],
-                      ["AI Engine", "Claude (Anthropic) + tool_use"],
+                      // Read from the server: this line used to claim
+                      // "Claude (Anthropic)" unconditionally, which is wrong
+                      // on a Groq or Typhoon deploy.
+                      [
+                        "AI Engine",
+                        aiModels
+                          ? `${aiModels.provider} · ${aiModels.current}`
+                          : "loading…",
+                      ],
                     ].map(([k, v]) => (
                       <div
                         key={k}

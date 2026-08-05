@@ -13,6 +13,7 @@ from ..config import get_settings
 from ..models.plan import Plan, PlanStatus
 from ..models.transaction import Transaction, TransactionType
 from ..models.ai_recommendation import AIRecommendation, ActionType
+from ..models.user_preferences import UserPreferences
 
 
 # SDK clients hold an httpx connection pool; constructing one per request
@@ -111,6 +112,59 @@ def _extract_anthropic_tool_input(response, tool_name: str) -> dict | None:
     return None
 
 
+def configured_provider_and_model() -> tuple[str, str]:
+    """(provider, env-default model) for the current configuration.
+
+    Read by the settings surface so it can show what a deploy falls back to
+    when no model override is stored.
+    """
+    settings = get_settings()
+    provider = settings.ai_provider
+    default_model = {
+        "anthropic": settings.ai_model,
+        "typhoon": settings.typhoon_model,
+        "groq": settings.groq_model,
+    }.get(provider, "")
+    return provider, default_model
+
+
+def list_provider_models() -> list[str]:
+    """Model IDs the configured provider currently offers, newest-name-first.
+
+    All three providers expose a model-list endpoint — Anthropic natively,
+    Typhoon and Groq through the OpenAI-compatible route already wired above.
+    Fetching rather than hard-coding is the point: a retired model disappears
+    from the picker instead of 404-ing at request time, which is the failure
+    mode that put a dated snapshot in `config.py` in the first place.
+
+    Raises on transport/auth failure. The caller decides how to degrade —
+    see `GET /api/ai/models`.
+    """
+    settings = get_settings()
+    provider = settings.ai_provider
+    timeout_s = 10.0  # a dropdown must not hang the settings page
+
+    if provider == "anthropic":
+        if not settings.anthropic_api_key:
+            raise RuntimeError("ANTHROPIC_API_KEY is not set")
+        client = _cached_anthropic_client(settings.anthropic_api_key, timeout_s)
+        return [m.id for m in client.models.list(limit=100).data]
+
+    if provider == "typhoon":
+        key, base = settings.typhoon_api_key, settings.typhoon_base_url
+        env_var = "TYPHOON_API_KEY"
+    elif provider == "groq":
+        key, base = settings.groq_api_key, settings.groq_base_url
+        env_var = "GROQ_API_KEY"
+    else:
+        raise RuntimeError(f"Unknown AI_PROVIDER {provider!r}")
+
+    if not key:
+        raise RuntimeError(f"{env_var} is not set")
+    client = _cached_openai_client(key, base, timeout_s)
+    return [m.id for m in client.models.list().data]
+
+
 class AIEngine:
     """Provider-agnostic AI engine.
 
@@ -159,6 +213,39 @@ class AIEngine:
                 status_code=500,
                 detail={"error": "ai_provider_invalid", "message": f"Unknown AI_PROVIDER {self.provider!r}."},
             )
+
+        # A stored preference overrides the env default. Resolved here, after
+        # the per-provider branch has set the env-derived fallback, so an
+        # unset preference leaves `self.model` exactly as it was before the
+        # picker existed.
+        #
+        # Note this reads the DB on every AIEngine construction — one indexed
+        # lookup on a one-row-per-user table, against an AI call that takes
+        # seconds. Caching it would need invalidation on every preferences
+        # PUT for no measurable gain.
+        override = self._stored_model_override()
+        if override:
+            self.model = override
+
+    def _stored_model_override(self) -> str | None:
+        """The user's chosen model, or None to follow the env default.
+
+        Never raises: a preferences lookup failure must not take down the AI
+        feature, so a broken read degrades to the env default rather than a
+        500. Same contract as `_call_tool`'s exception handling.
+        """
+        if not self.user_id:
+            return None
+        try:
+            model = (
+                self.db.query(UserPreferences.ai_model)
+                .filter(UserPreferences.user_id == self.user_id)
+                .scalar()
+            )
+        except Exception as e:  # pragma: no cover - defensive
+            logger.warning("preferences lookup failed, using env model: {}", e)
+            return None
+        return model or None
 
     @staticmethod
     def _raise_unconfigured(env_var: str) -> None:

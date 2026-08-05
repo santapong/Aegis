@@ -8,6 +8,9 @@ DEFAULTS = {
     "default_date_range_days": 30,
     "items_per_page": 25,
     "ai_auto_suggestions": True,
+    # None = "follow the env default model"; see the AI model picker in
+    # docs/design/006-ai-provider-configuration.md.
+    "ai_model": None,
 }
 
 
@@ -33,6 +36,7 @@ def test_put_preferences_round_trip(client):
         "default_date_range_days": 90,
         "items_per_page": 50,
         "ai_auto_suggestions": False,
+        "ai_model": "llama-3.3-70b-versatile",
     }
     r = client.put("/api/preferences", json=new_values, headers=headers)
     assert r.status_code == 200, r.text
