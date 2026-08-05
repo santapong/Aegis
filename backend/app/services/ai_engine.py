@@ -1,4 +1,5 @@
 import json
+import re
 from datetime import date, timedelta
 from functools import lru_cache
 from typing import TypedDict
@@ -16,11 +17,21 @@ from ..models.transaction import Transaction, TransactionType
 from ..models.ai_recommendation import AIRecommendation, ActionType
 from ..models.ai_usage import AIUsage
 from ..models.user_preferences import UserPreferences
+from ..models.user_secret import SECRET_AI_PROVIDER_KEY, UserSecret
+from .secrets import decrypt
 
 
 # SDK clients hold an httpx connection pool; constructing one per request
 # costs a TLS handshake on every AI call. Cache per credential set so the
 # pool is reused across requests (and across AIEngine instances).
+# Groq (gsk_), Anthropic (sk-ant-), OpenAI-style (sk-) and generic long
+# opaque tokens. Deliberately broad: a false positive costs log readability,
+# a false negative leaks a credential.
+_SECRET_PATTERN = re.compile(
+    r"\b(?:gsk_[A-Za-z0-9]{16,}|sk-ant-[A-Za-z0-9\-_]{16,}|sk-[A-Za-z0-9]{16,})\b"
+)
+
+
 @lru_cache(maxsize=4)
 def _cached_anthropic_client(api_key: str, timeout: float) -> anthropic.Anthropic:
     return anthropic.Anthropic(api_key=api_key, timeout=timeout)
@@ -105,6 +116,17 @@ FORECAST_TOOL = {
         "required": ["projected_balance", "projected_income", "projected_expenses", "insights"],
     },
 }
+
+
+def _redact(text: str) -> str:
+    """Strip anything that looks like a provider credential from a string.
+
+    Provider SDKs put the failing request — headers included — into exception
+    messages, and `_call_tool` logs those verbatim. Once a key can come from
+    the database rather than only from .env, an un-redacted log line is a
+    durable copy of a secret in a place nobody thinks to scrub.
+    """
+    return _SECRET_PATTERN.sub(lambda m: f"{m.group(0)[:6]}…REDACTED", text)
 
 
 def _extract_anthropic_tool_input(response, tool_name: str) -> dict | None:
@@ -286,28 +308,34 @@ class AIEngine:
         # for the whole request lifetime.
         ai_timeout_s = 30.0
 
+        # Resolution order is stored secret -> env. An operator who never
+        # opens Settings keeps their .env behaviour untouched, and clearing
+        # the stored key falls straight back to it.
+        stored_key = self._stored_provider_key()
+
         if self.provider == "anthropic":
-            if not settings.anthropic_api_key:
+            api_key = stored_key or settings.anthropic_api_key
+            if not api_key:
                 self._raise_unconfigured("ANTHROPIC_API_KEY")
-            self._anthropic = _cached_anthropic_client(
-                settings.anthropic_api_key, ai_timeout_s
-            )
+            self._anthropic = _cached_anthropic_client(api_key, ai_timeout_s)
             self._openai = None
             self.model = settings.ai_model
         elif self.provider == "typhoon":
-            if not settings.typhoon_api_key:
+            api_key = stored_key or settings.typhoon_api_key
+            if not api_key:
                 self._raise_unconfigured("TYPHOON_API_KEY")
             self._anthropic = None
             self._openai = _cached_openai_client(
-                settings.typhoon_api_key, settings.typhoon_base_url, ai_timeout_s
+                api_key, settings.typhoon_base_url, ai_timeout_s
             )
             self.model = settings.typhoon_model
         elif self.provider == "groq":
-            if not settings.groq_api_key:
+            api_key = stored_key or settings.groq_api_key
+            if not api_key:
                 self._raise_unconfigured("GROQ_API_KEY")
             self._anthropic = None
             self._openai = _cached_openai_client(
-                settings.groq_api_key, settings.groq_base_url, ai_timeout_s
+                api_key, settings.groq_base_url, ai_timeout_s
             )
             self.model = settings.groq_model
         else:
@@ -328,6 +356,31 @@ class AIEngine:
         override = self._stored_model_override()
         if override:
             self.model = override
+
+    def _stored_provider_key(self) -> str | None:
+        """The operator's stored provider key, or None to use the env value.
+
+        Never raises: a broken secrets read must degrade to the env credential
+        rather than take down every AI route. Same contract as `_call_tool`.
+        """
+        if not self.user_id:
+            return None
+        try:
+            row = (
+                self.db.query(UserSecret.encrypted_value)
+                .filter(
+                    UserSecret.user_id == self.user_id,
+                    UserSecret.key_name == SECRET_AI_PROVIDER_KEY,
+                )
+                .scalar()
+            )
+        except Exception as e:  # pragma: no cover - defensive
+            logger.warning("secret lookup failed, using env credential: {}", e)
+            return None
+        if not row:
+            return None
+        # decrypt() already returns None (and logs) on key mismatch.
+        return decrypt(row) or None
 
     def _stored_model_override(self) -> str | None:
         """The user's chosen model, or None to follow the env default.
@@ -420,7 +473,7 @@ class AIEngine:
                 )
                 return _extract_anthropic_tool_input(response, tool["name"])
             except Exception as e:
-                logger.warning("anthropic tool call failed: {}", e)
+                logger.warning("anthropic tool call failed: {}", _redact(str(e)))
                 return None
 
         # OpenAI-compatible (typhoon, groq) — function calling
@@ -456,7 +509,7 @@ class AIEngine:
                     return json.loads(tc.function.arguments)
             return None
         except Exception as e:
-            logger.warning("{} tool call failed: {}", self.provider, e)
+            logger.warning("{} tool call failed: {}", self.provider, _redact(str(e)))
             return None
 
     def _gather_context(self, days: int = 90) -> dict:

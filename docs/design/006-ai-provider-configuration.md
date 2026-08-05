@@ -1,8 +1,9 @@
 # Design: AI provider configuration — in-app model picker, usage metering, and operator key storage
 
-**Status**: steps 1–3 implemented on `claude/ai-provider-configuration`; step 4
-outstanding. Two decisions were corrected by building them — see the
-*Corrections from implementation* section at the end.
+**Status**: all four steps implemented on `claude/ai-provider-configuration`.
+Two decisions were corrected by building them — see *Corrections from
+implementation*. Local setup and live-provider verification are recorded under
+*Running it locally*.
 
 **Context**: Aegis already swaps between three AI providers (`anthropic`,
 `typhoon`, `groq`) behind one env var, but every part of that choice —
@@ -324,3 +325,61 @@ One live `analyze` call on `llama-3.3-70b-versatile`: **415 input / 152 output
 tokens**, priced from Groq's own figures at **$0.00036**. Roughly $0.36 per
 thousand calls, which is the concrete number behind "start on the free tier and
 only pay when quality is the constraint."
+
+---
+
+## Running it locally
+
+Native local dev, verified end-to-end against a live Groq account.
+
+```sh
+make setup            # generates .env with a fresh JWT secret (idempotent)
+```
+
+Then edit `.env`:
+
+```
+AI_PROVIDER=groq
+GROQ_API_KEY=<your key>
+DATABASE_URL=sqlite:///./money_management.db
+```
+
+**Two papercuts worth knowing**, both pre-existing and both hit on first run:
+
+1. **`bootstrap.sh` writes a Docker-only `DATABASE_URL`** — `postgresql://postgres:postgres@db:5432/...`. The host `db` only resolves inside compose, so native `make migrate` and `make backend` fail with `could not translate host name "db"`. Compose overrides `DATABASE_URL` in its own `environment:` block, so pointing the `.env` value at SQLite is safe for both paths.
+2. **Native runs read `backend/.env`, not the repo-root `.env`.** Pydantic resolves `env_file: ".env"` relative to the working directory, and `make backend` / `make migrate` both `cd backend` first. Compose, by contrast, reads the root file. A symlink (`ln -s ../.env backend/.env`) keeps one source of truth; both paths are already gitignored by the `.env*` rule.
+
+Then:
+
+```sh
+make migrate          # applies through d5e9a37b2c81
+make backend          # uvicorn on :8000
+make frontend         # next dev on :3000  (needs bun)
+```
+
+Settings → Preferences now shows four AI cards: **Model** (picker), **Provider API Key**, **AI Usage**, and the existing auto-suggestions toggle.
+
+### Verifying without the UI
+
+```sh
+cd backend
+.venv/bin/python -c "
+from app.services.ai_engine import list_provider_models, usable_models
+all_m = list_provider_models()
+print(f'{len(all_m)} offered -> {len(usable_models(all_m))} usable')
+"
+```
+
+On a Groq account this prints `15 offered -> 7 usable`.
+
+### What was verified against the live provider
+
+| Check | Result |
+|---|---|
+| Model list fetch | 15 models returned, env default present |
+| Capability filter | 15 → 7; the 8 dropped are speech, TTS and no-tools models |
+| Forced `tool_choice` | Works on `llama-3.3-70b-versatile` — closes the open question in Decision 2 |
+| Metering | One `analyze` call → 415 input / 152 output tokens recorded |
+| Cost from provider pricing | $0.00036 for that call (~$0.36 per thousand) |
+| Stored key drives the call | Encrypted key in `user_secrets` with `GROQ_API_KEY` blanked — live call succeeded |
+| No credential at all | 503 `ai_not_configured`, not a silent failure |

@@ -563,6 +563,30 @@ export const preferencesAPI = {
     }),
 };
 
+/**
+ * Wire shape for /api/secrets. Note what is absent: no field ever carries a
+ * plaintext secret. The endpoint is write-only.
+ */
+export interface SecretStatus {
+  key_name: string;
+  configured: boolean;
+  /** `gsk_…4f2a`, or null when unset or undecryptable. */
+  masked: string | null;
+  /** False when a row exists but the encryption key changed underneath it. */
+  decryptable: boolean;
+}
+
+export const secretsAPI = {
+  list: () => fetchJSON<SecretStatus[]>("/api/secrets"),
+  set: (keyName: string, value: string) =>
+    fetchJSON<SecretStatus>(`/api/secrets/${keyName}`, {
+      method: "PUT",
+      body: JSON.stringify({ value }),
+    }),
+  clear: (keyName: string) =>
+    fetchJSON<SecretStatus>(`/api/secrets/${keyName}`, { method: "DELETE" }),
+};
+
 export const investmentsAPI = {
   list: (params?: Record<string, string>) => {
     const qs = params ? "?" + new URLSearchParams(params).toString() : "";

@@ -6,13 +6,16 @@ import { useAppStore, COSMIC_THEMES, type CosmicTheme } from "@/stores/app-store
 import {
   aiAPI,
   preferencesAPI,
+  secretsAPI,
   type AIModelsPayload,
   type AIUsagePayload,
+  type SecretStatus,
 } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Tabs, TabList, Tab, TabPanel } from "@/components/ui/tabs";
 import { Modal, ModalBody, ModalFooter } from "@/components/ui/modal";
@@ -20,6 +23,9 @@ import { PageHead } from "@/components/shell/page-head";
 import { CodeChip } from "@/components/shell/code-chip";
 import { Shield, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+/** Must match SECRET_AI_PROVIDER_KEY in backend/app/models/user_secret.py. */
+const AI_PROVIDER_KEY = "ai_provider_key";
 
 /** Injected from package.json by next.config.ts. */
 const APP_VERSION = process.env.NEXT_PUBLIC_APP_VERSION ?? "dev";
@@ -84,6 +90,9 @@ export default function SettingsPage() {
   const [aiModels, setAiModels] = useState<AIModelsPayload | null>(null);
   const [aiUsage, setAiUsage] = useState<AIUsagePayload | null>(null);
   const [modelSaving, setModelSaving] = useState(false);
+  const [apiKeySecret, setApiKeySecret] = useState<SecretStatus | null>(null);
+  const [apiKeyDraft, setApiKeyDraft] = useState("");
+  const [keySaving, setKeySaving] = useState(false);
 
   // The catalog is fetched rather than hard-coded so a retired model drops
   // out of the picker instead of 404-ing at request time. The endpoint never
@@ -104,6 +113,18 @@ export default function SettingsPage() {
       .usage()
       .then((data) => {
         if (!cancelled) setAiUsage(data);
+      })
+      .catch(() => {
+        /* leave null — the card renders its loading copy */
+      });
+    secretsAPI
+      .list()
+      .then((rows) => {
+        if (!cancelled) {
+          setApiKeySecret(
+            rows.find((r) => r.key_name === AI_PROVIDER_KEY) ?? null
+          );
+        }
       })
       .catch(() => {
         /* leave null — the card renders its loading copy */
@@ -137,6 +158,39 @@ export default function SettingsPage() {
       toast.error("Could not save the model choice");
     } finally {
       setModelSaving(false);
+    }
+  };
+
+  const handleSaveKey = async () => {
+    const value = apiKeyDraft.trim();
+    if (!value) return;
+    setKeySaving(true);
+    try {
+      setApiKeySecret(await secretsAPI.set(AI_PROVIDER_KEY, value));
+      // Clear the draft immediately on success: the plaintext key has no
+      // reason to stay in React state once it is stored.
+      setApiKeyDraft("");
+      // The stored key may unlock a provider the env value could not reach,
+      // so the catalog can differ now.
+      setAiModels(await aiAPI.models());
+      toast.success("Provider key saved");
+    } catch {
+      toast.error("Could not save the provider key");
+    } finally {
+      setKeySaving(false);
+    }
+  };
+
+  const handleClearKey = async () => {
+    setKeySaving(true);
+    try {
+      setApiKeySecret(await secretsAPI.clear(AI_PROVIDER_KEY));
+      setApiKeyDraft("");
+      toast.success("Provider key cleared — falling back to the server .env");
+    } catch {
+      toast.error("Could not clear the provider key");
+    } finally {
+      setKeySaving(false);
     }
   };
 
@@ -449,6 +503,73 @@ export default function SettingsPage() {
                       })),
                     ]}
                   />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-6 space-y-3">
+                  <div className="aegis-card-head mb-2 pb-0 border-0">
+                    <CodeChip>KEY</CodeChip>
+                    <h3 className="card-title">Provider API Key</h3>
+                  </div>
+                  <p className="text-xs font-mono" style={{ color: "var(--dim)" }}>
+                    Stored encrypted on the server. Leave unset to use the key
+                    from the server&apos;s <code>.env</code>.
+                  </p>
+
+                  {apiKeySecret?.configured && (
+                    <p className="text-xs font-mono" style={{ color: "var(--dim)" }}>
+                      {apiKeySecret.decryptable ? (
+                        <>
+                          Currently stored:{" "}
+                          <b style={{ color: "var(--fg)" }}>
+                            {apiKeySecret.masked}
+                          </b>
+                        </>
+                      ) : (
+                        // "set but unreadable" and "not set" need different
+                        // fixes, so they are shown differently.
+                        <span style={{ color: "var(--warn, #e8a85c)" }}>
+                          A key is stored but cannot be decrypted — the server&apos;s
+                          encryption key changed. Re-enter it below; meanwhile the{" "}
+                          <code>.env</code> value is used.
+                        </span>
+                      )}
+                    </p>
+                  )}
+
+                  <Input
+                    type="password"
+                    autoComplete="off"
+                    placeholder={
+                      apiKeySecret?.configured
+                        ? "Enter a new key to replace the stored one"
+                        : "Paste your provider API key"
+                    }
+                    value={apiKeyDraft}
+                    disabled={keySaving}
+                    onChange={(e) => setApiKeyDraft(e.target.value)}
+                  />
+
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      onClick={handleSaveKey}
+                      disabled={keySaving || !apiKeyDraft.trim()}
+                    >
+                      {apiKeySecret?.configured ? "Replace key" : "Save key"}
+                    </Button>
+                    {apiKeySecret?.configured && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleClearKey}
+                        disabled={keySaving}
+                      >
+                        Clear
+                      </Button>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
 
