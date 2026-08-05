@@ -1,6 +1,7 @@
 import json
 from datetime import date, timedelta
 from functools import lru_cache
+from typing import TypedDict
 
 import anthropic
 from fastapi import HTTPException
@@ -128,8 +129,74 @@ def configured_provider_and_model() -> tuple[str, str]:
     return provider, default_model
 
 
-def list_provider_models() -> list[str]:
-    """Model IDs the configured provider currently offers, newest-name-first.
+class ProviderModel(TypedDict):
+    """One entry from a provider's model list, normalised across providers.
+
+    `supports_tools` is tri-state on purpose: True/False when the provider
+    tells us, None when it doesn't. Only an explicit False is filtered out —
+    absence of metadata must not silently hide usable models.
+
+    `prompt_price` / `completion_price` are USD per *token* (not per million)
+    when the provider publishes them, else None.
+    """
+
+    id: str
+    supports_tools: bool | None
+    is_text_to_text: bool | None
+    prompt_price: float | None
+    completion_price: float | None
+
+
+def _to_float(value) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _normalise_openai_model(m) -> ProviderModel:
+    """Map an OpenAI-compatible model object to our shape.
+
+    Groq returns considerably more than the OpenAI spec requires —
+    `supported_features` and a per-token `pricing` block. Typhoon may return
+    neither. Everything here is therefore optional-with-fallback rather than
+    assumed present.
+    """
+    raw = m.model_dump() if hasattr(m, "model_dump") else dict(m)
+
+    features = raw.get("supported_features")
+    supports_tools = "tools" in features if isinstance(features, list) else None
+
+    # Modality is a *separate* signal from features, and both are needed.
+    # Groq's speech models (whisper: audio->transcription, orpheus:
+    # text->speech) publish no `supported_features` at all, so a
+    # features-only filter lets them through; conversely groq/compound is
+    # text->text but lists no `tools`, so a modality-only filter lets *it*
+    # through. Verified against the live catalog.
+    ins, outs = raw.get("input_modalities"), raw.get("output_modalities")
+    if isinstance(ins, list) and isinstance(outs, list):
+        is_text_to_text = "text" in ins and "text" in outs
+    else:
+        is_text_to_text = None
+
+    pricing = raw.get("pricing")
+    prompt_price = completion_price = None
+    if isinstance(pricing, dict):
+        prompt_price = _to_float(pricing.get("prompt"))
+        completion_price = _to_float(pricing.get("completion"))
+
+    return ProviderModel(
+        id=raw.get("id", ""),
+        supports_tools=supports_tools,
+        is_text_to_text=is_text_to_text,
+        prompt_price=prompt_price,
+        completion_price=completion_price,
+    )
+
+
+def list_provider_models() -> list[ProviderModel]:
+    """Models the configured provider currently offers, with capability and
+    pricing metadata where the provider publishes it.
 
     All three providers expose a model-list endpoint — Anthropic natively,
     Typhoon and Groq through the OpenAI-compatible route already wired above.
@@ -148,7 +215,17 @@ def list_provider_models() -> list[str]:
         if not settings.anthropic_api_key:
             raise RuntimeError("ANTHROPIC_API_KEY is not set")
         client = _cached_anthropic_client(settings.anthropic_api_key, timeout_s)
-        return [m.id for m in client.models.list(limit=100).data]
+        # Every Claude model on the Messages API supports tool use, and the
+        # models endpoint publishes no pricing.
+        return [
+            ProviderModel(
+                id=m.id,
+                supports_tools=True,
+                prompt_price=None,
+                completion_price=None,
+            )
+            for m in client.models.list(limit=100).data
+        ]
 
     if provider == "typhoon":
         key, base = settings.typhoon_api_key, settings.typhoon_base_url
@@ -162,7 +239,31 @@ def list_provider_models() -> list[str]:
     if not key:
         raise RuntimeError(f"{env_var} is not set")
     client = _cached_openai_client(key, base, timeout_s)
-    return [m.id for m in client.models.list().data]
+    return [_normalise_openai_model(m) for m in client.models.list().data]
+
+
+def usable_models(models: list[ProviderModel]) -> list[ProviderModel]:
+    """Drop models that cannot serve /api/ai/*.
+
+    Two independent disqualifiers, because neither alone is sufficient
+    (verified against Groq's live catalog):
+
+    * **Not text-to-text.** `whisper-*` is audio->transcription and
+      `orpheus-*` is text->speech. Neither publishes `supported_features`, so
+      a features-only filter would let both through.
+    * **No tool support.** `groq/compound` and `allam-2-7b` are text-to-text
+      but list only `json_mode`. Aegis pins `tool_choice` to a single tool, so
+      these fail silently into the placeholder recommendation.
+
+    Each check is tri-state and only an explicit False disqualifies: a
+    provider that publishes no metadata at all (Typhoon) keeps its whole
+    catalog. Hiding a usable model is the worse failure.
+    """
+    return [
+        m
+        for m in models
+        if m["supports_tools"] is not False and m["is_text_to_text"] is not False
+    ]
 
 
 class AIEngine:

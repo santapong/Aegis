@@ -33,14 +33,27 @@ def _clear_models_cache():
     get_cache().delete_prefix("ai:models:")
 
 
+def _pm(model_id, supports_tools=None, is_text_to_text=None):
+    """Build a ProviderModel entry the way list_provider_models() would."""
+    return {
+        "id": model_id,
+        "supports_tools": supports_tools,
+        "is_text_to_text": is_text_to_text,
+        "prompt_price": None,
+        "completion_price": None,
+    }
+
+
 def _stub_models(monkeypatch, models):
+    """`models` may be plain ids or full ProviderModel dicts."""
+    entries = [m if isinstance(m, dict) else _pm(m) for m in models]
     monkeypatch.setattr(
-        ai_engine_module, "list_provider_models", lambda: list(models)
+        ai_engine_module, "list_provider_models", lambda: list(entries)
     )
     # The router imports the symbol directly, so patching the module alone
     # would leave the router's reference bound to the original function.
     monkeypatch.setattr(
-        "app.routers.ai.list_provider_models", lambda: list(models)
+        "app.routers.ai.list_provider_models", lambda: list(entries)
     )
 
 
@@ -248,3 +261,73 @@ def test_engine_falls_back_when_preferences_lookup_raises(db_session, monkeypatc
 
     engine = AIEngine(db_session, user_id="anyone")
     assert engine.model == default_model
+
+
+# --- capability filtering ------------------------------------------------------
+
+
+def test_models_without_tool_support_are_hidden(client, monkeypatch):
+    """Groq's catalog is mostly speech-to-text, TTS and safety classifiers.
+    None of them can serve /api/ai/*, which pins tool_choice to one tool, so
+    offering them would present more broken choices than working ones."""
+    headers, _ = _register(client, email="cap1@example.com", username="capfilter1")
+    _stub_models(
+        monkeypatch,
+        [
+            _pm("llama-3.3-70b-versatile", supports_tools=True),
+            _pm("whisper-large-v3", supports_tools=False),
+            _pm("meta-llama/llama-prompt-guard-2-86m", supports_tools=False),
+        ],
+    )
+
+    body = client.get("/api/ai/models", headers=headers).json()
+    assert "llama-3.3-70b-versatile" in body["models"]
+    assert "whisper-large-v3" not in body["models"]
+    assert "meta-llama/llama-prompt-guard-2-86m" not in body["models"]
+
+
+def test_models_with_unknown_capability_are_kept(client, monkeypatch):
+    """Absence of metadata is not evidence of absence — a provider that
+    publishes no capability info (Typhoon) must not have its whole catalog
+    filtered away."""
+    headers, _ = _register(client, email="cap2@example.com", username="capfilter2")
+    _stub_models(monkeypatch, [_pm("typhoon-v2.1-12b-instruct", supports_tools=None)])
+
+    body = client.get("/api/ai/models", headers=headers).json()
+    assert "typhoon-v2.1-12b-instruct" in body["models"]
+
+
+def test_speech_models_are_hidden(client, monkeypatch):
+    """Groq's speech models publish no `supported_features` at all, so a
+    features-only filter would let them through. They are excluded on
+    modality instead: whisper is audio->transcription, orpheus is
+    text->speech."""
+    headers, _ = _register(client, email="cap3@example.com", username="capfilter3")
+    _stub_models(
+        monkeypatch,
+        [
+            _pm("llama-3.3-70b-versatile", supports_tools=True, is_text_to_text=True),
+            _pm("whisper-large-v3", supports_tools=None, is_text_to_text=False),
+            _pm("canopylabs/orpheus-v1-english", supports_tools=None, is_text_to_text=False),
+        ],
+    )
+
+    body = client.get("/api/ai/models", headers=headers).json()
+    assert body["models"] == ["llama-3.3-70b-versatile"]
+
+
+def test_usable_models_needs_both_signals():
+    """Neither check alone is sufficient — mirrors the real Groq catalog."""
+    from app.services.ai_engine import usable_models
+
+    given = [
+        # llama-3.3-70b-versatile — tools + text/text
+        _pm("keep-both-true", supports_tools=True, is_text_to_text=True),
+        # groq/compound — text/text but json_mode only, no tools
+        _pm("drop-no-tools", supports_tools=False, is_text_to_text=True),
+        # whisper — no features published, but audio in
+        _pm("drop-not-text", supports_tools=None, is_text_to_text=False),
+        # typhoon — publishes neither; must survive
+        _pm("keep-unknown", supports_tools=None, is_text_to_text=None),
+    ]
+    assert [m["id"] for m in usable_models(given)] == ["keep-both-true", "keep-unknown"]

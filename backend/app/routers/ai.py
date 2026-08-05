@@ -24,6 +24,7 @@ from ..services.ai_engine import (
     AIEngine,
     configured_provider_and_model,
     list_provider_models,
+    usable_models,
 )
 from ..auth import get_current_user
 
@@ -70,7 +71,12 @@ def list_models(
 
     if models is None:
         try:
-            models = list_provider_models()
+            # Filter before caching: models that declare no tool support
+            # cannot serve /api/ai/* at all, since every call pins
+            # `tool_choice` to one tool. On Groq the unfiltered catalog is
+            # mostly speech and safety-classifier models, so offering it raw
+            # would present more broken choices than working ones.
+            models = [m["id"] for m in usable_models(list_provider_models())]
             cache.set(cache_key, models, ttl=_MODELS_CACHE_TTL_S)
         except Exception as e:
             logger.warning("model list fetch failed for {}: {}", provider, e)
