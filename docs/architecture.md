@@ -124,7 +124,23 @@ Backward-compat: when `CACHE_REDIS_URL` isn't set, `?background=true` falls back
 
 ## AI integration
 
-Three providers swap behind one env var (`AI_PROVIDER=anthropic|typhoon|groq`). The frontend never talks to the LLM — it talks to `/api/ai/*`, which composes a user-scoped context window + the question and sends it to the configured provider. Claude in particular uses `tool_use` so the model can ask for more data (`get_transactions`, `get_budget_status`) inside one turn.
+Three providers swap behind one env var (`AI_PROVIDER=anthropic|typhoon|groq`). The frontend never talks to the LLM — it talks to `/api/ai/*`, which composes a user-scoped context window (aggregates, not raw transactions) and sends it to the configured provider.
+
+Every AI call is a **single forced tool call**: `tool_choice` is pinned to one tool (`provide_recommendations` or `provide_forecast`) with `max_tokens=1024`, and the model's structured tool input *is* the response. There is no agentic loop and no second turn — the model cannot request more data mid-call. Both entry points degrade gracefully when the call fails: `analyze` returns a placeholder recommendation, `forecast` falls back to a linear projection.
+
+Because the shape is schema-filling rather than open-ended reasoning, the layer runs well on cheap models. Measured on Groq `llama-3.3-70b-versatile`: 415 input / 152 output tokens per `analyze` call, ≈ $0.00036.
+
+### Runtime configuration
+
+Model and credential are configurable at runtime, not just via `.env` — see [`design/006`](design/006-ai-provider-configuration.md):
+
+| Surface | Purpose |
+|---|---|
+| `GET /api/ai/models` | The provider's own model list, fetched not hard-coded, filtered to models that can actually do a text-to-text tool call. Degrades to `stale: true` rather than failing. |
+| `GET /api/ai/usage` | Metered token counts per model (`ai_usage`), plus a cost estimate derived from provider-published prices where available. |
+| `GET/PUT/DELETE /api/secrets` | Write-only encrypted storage for the provider key (`user_secrets`). Resolution order is stored secret → env. |
+
+`user_preferences.ai_model` holds the model override; NULL means "use the env default".
 
 ![AI integration](diagrams/architecture-ai-integration.svg)
 

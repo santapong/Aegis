@@ -95,11 +95,17 @@ The AI is metered:
 - **Per provider**: subject to the provider's own quotas + your account's billing.
 - **Per request token usage**: Aegis caps the context window at ~30 transactions in summary form. Heavy users may notice that very-historical questions get summarized rather than enumerated.
 
-If you self-host and worry about cost: switch the provider to Groq (cheap), or set `AI_PROVIDER=` blank (disables the AI panel entirely without breaking the rest of the app).
+If you self-host and worry about cost: switch the provider to Groq (it has a free tier), or set `AI_PROVIDER=` blank to disable the AI panel entirely without breaking the rest of the app.
+
+**You no longer have to guess what it costs.** Settings → Preferences shows an **AI Usage** card with metered token counts per model and an estimated cost. Token counts are measured off the provider's own response; the cost is derived from provider-published prices where available (Groq publishes them) and otherwise from a table stamped with the date it was captured. A model neither source prices is shown with its usage and no cost, rather than a made-up number.
+
+For calibration: one `analyze` call on Groq `llama-3.3-70b-versatile` measures ≈ 415 input / 152 output tokens, about **$0.00036** — roughly $0.36 per thousand calls.
+
+The same screen lets you switch models and store the provider key encrypted server-side, without a redeploy. See [`docs/design/006`](../design/006-ai-provider-configuration.md).
 
 ## Troubleshooting
 
-**"AI provider not configured"** — your `.env` lacks `ANTHROPIC_API_KEY` (or Typhoon / Groq equivalent). Operator setup, not a user issue.
+**"AI provider not configured"** — no credential is available. Aegis resolves the key as *stored secret → `.env`*, so either store one under Settings → Preferences → Provider API Key, or set `ANTHROPIC_API_KEY` (or the Typhoon / Groq equivalent) in `.env`. Operator setup, not a user issue.
 
 **"Rate limit exceeded"** — wait a minute. Aegis enforces 20/min/IP on AI endpoints separately from the general rate limit.
 
