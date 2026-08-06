@@ -55,6 +55,11 @@ class Settings(BaseSettings):
     # case so the frontend can hide the button gracefully.
     google_oauth_client_id: str = ""
 
+    # Key material for encrypting user_secrets. Optional: when unset the key
+    # is derived from jwt_secret_key via HKDF, so an existing deploy keeps
+    # working on upgrade without new config. See services/secrets.py for the
+    # rotation consequence.
+    secrets_encryption_key: str = ""
     # AI provider — "anthropic" | "typhoon" | "groq"
     ai_provider: str = "anthropic"
     # Anthropic

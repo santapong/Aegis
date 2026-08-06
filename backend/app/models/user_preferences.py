@@ -42,6 +42,15 @@ class UserPreferences(Base):
     ai_auto_suggestions: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=DEFAULT_AI_AUTO_SUGGESTIONS
     )
+    # Operator's chosen model for the *currently configured* provider.
+    # NULL means "whatever the env default is" — that is the whole point of
+    # the nullable: a deploy that never touches the picker keeps behaving
+    # exactly as it did before this column existed. Deliberately NOT a
+    # secret, so it lives here rather than in the secrets store scoped in
+    # docs/design/006-ai-provider-configuration.md (Decision 4).
+    ai_model: Mapped[str | None] = mapped_column(
+        String(128), nullable=True, default=None
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, nullable=False
     )

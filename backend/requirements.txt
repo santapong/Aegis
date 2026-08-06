@@ -33,6 +33,7 @@ pydantic>=2.12.5
 pydantic-settings>=2.7.0
 python-dotenv>=1.2.1
 python-jose[cryptography]>=3.3.0
+cryptography>=42.0
 python-multipart>=0.0.20
 google-auth>=2.30.0
 redis>=5.0.0

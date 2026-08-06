@@ -33,6 +33,7 @@ from .routers import (
     notifications,
     trips,
     preferences,
+    secrets,
     investments,
     market,
     export,
@@ -116,6 +117,7 @@ app.include_router(payments.router)
 app.include_router(notifications.router)
 app.include_router(trips.router)
 app.include_router(preferences.router)
+app.include_router(secrets.router)
 app.include_router(investments.router)
 app.include_router(market.router)
 app.include_router(export.router)

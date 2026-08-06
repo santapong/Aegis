@@ -1,21 +1,212 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import case, func as sa_func
 from sqlalchemy.orm import Session
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
+
+from loguru import logger
 
 from ..cache import get_cache, user_scope
 from ..config import get_settings
 from ..database import get_db
 from ..models.transaction import Transaction, TransactionType
 from ..models.ai_recommendation import AIRecommendation
+from ..models.ai_usage import AIUsage
 from ..models.user import User
-from ..schemas.ai import AIAnalyzeRequest, AIRecommendationResponse, AIForecastResponse, WeeklySummaryResponse, InsightItem
-from ..services.ai_engine import AIEngine
+from ..models.user_preferences import UserPreferences
+from ..schemas.ai import (
+    AIAnalyzeRequest,
+    AIForecastResponse,
+    AIModelsResponse,
+    AIRecommendationResponse,
+    AIUsageModelRow,
+    AIUsageResponse,
+    InsightItem,
+    WeeklySummaryResponse,
+)
+from ..services.ai_pricing import PRICES_AS_OF, estimate_cost
+from ..services.ai_engine import (
+    AIEngine,
+    configured_provider_and_model,
+    list_provider_models,
+    usable_models,
+)
 from ..auth import get_current_user
 
 _settings = get_settings()
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
+
+# Model catalogs change on the order of weeks; an hour of staleness in a
+# settings dropdown is invisible, while an uncached fetch would put a
+# third-party round-trip on every settings page render.
+_MODELS_CACHE_TTL_S = 3600
+
+
+def _cached_provider_models() -> list[dict]:
+    """The configured provider's usable model catalog, cached per provider.
+
+    Shared by /models (which renders the ids) and /usage (which reads the
+    per-token pricing), so a settings page render costs at most one upstream
+    call rather than one per panel.
+
+    Cached per provider, not per user — the catalog is a property of the
+    provider, and every user on this deploy shares one set of credentials
+    (docs/design/006, Decision 1).
+
+    Filters to usable models *before* caching: anything that cannot do a
+    text-to-text tool call can't serve /api/ai/* at all, and on Groq those
+    outnumber the ones that can.
+
+    Raises on upstream failure. A failure is deliberately never cached, so a
+    transient outage doesn't pin a degraded list for the full TTL.
+    """
+    cache = get_cache()
+    provider = get_settings().ai_provider
+    cache_key = f"ai:models:{provider}"
+
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    catalog = usable_models(list_provider_models())
+    cache.set(cache_key, catalog, ttl=_MODELS_CACHE_TTL_S)
+    return catalog
+
+
+@router.get("/models", response_model=AIModelsResponse)
+def list_models(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Models the configured provider currently offers, for the settings picker.
+
+    Fetched from the provider rather than hard-coded, so a retired model
+    disappears from the dropdown instead of 404-ing at request time.
+
+    Degrades instead of failing: when the upstream call errors the response
+    carries `stale: true` and a single-entry list containing the model in
+    effect, so the settings page can say "you are on X, we could not list
+    alternatives" rather than rendering an empty dropdown or a 500.
+    """
+    provider, default_model = configured_provider_and_model()
+
+    override = (
+        db.query(UserPreferences.ai_model)
+        .filter(UserPreferences.user_id == current_user.id)
+        .scalar()
+    ) or None
+    current = override or default_model
+
+    try:
+        catalog = _cached_provider_models()
+        models = [m["id"] for m in catalog]
+    except Exception as e:
+        logger.warning("model list fetch failed for {}: {}", provider, e)
+        return AIModelsResponse(
+            provider=provider,
+            current=current,
+            default=default_model,
+            override=override,
+            models=[current] if current else [],
+            stale=True,
+            error=str(e),
+        )
+
+    # Keep the in-effect model selectable even if the provider stopped
+    # listing it, otherwise the picker would silently drop the user's
+    # current selection and look like it reset itself.
+    if current and current not in models:
+        models = [current, *models]
+
+    return AIModelsResponse(
+        provider=provider,
+        current=current,
+        default=default_model,
+        override=override,
+        models=models,
+        stale=False,
+    )
+
+
+@router.get("/usage", response_model=AIUsageResponse)
+def ai_usage(
+    days: int = Query(default=30, ge=1, le=365),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Metered AI usage for the caller, with an estimated cost.
+
+    Token counts are measured — they come straight off the provider response
+    and need no maintenance. Cost is *derived*, preferring the provider's own
+    published per-token prices (Groq publishes them; Anthropic does not) and
+    falling back to a dated static table. A model neither source prices is
+    reported with its usage and no cost, and named in `models_missing_price`,
+    so a short total is always visible rather than silent.
+    """
+    cutoff = datetime.utcnow() - timedelta(days=days)
+
+    rows = (
+        db.query(
+            AIUsage.provider,
+            AIUsage.model,
+            sa_func.count(AIUsage.id).label("calls"),
+            sa_func.coalesce(sa_func.sum(AIUsage.input_tokens), 0).label("in_tok"),
+            sa_func.coalesce(sa_func.sum(AIUsage.output_tokens), 0).label("out_tok"),
+        )
+        .filter(AIUsage.user_id == current_user.id, AIUsage.created_at >= cutoff)
+        .group_by(AIUsage.provider, AIUsage.model)
+        .all()
+    )
+
+    # Live per-token prices, when the configured provider publishes them.
+    # Reuses the same cached catalog the picker renders from; a failure here
+    # only costs price *precision*, so it degrades to the static table rather
+    # than failing the endpoint.
+    live_prices: dict[str, tuple[float, float]] = {}
+    try:
+        for m in _cached_provider_models():
+            if m["prompt_price"] is not None and m["completion_price"] is not None:
+                live_prices[m["id"]] = (m["prompt_price"], m["completion_price"])
+    except Exception as e:  # pragma: no cover - defensive
+        logger.warning("live price lookup failed, using static table: {}", e)
+
+    by_model: list[AIUsageModelRow] = []
+    missing: list[str] = []
+    cost_total = 0.0
+    any_priced = False
+
+    for r in rows:
+        in_tok, out_tok = int(r.in_tok), int(r.out_tok)
+        estimate = estimate_cost(r.model, in_tok, out_tok, live_prices)
+        cost = source = None
+        if estimate is None:
+            missing.append(r.model)
+        else:
+            cost, source = estimate
+            cost_total += cost
+            any_priced = True
+        by_model.append(
+            AIUsageModelRow(
+                model=r.model,
+                provider=r.provider,
+                calls=int(r.calls),
+                input_tokens=in_tok,
+                output_tokens=out_tok,
+                estimated_cost_usd=round(cost, 6) if cost is not None else None,
+                cost_source=source,
+            )
+        )
+
+    return AIUsageResponse(
+        period_days=days,
+        total_calls=sum(m.calls for m in by_model),
+        total_input_tokens=sum(m.input_tokens for m in by_model),
+        total_output_tokens=sum(m.output_tokens for m in by_model),
+        estimated_cost_usd=round(cost_total, 6) if any_priced else None,
+        models_missing_price=sorted(set(missing)),
+        prices_as_of=PRICES_AS_OF,
+        by_model=sorted(by_model, key=lambda m: -m.calls),
+    )
 
 
 @router.post("/analyze", response_model=list[AIRecommendationResponse])

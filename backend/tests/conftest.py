@@ -24,7 +24,8 @@ from app.main import app
 # Import all models so Base.metadata knows about them before create_all.
 from app.models import (  # noqa: F401
     user, plan, transaction, budget, savings_goal, debt, payment,
-    ai_recommendation, notification, trip, tag, user_preferences,
+    ai_recommendation, ai_usage, notification, trip, tag, user_preferences,
+    user_secret,
     investment,
 )
 

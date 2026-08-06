@@ -21,6 +21,9 @@ interface AppSettings {
   defaultDateRangeDays: number;
   itemsPerPage: number;
   aiAutoSuggestions: boolean;
+  /** Model override for the configured AI provider. null = use the server's
+   *  env default, which is what an untouched deploy keeps doing. */
+  aiModel: string | null;
 }
 
 /** Canonical dashboard widget order — new widgets must be appended here. */
@@ -75,6 +78,7 @@ const defaultSettings: AppSettings = {
   defaultDateRangeDays: 30,
   itemsPerPage: 25,
   aiAutoSuggestions: true,
+  aiModel: null,
 };
 
 function toWire(s: Partial<AppSettings>): Partial<PreferencesPayload> {
@@ -85,6 +89,9 @@ function toWire(s: Partial<AppSettings>): Partial<PreferencesPayload> {
   if (s.itemsPerPage !== undefined) out.items_per_page = s.itemsPerPage;
   if (s.aiAutoSuggestions !== undefined)
     out.ai_auto_suggestions = s.aiAutoSuggestions;
+  // null -> "" so the backend clears the override. Sending JSON null would
+  // also work, but "" keeps the <select> value and the wire value identical.
+  if (s.aiModel !== undefined) out.ai_model = s.aiModel ?? "";
   return out;
 }
 
@@ -94,6 +101,7 @@ function fromWire(p: PreferencesPayload): AppSettings {
     defaultDateRangeDays: p.default_date_range_days,
     itemsPerPage: p.items_per_page,
     aiAutoSuggestions: p.ai_auto_suggestions,
+    aiModel: p.ai_model ?? null,
   };
 }
 

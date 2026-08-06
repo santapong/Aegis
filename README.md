@@ -24,7 +24,7 @@ For a deeper look at how the system is put together — layered backend, fronten
 | Cache       | Pluggable (memory / Redis / disabled) — `CACHE_BACKEND` env             |
 | Auth        | JWT (HS256) in httpOnly `aegis_session` cookie + bcrypt + Google Identity Services ID-token flow |
 | Rate limit  | Redis-backed fixed-window (falls back to in-memory) with per-route strict prefixes |
-| AI          | Anthropic Claude / Typhoon / Groq — `AI_PROVIDER` env                   |
+| AI          | Anthropic Claude / Typhoon / Groq — `AI_PROVIDER` env; model, credential and usage/cost are configurable in-app (Settings → Preferences) |
 | Payments    | Stripe test + live, webhooks, redirects from `FRONTEND_URL`             |
 | Reports     | WeasyPrint (PDF) + matplotlib (server-side charts)                      |
 | Exports     | NDJSON streaming for downstream warehouses — see [`docs/analytics-warehouses.md`](docs/analytics-warehouses.md) |
@@ -84,6 +84,22 @@ make backend      # uvicorn --reload
 make frontend     # bun run dev
 make test         # backend pytest
 ```
+
+> **Native runs read `backend/.env`, not the repo-root `.env`.** Pydantic resolves `env_file` relative to the working directory and both `make migrate` and `make backend` `cd backend` first, while docker compose reads the root file. Symlink them so there is one source of truth: `ln -s ../.env backend/.env` (both paths are already covered by the `.env*` gitignore rule).
+
+### Enable the AI features
+
+`/api/ai/*` is disabled until a provider credential is present. **Groq has a free tier and is the cheapest way to start** — every AI call is a single forced tool call with a small aggregate payload, so it does not need a frontier model:
+
+```bash
+# in .env
+AI_PROVIDER=groq
+GROQ_API_KEY=gsk_...        # https://console.groq.com
+```
+
+Anthropic (`AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY`) and Typhoon (`AI_PROVIDER=typhoon` + `TYPHOON_API_KEY`) work the same way.
+
+Once running, **Settings → Preferences** lets you change the model, store the API key encrypted server-side, and see metered token usage with a cost estimate — no redeploy needed. The model list is fetched from the provider and filtered to models that can actually do a tool call, so a retired model can't be selected. See [`docs/design/006`](docs/design/006-ai-provider-configuration.md).
 
 WeasyPrint (for PDF export) needs Cairo / Pango. On Debian / Ubuntu: `sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libcairo2 libgdk-pixbuf-2.0-0 libffi-dev`. On macOS: `brew install pango cairo gdk-pixbuf libffi`. The GHCR image bakes these in.
 

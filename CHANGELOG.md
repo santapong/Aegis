@@ -6,6 +6,125 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added — operator API key storage (design 006, step 4)
+
+- **`user_secrets` table** (migration `d5e9a37b2c81`) — encrypted per-user
+  secrets, keyed by name. Deliberately general rather than an `api_key` column
+  on `users`: the AI provider key is the first consumer and the LINE Messaging
+  token already on the ROADMAP ("requires user-settings token storage") is the
+  designed-for second, so it needs one mechanism and one migration rather than
+  two.
+- **`GET/PUT/DELETE /api/secrets`** — write-only by design. A stored secret can
+  be set, replaced or cleared but never read back; `GET` returns a mask
+  (`gsk_…4f2a`) plus a `configured` flag. A row that exists but will not
+  decrypt is reported distinctly from an absent one, because the two need
+  different fixes.
+- **Resolution order is stored secret → env.** An operator who never opens
+  Settings keeps their `.env` behaviour untouched, and clearing the stored key
+  falls straight back to it.
+- **Encryption** uses `SECRETS_ENCRYPTION_KEY` when set, otherwise derives a
+  key from `JWT_SECRET_KEY` via HKDF so existing deploys need no new config.
+  Rotating `JWT_SECRET_KEY` without setting `SECRETS_ENCRYPTION_KEY` therefore
+  makes stored secrets undecryptable — survivable, because resolution falls
+  back to `.env` and the key can be re-entered. `cryptography` is now a direct
+  dependency rather than relying on `python-jose`'s extras.
+- **Settings → Provider API Key card.**
+
+### Fixed — three guardrails around stored credentials
+
+- **Export serializer denylist.** `_ndjson_stream` serializes *every* column of
+  whatever model it is handed, so its safety depended on the current endpoint
+  list rather than on the serializer. It now drops `encrypted_value`,
+  `hashed_password`, `google_subject` and similar by name, so adding a
+  `/users.ndjson` endpoint later cannot quietly ship credentials.
+- **Log redaction.** Provider SDKs put the failing request into exception
+  messages and `_call_tool` logged those verbatim. Provider-key patterns are
+  now redacted before logging — an un-redacted line is a durable copy of a
+  secret somewhere nobody thinks to scrub.
+- **Credential cache invalidation.** Saving or clearing a key clears both the
+  `get_settings()` cache and the `lru_cache`d SDK clients, which are keyed on
+  the API key and would otherwise keep serving the old credential until the
+  process restarted.
+
+### Added — AI usage metering and cost panel (design 006, steps 2-3)
+
+- **`ai_usage` table** (migration `c4d8f26a1b73`) — one row per successful
+  provider call, written from `AIEngine._call_tool`. `response.usage` was
+  previously discarded, so nothing measured the AI layer at all. Metering
+  inherits `_call_tool`'s contract and can never fail the request: a failed
+  write is logged, rolled back and dropped, because a missing row beats a 500
+  on a call the provider already answered and already billed.
+- **`GET /api/ai/usage`** — call counts and token totals per model for a
+  window, plus an estimated cost. Token counts are *measured*; cost is
+  *derived*, preferring the provider's own published per-token prices and
+  falling back to a static table stamped `PRICES_AS_OF`. A model neither
+  source prices is reported with its usage and no cost, and named in
+  `models_missing_price`, so a short total is visible rather than silent.
+- **Settings → AI Usage card** rendering both, with the cost provenance
+  stated rather than presented as fact.
+
+### Changed — the model picker now hides models that cannot work
+
+Running step 1 against the live Groq catalog showed 15 models offered of which
+only 7 can serve `/api/ai/*`; the rest fail silently into the placeholder
+recommendation, since every call pins `tool_choice` to one tool. Two
+independent checks are needed — Groq's speech models (`whisper-*`,
+`orpheus-*`) publish no `supported_features` so a features-only filter keeps
+them, while `groq/compound` and `allam-2-7b` are text-to-text but list no
+`tools` so a modality-only filter keeps those. Both are tri-state: only an
+explicit `False` disqualifies, so a provider publishing no metadata keeps its
+whole catalog.
+
+This also corrects the design doc's claim that no provider API returns
+pricing — Groq's model objects carry per-token prices, so a Groq deploy needs
+no hand-maintained price table at all.
+
+### Added — AI model picker (design 006, step 1)
+
+- **`GET /api/ai/models`** — lists the models the configured provider
+  currently offers, **fetched from the provider** rather than hard-coded, so a
+  retired model drops out of the picker instead of 404-ing at request time.
+  Cached per provider for an hour via the existing `CACHE_BACKEND`. An
+  unreachable provider degrades to `stale: true` plus the model in effect —
+  never a 500 and never an empty dropdown — and a failed fetch is deliberately
+  *not* cached so the next render retries.
+- **`user_preferences.ai_model`** (nullable, migration `b3c7e15d9a24`) — a
+  per-user model override. NULL means "use the env default", so a deploy that
+  never opens the picker behaves exactly as before. `AIEngine` resolves the
+  override at construction and falls back to the env model if the preferences
+  read fails, inheriting `_call_tool`'s never-break-the-feature contract.
+- **Settings → AI Model card** — a picker driven by the endpoint above, with a
+  "use server default" option that clears the override.
+
+### Fixed — two stale strings on the settings page
+
+- `AI Engine` claimed `Claude (Anthropic) + tool_use` unconditionally, which
+  was wrong on any Groq or Typhoon deploy. It now reports the live provider
+  and model from `GET /api/ai/models`.
+- `Version` was a hard-coded `1.0.0` literal while the repo shipped v1.2.0. It
+  is now injected from `package.json` at build time via `next.config.ts`, and
+  `frontend/package.json` is bumped to `1.3.0` to match the latest tag.
+
+### Added — design doc: AI provider configuration
+
+- **[`docs/design/006-ai-provider-configuration.md`](docs/design/006-ai-provider-configuration.md)**
+  — scopes an in-app AI settings surface: a provider/model picker fed by the
+  provider's own model list (rather than a hard-coded catalog that goes stale),
+  token-usage metering, a cost estimate labelled with the date its prices were
+  captured, and operator storage of the provider key. Records that Aegis's
+  deployment posture is **single-operator self-host** (no subscription tier, no
+  `role` field, single-instance deploy recipes), which is what makes an in-app
+  key field acceptable. Chooses a general `user_secrets` store over an
+  `api_key` column on `User` so the planned LINE Messaging token reuses the
+  same mechanism. Design only — no implementation.
+
+  Three defects found while scoping and recorded there for follow-up: the
+  Anthropic default in `config.py` is a dated snapshot rather than an alias;
+  `AIEngine._call_tool` discards `response.usage`, so nothing meters the AI
+  layer; and `settings/page.tsx` hard-codes `Version 1.0.0` and
+  `AI Engine: Claude (Anthropic)`, both wrong on a current Groq or Typhoon
+  deploy.
+
 ### Changed — structural diagrams are now hand-authored SVG
 
 - **The seven C4 diagrams are drawn by hand and no longer generated.** Their

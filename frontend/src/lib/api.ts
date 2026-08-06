@@ -300,7 +300,55 @@ export const ganttAPI = {
   },
 };
 
+/**
+ * Wire shape for GET /api/ai/models — what the settings picker renders.
+ *
+ * `stale: true` means the provider's model list could not be fetched and
+ * `models` is just `current` echoed back; the UI should say so rather than
+ * present a one-item dropdown as if it were the full catalog.
+ */
+export interface AIModelsPayload {
+  provider: string;
+  /** The model actually in effect: the override if set, else `default`. */
+  current: string;
+  /** The server's env default — what clearing the override falls back to. */
+  default: string;
+  /** null when no override is stored. */
+  override: string | null;
+  models: string[];
+  stale: boolean;
+  error: string | null;
+}
+
+/** Wire shape for GET /api/ai/usage. */
+export interface AIUsageModelRow {
+  model: string;
+  provider: string;
+  calls: number;
+  input_tokens: number;
+  output_tokens: number;
+  /** null when neither the provider nor the static table prices this model. */
+  estimated_cost_usd: number | null;
+  /** "provider" (live) or "table" (static, see prices_as_of). */
+  cost_source: string | null;
+}
+
+export interface AIUsagePayload {
+  period_days: number;
+  total_calls: number;
+  total_input_tokens: number;
+  total_output_tokens: number;
+  /** Sum over priced rows only; null when nothing could be priced. */
+  estimated_cost_usd: number | null;
+  /** Models excluded from the total because no price was available. */
+  models_missing_price: string[];
+  prices_as_of: string;
+  by_model: AIUsageModelRow[];
+}
+
 export const aiAPI = {
+  models: () => fetchJSON<AIModelsPayload>("/api/ai/models"),
+  usage: (days = 30) => fetchJSON<AIUsagePayload>(`/api/ai/usage?days=${days}`),
   analyze: (question?: string) =>
     fetchJSON("/api/ai/analyze", {
       method: "POST",
@@ -502,6 +550,8 @@ export interface PreferencesPayload {
   default_date_range_days: number;
   items_per_page: number;
   ai_auto_suggestions: boolean;
+  /** null = follow the server's env default. Send "" to clear an override. */
+  ai_model: string | null;
 }
 
 export const preferencesAPI = {
@@ -511,6 +561,30 @@ export const preferencesAPI = {
       method: "PUT",
       body: JSON.stringify(data),
     }),
+};
+
+/**
+ * Wire shape for /api/secrets. Note what is absent: no field ever carries a
+ * plaintext secret. The endpoint is write-only.
+ */
+export interface SecretStatus {
+  key_name: string;
+  configured: boolean;
+  /** `gsk_…4f2a`, or null when unset or undecryptable. */
+  masked: string | null;
+  /** False when a row exists but the encryption key changed underneath it. */
+  decryptable: boolean;
+}
+
+export const secretsAPI = {
+  list: () => fetchJSON<SecretStatus[]>("/api/secrets"),
+  set: (keyName: string, value: string) =>
+    fetchJSON<SecretStatus>(`/api/secrets/${keyName}`, {
+      method: "PUT",
+      body: JSON.stringify({ value }),
+    }),
+  clear: (keyName: string) =>
+    fetchJSON<SecretStatus>(`/api/secrets/${keyName}`, { method: "DELETE" }),
 };
 
 export const investmentsAPI = {

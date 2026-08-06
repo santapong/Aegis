@@ -26,6 +26,9 @@ dependencies = [
     "pydantic-settings>=2.7.0",
     "python-dotenv>=1.2.1",
     "python-jose[cryptography]>=3.3.0",
+    # Direct dependency: user-secret encryption must not rely on another
+    # package's extras staying put.
+    "cryptography>=42.0",
     "python-multipart>=0.0.20",
     "google-auth>=2.30.0",
     "redis>=5.0.0",

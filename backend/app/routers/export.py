@@ -37,6 +37,24 @@ from ..models.user import User
 
 router = APIRouter(prefix="/api/export", tags=["export"])
 
+# Columns that must never leave in an export, matched by name across every
+# table. `_ndjson_stream` serializes *all* columns of whatever model it is
+# handed, so the safety of this endpoint depends on the serializer rather than
+# on the current endpoint list. Today only transactions, plans and budgets are
+# exported and none of these appear on them — this is here so that adding a
+# `/users.ndjson` or `/secrets.ndjson` endpoint later cannot quietly ship
+# credentials. See docs/design/006, Decision 4.
+_NEVER_EXPORT = frozenset(
+    {
+        "encrypted_value",  # user_secrets
+        "hashed_password",  # users
+        "google_subject",   # users — an external identity correlator
+        "authorization_token",
+        "api_key",
+        "secret",
+    }
+)
+
 
 async def _ndjson_stream(rows: AsyncIterator) -> AsyncIterator[str]:
     """Yield each row as a JSON line.
@@ -48,7 +66,11 @@ async def _ndjson_stream(rows: AsyncIterator) -> AsyncIterator[str]:
     handlers.
     """
     async for row in rows:
-        data = {col.name: getattr(row, col.name) for col in row.__table__.columns}
+        data = {
+            col.name: getattr(row, col.name)
+            for col in row.__table__.columns
+            if col.name not in _NEVER_EXPORT
+        }
         yield json.dumps(to_jsonable_python(data)) + "\n"
 
 
