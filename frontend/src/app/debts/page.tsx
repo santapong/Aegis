@@ -141,6 +141,7 @@ export default function DebtsPage() {
     >
       <motion.div variants={staggerItem}>
         <PageHeader
+          code="DBT"
           title="Debt Tracker"
           subtitle="Manage and pay off your debts strategically"
           action={
@@ -156,7 +157,7 @@ export default function DebtsPage() {
         <Card>
           <CardContent className="p-6">
             <p className="text-sm text-muted-foreground">Total Debt</p>
-            <p className="text-2xl font-bold text-red-500 mt-1">{formatCurrency(totalDebt)}</p>
+            <p className="text-2xl font-bold text-[var(--bad)] mt-1">{formatCurrency(totalDebt)}</p>
           </CardContent>
         </Card>
         <Card>
@@ -219,7 +220,7 @@ export default function DebtsPage() {
                               <Button size="sm" variant="secondary" icon={<DollarSign size={14} />} onClick={() => { setPaymentDebt(debt); setPaymentAmount(""); }}>
                                 Pay
                               </Button>
-                              <button onClick={() => setDeleteId(debt.id)} className="text-red-500 hover:text-red-700 p-1">
+                              <button onClick={() => setDeleteId(debt.id)} className="text-[var(--bad)] hover:text-[var(--accent)] p-1">
                                 <Trash2 size={14} />
                               </button>
                             </div>
@@ -227,19 +228,19 @@ export default function DebtsPage() {
 
                           <div className="mt-4">
                             <div className="flex justify-between text-sm mb-1">
-                              <span className="font-medium text-red-500">{formatCurrency(debt.balance)} remaining</span>
+                              <span className="font-medium text-[var(--bad)]">{formatCurrency(debt.balance)} remaining</span>
                               <span className="text-muted-foreground">of {formatCurrency(debt.original_balance)}</span>
                             </div>
                             <div className="w-full bg-muted rounded-full h-2">
                               <motion.div
-                                className="h-2 rounded-full bg-green-500"
+                                className="h-2 rounded-full bg-[var(--ok)]"
                                 initial={{ width: 0 }}
                                 animate={{ width: `${paidOff}%` }}
                                 transition={{ duration: 0.8, ease: "easeOut" }}
                               />
                             </div>
                             <div className="flex justify-between mt-1">
-                              <span className="text-xs text-green-500">{paidOff.toFixed(0)}% paid off</span>
+                              <span className="text-xs text-[var(--ok)]">{paidOff.toFixed(0)}% paid off</span>
                               <span className="text-xs text-muted-foreground">Min payment: {formatCurrency(debt.minimum_payment)}/mo</span>
                             </div>
                           </div>
@@ -290,7 +291,7 @@ export default function DebtsPage() {
                 <Card>
                   <CardHeader>
                     <div className="flex items-center gap-2">
-                      <TrendingDown size={20} className="text-green-500" />
+                      <TrendingDown size={20} className="text-[var(--ok)]" />
                       <h2 className="text-lg font-semibold">Payoff Summary</h2>
                     </div>
                   </CardHeader>
@@ -303,7 +304,7 @@ export default function DebtsPage() {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Total Interest</p>
-                        <p className="text-xl font-bold text-red-500">{formatCurrency(payoffPlan.total_interest)}</p>
+                        <p className="text-xl font-bold text-[var(--bad)]">{formatCurrency(payoffPlan.total_interest)}</p>
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Total to Pay</p>
@@ -337,7 +338,7 @@ export default function DebtsPage() {
                                     <td className="py-1.5 px-2">{step.month}</td>
                                     <td className="py-1.5 px-2">{step.debt_name}</td>
                                     <td className="py-1.5 px-2 text-right">{formatCurrency(step.payment)}</td>
-                                    <td className="py-1.5 px-2 text-right text-red-500">{formatCurrency(step.interest_paid)}</td>
+                                    <td className="py-1.5 px-2 text-right text-[var(--bad)]">{formatCurrency(step.interest_paid)}</td>
                                     <td className="py-1.5 px-2 text-right">{formatCurrency(step.remaining_balance)}</td>
                                   </tr>
                                 ))}

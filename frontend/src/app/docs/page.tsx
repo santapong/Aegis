@@ -121,6 +121,7 @@ export default function DocsPage() {
     >
       <motion.div variants={staggerItem}>
         <PageHeader
+          code="DOC"
           title="Documents"
           subtitle="API reference, user guide, and setup instructions"
         />
@@ -208,8 +209,8 @@ export default function DocsPage() {
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 rounded-lg bg-green-500/10">
-                      <Server size={20} className="text-green-500" />
+                    <div className="p-2 rounded-lg bg-[var(--ok)]/10">
+                      <Server size={20} className="text-[var(--ok)]" />
                     </div>
                     <h3 className="text-lg font-semibold">REST API</h3>
                   </div>
@@ -322,8 +323,8 @@ export default function DocsPage() {
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 rounded-lg bg-green-500/10">
-                      <Key size={20} className="text-green-500" />
+                    <div className="p-2 rounded-lg bg-[var(--ok)]/10">
+                      <Key size={20} className="text-[var(--ok)]" />
                     </div>
                     <h3 className="text-lg font-semibold">Environment Variables</h3>
                   </div>

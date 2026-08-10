@@ -37,10 +37,10 @@ export function BudgetComparisonChart({ data }: { data: BudgetComparisonDatum[] 
         <YAxis tick={{ fontSize: 12 }} />
         <Tooltip formatter={(value: number) => formatCurrency(value)} contentStyle={glassTooltipStyle} />
         <Legend />
-        <Bar dataKey="Budget" fill="#6366f1" radius={[4, 4, 0, 0]} />
-        <Bar dataKey="Actual" radius={[4, 4, 0, 0]}>
+        <Bar dataKey="Budget" fill="var(--accent-2)" radius={[4, 4, 0, 0]} isAnimationActive={false} />
+        <Bar dataKey="Actual" radius={[4, 4, 0, 0]} isAnimationActive={false}>
           {data.map((entry, index) => (
-            <Cell key={index} fill={entry.over ? "#EF4444" : "#22C55E"} />
+            <Cell key={index} fill={entry.over ? "var(--bad)" : "var(--ok)"} />
           ))}
         </Bar>
       </BarChart>

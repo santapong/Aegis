@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 const toastConfig = {
   success: { icon: CheckCircle2, color: "text-emerald-500", ring: "ring-emerald-500/20" },
-  error: { icon: XCircle, color: "text-red-500", ring: "ring-red-500/20" },
+  error: { icon: XCircle, color: "text-[var(--bad)]", ring: "ring-red-500/20" },
   warning: { icon: AlertTriangle, color: "text-amber-500", ring: "ring-amber-500/20" },
   info: { icon: Info, color: "text-indigo-500", ring: "ring-indigo-500/20" },
 };

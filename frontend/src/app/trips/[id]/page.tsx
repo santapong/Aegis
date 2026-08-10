@@ -19,7 +19,7 @@ import type { TripSummary, TripStatus } from "@/types";
 
 const statusStyles: Record<TripStatus, string> = {
   planned: "text-blue-500 border-blue-500/40",
-  active: "text-green-500 border-green-500/40",
+  active: "text-[var(--ok)] border-[var(--ok)]/40",
   completed: "text-muted-foreground border-border",
 };
 
@@ -135,6 +135,7 @@ export default function TripDetailPage() {
           <ArrowLeft size={14} /> Back to trips
         </button>
         <PageHeader
+          code="TRP"
           title={trip.title}
           subtitle={
             <>
@@ -204,7 +205,7 @@ export default function TripDetailPage() {
                       <div className="w-full bg-muted rounded-full h-2">
                         <motion.div
                           className={`h-2 rounded-full transition-all ${
-                            over ? "bg-red-500" : pct > 80 ? "bg-yellow-500" : "bg-green-500"
+                            over ? "bg-[var(--bad)]" : pct > 80 ? "bg-yellow-500" : "bg-[var(--ok)]"
                           }`}
                           initial={{ width: 0 }}
                           animate={{ width: `${Math.min(pct, 100)}%` }}

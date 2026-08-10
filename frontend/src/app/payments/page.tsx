@@ -90,8 +90,8 @@ export default function PaymentsPage() {
 
   const statusIcon = (status: string) => {
     switch (status) {
-      case "succeeded": return <CheckCircle size={16} className="text-green-500" />;
-      case "failed": return <XCircle size={16} className="text-red-500" />;
+      case "succeeded": return <CheckCircle size={16} className="text-[var(--ok)]" />;
+      case "failed": return <XCircle size={16} className="text-[var(--bad)]" />;
       case "pending": return <Clock size={16} className="text-amber-500" />;
       case "refunded": return <AlertTriangle size={16} className="text-orange-500" />;
       default: return <Clock size={16} className="text-gray-500" />;
@@ -117,6 +117,7 @@ export default function PaymentsPage() {
     >
       <motion.div variants={staggerItem}>
         <PageHeader
+          code="PAY"
           title="Payments"
           subtitle="Test Stripe payment integration"
         />

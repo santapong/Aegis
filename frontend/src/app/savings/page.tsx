@@ -111,6 +111,7 @@ export default function SavingsPage() {
     >
       <motion.div variants={staggerItem}>
         <PageHeader
+          code="SAV"
           title="Savings Goals"
           subtitle="Track your savings targets and contributions"
           action={
@@ -126,7 +127,7 @@ export default function SavingsPage() {
         <Card>
           <CardContent className="p-6">
             <p className="text-sm text-muted-foreground">Total Saved</p>
-            <p className="text-2xl font-bold text-green-500 mt-1">{formatCurrency(totalSaved)}</p>
+            <p className="text-2xl font-bold text-[var(--ok)] mt-1">{formatCurrency(totalSaved)}</p>
           </CardContent>
         </Card>
         <Card>
@@ -156,7 +157,7 @@ export default function SavingsPage() {
               const isComplete = progress >= 100;
               return (
                 <motion.div key={goal.id} variants={staggerItem}>
-                  <Card className={isComplete ? "border-green-500/30" : ""}>
+                  <Card className={isComplete ? "border-[var(--ok)]/30" : ""}>
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-center gap-2">
@@ -168,7 +169,7 @@ export default function SavingsPage() {
                             <p className="text-xs text-muted-foreground capitalize">{goal.category}</p>
                           </div>
                         </div>
-                        <button onClick={() => setDeleteId(goal.id)} className="text-red-500 hover:text-red-700 p-1">
+                        <button onClick={() => setDeleteId(goal.id)} className="text-[var(--bad)] hover:text-[var(--accent)] p-1">
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -213,7 +214,7 @@ export default function SavingsPage() {
                         </Button>
                       )}
                       {isComplete && (
-                        <div className="text-center text-sm font-medium text-green-500 py-1">Goal Reached!</div>
+                        <div className="text-center text-sm font-medium text-[var(--ok)] py-1">Goal Reached!</div>
                       )}
                     </CardContent>
                   </Card>

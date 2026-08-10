@@ -584,7 +584,7 @@ export default function TransactionsPage() {
                       {transactions.map((tx) => (
                         <div key={tx.id} className="p-4 flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-lg ${tx.type === "income" ? "bg-green-500/10" : "bg-red-500/10"}`}>
+                            <div className={`p-2 rounded-lg ${tx.type === "income" ? "bg-[var(--ok)]/10" : "bg-[var(--bad)]/10"}`}>
                               {tx.type === "income" ? <ArrowUpRight size={16} className="text-[var(--ok)]" /> : <ArrowDownRight size={16} className="text-[var(--bad)]" />}
                             </div>
                             <div>
@@ -691,7 +691,7 @@ export default function TransactionsPage() {
                       return (
                         <div key={sub.id} className="p-4 flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-lg ${sub.type === "income" ? "bg-green-500/10" : "bg-red-500/10"}`}>
+                            <div className={`p-2 rounded-lg ${sub.type === "income" ? "bg-[var(--ok)]/10" : "bg-[var(--bad)]/10"}`}>
                               <RefreshCw size={16} className={sub.type === "income" ? "text-[var(--ok)]" : "text-[var(--bad)]"} />
                             </div>
                             <div>
@@ -998,7 +998,7 @@ export default function TransactionsPage() {
                             type="button"
                             onClick={submitEditTag}
                             disabled={updateTagMutation.isPending}
-                            className="text-green-600 hover:text-green-700 p-1 disabled:opacity-50"
+                            className="text-[var(--ok)] hover:text-[var(--ok)] p-1 disabled:opacity-50"
                             aria-label="Save tag"
                           >
                             <Check size={16} />

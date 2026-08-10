@@ -236,6 +236,7 @@ export default function InvestmentsPage() {
     >
       <motion.div variants={staggerItem}>
         <PageHeader
+          code="INV"
           title="Investments"
           subtitle="Track holdings and watch live price charts powered by TradingView."
           action={
@@ -267,11 +268,11 @@ export default function InvestmentsPage() {
           <Card>
             <CardContent className="p-6">
               <p className="text-sm text-muted-foreground">Unrealised P/L</p>
-              <p className={`text-2xl font-bold mt-1 ${isPositive ? "text-green-500" : "text-red-500"}`}>
+              <p className={`text-2xl font-bold mt-1 ${isPositive ? "text-[var(--ok)]" : "text-[var(--bad)]"}`}>
                 {isPositive ? "+" : ""}
                 {formatCurrency(totalPL)}
               </p>
-              <p className={`text-xs mt-1 ${isPositive ? "text-green-500" : "text-red-500"}`}>
+              <p className={`text-xs mt-1 ${isPositive ? "text-[var(--ok)]" : "text-[var(--bad)]"}`}>
                 {isPositive ? "+" : ""}
                 {totalPLPct.toFixed(2)}%
               </p>
@@ -326,7 +327,7 @@ export default function InvestmentsPage() {
                       <button
                         type="button"
                         onClick={() => setDeleteId(h.id)}
-                        className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-red-500"
+                        className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-[var(--bad)]"
                         aria-label="Delete holding"
                       >
                         <Trash2 size={14} />
@@ -351,11 +352,11 @@ export default function InvestmentsPage() {
 
                   <div className="flex items-center gap-2 text-sm">
                     {positive ? (
-                      <TrendingUp size={16} className="text-green-500" />
+                      <TrendingUp size={16} className="text-[var(--ok)]" />
                     ) : (
-                      <TrendingDown size={16} className="text-red-500" />
+                      <TrendingDown size={16} className="text-[var(--bad)]" />
                     )}
-                    <span className={positive ? "text-green-500" : "text-red-500"}>
+                    <span className={positive ? "text-[var(--ok)]" : "text-[var(--bad)]"}>
                       {positive ? "+" : ""}
                       {formatCurrency(pl, h.currency)} ({positive ? "+" : ""}
                       {plPct.toFixed(2)}%)
@@ -467,7 +468,7 @@ export default function InvestmentsPage() {
                       {quote.change_percent != null && (
                         <span
                           className={
-                            quote.change_percent >= 0 ? "text-green-500" : "text-red-500"
+                            quote.change_percent >= 0 ? "text-[var(--ok)]" : "text-[var(--bad)]"
                           }
                         >
                           {quote.change_percent >= 0 ? "+" : ""}

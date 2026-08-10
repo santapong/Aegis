@@ -292,8 +292,8 @@ export default function CalendarPage() {
   };
 
   const categoryColors: Record<string, string> = {
-    income: "bg-green-500",
-    expense: "bg-red-500",
+    income: "bg-[var(--ok)]",
+    expense: "bg-[var(--bad)]",
     investment: "bg-indigo-500",
     savings: "bg-blue-500",
   };
@@ -320,6 +320,7 @@ export default function CalendarPage() {
     >
       <motion.div variants={staggerItem}>
         <PageHeader
+          code="CAL"
           title="Calendar Planner"
           subtitle="Plan and schedule your financial activities"
           action={<Button icon={<Plus size={16} />} onClick={() => openNewPlan()}>New Plan</Button>}
