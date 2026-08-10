@@ -38,9 +38,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       return;
     }
     if (!isAuthPage && !isAuthenticated) {
-      router.push("/login");
+      // A signed-out visitor hitting the app root gets the marketing
+      // landing page; deep links to specific app pages go to sign-in.
+      router.push(pathname === "/" ? "/landing" : "/login");
     }
-  }, [mounted, isAuthPage, isPublicPage, isAuthenticated, router]);
+  }, [mounted, isAuthPage, isPublicPage, isAuthenticated, pathname, router]);
 
   if (!mounted) {
     return null;
