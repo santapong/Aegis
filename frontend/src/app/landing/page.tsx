@@ -90,7 +90,7 @@ export default function LandingPage() {
         <div className={`${s.heroInner} ${s.reveal}`}>
           <div className={s.kicker}>
             <span className={s.dot} />
-            v1.3 · generally available
+            v1.4 · generally available
           </div>
           <h1 className={s.title}>
             Personal finance, <span className={s.titleAccent}>mapped.</span>
@@ -180,7 +180,7 @@ export default function LandingPage() {
           <a href="https://github.com/santapong/aegis" target="_blank" rel="noopener noreferrer">
             GitHub
           </a>
-          {" · "}v1.3.0
+          {" · "}v1.4.0
         </span>
       </footer>
     </div>

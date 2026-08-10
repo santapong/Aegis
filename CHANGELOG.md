@@ -6,6 +6,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-08-10
+
+### Changed — Meridian/Pulse redesign (from the claude.ai/design systems)
+
+- **Landing page rebuilt on the Meridian design system** — near-black ground,
+  bone ink, amber/teal accents, Syne display type, a dependency-free WebGL
+  wireframe-terrain hero (scroll-bound, pointer parallax, static under
+  `prefers-reduced-motion`), numbered feature folds, a hairline capability
+  table, and once-only intersection reveals.
+- **`theme-meridian` is the new default app theme**; `theme-pulse` (data
+  console: graphite tiles, one fuchsia chroma) added as an option. Both appear
+  in Settings. Auth pages gained a theme-aware WebGL particle-orbit backdrop.
+- **Theming bugfix:** the shadcn alias variables were computed once on `:root`
+  against the Observatory palette, so theme switches silently kept Observatory
+  colors in aliased surfaces; aliases are now re-declared under every theme
+  class.
+- **Token sweep:** all raw Tailwind green/red classes app-wide became
+  `--ok`/`--bad`/`--accent` tokens; every page shows its sidebar code as the
+  PageHeader eyebrow; chart palettes use a Meridian ladder; Lucide icons render
+  at 1.25px square-capped strokes under Meridian.
+- **Chart rendering bugfix:** recharts 2.x entrance animations leave Pie
+  sectors and Bar rects unrendered under React 19 — the spending donut and
+  budget-vs-actual bars had never drawn; animations disabled.
+
+### Fixed — Vercel services deployment
+
+- `vercel.json` migrated from the removed `experimentalServices` syntax to
+  `services` + service-targeted rewrites (including an explicit `/` rewrite —
+  `/:path*` does not match the bare root).
+- Neon pooler support: pooler detection now matches Neon's current
+  `ep-*-pooler.<region-cell>.aws.neon.tech` hosts, and the `statement_timeout`
+  startup option is dropped on pooled connections (PgBouncer rejects it).
+
+
 ### Added — operator API key storage (design 006, step 4)
 
 - **`user_secrets` table** (migration `d5e9a37b2c81`) — encrypted per-user
