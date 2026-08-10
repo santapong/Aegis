@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.4.3] - 2026-08-10
+
+### Changed
+
+- Signed-out visitors to the app root now land on `/landing` instead of
+  the sign-in page; deep links to specific app pages still redirect to
+  sign-in.
+
 ## [1.4.2] - 2026-08-10
 
 ### Changed
