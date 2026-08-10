@@ -220,3 +220,4 @@ next-env.d.ts
 tsconfig.tsbuildinfo
 .vercel
 .env*
+backend/aegis.db

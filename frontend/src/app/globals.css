@@ -1417,3 +1417,12 @@ body.route-app .bd-base {
   }
   .aegis-orb-sat { display: none; }
 }
+
+/* ===== Meridian iconography: thin-stroke line icons ========================== */
+/* The Meridian system has no filled icons: Lucide at 1px stroke, square caps. */
+.theme-meridian svg.lucide,
+.theme-meridian svg[class*="lucide-"] {
+  stroke-width: 1.25;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
