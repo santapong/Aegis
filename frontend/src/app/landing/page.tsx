@@ -1,9 +1,10 @@
-"use client";
-
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { CosmicChart } from "@/components/shell/cosmic-chart";
-import { CodeChip } from "@/components/shell/code-chip";
+import { Syne, Sora } from "next/font/google";
+import { MeridianGL } from "./meridian-gl";
+import s from "./landing.module.css";
+
+const syne = Syne({ subsets: ["latin"], weight: ["700", "800"], variable: "--font-syne" });
+const sora = Sora({ subsets: ["latin"], weight: ["400", "600"], variable: "--font-sora" });
 
 const STATS = [
   { l: "Latency", v: "42ms", s: "p95 · global" },
@@ -14,93 +15,81 @@ const STATS = [
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen" style={{ color: "var(--fg)" }}>
-      <header className="front-nav">
-        <Link href="/landing" className="brand-name">
-          AEG<span style={{ color: "var(--accent)" }}>IS</span>
+    <div className={`${s.page} ${syne.variable} ${sora.variable}`}>
+      <header className={s.nav}>
+        <Link href="/landing" className={s.wordmark}>
+          AEG<span>IS</span>
         </Link>
-        <span style={{ color: "var(--dim-2)" }}>·</span>
-        <Link href="/landing">Product</Link>
-        <Link href="/landing">Pricing</Link>
-        <Link href="/landing">Changelog</Link>
-        <Link href="/docs">Docs</Link>
-        <span className="ml-auto flex items-center gap-3">
-          <Link href="/login">Sign in</Link>
-          <Link href="/register" className="btn-galaxy">
+        <Link href="/landing" className={s.navLink}>
+          Product
+        </Link>
+        <Link href="/landing" className={s.navLink}>
+          Pricing
+        </Link>
+        <Link href="/landing" className={s.navLink}>
+          Changelog
+        </Link>
+        <Link href="/docs" className={s.navLink}>
+          Docs
+        </Link>
+        <span className={s.navEnd}>
+          <Link href="/login" className={s.navLink}>
+            Sign in
+          </Link>
+          <Link href="/register" className={s.btn}>
             Get started
           </Link>
         </span>
       </header>
 
-      <section className="landing-hero">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div
-            className="font-mono text-[10px] tracking-[1.8px] uppercase mb-6 flex items-center gap-2"
-            style={{ color: "var(--dim)" }}
-          >
-            <span
-              className="inline-block w-1.5 h-1.5 rounded-full"
-              style={{ background: "var(--accent)", boxShadow: "var(--hero-glow)" }}
-            />
-            v1.0 · generally available
+      <section className={s.hero}>
+        <MeridianGL className={s.heroCanvas} />
+        <div className={s.heroVeil} />
+        <div className={`${s.heroInner} ${s.reveal}`}>
+          <div className={s.kicker}>
+            <span className={s.dot} />
+            v1.3 · generally available
           </div>
-          <h1 className="landing-title">Personal finance, mapped.</h1>
-          <p className="landing-sub">
-            Aegis is a calendar planner, a Gantt timeline, and an AI advisor for your
-            money — all in one keyboard-first workspace. Self-hosted, open source,
-            Claude-powered.
+          <h1 className={s.title}>
+            Personal finance, <span className={s.titleAccent}>mapped.</span>
+          </h1>
+          <p className={s.lede}>
+            A calendar planner, a Gantt timeline and an AI advisor for your money,
+            in one keyboard-first workspace. Self-hosted, open source.
           </p>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/register" className="btn-galaxy">
+          <div className={s.actions}>
+            <Link href="/register" className={s.btn}>
               Open the workspace
             </Link>
-            <Link href="/login" className="btn-galaxy ghost">
-              Sign in
+            <Link href="/login" className={s.btnQuiet}>
+              Sign in →
             </Link>
           </div>
-          <p className="mt-6 font-mono text-[11px]" style={{ color: "var(--dim)" }}>
-            Seed:{" "}
-            <CodeChip>demo@aegis.local</CodeChip>{" "}
-            <CodeChip>demo-password-123</CodeChip>
+          <p className={s.seed}>
+            Seed account · <code>demo@aegis.local</code> · <code>demo-password-123</code>
           </p>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.92 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.7, delay: 0.15 }}
-          className="justify-self-center"
-        >
-          <CosmicChart />
-        </motion.div>
+        </div>
       </section>
 
-      <section className="landing-stats">
-        {STATS.map((s) => (
-          <div key={s.l} className="landing-stat">
-            <div className="l">{s.l}</div>
-            <div className="v">{s.v}</div>
-            <div className="s">{s.s}</div>
+      <section className={`${s.stats} ${s.revealLate}`}>
+        {STATS.map((stat) => (
+          <div key={stat.l} className={s.stat}>
+            <div className={s.statLabel}>{stat.l}</div>
+            <div className={s.statValue}>{stat.v}</div>
+            <div className={s.statSub}>{stat.s}</div>
           </div>
         ))}
       </section>
 
-      <footer
-        className="px-14 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 font-mono text-[11px]"
-        style={{ color: "var(--dim)", position: "relative", zIndex: 1 }}
-      >
+      <footer className={s.footer}>
         <span>© Aegis · MIT licensed</span>
-        <span className="flex items-center gap-3">
+        <span>
           <Link href="/docs">Docs</Link>
-          <span style={{ color: "var(--dim-2)" }}>·</span>
+          {" · "}
           <a href="https://github.com/santapong/aegis" target="_blank" rel="noopener noreferrer">
             GitHub
           </a>
-          <span style={{ color: "var(--dim-2)" }}>·</span>
-          <span>v1.0.0</span>
+          {" · "}v1.3.0
         </span>
       </footer>
     </div>
