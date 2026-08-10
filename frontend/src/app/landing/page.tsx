@@ -107,9 +107,11 @@ export default function LandingPage() {
               Sign in →
             </Link>
           </div>
-          <p className={s.seed}>
-            Seed account · <code>demo@aegis.local</code> · <code>demo-password-123</code>
-          </p>
+          {process.env.NODE_ENV === "development" && (
+            <p className={s.seed}>
+              Seed account · <code>demo@aegis.local</code> · <code>demo-password-123</code>
+            </p>
+          )}
         </div>
       </section>
 
