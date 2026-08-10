@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.4.2] - 2026-08-10
+
+### Changed
+
+- The landing page's seed-credentials line now renders only in
+  development builds; production no longer advertises the demo login.
+
 ## [1.4.1] - 2026-08-10
 
 ### Fixed
