@@ -54,3 +54,56 @@ class InsightItem(BaseModel):
     title: str
     message: str
     metric: str
+
+
+class AIModelsResponse(BaseModel):
+    """What the settings page needs to render the model picker."""
+
+    provider: str
+    # The model actually in effect right now: the stored override if the user
+    # set one, otherwise the env default.
+    current: str
+    # The env default, so the UI can label the "use default" option and show
+    # what clearing the override falls back to.
+    default: str
+    # None when the user has no override stored (i.e. `current == default`).
+    override: str | None
+    models: list[str]
+    # True when the upstream list could not be fetched and `models` is just
+    # the current model echoed back. The UI shows "couldn't list alternatives"
+    # rather than an empty dropdown.
+    stale: bool
+    # Populated only when stale, for the UI to surface the reason.
+    error: str | None = None
+
+
+class AIUsageModelRow(BaseModel):
+    """Metered usage for one model over the requested window."""
+
+    model: str
+    provider: str
+    calls: int
+    input_tokens: int
+    output_tokens: int
+    # None when neither the provider nor the fallback table knows this model.
+    # The UI shows the usage and omits the cost — never a fabricated number.
+    estimated_cost_usd: float | None = None
+    # "provider" (live, current) or "table" (static, see prices_as_of).
+    cost_source: str | None = None
+
+    model_config = {"protected_namespaces": ()}
+
+
+class AIUsageResponse(BaseModel):
+    period_days: int
+    total_calls: int
+    total_input_tokens: int
+    total_output_tokens: int
+    # Sum over rows that had a price. Rows without one are excluded here and
+    # flagged via `models_missing_price`, so the total is never silently short
+    # without the caller being able to tell.
+    estimated_cost_usd: float | None = None
+    models_missing_price: list[str] = []
+    # Date stamp for any figure sourced from the static table.
+    prices_as_of: str
+    by_model: list[AIUsageModelRow] = []

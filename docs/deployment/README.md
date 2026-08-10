@@ -27,7 +27,7 @@ Pick **[Vercel (all-in)](./vercel.md)** if you have no preference — the root `
 
 ![Architecture (all recipes)](../diagrams/deployment-readme-architecture-all-recipes.svg)
 
-<sub>Diagram source: [deployment-readme-architecture-all-recipes.mmd](../diagrams/src/deployment-readme-architecture-all-recipes.mmd)</sub>
+<sub>Hand-authored SVG: [deployment-readme-architecture-all-recipes.svg](../diagrams/deployment-readme-architecture-all-recipes.svg) · conventions in [THEME.md](../diagrams/THEME.md)</sub>
 
 The frontend never talks to the backend directly from the browser — every request goes through Next.js's `rewrites()` proxy (`frontend/next.config.ts`). This keeps auth same-origin (no CORS in the browser), lets you change backend URLs without rebuilding the frontend, and means you only need to set **one** env var (`BACKEND_INTERNAL_URL`) per environment.
 

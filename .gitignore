@@ -60,6 +60,13 @@ cover/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+# This project's SQLite file is money_management.db (see DATABASE_URL in
+# .env.example), which the Django-style patterns above do not match. A local
+# `make migrate` creates it in backend/, so without this it gets committed.
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
 
 # Flask stuff:
 instance/
@@ -211,3 +218,6 @@ node_modules/
 .next/
 next-env.d.ts
 tsconfig.tsbuildinfo
+.vercel
+.env*
+backend/aegis.db

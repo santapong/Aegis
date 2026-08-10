@@ -1,9 +1,13 @@
 // Render every diagram source in docs/diagrams/src/*.mmd to docs/diagrams/<name>.svg.
 //
-// The .mmd files are the single source of truth for the repo's diagrams
-// (C4 model via mermaid C4 syntax for structure; flows, sequences and state
-// machines stay in their native mermaid form). Edit the .mmd, run this
-// script, commit both the source and the .svg.
+// The .mmd files are the source of truth for the repo's flows, sequences,
+// state machines and ER diagrams. Edit the .mmd, run this script, commit both
+// the source and the .svg.
+//
+// The seven structural C4 diagrams are NOT rendered here. They are
+// hand-authored SVGs — the .svg file is itself the source, edited directly.
+// They have no .mmd, so this script cannot overwrite them. See
+// docs/diagrams/THEME.md before adding a .mmd whose name would collide.
 //
 // Stdlib-only by design. The renderer is fetched on demand via
 // `npx @mermaid-js/mermaid-cli`; no dependency is added to the repo.

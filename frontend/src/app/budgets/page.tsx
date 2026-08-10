@@ -240,6 +240,7 @@ export default function BudgetsPage() {
     >
       <motion.div variants={staggerItem}>
         <PageHeader
+          code="BDG"
           title="Budget Management"
           subtitle="Track your spending against budget limits"
           action={
@@ -272,7 +273,7 @@ export default function BudgetsPage() {
           </CardContent></Card>
           <Card><CardContent className="p-6">
             <p className="text-sm text-muted-foreground">Remaining</p>
-            <p className={`text-2xl font-bold mt-1 ${comparison.total_budgeted - comparison.total_spent >= 0 ? "text-green-500" : "text-red-500"}`}>
+            <p className={`text-2xl font-bold mt-1 ${comparison.total_budgeted - comparison.total_spent >= 0 ? "text-[var(--ok)]" : "text-[var(--bad)]"}`}>
               {formatCurrency(comparison.total_budgeted - comparison.total_spent)}
             </p>
           </CardContent></Card>
@@ -303,7 +304,7 @@ export default function BudgetsPage() {
                     <div className="flex items-center gap-2">
                       <span className="font-medium capitalize">{c.category}</span>
                       {c.over_budget && (
-                        <span className="flex items-center gap-1 text-xs text-red-500 font-medium">
+                        <span className="flex items-center gap-1 text-xs text-[var(--bad)] font-medium">
                           <AlertTriangle size={12} /> Over budget
                         </span>
                       )}
@@ -314,7 +315,7 @@ export default function BudgetsPage() {
                   </div>
                   <div className="w-full bg-muted rounded-full h-2.5">
                     <motion.div
-                      className={`h-2.5 rounded-full transition-all ${c.over_budget ? "bg-red-500" : c.usage_percent > 80 ? "bg-yellow-500" : "bg-green-500"}`}
+                      className={`h-2.5 rounded-full transition-all ${c.over_budget ? "bg-[var(--bad)]" : c.usage_percent > 80 ? "bg-yellow-500" : "bg-[var(--ok)]"}`}
                       initial={{ width: 0 }}
                       animate={{ width: `${Math.min(c.usage_percent, 100)}%` }}
                       transition={{ duration: 0.8, ease: "easeOut" }}
@@ -322,7 +323,7 @@ export default function BudgetsPage() {
                   </div>
                   <div className="flex justify-between mt-1">
                     <span className="text-xs text-muted-foreground">{c.usage_percent}% used</span>
-                    <span className={`text-xs font-medium ${c.remaining >= 0 ? "text-green-500" : "text-red-500"}`}>
+                    <span className={`text-xs font-medium ${c.remaining >= 0 ? "text-[var(--ok)]" : "text-[var(--bad)]"}`}>
                       {c.remaining >= 0 ? `${formatCurrency(c.remaining)} left` : `${formatCurrency(Math.abs(c.remaining))} over`}
                     </span>
                   </div>
@@ -364,7 +365,7 @@ export default function BudgetsPage() {
                           <button onClick={() => openEdit(b)} className="text-muted-foreground hover:text-foreground p-1">
                             <Pencil size={14} />
                           </button>
-                          <button onClick={() => setDeleteId(b.id)} className="text-red-500 hover:text-red-700 p-1">
+                          <button onClick={() => setDeleteId(b.id)} className="text-[var(--bad)] hover:text-[var(--accent)] p-1">
                             <Trash2 size={14} />
                           </button>
                         </div>
@@ -385,7 +386,7 @@ export default function BudgetsPage() {
                   <div className="text-right flex items-center gap-2">
                     <p className="text-sm font-medium">{formatCurrency(b.amount)}</p>
                     <button onClick={() => openEdit(b)} className="text-muted-foreground p-1"><Pencil size={14} /></button>
-                    <button onClick={() => setDeleteId(b.id)} className="text-red-500 p-1"><Trash2 size={14} /></button>
+                    <button onClick={() => setDeleteId(b.id)} className="text-[var(--bad)] p-1"><Trash2 size={14} /></button>
                   </div>
                 </div>
               ))}

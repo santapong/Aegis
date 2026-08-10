@@ -133,6 +133,7 @@ export default function ReportsPage() {
     >
       <motion.div variants={staggerItem}>
         <PageHeader
+          code="RPT"
           title="Reports & Analytics"
           subtitle="Detailed financial summaries and charts"
           action={
@@ -183,15 +184,15 @@ export default function ReportsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <Card><CardContent className="p-6">
               <p className="text-sm text-muted-foreground">Total Income</p>
-              <p className="text-2xl font-bold text-green-500 mt-1">{formatCurrency(summary.total_income)}</p>
+              <p className="font-mono text-[24px] font-semibold tracking-tight tabular-nums text-[var(--ok)] mt-1">{formatCurrency(summary.total_income)}</p>
             </CardContent></Card>
             <Card><CardContent className="p-6">
               <p className="text-sm text-muted-foreground">Total Expenses</p>
-              <p className="text-2xl font-bold text-red-500 mt-1">{formatCurrency(summary.total_expenses)}</p>
+              <p className="font-mono text-[24px] font-semibold tracking-tight tabular-nums text-[var(--bad)] mt-1">{formatCurrency(summary.total_expenses)}</p>
             </CardContent></Card>
             <Card><CardContent className="p-6">
               <p className="text-sm text-muted-foreground">Net Savings</p>
-              <p className={`text-2xl font-bold mt-1 ${summary.net >= 0 ? "text-green-500" : "text-red-500"}`}>
+              <p className={`font-mono text-[24px] font-semibold tracking-tight tabular-nums mt-1 ${summary.net >= 0 ? "text-[var(--ok)]" : "text-[var(--bad)]"}`}>
                 {formatCurrency(summary.net)}
               </p>
             </CardContent></Card>
@@ -247,7 +248,7 @@ export default function ReportsPage() {
                           <td key={m.month} className="px-4 py-3 text-sm text-right">
                             <div>{formatCurrency(amount)}</div>
                             {change !== undefined && change !== null && (
-                              <div className={`flex items-center justify-end gap-0.5 text-xs ${change > 0 ? "text-red-500" : change < 0 ? "text-green-500" : "text-muted-foreground"}`}>
+                              <div className={`flex items-center justify-end gap-0.5 text-xs ${change > 0 ? "text-[var(--bad)]" : change < 0 ? "text-[var(--ok)]" : "text-muted-foreground"}`}>
                                 {change > 0 ? <ArrowUp size={10} /> : change < 0 ? <ArrowDown size={10} /> : <Minus size={10} />}
                                 {Math.abs(change)}%
                               </div>

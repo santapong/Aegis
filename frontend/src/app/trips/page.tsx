@@ -28,7 +28,7 @@ const defaultForm = {
 
 const statusStyles: Record<TripStatus, string> = {
   planned: "text-blue-500 border-blue-500/40",
-  active: "text-green-500 border-green-500/40",
+  active: "text-[var(--ok)] border-[var(--ok)]/40",
   completed: "text-muted-foreground border-border",
 };
 
@@ -102,6 +102,7 @@ export default function TripsPage() {
     >
       <motion.div variants={staggerItem}>
         <PageHeader
+          code="TRP"
           title="Trips"
           subtitle="Plan trip budgets and track spending against them"
           action={

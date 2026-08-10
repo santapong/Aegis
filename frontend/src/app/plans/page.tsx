@@ -259,6 +259,7 @@ export default function PlansPage() {
     >
       <motion.div variants={staggerItem}>
         <PageHeader
+          code="PLN"
           title="Plans & Goals"
           subtitle="Manage your financial plans and track goals"
           action={

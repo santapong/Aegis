@@ -103,7 +103,7 @@ def _build_engine(url: str) -> Engine:
     # the operator hasn't done so — silent connection-exhaustion at
     # peak traffic is the worst failure mode.
     from loguru import logger
-    if "neon.tech" in url and "pooler.neon.tech" not in url:
+    if "neon.tech" in url and "-pooler." not in url:
         logger.warning(
             "DATABASE_URL points at Neon WITHOUT the pooler endpoint "
             "(neon.tech vs *-pooler.neon.tech). At default pool sizing "
@@ -120,6 +120,11 @@ def _build_engine(url: str) -> Engine:
         "options": "-c statement_timeout=15000",
         "connect_timeout": 10,
     }
+    if "-pooler." in url or "pgbouncer=true" in url:
+        # PgBouncer in transaction mode rejects the `options` startup
+        # parameter outright ("unsupported startup parameter in options").
+        # Neon enforces its own timeouts at the pooler; drop ours.
+        del connect_args["options"]
     return create_engine(
         url,
         pool_size=settings.db_pool_size,

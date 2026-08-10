@@ -2,7 +2,7 @@
 
 AI-powered financial planning with calendar, Gantt charts, cookie-session auth, Stripe payments, keyboard-first navigation, PDF reports, and smart recommendations powered by Claude, Typhoon, or Groq.
 
-Status: **v1.2.0 — generally available.** See [CHANGELOG.md](CHANGELOG.md) — v1.2.0 covers security (httpOnly cookies, Google sign-in, FK cascade, body-size cap), multi-DB compatibility, the cache layer, a full performance pass (SQL aggregation, composite indexes, Recharts code-split, gzip), plus market data and budget templates. [ROADMAP.md](ROADMAP.md) tracks longer-term direction.
+Status: **v1.3.0 — generally available.** See [CHANGELOG.md](CHANGELOG.md) — v1.3.0 is a UX restraint pass (cosmic backdrop confined to marketing routes, collapsible sidebar clusters, a customizable dashboard widget grid, a consolidated 9-step type scale), on top of v1.2.0's security work (httpOnly cookies, Google sign-in, FK cascade, body-size cap), multi-DB compatibility, the cache layer, and a full performance pass. [ROADMAP.md](ROADMAP.md) tracks longer-term direction.
 
 Public landing page: [`/landing`](http://localhost:3000/landing). Sign-in: email/password or **Google** (configurable via `GOOGLE_OAUTH_CLIENT_ID`).
 
@@ -12,7 +12,7 @@ For a deeper look at how the system is put together — layered backend, fronten
 
 ![Architecture at a glance](docs/diagrams/readme-architecture-at-a-glance.svg)
 
-<sub>Diagram source: [readme-architecture-at-a-glance.mmd](docs/diagrams/src/readme-architecture-at-a-glance.mmd)</sub>
+<sub>Hand-authored SVG: [readme-architecture-at-a-glance.svg](docs/diagrams/readme-architecture-at-a-glance.svg) · [C4 model](https://c4model.com/) · palette and conventions in [THEME.md](docs/diagrams/THEME.md)</sub>
 
 ## Tech Stack
 
@@ -24,7 +24,7 @@ For a deeper look at how the system is put together — layered backend, fronten
 | Cache       | Pluggable (memory / Redis / disabled) — `CACHE_BACKEND` env             |
 | Auth        | JWT (HS256) in httpOnly `aegis_session` cookie + bcrypt + Google Identity Services ID-token flow |
 | Rate limit  | Redis-backed fixed-window (falls back to in-memory) with per-route strict prefixes |
-| AI          | Anthropic Claude / Typhoon / Groq — `AI_PROVIDER` env                   |
+| AI          | Anthropic Claude / Typhoon / Groq — `AI_PROVIDER` env; model, credential and usage/cost are configurable in-app (Settings → Preferences) |
 | Payments    | Stripe test + live, webhooks, redirects from `FRONTEND_URL`             |
 | Reports     | WeasyPrint (PDF) + matplotlib (server-side charts)                      |
 | Exports     | NDJSON streaming for downstream warehouses — see [`docs/analytics-warehouses.md`](docs/analytics-warehouses.md) |
@@ -85,6 +85,22 @@ make frontend     # bun run dev
 make test         # backend pytest
 ```
 
+> **Native runs read `backend/.env`, not the repo-root `.env`.** Pydantic resolves `env_file` relative to the working directory and both `make migrate` and `make backend` `cd backend` first, while docker compose reads the root file. Symlink them so there is one source of truth: `ln -s ../.env backend/.env` (both paths are already covered by the `.env*` gitignore rule).
+
+### Enable the AI features
+
+`/api/ai/*` is disabled until a provider credential is present. **Groq has a free tier and is the cheapest way to start** — every AI call is a single forced tool call with a small aggregate payload, so it does not need a frontier model:
+
+```bash
+# in .env
+AI_PROVIDER=groq
+GROQ_API_KEY=gsk_...        # https://console.groq.com
+```
+
+Anthropic (`AI_PROVIDER=anthropic` + `ANTHROPIC_API_KEY`) and Typhoon (`AI_PROVIDER=typhoon` + `TYPHOON_API_KEY`) work the same way.
+
+Once running, **Settings → Preferences** lets you change the model, store the API key encrypted server-side, and see metered token usage with a cost estimate — no redeploy needed. The model list is fetched from the provider and filtered to models that can actually do a tool call, so a retired model can't be selected. See [`docs/design/006`](docs/design/006-ai-provider-configuration.md).
+
 WeasyPrint (for PDF export) needs Cairo / Pango. On Debian / Ubuntu: `sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0 libcairo2 libgdk-pixbuf-2.0-0 libffi-dev`. On macOS: `brew install pango cairo gdk-pixbuf libffi`. The GHCR image bakes these in.
 
 ### Published images (GHCR)
@@ -131,7 +147,7 @@ make seed
 - **Calendar Planner** — monthly / weekly views, drag-drop rescheduling.
 - **Gantt Chart** — timeline visualization with zoom levels, mobile touch scrolling.
 - **Reports** — category comparison, trend analysis, CSV **and PDF** export (WeasyPrint).
-- **Payments** — Stripe test-mode checkout with webhook-driven status updates.
+- **Payments** — Stripe test-mode checkout with webhook-driven status updates. The API remains active; the frontend page is hidden from navigation since v1.3.0 (route `/payments` kept for easy restore).
 - **AI Advisor** — spending analysis, budget recommendations, 6-month forecasting, weekly summary.
 - **Notifications** — server-backed budget / bill / goal / anomaly alerts with idempotent dedupe keys.
 - **Onboarding tour** — first-run walkthrough (`driver.js`), replayable from Settings.

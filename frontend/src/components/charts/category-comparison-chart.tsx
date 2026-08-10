@@ -13,8 +13,14 @@ import {
 import { formatCurrency } from "@/lib/utils";
 
 const CATEGORY_COLORS = [
-  "#EF4444", "#6366f1", "#22C55E", "#F59E0B", "#8B5CF6",
-  "#EC4899", "#06B6D4", "#6366F1", "#10B981", "#6B7280",
+  "#E8913C", // amber — the accent
+  "#2E6B72", // teal — the counter-accent
+  "#C9A87A", // sand
+  "#4E9BA4", // teal, lifted
+  "#9EA5A8", // secondary ink
+  "#B26B24", // amber, deepened
+  "#6C7378", // muted
+  "#8FB8A8", // sage
 ];
 
 const glassTooltipStyle = {

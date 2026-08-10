@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import type { NotificationType } from "@/types";
 
 const typeConfig: Record<NotificationType, { icon: typeof Bell; color: string; borderColor: string }> = {
-  budget_alert: { icon: AlertTriangle, color: "text-red-500", borderColor: "border-l-red-500" },
+  budget_alert: { icon: AlertTriangle, color: "text-[var(--bad)]", borderColor: "border-l-red-500" },
   anomaly: { icon: AlertTriangle, color: "text-amber-500", borderColor: "border-l-amber-500" },
   milestone: { icon: Target, color: "text-emerald-500", borderColor: "border-l-emerald-500" },
   bill_reminder: { icon: CalendarClock, color: "text-indigo-500", borderColor: "border-l-indigo-500" },

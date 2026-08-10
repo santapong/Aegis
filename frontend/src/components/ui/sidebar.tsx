@@ -232,7 +232,7 @@ export function Sidebar() {
                   className="font-mono text-[10px] tracking-[1.4px] uppercase"
                   style={{ color: "var(--dim)" }}
                 >
-                  money / galaxy
+                  money / console
                 </div>
               </div>
             </div>
@@ -282,7 +282,7 @@ export function Sidebar() {
                     color: "var(--dim-2)",
                   }}
                 >
-                  <span>Cluster · {cluster.index} · {cluster.label}</span>
+                  <span>{cluster.index} · {cluster.label}</span>
                   <ChevronDown
                     size={12}
                     style={{

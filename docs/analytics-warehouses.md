@@ -6,7 +6,7 @@ This page is for operators who want to run BI dashboards, ML feature engineering
 
 ![Architecture that works (CDC pipeline)](diagrams/analytics-warehouses-architecture-that-works-cdc-pipeline.svg)
 
-<sub>Diagram source: [analytics-warehouses-architecture-that-works-cdc-pipeline.mmd](diagrams/src/analytics-warehouses-architecture-that-works-cdc-pipeline.mmd)</sub>
+<sub>Hand-authored SVG: [analytics-warehouses-architecture-that-works-cdc-pipeline.svg](diagrams/analytics-warehouses-architecture-that-works-cdc-pipeline.svg) · conventions in [THEME.md](diagrams/THEME.md)</sub>
 
 **The architecture that works**: Aegis owns its operational data in a transactional Postgres / MySQL. A change-data-capture (CDC) pipeline replicates that data into an analytics warehouse on a delay (seconds to minutes). BI tools (Looker, Metabase, Superset, Tableau, Hex) read the warehouse. The two databases are tuned for their own job — neither one tries to be both.
 

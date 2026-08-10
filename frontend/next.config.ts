@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import type { NextConfig } from "next";
 
 /**
@@ -8,8 +10,25 @@ import type { NextConfig } from "next";
  */
 const isVercel = !!process.env.VERCEL;
 
+/**
+ * Surface the package version to the client so the settings page can stop
+ * hard-coding it (the literal there had drifted to 1.0.0 while the repo
+ * shipped 1.2.0).
+ *
+ * Read from disk at build time rather than `import`ing package.json into the
+ * client component — that would bundle the whole dependency list into the
+ * browser payload. `readFileSync` rather than `require` because tsconfig sets
+ * `module: esnext`, so `require` is not defined in this context.
+ */
+const appVersion: string = JSON.parse(
+  readFileSync(new URL("./package.json", import.meta.url), "utf8")
+).version;
+
 const nextConfig: NextConfig = {
   output: isVercel ? undefined : "standalone",
+  env: {
+    NEXT_PUBLIC_APP_VERSION: appVersion,
+  },
   async rewrites() {
     // Two deploy topologies supported:
     //

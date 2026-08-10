@@ -30,8 +30,8 @@ type ZoomLevel = "day" | "week" | "month";
 const statusColors: Record<string, string> = {
   planned: "bg-gray-400",
   in_progress: "bg-blue-500",
-  completed: "bg-green-500",
-  cancelled: "bg-red-400",
+  completed: "bg-[var(--ok)]",
+  cancelled: "bg-[var(--bad)]",
 };
 
 const statusBadgeVariant: Record<string, "neutral" | "info" | "success" | "danger"> = {
@@ -208,6 +208,7 @@ export default function GanttPage() {
     >
       <motion.div variants={staggerItem}>
         <PageHeader
+          code="GNT"
           title="Gantt Chart"
           subtitle="Visualize your financial plans timeline"
           action={
