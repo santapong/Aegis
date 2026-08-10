@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.4.4] - 2026-08-10
+
+### Fixed
+
+- Vercel: the `/api/:path*` rewrite does not match trailing-slash URLs,
+  so every collection endpoint (`/api/transactions/`, `/api/budgets/`,
+  ...) fell through to the frontend and returned Next's 404 — data
+  pages silently rendered empty states. An explicit `/api/:path*/`
+  rewrite now routes them to the backend.
+
 ## [1.4.3] - 2026-08-10
 
 ### Changed
