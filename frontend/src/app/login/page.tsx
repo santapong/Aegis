@@ -8,6 +8,7 @@ import { authAPI } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth-store";
 import { CodeChip } from "@/components/shell/code-chip";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in";
+import { PulseGL } from "@/components/auth/pulse-gl";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -57,6 +58,7 @@ export default function LoginPage() {
   return (
     <div className="auth-split">
       <aside className="auth-aside">
+        <PulseGL className="auth-gl" />
         <div>
           <div
             className="flex items-center gap-2 font-mono text-[10px] tracking-[1.8px] uppercase mb-8"
@@ -66,7 +68,7 @@ export default function LoginPage() {
               className="inline-block w-1.5 h-1.5 rounded-full"
               style={{ background: "var(--accent)", boxShadow: "var(--hero-glow)" }}
             />
-            <span>signal · bridge · 04</span>
+            <span>sign in · session</span>
           </div>
           <h1
             className="text-[42px] leading-[1.05] mb-5"
@@ -78,7 +80,7 @@ export default function LoginPage() {
               color: "var(--fg)",
             }}
           >
-            Welcome back to the bridge.
+            Welcome back.
           </h1>
           <p
             className="font-mono text-sm leading-[1.65] max-w-[44ch]"
@@ -98,14 +100,14 @@ export default function LoginPage() {
             className="mt-4 font-mono text-[11px] tracking-[1.4px] uppercase"
             style={{ color: "var(--dim)" }}
           >
-            — Anya K. · navigator · since 2025
+            — Anya K. · member since 2025
           </figcaption>
         </figure>
         <div
           className="font-mono text-[10px] tracking-[1.6px] uppercase"
           style={{ color: "var(--dim-2)" }}
         >
-          aegis · galaxy v2 · node aegis-01
+          aegis · secure session · httponly cookie
         </div>
       </aside>
 
@@ -140,7 +142,7 @@ export default function LoginPage() {
             style={{ color: "var(--dim)" }}
           >
             <CodeChip>LOG</CodeChip>
-            <span>access · existing operator</span>
+            <span>access · existing account</span>
           </div>
           <h2
             className="text-[34px] leading-[1.05] mb-7"

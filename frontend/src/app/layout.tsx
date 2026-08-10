@@ -46,9 +46,9 @@ const PREHYDRATE_THEME = `
     if (!raw) return;
     var parsed = JSON.parse(raw);
     var t = parsed && parsed.state && parsed.state.theme;
-    var allowed = ['observatory', 'constellation', 'supernova'];
+    var allowed = ['pulse', 'observatory', 'constellation', 'supernova'];
     if (allowed.indexOf(t) === -1) return;
-    document.body.classList.remove('theme-observatory', 'theme-constellation', 'theme-supernova');
+    document.body.classList.remove('theme-pulse', 'theme-observatory', 'theme-constellation', 'theme-supernova');
     document.body.classList.add('theme-' + t);
   } catch (e) {}
 })();
@@ -62,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           inter.variable,
           mono.variable,
           serif.variable,
-          "antialiased font-sans theme-observatory"
+          "antialiased font-sans theme-pulse"
         )}
       >
         <Script

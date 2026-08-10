@@ -52,6 +52,13 @@ interface ThemeMeta {
 
 const THEME_META: ThemeMeta[] = [
   {
+    name: "pulse",
+    label: "Pulse",
+    tagline: "Data console. Matte graphite tiles, one fuchsia chroma, mono numerals.",
+    swatch: { void: "#0e0f14", pane: "#16181f", accent: "#ec4899" },
+    display: { fontFamily: "var(--font-sans)", fontStyle: "normal" },
+  },
+  {
     name: "observatory",
     label: "Observatory",
     tagline: "Restrained. Most professional. Hairline cyan on near-black.",
@@ -196,7 +203,7 @@ export default function SettingsPage() {
 
   const handleReset = () => {
     resetSettings();
-    setTheme("observatory");
+    setTheme("pulse");
     setShowReset(false);
     toast.success("Settings reset to defaults");
   };

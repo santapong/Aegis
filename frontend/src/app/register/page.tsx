@@ -8,6 +8,7 @@ import { authAPI } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth-store";
 import { CodeChip } from "@/components/shell/code-chip";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in";
+import { PulseGL } from "@/components/auth/pulse-gl";
 import { cn } from "@/lib/utils";
 
 type Tier = "starter" | "navigator";
@@ -39,7 +40,7 @@ const FEATURE_BULLETS = [
   "Connect institutions in under 90 seconds",
   "Calendar, Gantt, scenario planning out-of-box",
   "Anomaly detection + AI-generated weekly summaries",
-  "Self-host or run on the hosted bridge",
+  "Self-host or use the hosted service",
 ];
 
 export default function RegisterPage() {
@@ -102,6 +103,7 @@ export default function RegisterPage() {
   return (
     <div className="auth-split">
       <aside className="auth-aside">
+        <PulseGL className="auth-gl" />
         <div>
           <div
             className="flex items-center gap-2 font-mono text-[10px] tracking-[1.8px] uppercase mb-8"
@@ -111,7 +113,7 @@ export default function RegisterPage() {
               className="inline-block w-1.5 h-1.5 rounded-full"
               style={{ background: "var(--accent)", boxShadow: "var(--hero-glow)" }}
             />
-            <span>signal · onboarding · 01</span>
+            <span>create account · 90 seconds</span>
           </div>
           <h1
             className="text-[42px] leading-[1.05] mb-5"
@@ -142,7 +144,7 @@ export default function RegisterPage() {
           className="font-mono text-[10px] tracking-[1.6px] uppercase"
           style={{ color: "var(--dim-2)" }}
         >
-          aegis · galaxy v2 · node aegis-01
+          aegis · secure session · httponly cookie
         </div>
       </aside>
 
@@ -153,7 +155,7 @@ export default function RegisterPage() {
             style={{ color: "var(--dim)" }}
           >
             <CodeChip>REG</CodeChip>
-            <span>register · new operator</span>
+            <span>register · new account</span>
           </div>
           <h2
             className="text-[34px] leading-[1.05] mb-7"

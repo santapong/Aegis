@@ -111,7 +111,8 @@
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(120% 90% at 50% 45%, transparent 40%, var(--m-ground) 96%),
+    linear-gradient(100deg, rgba(10, 12, 14, 0.92) 0%, rgba(10, 12, 14, 0.55) 38%, transparent 62%),
+    radial-gradient(120% 90% at 62% 45%, transparent 40%, var(--m-ground) 96%),
     linear-gradient(to bottom, rgba(10, 12, 14, 0.5), transparent 30%, transparent 70%, var(--m-ground));
 }
 .heroInner {
@@ -141,7 +142,7 @@
 .title {
   font-family: var(--font-syne), sans-serif;
   font-weight: 700;
-  font-size: clamp(44px, 8vw, 108px);
+  font-size: clamp(38px, 5.5vw, 76px);
   letter-spacing: -0.03em;
   line-height: 0.94;
   max-width: 12ch;
@@ -152,7 +153,8 @@
 }
 .lede {
   max-width: 44ch;
-  color: var(--m-ink-2);
+  color: var(--m-ink);
+  opacity: 0.92;
   margin: 0 0 40px;
 }
 .actions {
@@ -164,7 +166,7 @@
 .seed {
   margin-top: 26px;
   font-size: 11px;
-  color: var(--m-muted);
+  color: var(--m-ink-2);
 }
 .seed code {
   color: var(--m-ink-2);
@@ -198,7 +200,7 @@
 .statValue {
   font-family: var(--font-syne), sans-serif;
   font-weight: 700;
-  font-size: clamp(28px, 3.4vw, 44px);
+  font-size: clamp(24px, 2.6vw, 36px);
   letter-spacing: -0.02em;
   line-height: 1;
   color: var(--m-ink);
