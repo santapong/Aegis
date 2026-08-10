@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-08-10
+
+### Fixed
+
+- `backend/uv.lock` was stale against `pyproject.toml` and missing
+  `google-auth`, crashing every backend function on Vercel
+  (`ModuleNotFoundError: No module named 'google'`) when built from a
+  clean checkout. Re-locked.
+
 ## [1.4.0] - 2026-08-10
 
 ### Changed — Meridian/Pulse redesign (from the claude.ai/design systems)
