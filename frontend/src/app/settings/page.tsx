@@ -52,6 +52,13 @@ interface ThemeMeta {
 
 const THEME_META: ThemeMeta[] = [
   {
+    name: "meridian",
+    label: "Meridian",
+    tagline: "Editorial. Warm bone on near-black, amber and teal drawn thin.",
+    swatch: { void: "#0a0c0e", pane: "#101317", accent: "#e8913c" },
+    display: { fontFamily: "var(--font-sans)", fontStyle: "normal" },
+  },
+  {
     name: "pulse",
     label: "Pulse",
     tagline: "Data console. Matte graphite tiles, one fuchsia chroma, mono numerals.",
@@ -203,7 +210,7 @@ export default function SettingsPage() {
 
   const handleReset = () => {
     resetSettings();
-    setTheme("pulse");
+    setTheme("meridian");
     setShowReset(false);
     toast.success("Settings reset to defaults");
   };

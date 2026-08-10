@@ -44,6 +44,49 @@
   --font-serif: var(--font-serif);
 }
 
+
+/* Alias re-resolution: custom properties compute where they're declared, so
+   the :root aliases freeze to Observatory's palette. Re-declare them on the
+   theme classes (applied to <body>) so each theme's cosmic tokens win. */
+.theme-meridian, .theme-pulse, .theme-observatory, .theme-constellation, .theme-supernova {
+  --background: var(--void);
+  --foreground: var(--fg);
+  --card: var(--pane);
+  --card-foreground: var(--fg);
+  --popover: var(--void-2);
+  --popover-foreground: var(--fg);
+  --primary: var(--accent);
+  --primary-foreground: var(--void);
+  --secondary: var(--pane-2);
+  --secondary-foreground: var(--fg);
+  --muted: var(--pane-2);
+  --muted-foreground: var(--dim);
+  --accent-foreground: var(--void);
+  --destructive: var(--bad);
+  --destructive-foreground: var(--void);
+  --border: var(--pane-edge);
+  --input: var(--pane-edge);
+  --ring: var(--accent);
+  --chart-1: var(--accent);
+  --chart-2: var(--accent-2);
+  --chart-3: var(--ok);
+  --chart-4: var(--warn);
+  --chart-5: var(--bad);
+  --success: var(--ok);
+  --warning: var(--warn);
+  --aegis-panel: var(--pane);
+  --aegis-panel-2: var(--pane-2);
+  --aegis-line: var(--pane-edge);
+  --aegis-line-2: var(--pane-edge-2);
+  --aegis-fg-2: var(--fg-2);
+  --aegis-dim: var(--dim);
+  --aegis-dim-2: var(--dim-2);
+  --aegis-ok: var(--ok);
+  --aegis-warn: var(--warn);
+  --aegis-bad: var(--bad);
+  --aegis-grid: var(--grid);
+}
+
 /* ===== Shared base (overridden by .theme-* blocks) ============================ */
 :root {
   --pad-x: 28px;
@@ -52,6 +95,49 @@
   --sidebar-collapsed: 68px;
   --statusbar-h: 28px;
   --star-opacity: 1;
+}
+
+/* ===== Theme: Meridian (default — editorial amber/teal, matches /landing) ==== */
+.theme-meridian {
+  --void:        #0a0c0e;
+  --void-2:      #101317;
+  --void-3:      #14181d;
+
+  --pane:        #101317;
+  --pane-2:      #14181d;
+  --pane-edge:   rgba(237, 231, 220, 0.13);
+  --pane-edge-2: rgba(237, 231, 220, 0.26);
+
+  --fg:    #ede7dc;
+  --fg-2:  #c9c3b8;
+  --dim:   #9ea5a8;
+  --dim-2: #6c7378;
+
+  --accent:      #e8913c;
+  --accent-2:    #2e6b72;
+  --accent-soft: rgba(232, 145, 60, 0.08);
+  --accent-glow: rgba(232, 145, 60, 0.22);
+
+  --ok:   #59d6a3;
+  --warn: #e8913c;
+  --bad:  #e87d92;
+
+  --grid: rgba(237, 231, 220, 0.04);
+
+  --display-font:     'Geist', var(--font-sans), system-ui, sans-serif;
+  --display-style:    normal;
+  --display-weight:   700;
+  --display-tracking: -0.02em;
+
+  --card-blur:   0px;
+  --card-radius: 4px;
+  --kpi-radius:  4px;
+
+  --hero-glow: 0 0 0 transparent;
+  --line-glow: drop-shadow(0 0 0 transparent);
+  --ring-glow: none;
+
+  --star-opacity: 0;
 }
 
 /* ===== Theme: Pulse (data console — matte graphite, one fuchsia chroma) ====== */

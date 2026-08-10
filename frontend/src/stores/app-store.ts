@@ -4,9 +4,10 @@ import { preferencesAPI, type PreferencesPayload } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth-store";
 import { setActiveCurrency } from "@/lib/utils";
 
-export type CosmicTheme = "pulse" | "observatory" | "constellation" | "supernova";
+export type CosmicTheme = "meridian" | "pulse" | "observatory" | "constellation" | "supernova";
 
 export const COSMIC_THEMES: ReadonlyArray<CosmicTheme> = [
+  "meridian",
   "pulse",
   "observatory",
   "constellation",
@@ -113,7 +114,7 @@ export const useAppStore = create<AppState>()(
       collapsedClusters: ["System"],
       dashboardOrder: [...DASHBOARD_WIDGET_IDS],
       dashboardHidden: [],
-      theme: "pulse",
+      theme: "meridian",
       aiPanelOpen: false,
       hasSeenTour: false,
       settings: { ...defaultSettings },

@@ -7,11 +7,20 @@ import { useEffect, useRef } from "react";
 // Time-driven with pointer parallax; renders one static frame under
 // prefers-reduced-motion. No dependencies.
 
+// Ring colors come from the active theme at mount: accent, accent-alt, ink.
 const RINGS = [
-  { color: [0.925, 0.282, 0.6], radius: 0.62, tilt: 0.45, speed: 0.14, count: 260 }, // fuchsia
-  { color: [0.176, 0.831, 0.749], radius: 0.86, tilt: -0.32, speed: -0.09, count: 320 }, // teal
-  { color: [0.545, 0.486, 1.0], radius: 1.08, tilt: 0.18, speed: 0.06, count: 380 }, // violet
+  { cssVar: "--accent", fallback: [0.91, 0.569, 0.235], radius: 0.62, tilt: 0.45, speed: 0.14, count: 260 },
+  { cssVar: "--accent-2", fallback: [0.18, 0.42, 0.447], radius: 0.86, tilt: -0.32, speed: -0.09, count: 320 },
+  { cssVar: "--dim", fallback: [0.62, 0.647, 0.659], radius: 1.08, tilt: 0.18, speed: 0.06, count: 380 },
 ];
+
+function cssColor(name: string, fallback: number[]): number[] {
+  const raw = getComputedStyle(document.body).getPropertyValue(name).trim();
+  const m = raw.match(/^#([0-9a-f]{6})$/i);
+  if (!m) return fallback;
+  const n = parseInt(m[1], 16);
+  return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255];
+}
 
 const VERT = `
 attribute vec3 aSeed;           // angle, ringIndex, jitter
@@ -107,7 +116,8 @@ export function PulseGL({ className }: { className?: string }) {
     const u = (name: string) => gl.getUniformLocation(prog, name);
     RINGS.forEach((ring, i) => {
       gl.uniform4f(u(`uRing${i}`), ring.radius, ring.tilt, ring.speed, ring.count);
-      gl.uniform3f(u(`uColor${i}`), ring.color[0], ring.color[1], ring.color[2]);
+      const c = cssColor(ring.cssVar, ring.fallback);
+      gl.uniform3f(u(`uColor${i}`), c[0], c[1], c[2]);
     });
     const uTime = u("uTime");
     const uPointer = u("uPointer");
