@@ -21,16 +21,14 @@ interface SpendingChartProps {
 
 /* Terminal-aesthetic palette — magenta, phosphor green, amber, claret. */
 const COLORS = [
-  "oklch(0.78 0.16 305)", // magenta — primary
-  "oklch(0.78 0.14 145)", // phosphor green
-  "oklch(0.78 0.16 75)",  // amber
-  "oklch(0.72 0.18 25)",  // claret
-  "oklch(0.7 0.14 250)",  // dim blue
-  "oklch(0.68 0.16 200)", // teal
-  "oklch(0.7 0.14 340)",  // pink
-  "oklch(0.65 0.14 110)", // olive
-  "oklch(0.72 0.12 280)", // lavender
-  "oklch(0.75 0.12 50)",  // sand
+  "#E8913C", // amber — the accent
+  "#2E6B72", // teal — the counter-accent
+  "#C9A87A", // sand
+  "#4E9BA4", // teal, lifted
+  "#9EA5A8", // secondary ink
+  "#B26B24", // amber, deepened
+  "#6C7378", // muted
+  "#8FB8A8", // sage
 ];
 
 const glassTooltipStyle = {
@@ -89,9 +87,7 @@ export function SpendingChart({ data }: SpendingChartProps) {
           activeShape={renderActiveShape}
           onMouseEnter={(_, index) => setActiveIndex(index)}
           onMouseLeave={() => setActiveIndex(undefined)}
-          isAnimationActive
-          animationDuration={800}
-          animationEasing="ease-out"
+          isAnimationActive={false}
         >
           {data.map((entry, i) => (
             <Cell key={i} fill={entry.color ?? COLORS[i % COLORS.length]} />

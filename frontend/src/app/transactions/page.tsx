@@ -79,7 +79,7 @@ const TransactionRow = memo(function TransactionRow({
           )}
         </Badge>
       </td>
-      <td className={`px-4 py-3 text-sm text-right font-medium ${tx.type === "income" ? "text-green-500" : "text-red-500"}`}>
+      <td className={`px-4 py-3 text-sm text-right font-medium ${tx.type === "income" ? "text-[var(--ok)]" : "text-[var(--bad)]"}`}>
         {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
       </td>
       <td className="px-4 py-3 text-right">
@@ -87,7 +87,7 @@ const TransactionRow = memo(function TransactionRow({
           <button onClick={() => onEdit(tx)} className="text-muted-foreground hover:text-foreground p-1">
             <Pencil size={14} />
           </button>
-          <button onClick={() => onDelete(tx.id)} className="text-red-500 hover:text-red-700 p-1">
+          <button onClick={() => onDelete(tx.id)} className="text-[var(--bad)] hover:text-[var(--accent)] p-1">
             <Trash2 size={14} />
           </button>
         </div>
@@ -468,6 +468,7 @@ export default function TransactionsPage() {
     >
       <motion.div variants={staggerItem}>
         <PageHeader
+          code="TXN"
           title="Transactions"
           subtitle="Track your income and expenses"
           action={
@@ -527,19 +528,19 @@ export default function TransactionsPage() {
                   <Card>
                     <CardContent className="p-6">
                       <p className="text-sm text-muted-foreground">Total Income</p>
-                      <p className="text-2xl font-bold text-green-500 mt-1">{formatCurrency(summary.total_income)}</p>
+                      <p className="font-mono text-[24px] font-semibold tracking-tight tabular-nums text-[var(--ok)] mt-1">{formatCurrency(summary.total_income)}</p>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardContent className="p-6">
                       <p className="text-sm text-muted-foreground">Total Expenses</p>
-                      <p className="text-2xl font-bold text-red-500 mt-1">{formatCurrency(summary.total_expenses)}</p>
+                      <p className="font-mono text-[24px] font-semibold tracking-tight tabular-nums text-[var(--bad)] mt-1">{formatCurrency(summary.total_expenses)}</p>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardContent className="p-6">
                       <p className="text-sm text-muted-foreground">Net</p>
-                      <p className={`text-2xl font-bold mt-1 ${summary.net >= 0 ? "text-green-500" : "text-red-500"}`}>
+                      <p className={`font-mono text-[24px] font-semibold tracking-tight tabular-nums mt-1 ${summary.net >= 0 ? "text-[var(--ok)]" : "text-[var(--bad)]"}`}>
                         {formatCurrency(summary.net)}
                       </p>
                     </CardContent>
@@ -584,7 +585,7 @@ export default function TransactionsPage() {
                         <div key={tx.id} className="p-4 flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className={`p-2 rounded-lg ${tx.type === "income" ? "bg-green-500/10" : "bg-red-500/10"}`}>
-                              {tx.type === "income" ? <ArrowUpRight size={16} className="text-green-500" /> : <ArrowDownRight size={16} className="text-red-500" />}
+                              {tx.type === "income" ? <ArrowUpRight size={16} className="text-[var(--ok)]" /> : <ArrowDownRight size={16} className="text-[var(--bad)]" />}
                             </div>
                             <div>
                               <p className="text-sm font-medium capitalize">{tx.category}</p>
@@ -601,14 +602,14 @@ export default function TransactionsPage() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className={`text-sm font-medium ${tx.type === "income" ? "text-green-500" : "text-red-500"}`}>
+                            <p className={`text-sm font-medium ${tx.type === "income" ? "text-[var(--ok)]" : "text-[var(--bad)]"}`}>
                               {tx.type === "income" ? "+" : "-"}{formatCurrency(tx.amount)}
                             </p>
                             <div className="flex items-center justify-end gap-2 mt-1">
                               <button onClick={() => openEdit(tx)} className="text-muted-foreground p-1">
                                 <Pencil size={14} />
                               </button>
-                              <button onClick={() => setDeleteId(tx.id)} className="text-red-500 p-1">
+                              <button onClick={() => setDeleteId(tx.id)} className="text-[var(--bad)] p-1">
                                 <Trash2 size={14} />
                               </button>
                             </div>
@@ -655,19 +656,19 @@ export default function TransactionsPage() {
                   <Card>
                     <CardContent className="p-6">
                       <p className="text-sm text-muted-foreground">Monthly Recurring Cost</p>
-                      <p className="text-2xl font-bold text-red-500 mt-1">{formatCurrency(recurring.total_monthly_recurring)}</p>
+                      <p className="font-mono text-[24px] font-semibold tracking-tight tabular-nums text-[var(--bad)] mt-1">{formatCurrency(recurring.total_monthly_recurring)}</p>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardContent className="p-6">
                       <p className="text-sm text-muted-foreground">Recurring Income</p>
-                      <p className="text-2xl font-bold text-green-500 mt-1">{formatCurrency(recurring.recurring_income)}</p>
+                      <p className="font-mono text-[24px] font-semibold tracking-tight tabular-nums text-[var(--ok)] mt-1">{formatCurrency(recurring.recurring_income)}</p>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardContent className="p-6">
                       <p className="text-sm text-muted-foreground">Active Subscriptions</p>
-                      <p className="text-2xl font-bold mt-1">{recurring.subscriptions.length}</p>
+                      <p className="font-mono text-[24px] font-semibold tracking-tight tabular-nums mt-1">{recurring.subscriptions.length}</p>
                     </CardContent>
                   </Card>
                 </div>
@@ -691,7 +692,7 @@ export default function TransactionsPage() {
                         <div key={sub.id} className="p-4 flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className={`p-2 rounded-lg ${sub.type === "income" ? "bg-green-500/10" : "bg-red-500/10"}`}>
-                              <RefreshCw size={16} className={sub.type === "income" ? "text-green-500" : "text-red-500"} />
+                              <RefreshCw size={16} className={sub.type === "income" ? "text-[var(--ok)]" : "text-[var(--bad)]"} />
                             </div>
                             <div>
                               <p className="text-sm font-medium">{sub.description || sub.category}</p>
@@ -703,7 +704,7 @@ export default function TransactionsPage() {
                               </div>
                             </div>
                           </div>
-                          <p className={`text-sm font-medium ${sub.type === "income" ? "text-green-500" : "text-red-500"}`}>
+                          <p className={`text-sm font-medium ${sub.type === "income" ? "text-[var(--ok)]" : "text-[var(--bad)]"}`}>
                             {sub.type === "income" ? "+" : "-"}{formatCurrency(sub.amount)}
                           </p>
                         </div>
@@ -745,7 +746,7 @@ export default function TransactionsPage() {
                         </div>
                         <span
                           className={`font-medium ${
-                            occ.type === "income" ? "text-green-500" : "text-red-500"
+                            occ.type === "income" ? "text-[var(--ok)]" : "text-[var(--bad)]"
                           }`}
                         >
                           {occ.type === "income" ? "+" : "-"}
@@ -1035,7 +1036,7 @@ export default function TransactionsPage() {
                           </button>
                           <button
                             onClick={() => setDeleteTagId(tag.id)}
-                            className="text-red-500 hover:text-red-700 p-1"
+                            className="text-[var(--bad)] hover:text-[var(--accent)] p-1"
                             aria-label={`Delete ${tag.name}`}
                           >
                             <Trash2 size={14} />
