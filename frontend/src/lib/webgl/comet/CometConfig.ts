@@ -34,6 +34,24 @@ export interface CometParticleConfig {
   intensity: number;
 }
 
+export interface CometBloomConfig {
+  enabled: boolean;
+  /** Premultiplied luminance above which pixels contribute to the glow. */
+  threshold: number;
+  /** Smooth transition width around the threshold. */
+  softKnee: number;
+  /** Desktop bloom contribution during final compositing. */
+  strength: number;
+  /** Mobile/portrait bloom contribution. */
+  mobileStrength: number;
+  /** Blur sample offset in reduced-resolution pixels. */
+  radius: number;
+  /** Desktop bloom-buffer scale relative to the canvas. */
+  resolutionScale: number;
+  /** Mobile/portrait bloom-buffer scale relative to the canvas. */
+  mobileResolutionScale: number;
+}
+
 export interface CometConfig {
   /** Seconds for one full left-to-right traversal and loop. */
   loopDuration: number;
@@ -45,6 +63,7 @@ export interface CometConfig {
   dprCap: number;
   tail: CometTailConfig;
   particles: CometParticleConfig;
+  bloom: CometBloomConfig;
 }
 
 export const DEFAULT_COMET_CONFIG: CometConfig = {
@@ -71,5 +90,15 @@ export const DEFAULT_COMET_CONFIG: CometConfig = {
     turbulence: 0.035,
     size: [1.2, 3.8],
     intensity: 0.68,
+  },
+  bloom: {
+    enabled: true,
+    threshold: 0.72,
+    softKnee: 0.18,
+    strength: 0.42,
+    mobileStrength: 0.3,
+    radius: 5,
+    resolutionScale: 0.5,
+    mobileResolutionScale: 0.33,
   },
 };
