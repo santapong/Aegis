@@ -34,6 +34,23 @@ export interface CometParticleConfig {
   intensity: number;
 }
 
+export interface CometStrandConfig {
+  /** Maximum instanced energy strands rendered on desktop. */
+  count: number;
+  /** Active strands on compact/portrait viewports. */
+  mobileCount: number;
+  /** Static strands retained for the reduced-motion composition. */
+  reducedMotionCount: number;
+  /** Strand half-width in height-relative clip-space units. */
+  width: number;
+  /** Maximum lateral separation from the main plasma envelope. */
+  spread: number;
+  /** Independent energy-flow speed. */
+  flowSpeed: number;
+  /** Overall strand brightness/opacity multiplier. */
+  intensity: number;
+}
+
 export interface CometBloomConfig {
   enabled: boolean;
   /** Premultiplied luminance above which pixels contribute to the glow. */
@@ -70,6 +87,7 @@ export interface CometConfig {
   /** Device pixel ratio cap — avoids rendering an unnecessarily large framebuffer. */
   dprCap: number;
   tail: CometTailConfig;
+  strands: CometStrandConfig;
   particles: CometParticleConfig;
   bloom: CometBloomConfig;
   parallax: CometParallaxConfig;
@@ -89,6 +107,15 @@ export const DEFAULT_COMET_CONFIG: CometConfig = {
     distortionFrequency: 1.0,
     intensity: 0.72,
     curvature: 0.12,
+  },
+  strands: {
+    count: 5,
+    mobileCount: 3,
+    reducedMotionCount: 2,
+    width: 0.008,
+    spread: 0.24,
+    flowSpeed: 0.55,
+    intensity: 0.72,
   },
   particles: {
     count: 160,

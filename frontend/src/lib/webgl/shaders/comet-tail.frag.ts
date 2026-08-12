@@ -12,6 +12,23 @@ uniform float uDebug;
 
 out vec4 fragColor;
 
+float hash21(vec2 p) {
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
+
+float valueNoise(vec2 p) {
+  vec2 cell = floor(p);
+  vec2 local = fract(p);
+  vec2 blend = local * local * (3.0 - 2.0 * local);
+  float a = hash21(cell);
+  float b = hash21(cell + vec2(1.0, 0.0));
+  float c = hash21(cell + vec2(0.0, 1.0));
+  float d = hash21(cell + vec2(1.0, 1.0));
+  return mix(mix(a, b, blend.x), mix(c, d, blend.x), blend.y);
+}
+
 void main() {
   // Dev-only UV visualization — u across red/blue, side across green.
   // Toggled from the COMET_DEBUG constant in Tail.ts, never a runtime control.
@@ -33,6 +50,18 @@ void main() {
   float flowB = sin(vU * 37.0 - uTime * uFlowSpeed * 3.4 + 1.7);
   float flow = mix(0.58, 1.0, clamp(flowA * 0.34 + flowB * 0.16 + 0.5, 0.0, 1.0));
 
+  // Two low-cost noise octaves break the broad ribbon into translucent
+  // density volumes and sharp wisps. The movement is deliberately slower
+  // than the energy pulse so it reads as depth, not liquid turbulence.
+  float cloudA = valueNoise(vec2(vU * 6.5 - uTime * uFlowSpeed * 0.08, vSide * 1.7));
+  float cloudB = valueNoise(vec2(vU * 14.0 + uTime * uFlowSpeed * 0.05, vSide * 3.8 + 7.3));
+  float cloud = cloudA * 0.62 + cloudB * 0.38;
+  float wisp = 0.62 + 0.38 * sin(
+    vU * 27.0 - uTime * uFlowSpeed * 0.72 + cloud * 5.2 + vSide * 2.4
+  );
+  float density = mix(0.42, 1.0, smoothstep(0.18, 0.86, cloud))
+    * mix(0.72, 1.0, wisp);
+
   // Three narrow, independently moving energy filaments break up the
   // ribbon silhouette without extra geometry or draw calls. Their lateral
   // motion also settles at the core so the attachment stays visually clean.
@@ -53,7 +82,7 @@ void main() {
   );
   float filaments = filamentA + (filamentB + filamentC) * 0.42;
 
-  float body = edge * (0.42 + filaments * 0.34);
+  float body = edge * (0.34 + density * 0.38 + filaments * 0.3);
   float alpha = clamp(body * fade * flow * uIntensity, 0.0, 0.92);
 
   vec3 white = vec3(1.0, 1.0, 1.0);

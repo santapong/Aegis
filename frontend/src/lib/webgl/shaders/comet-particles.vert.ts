@@ -25,6 +25,7 @@ uniform float uIntensity;
 out float vAlpha;
 out float vBrightness;
 out float vU;
+out float vDepth;
 
 float tailCurve(float u) {
   float t = 1.0 - u;
@@ -49,9 +50,11 @@ void main() {
     + sin(u * 31.0 - aSeed.w * 0.7 - uTime * 1.9) * 0.45
   ) * uTurbulence * distortionEnvelope;
 
+  float depth = aSeed.z;
+  float depthSpread = mix(0.72, 1.28, depth);
   float localY = tailCurve(u)
     + centerDistortion
-    + aSeed.y * width * uSpread
+    + aSeed.y * width * uSpread * depthSpread
     + drift;
 
   vec2 local = vec2(localX / uAspect, localY);
@@ -59,11 +62,17 @@ void main() {
 
   float lifecycle = smoothstep(0.0, 0.08, u) * (1.0 - smoothstep(0.94, 1.0, u));
   float density = smoothstep(0.02, 0.42, u);
-  vAlpha = lifecycle * density * aStyle.x * uIntensity;
+  vAlpha = lifecycle
+    * density
+    * aStyle.x
+    * mix(0.3, 1.0, depth)
+    * uIntensity;
   vBrightness = aStyle.x;
   vU = u;
+  vDepth = depth;
 
-  float perspectiveSize = mix(0.7, 1.0, smoothstep(0.15, 0.9, u));
+  float perspectiveSize = mix(0.55, 1.2, depth)
+    * mix(0.72, 1.0, smoothstep(0.15, 0.9, u));
   gl_PointSize = mix(uPointSize.x, uPointSize.y, aSeed.z)
     * perspectiveSize
     * uPixelRatio;
