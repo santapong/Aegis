@@ -24,7 +24,7 @@ Current status: **generally available**.
 | v1.2.0 | Perf audits + deploy story + market data + budget templates | ✅ Shipped |
 | v1.3.0 | UX restraint pass + customizable dashboard widgets | ✅ Shipped |
 | v1.4.0–v1.4.9 | Runtime AI configuration + public-site and visual-system refinements | ✅ Shipped |
-| v1.5.0 | WebGL2 comet hero validation and release | 🚧 Unreleased |
+| v1.5.0 | WebGL2 comet hero Phase 6: stabilization and release validation | 🚧 Unreleased |
 
 ---
 
@@ -70,13 +70,14 @@ Captured here for continuity; not scoped.
 
 ### Experience & visual platform
 
-- ✅ Dependency-free WebGL2 comet hero, delivered in five phases: renderer and
-  core, procedural tail, GPU particles, restrained transparent bloom, and
+- ✅ WebGL2 comet implementation delivered through Phase 5: renderer and core,
+  procedural tail, GPU particles, restrained transparent bloom, and
   fine-pointer parallax. See
   [`docs/design/007`](docs/design/007-webgl-comet-hero.md).
-- Capture stable desktop and mobile screenshot baselines for the landing hero.
-- Profile the effect on representative integrated-GPU and mobile devices before
-  raising particle density or post-processing quality.
+- 🚧 **Phase 6 — stabilization and release validation:** capture stable desktop,
+  mobile, and reduced-motion screenshot baselines; profile representative
+  integrated-GPU and mobile devices; exercise WebGL context loss/restoration;
+  and add adaptive quality only if profiling shows it is necessary.
 
 ---
 

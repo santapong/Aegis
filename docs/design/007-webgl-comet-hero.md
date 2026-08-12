@@ -1,6 +1,6 @@
 # 007 — WebGL2 comet hero
 
-**Status:** Implemented in five phases
+**Status:** Phases 1–5 implemented; Phase 6 planned
 **Date:** 2026-08-13
 
 ## Objective
@@ -43,6 +43,7 @@ The implementation lives in
 | 3 | Keep energy particles GPU-driven with a seeded static buffer; change density by responsive quality tier rather than uploading positions every frame. |
 | 4 | Apply bloom only to extracted highlights, blur at reduced resolution, and composite with premultiplied alpha so the DOM background remains visible. |
 | 5 | Add subtle parallax only for fine pointers, cap its displacement, smooth it independently of frame rate, and disable it for touch and reduced motion. |
+| 6 — planned | Stabilize the finished effect with screenshot baselines, real-device GPU profiling, context-loss testing, and measured release gates. Add resilience or adaptive quality only when validation demonstrates a need. |
 
 ## Performance budgets
 
@@ -78,20 +79,32 @@ treating an overlay effect like an opaque scene.
 
 ## Verification
 
-For each phase, TypeScript and the production Next.js build must pass. Visual
-review covers desktop, mobile-width, reduced-motion, pointer movement, resize,
-tab visibility, and transparent compositing.
+For Phases 1–5, TypeScript and the production Next.js build passed. Visual
+review covered desktop, mobile-width, reduced-motion, pointer movement, resize,
+tab visibility, and transparent compositing. Phase 6 adds repeatable evidence
+and real-device coverage to those checks.
 
 Do not run `next build` while a development server is using the same checkout:
 both processes mutate `.next`, which can create misleading missing-manifest
 errors. Stop the dev server, build, then restart it.
 
-## Follow-up work
+## Phase 6 — stabilization and release validation
 
-- Capture stable desktop and mobile screenshot baselines.
-- Profile representative integrated-GPU and mobile devices.
-- Add explicit context-loss restoration if field telemetry shows it is needed.
-- Add adaptive quality only when measurements demonstrate a sustained problem.
+Phase 6 is planned and remains unimplemented. Its deliverables are:
+
+- Capture stable desktop, mobile, and reduced-motion screenshot baselines.
+- Profile representative integrated-GPU and mobile devices and record frame
+  pacing, memory pressure, and resize behavior.
+- Exercise `webglcontextlost` and `webglcontextrestored`; implement explicit
+  restoration only if the current fallback does not recover cleanly.
+- Verify the Vercel preview and production landing page with no shader, console,
+  transparency, or layout regressions.
+- Add adaptive DPR, particle, or bloom quality only when measurements show a
+  sustained performance problem.
+
+Phase 6 is complete when the evidence is recorded, release checks pass, and any
+measured blocker is fixed. It is a validation phase, not a mandate to add more
+visual intensity or interaction.
 
 Scroll coupling, stronger parallax, denser particles, and heavier bloom are not
 planned without visual and performance evidence.
