@@ -1,8 +1,40 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Syne, Sora } from "next/font/google";
 import { MeridianGL } from "./meridian-gl";
 import { Reveal } from "./reveal";
 import s from "./landing.module.css";
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
+
+export const metadata: Metadata = {
+  title: `${SITE_NAME} — AI-Powered Financial Planning`,
+  description: SITE_DESCRIPTION,
+  alternates: { canonical: `${SITE_URL}/landing` },
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: `${SITE_NAME} — AI-Powered Financial Planning`,
+    description: SITE_DESCRIPTION,
+    url: `${SITE_URL}/landing`,
+    siteName: SITE_NAME,
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: `${SITE_NAME} — AI-Powered Financial Planning`,
+    description: SITE_DESCRIPTION,
+  },
+};
+
+const JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: SITE_NAME,
+  description: SITE_DESCRIPTION,
+  url: `${SITE_URL}/landing`,
+  applicationCategory: "FinanceApplication",
+  operatingSystem: "Web",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+};
 
 const FOLDS = [
   {
@@ -58,6 +90,10 @@ const STATS = [
 export default function LandingPage() {
   return (
     <div className={`${s.page} ${syne.variable} ${sora.variable}`}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
+      />
       <header className={s.nav}>
         <Link href="/landing" className={s.wordmark}>
           AEG<span>IS</span>
