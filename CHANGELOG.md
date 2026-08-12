@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.4.8] - 2026-08-12
+
+### Added
+
+- New favicon and app icon (gravitational-lensing ring mark) via
+  Next.js's file-based icon convention.
+
 ## [1.4.7] - 2026-08-12
 
 ### Added
