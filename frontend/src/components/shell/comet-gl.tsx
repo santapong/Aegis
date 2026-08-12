@@ -2,70 +2,82 @@
 
 import { useEffect, useRef } from "react";
 
-// Raw-WebGL rising-ember particle field, shared by the landing hero and the
-// auth pages. Replaces the terrain-grid (Meridian) and orbit-ring (Pulse)
-// concepts with something warmer and organic: motes drift upward from the
-// bottom of the frame on a gentle sine sway, like embers or light rising off
-// still water, brightening from umber to pale gold as they climb, then loop.
-// Time-driven with pointer parallax; renders one static frame under
-// prefers-reduced-motion. No dependencies.
+// Raw-WebGL comet field, shared by the landing hero and the auth pages.
+// A handful of comets — bright head, fading tail — arc across the void on
+// looping parabolic paths. Each comet's tail cools toward either the
+// redshift or blueshift accent (alternating), echoing the outflow/inflow
+// color language used elsewhere in the product. Time-driven with pointer
+// parallax; renders one static frame under prefers-reduced-motion. No
+// dependencies.
 
-const COUNT = 900;
+const COMETS = 7;
+const TAIL = 34;
+const COUNT = COMETS * TAIL;
 
 const VERT = `
-attribute vec3 aSeed;           // x offset, phase, jitter
+attribute vec3 aSeed;           // cometId, tailIndex, jitter
 uniform float uTime;
 uniform vec2 uPointer;
 uniform float uAspect;
-varying float vY;
-varying float vDepth;
+varying float vTailFrac;
+varying float vCharge;
+varying float vAlpha;
 
 void main() {
-  float speed = mix(0.045, 0.11, aSeed.z);
-  float y = fract(aSeed.y + uTime * speed);
-  float sway = sin(y * 6.283185 * 2.2 + aSeed.x * 9.0) * mix(0.05, 0.22, fract(aSeed.z * 3.7));
+  float cometId = aSeed.x;
+  float speed = mix(0.05, 0.095, fract(cometId * 0.371));
+  float phase = fract(cometId * 0.617);
+  float laneY = mix(-0.65, 0.65, fract(cometId * 0.293));
+  float arcH = mix(0.18, 0.5, fract(cometId * 0.831));
+  float charge = mod(cometId, 2.0);
 
-  vec3 pos;
-  pos.x = aSeed.x * 1.7 + sway;
-  pos.y = mix(-1.15, 1.25, y);
-  pos.z = mix(1.4, 3.2, fract(aSeed.z * 5.3));
+  float tailFrac = aSeed.y / float(${TAIL - 1});
+  float progress = fract(uTime * speed + phase - aSeed.y * 0.008);
 
-  float ry = uPointer.x * 0.10;
+  float x = mix(-1.65, 1.65, progress);
+  float arc = sin(progress * 3.14159265) * arcH;
+  float y = laneY + arc;
+  float z = mix(1.5, 3.1, fract(cometId * 0.531));
+
+  float ry = uPointer.x * 0.08;
   float cy = cos(ry), sy = sin(ry);
-  pos.xz = mat2(cy, -sy, sy, cy) * pos.xz;
-  pos.y -= uPointer.y * 0.04;
+  vec2 xz = mat2(cy, -sy, sy, cy) * vec2(x, z - 2.2);
+  x = xz.x;
+  z = xz.y + 2.2;
+  y -= uPointer.y * 0.03;
 
-  vY = y;
-  vDepth = pos.z;
-  gl_Position = vec4(pos.x / uAspect, pos.y, pos.z * 0.2, pos.z);
-  gl_PointSize = mix(5.5, 1.5, clamp((pos.z - 1.2) / 2.2, 0.0, 1.0));
+  float edgeFade = smoothstep(0.0, 0.06, progress) * smoothstep(1.0, 0.94, progress);
+  vTailFrac = tailFrac;
+  vCharge = charge;
+  vAlpha = edgeFade;
+
+  gl_Position = vec4(x / uAspect, y, z * 0.2, z);
+  gl_PointSize = mix(6.5, 1.8, tailFrac) * mix(1.0, 0.5, clamp((z - 1.5) / 1.8, 0.0, 1.0));
 }
 `;
 
 const FRAG = `
 precision mediump float;
-varying float vY;
-varying float vDepth;
+varying float vTailFrac;
+varying float vCharge;
+varying float vAlpha;
 
 void main() {
   vec2 d = gl_PointCoord - 0.5;
-  float alpha = smoothstep(0.5, 0.05, length(d));
+  float dot = smoothstep(0.5, 0.05, length(d));
 
-  vec3 umber = vec3(0.35, 0.19, 0.09);
-  vec3 amber = vec3(0.91, 0.569, 0.235);
-  vec3 gold = vec3(0.98, 0.87, 0.62);
-  vec3 color = mix(umber, amber, smoothstep(0.0, 0.55, vY));
-  color = mix(color, gold, smoothstep(0.55, 1.0, vY));
+  vec3 head = vec3(1.0, 0.95, 0.85);
+  vec3 redshift = vec3(0.97, 0.4, 0.26);
+  vec3 blueshift = vec3(0.28, 0.78, 0.98);
+  vec3 tailColor = mix(blueshift, redshift, vCharge);
+  vec3 color = mix(head, tailColor, smoothstep(0.0, 0.35, vTailFrac));
 
-  float spawnFade = smoothstep(0.0, 0.12, vY);
-  float topFade = 1.0 - smoothstep(0.82, 1.0, vY);
-  float depthFade = clamp(1.7 - vDepth * 0.42, 0.15, 1.0);
-
-  gl_FragColor = vec4(color, alpha * spawnFade * topFade * depthFade * 0.75);
+  float tailFade = 1.0 - smoothstep(0.0, 1.0, vTailFrac) * 0.65;
+  gl_FragColor = vec4(color, dot * tailFade * vAlpha * 0.85);
 }
 `;
 
-export function GrowthGL({ className }: { className?: string }) {
+export function CometGL({ className }: { className?: string }) {
   const hostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -93,13 +105,15 @@ export function GrowthGL({ className }: { className?: string }) {
 
     // Deterministic pseudo-random jitter — no Math.random needed.
     const seeds = new Float32Array(COUNT * 3);
-    for (let i = 0; i < COUNT; i++) {
-      const j1 = (Math.sin(i * 12.9898) * 0.5 + 0.5) % 1;
-      const j2 = (Math.sin(i * 78.233) * 0.5 + 0.5) % 1;
-      const j3 = (Math.sin(i * 39.346) * 0.5 + 0.5) % 1;
-      seeds[i * 3] = j1 * 2 - 1; // horizontal spread
-      seeds[i * 3 + 1] = j2; // phase offset, staggers the loop
-      seeds[i * 3 + 2] = j3; // speed/size/depth jitter
+    let idx = 0;
+    for (let c = 0; c < COMETS; c++) {
+      for (let k = 0; k < TAIL; k++) {
+        const jitter = Math.sin(c * 12.9898 + k * 3.11) * 0.5 + 0.5;
+        seeds[idx * 3] = c;
+        seeds[idx * 3 + 1] = k;
+        seeds[idx * 3 + 2] = jitter;
+        idx++;
+      }
     }
     const buf = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buf);
@@ -113,7 +127,7 @@ export function GrowthGL({ className }: { className?: string }) {
     const uAspect = gl.getUniformLocation(prog, "uAspect");
 
     gl.enable(gl.BLEND);
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE); // additive: motes glow where they cross
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE); // additive: comet trails glow where they overlap
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let pointer = { x: 0, y: 0 };
