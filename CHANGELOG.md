@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.4.5] - 2026-08-12
+
+### Added
+
+- SEO/GEO basics for the public landing page: `robots.txt` and
+  `sitemap.xml` route handlers, per-page metadata (title, description,
+  canonical, Open Graph, Twitter card) on `/landing`, and
+  `SoftwareApplication` JSON-LD for AI answer engines. Root layout
+  metadata now defaults to `noindex` since `/` is the login-gated app
+  shell; `/landing` overrides it back to indexable. Site URL is
+  configurable via `NEXT_PUBLIC_SITE_URL`.
+
 ## [1.4.4] - 2026-08-10
 
 ### Fixed
