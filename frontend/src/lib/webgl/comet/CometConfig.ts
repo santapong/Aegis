@@ -52,6 +52,14 @@ export interface CometBloomConfig {
   mobileResolutionScale: number;
 }
 
+export interface CometParallaxConfig {
+  enabled: boolean;
+  /** Maximum connected-system drift in normalized device coordinates. */
+  maxOffset: [number, number];
+  /** Exponential response rate; larger values settle faster. */
+  smoothing: number;
+}
+
 export interface CometConfig {
   /** Seconds for one full left-to-right traversal and loop. */
   loopDuration: number;
@@ -64,6 +72,7 @@ export interface CometConfig {
   tail: CometTailConfig;
   particles: CometParticleConfig;
   bloom: CometBloomConfig;
+  parallax: CometParallaxConfig;
 }
 
 export const DEFAULT_COMET_CONFIG: CometConfig = {
@@ -100,5 +109,10 @@ export const DEFAULT_COMET_CONFIG: CometConfig = {
     radius: 5,
     resolutionScale: 0.5,
     mobileResolutionScale: 0.33,
+  },
+  parallax: {
+    enabled: true,
+    maxOffset: [0.025, 0.018],
+    smoothing: 8,
   },
 };

@@ -1,6 +1,6 @@
 # Aegis — Roadmap
 
-This roadmap reflects the project state as of **v1.3.0** (2026-08-01). See
+This roadmap reflects the project state as of **v1.4.9** (2026-08-13). See
 [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
 Current status: **generally available**.
@@ -23,7 +23,8 @@ Current status: **generally available**.
 | v1.1.0 | MCP server + Trip entity + budget overrun alerts | ✅ Shipped |
 | v1.2.0 | Perf audits + deploy story + market data + budget templates | ✅ Shipped |
 | v1.3.0 | UX restraint pass + customizable dashboard widgets | ✅ Shipped |
-| v1.4.0 | Runtime AI provider configuration (model picker, usage metering, key storage) | 🚧 Unreleased |
+| v1.4.0–v1.4.9 | Runtime AI configuration + public-site and visual-system refinements | ✅ Shipped |
+| v1.5.0 | WebGL2 comet hero validation and release | 🚧 Unreleased |
 
 ---
 
@@ -66,6 +67,16 @@ Captured here for continuity; not scoped.
 - Prometheus `/metrics` endpoint.
 - Structured error tracking (Sentry).
 - Automated load testing against a seeded demo DB.
+
+### Experience & visual platform
+
+- ✅ Dependency-free WebGL2 comet hero, delivered in five phases: renderer and
+  core, procedural tail, GPU particles, restrained transparent bloom, and
+  fine-pointer parallax. See
+  [`docs/design/007`](docs/design/007-webgl-comet-hero.md).
+- Capture stable desktop and mobile screenshot baselines for the landing hero.
+- Profile the effect on representative integrated-GPU and mobile devices before
+  raising particle density or post-processing quality.
 
 ---
 

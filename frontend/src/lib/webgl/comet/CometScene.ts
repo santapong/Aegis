@@ -49,8 +49,22 @@ export class CometScene {
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
   }
 
-  update(elapsed: number, viewportScale: number, motionScale: number, aspect: number): void {
-    this.comet.update(elapsed, viewportScale, motionScale, aspect);
+  update(
+    elapsed: number,
+    viewportScale: number,
+    motionScale: number,
+    aspect: number,
+    parallaxX = 0,
+    parallaxY = 0
+  ): void {
+    this.comet.update(
+      elapsed,
+      viewportScale,
+      motionScale,
+      aspect,
+      parallaxX,
+      parallaxY
+    );
     const [coreX, coreY] = this.comet.position;
     this.particles.update(elapsed, coreX, coreY, viewportScale, motionScale);
     this.postProcessor.update(viewportScale, motionScale);

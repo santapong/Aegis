@@ -105,17 +105,27 @@ export class Comet {
    * `viewportScale` (mobile) and `motionScale` (reduced-motion) are forwarded
    * to the tail, which reacts to them independently of the core's own motion.
    */
-  update(elapsed: number, viewportScale: number, motionScale: number, aspect: number): void {
+  update(
+    elapsed: number,
+    viewportScale: number,
+    motionScale: number,
+    aspect: number,
+    parallaxX: number,
+    parallaxY: number
+  ): void {
     const progress = (elapsed % this.config.loopDuration) / this.config.loopDuration;
     // easeInOutSine: a cinematic cruise rather than constant-velocity travel.
     const eased = 0.5 - 0.5 * Math.cos(progress * Math.PI);
     this.visualScale = 0.55 + 0.45 * viewportScale;
     const coreHalfWidth = (this.config.scale[0] * this.visualScale * 0.5) / aspect;
     const tailLength = (this.config.tail.length * viewportScale) / aspect;
-    const startX = -1 - coreHalfWidth;
-    const endX = 1 + coreHalfWidth + tailLength;
-    this.x = startX + eased * (endX - startX);
-    this.y = Math.sin(progress * Math.PI * 2) * 0.04; // subtle organic drift
+    const parallaxMargin = this.config.parallax.enabled
+      ? this.config.parallax.maxOffset[0]
+      : 0;
+    const startX = -1 - coreHalfWidth - parallaxMargin;
+    const endX = 1 + coreHalfWidth + tailLength + parallaxMargin;
+    this.x = startX + eased * (endX - startX) + parallaxX;
+    this.y = Math.sin(progress * Math.PI * 2) * 0.04 + parallaxY;
 
     this.tail.update(elapsed, this.x, this.y, viewportScale, motionScale);
   }
