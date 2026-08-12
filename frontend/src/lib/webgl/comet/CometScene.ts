@@ -2,6 +2,7 @@ import { ShaderProgram } from "../core/ShaderProgram";
 import { COMET_VERT } from "../shaders/comet.vert";
 import { COMET_FRAG } from "../shaders/comet.frag";
 import { Comet } from "./Comet";
+import { ParticleSystem } from "./ParticleSystem";
 import type { CometConfig } from "./CometConfig";
 
 interface CometUniforms {
@@ -14,20 +15,22 @@ interface CometUniforms {
 }
 
 /**
- * Owns the shader program and the comet(s) in frame. Phase 1 renders a
- * single Comet; the `comets` array is the seam a future particle system or
- * multi-comet field hangs off of without changing the Renderer contract.
+ * Owns the core shader, the comet (core + procedural tail), and Phase 3's
+ * separate particle layer. Rendering stays ordered back-to-front:
+ * tail -> energy particles -> bright core.
  */
 export class CometScene {
   private gl: WebGL2RenderingContext;
   private program: ShaderProgram;
-  private comets: Comet[];
+  private comet: Comet;
+  private particles: ParticleSystem;
   private uniforms: CometUniforms;
 
   constructor(gl: WebGL2RenderingContext, config: CometConfig) {
     this.gl = gl;
     this.program = new ShaderProgram(gl, COMET_VERT, COMET_FRAG);
-    this.comets = [new Comet(gl, this.program, config)];
+    this.comet = new Comet(gl, this.program, config);
+    this.particles = new ParticleSystem(gl, config.particles, config.tail);
     this.uniforms = {
       uPos: this.program.uniformLocation("uPos"),
       uScale: this.program.uniformLocation("uScale"),
@@ -43,23 +46,30 @@ export class CometScene {
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
   }
 
-  update(elapsed: number): void {
-    for (const comet of this.comets) comet.update(elapsed);
+  update(elapsed: number, viewportScale: number, motionScale: number, aspect: number): void {
+    this.comet.update(elapsed, viewportScale, motionScale, aspect);
+    const [coreX, coreY] = this.comet.position;
+    this.particles.update(elapsed, coreX, coreY, viewportScale, motionScale);
   }
 
-  render(width: number, height: number): void {
+  render(width: number, height: number, pixelRatio: number): void {
     const gl = this.gl;
     gl.viewport(0, 0, width, height);
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
+    const aspect = width / Math.max(height, 1);
+    this.comet.renderTail(aspect);
+    this.particles.render(aspect, pixelRatio);
+
     this.program.use();
-    gl.uniform1f(this.uniforms.uAspect, width / Math.max(height, 1));
-    for (const comet of this.comets) comet.render(this.program, this.uniforms);
+    gl.uniform1f(this.uniforms.uAspect, aspect);
+    this.comet.renderCore(this.program, this.uniforms);
   }
 
   dispose(): void {
-    for (const comet of this.comets) comet.dispose();
+    this.comet.dispose();
+    this.particles.dispose();
     this.program.dispose();
   }
 }

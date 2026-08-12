@@ -1,5 +1,6 @@
 import type { ShaderProgram } from "../core/ShaderProgram";
 import type { CometConfig } from "./CometConfig";
+import { Tail } from "./Tail";
 
 // Triangle-strip unit quad: x, y, u, v.
 const QUAD = new Float32Array([
@@ -17,20 +18,28 @@ interface CometUniformLocations {
   uTexture: WebGLUniformLocation | null;
 }
 
-/** Owns one comet's geometry, glow texture, and left-to-right loop position. */
+/**
+ * A comet: a bright core (this class's own geometry/texture/position) plus
+ * a Tail that trails behind it with independent shader parameters and its
+ * own animation clock. The core controls position/scale/rotation; the tail
+ * reads the core's position each frame but otherwise runs its own motion.
+ */
 export class Comet {
   private gl: WebGL2RenderingContext;
   private config: CometConfig;
   private vao: WebGLVertexArrayObject;
   private vbo: WebGLBuffer;
   private texture: WebGLTexture;
+  private tail: Tail;
 
   private x = -1.2;
   private y = 0;
+  private visualScale = 1;
 
   constructor(gl: WebGL2RenderingContext, program: ShaderProgram, config: CometConfig) {
     this.gl = gl;
     this.config = config;
+    this.tail = new Tail(gl, config.tail);
 
     const vao = gl.createVertexArray();
     if (!vao) throw new Error("Failed to create VAO");
@@ -91,19 +100,44 @@ export class Comet {
     return texture;
   }
 
-  /** `elapsed` is cumulative seconds, unaffected by pauses (see FrameTimer). */
-  update(elapsed: number): void {
+  /**
+   * `elapsed` is cumulative seconds, unaffected by pauses (see FrameTimer).
+   * `viewportScale` (mobile) and `motionScale` (reduced-motion) are forwarded
+   * to the tail, which reacts to them independently of the core's own motion.
+   */
+  update(elapsed: number, viewportScale: number, motionScale: number, aspect: number): void {
     const progress = (elapsed % this.config.loopDuration) / this.config.loopDuration;
     // easeInOutSine: a cinematic cruise rather than constant-velocity travel.
     const eased = 0.5 - 0.5 * Math.cos(progress * Math.PI);
-    this.x = -1.2 + eased * 2.4;
+    this.visualScale = 0.55 + 0.45 * viewportScale;
+    const coreHalfWidth = (this.config.scale[0] * this.visualScale * 0.5) / aspect;
+    const tailLength = (this.config.tail.length * viewportScale) / aspect;
+    const startX = -1 - coreHalfWidth;
+    const endX = 1 + coreHalfWidth + tailLength;
+    this.x = startX + eased * (endX - startX);
     this.y = Math.sin(progress * Math.PI * 2) * 0.04; // subtle organic drift
+
+    this.tail.update(elapsed, this.x, this.y, viewportScale, motionScale);
   }
 
-  render(program: ShaderProgram, uniforms: CometUniformLocations): void {
+  get position(): readonly [number, number] {
+    return [this.x, this.y];
+  }
+
+  renderTail(aspect: number): void {
+    this.tail.render(aspect);
+  }
+
+  renderCore(program: ShaderProgram, uniforms: CometUniformLocations): void {
     const gl = this.gl;
+    program.use();
+
     gl.uniform2f(uniforms.uPos, this.x, this.y);
-    gl.uniform2f(uniforms.uScale, this.config.scale[0], this.config.scale[1]);
+    gl.uniform2f(
+      uniforms.uScale,
+      this.config.scale[0] * this.visualScale,
+      this.config.scale[1] * this.visualScale
+    );
     gl.uniform1f(uniforms.uRotation, 0);
     gl.uniform3f(uniforms.uTint, this.config.tint[0], this.config.tint[1], this.config.tint[2]);
 
@@ -121,5 +155,6 @@ export class Comet {
     gl.deleteVertexArray(this.vao);
     gl.deleteBuffer(this.vbo);
     gl.deleteTexture(this.texture);
+    this.tail.dispose();
   }
 }

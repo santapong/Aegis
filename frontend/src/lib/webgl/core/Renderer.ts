@@ -2,6 +2,12 @@ import { FrameTimer } from "./FrameTimer";
 import { CometScene } from "../comet/CometScene";
 import type { CometConfig } from "../comet/CometConfig";
 
+/** Scale a height-relative tail down on portrait screens so it does not crop. */
+const REFERENCE_ASPECT = 16 / 9;
+const MIN_VIEWPORT_SCALE = 0.34;
+/** Reduced-motion doesn't freeze the tail outright — this damps flow/distortion to near-static. */
+const REDUCED_MOTION_SCALE = 0.15;
+
 /**
  * Owns the WebGL2 context, the render loop, resize/DPR handling, and
  * pause-on-hidden/reduced-motion behavior. `AegisComet.tsx` only creates
@@ -13,7 +19,11 @@ export class Renderer {
   private scene: CometScene;
   private config: CometConfig;
   private timer = new FrameTimer();
+  private motionQuery: MediaQueryList;
   private reducedMotion: boolean;
+  private viewportScale = 1;
+  private aspect = 1;
+  private pixelRatio = 1;
   private rafId: number | null = null;
   private resizeObserver: ResizeObserver;
 
@@ -27,10 +37,37 @@ export class Renderer {
     }
   };
 
+  private handleMotionPreference = (event: MediaQueryListEvent): void => {
+    this.reducedMotion = event.matches;
+    this.stop();
+    this.timer.reset();
+
+    if (this.reducedMotion) {
+      this.renderReducedMotionFrame();
+      return;
+    }
+
+    this.start();
+  };
+
+  private handleWindowResize = (): void => this.resize();
+
+  /** Render an intentional mid-flight still instead of freezing offscreen at t=0. */
+  private renderReducedMotionFrame(): void {
+    const settledTime = this.config.loopDuration * 0.5;
+    this.scene.update(
+      settledTime,
+      this.viewportScale,
+      REDUCED_MOTION_SCALE,
+      this.aspect
+    );
+    this.scene.render(this.canvas.width, this.canvas.height, this.pixelRatio);
+  }
+
   private frame = (now: number): void => {
     this.timer.tick(now);
-    this.scene.update(this.timer.elapsed);
-    this.scene.render(this.canvas.width, this.canvas.height);
+    this.scene.update(this.timer.elapsed, this.viewportScale, 1, this.aspect);
+    this.scene.render(this.canvas.width, this.canvas.height, this.pixelRatio);
     this.rafId = requestAnimationFrame(this.frame);
   };
 
@@ -46,7 +83,8 @@ export class Renderer {
     if (!gl) throw new Error("WebGL2 is not supported in this browser");
     this.gl = gl;
 
-    this.reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    this.motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    this.reducedMotion = this.motionQuery.matches;
     this.scene = new CometScene(gl, config);
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
@@ -54,13 +92,26 @@ export class Renderer {
     this.resize();
 
     document.addEventListener("visibilitychange", this.handleVisibility);
+    this.motionQuery.addEventListener("change", this.handleMotionPreference);
+    window.addEventListener("resize", this.handleWindowResize);
   }
 
   start(): void {
     if (this.reducedMotion) {
       // One settled frame — no continuous animation, per prefers-reduced-motion.
-      this.scene.update(0);
-      this.scene.render(this.canvas.width, this.canvas.height);
+      // motionScale stays low (not zero) so the tail keeps a subtle glow
+      // rather than an arbitrary frozen distortion phase.
+      this.renderReducedMotionFrame();
+      return;
+    }
+    if (document.visibilityState === "hidden") {
+      // Render one frame so there's something on screen, but don't spin up
+      // the RAF loop yet — handleVisibility starts it once the document is
+      // actually visible. Without this check, start() would schedule a
+      // frame anyway and rely on the browser to throttle it, rather than
+      // us deliberately not running work on a hidden page.
+      this.scene.update(this.timer.elapsed, this.viewportScale, 1, this.aspect);
+      this.scene.render(this.canvas.width, this.canvas.height, this.pixelRatio);
       return;
     }
     if (this.rafId === null) {
@@ -77,6 +128,7 @@ export class Renderer {
 
   private resize(): void {
     const dpr = Math.min(window.devicePixelRatio || 1, this.config.dprCap);
+    this.pixelRatio = dpr;
     const width = Math.max(1, Math.round(this.canvas.clientWidth * dpr));
     const height = Math.max(1, Math.round(this.canvas.clientHeight * dpr));
     if (this.canvas.width !== width || this.canvas.height !== height) {
@@ -84,8 +136,15 @@ export class Renderer {
       this.canvas.height = height;
     }
     this.gl.viewport(0, 0, width, height);
+
+    this.aspect = width / Math.max(height, 1);
+    this.viewportScale = Math.max(
+      MIN_VIEWPORT_SCALE,
+      Math.min(1, this.aspect / REFERENCE_ASPECT)
+    );
+
     if (this.reducedMotion) {
-      this.scene.render(width, height);
+      this.renderReducedMotionFrame();
     }
   }
 
@@ -93,6 +152,8 @@ export class Renderer {
     this.stop();
     this.resizeObserver.disconnect();
     document.removeEventListener("visibilitychange", this.handleVisibility);
+    this.motionQuery.removeEventListener("change", this.handleMotionPreference);
+    window.removeEventListener("resize", this.handleWindowResize);
     this.scene.dispose();
     this.gl.getExtension("WEBGL_lose_context")?.loseContext();
   }

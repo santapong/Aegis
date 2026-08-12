@@ -12,6 +12,6 @@ void main() {
   vec4 texel = texture(uTexture, vUV);
   // Texture and context are both premultiplied-alpha, so tint the RGB and
   // let the texture's own radial falloff carry the alpha through untouched.
-  fragColor = vec4(texel.rgb * uTint * texel.a, texel.a);
+  fragColor = vec4(texel.rgb * uTint, texel.a);
 }
 `;

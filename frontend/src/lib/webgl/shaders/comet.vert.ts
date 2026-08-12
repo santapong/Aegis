@@ -18,10 +18,11 @@ void main() {
   float c = cos(uRotation);
   float s = sin(uRotation);
   mat2 rot = mat2(c, -s, s, c);
-  vec2 world = uPos + (rot * aPosition) * uScale;
+  vec2 local = (rot * aPosition) * uScale;
 
-  // Divide x by aspect so the quad isn't stretched on non-square viewports.
-  gl_Position = vec4(world.x / uAspect, world.y, 0.0, 1.0);
+  // Position is already in NDC so the comet crosses the full viewport.
+  // Only local geometry is aspect-corrected to keep the glow circular.
+  gl_Position = vec4(uPos + vec2(local.x / uAspect, local.y), 0.0, 1.0);
   vUV = aUV;
 }
 `;
