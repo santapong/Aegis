@@ -7,7 +7,7 @@ import s from "./landing.module.css";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: `${SITE_NAME} — AI-Powered Financial Planning`,
+  title: { absolute: `${SITE_NAME} — AI-Powered Financial Planning` },
   description: SITE_DESCRIPTION,
   alternates: { canonical: `${SITE_URL}/landing` },
   robots: { index: true, follow: true },
