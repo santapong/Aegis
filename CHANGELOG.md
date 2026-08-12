@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.4.6] - 2026-08-12
+
+### Fixed
+
+- `/landing` title rendered doubled ("Aegis — ... — Aegis") because the
+  root layout's title template appended onto the page's own title
+  string. Landing now sets an absolute title.
+
 ## [1.4.5] - 2026-08-12
 
 ### Added
