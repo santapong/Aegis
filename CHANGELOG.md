@@ -22,6 +22,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   premultiplied-alpha compositing.
 - Landing-page WebGL comet Phase 5: fine-pointer parallax with bounded,
   frame-rate-independent smoothing and reduced-motion/coarse-pointer fallbacks.
+- Landing-page WebGL comet Phase 6 depth pass: a procedurally shaded volumetric
+  core, orbital head loop, instanced spline-like energy strands, cloud/wisp
+  density breakup, and depth-tiered motes derived from the supplied concept art.
 
 ## [1.4.9] - 2026-08-12
 

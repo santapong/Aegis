@@ -1,6 +1,6 @@
 # 007 — WebGL2 comet hero
 
-**Status:** Phases 1–5 implemented; Phase 6 planned
+**Status:** Phases 1–5 implemented; Phase 6 in progress
 **Date:** 2026-08-13
 
 ## Objective
@@ -23,6 +23,7 @@ AegisComet (React canvas lifecycle)
         ├── Comet
         │   ├── core
         │   └── Tail
+        ├── EnergyStrands (instanced depth layer)
         ├── ParticleSystem
         └── PostProcessor
             ├── highlight extraction
@@ -43,12 +44,14 @@ The implementation lives in
 | 3 | Keep energy particles GPU-driven with a seeded static buffer; change density by responsive quality tier rather than uploading positions every frame. |
 | 4 | Apply bloom only to extracted highlights, blur at reduced resolution, and composite with premultiplied alpha so the DOM background remains visible. |
 | 5 | Add subtle parallax only for fine pointers, cap its displacement, smooth it independently of frame rate, and disable it for touch and reduced motion. |
-| 6 — planned | Stabilize the finished effect with screenshot baselines, real-device GPU profiling, context-loss testing, and measured release gates. Add resilience or adaptive quality only when validation demonstrates a need. |
+| 6 — in progress | Translate the supplied concept art into procedural depth cues: a shaded volumetric head, orbital loop, instanced energy strands, density breakup, and depth-tiered motes. Finish with screenshot baselines, real-device GPU profiling, context-loss testing, and measured release gates. |
 
 ## Performance budgets
 
 - Device-pixel ratio is capped at `1.5`.
 - The procedural tail uses 50 vertices and one draw call.
+- Five desktop, three compact, or two reduced-motion energy strands share one
+  static 66-vertex ribbon and one instanced draw call.
 - Particle tiers use 160 desktop, 64 compact, or 32 reduced-motion points.
 - Particle seeds occupy a static 3.75 KB buffer at the highest tier.
 - Bloom uses reduced-resolution intermediate targets rather than full-size
@@ -69,9 +72,9 @@ treating an overlay effect like an opaque scene.
 ## Responsive and accessibility behavior
 
 - Canvas resolution follows its CSS size and the capped DPR.
-- Particle density drops on compact viewports.
-- `prefers-reduced-motion` uses the lowest particle tier and removes pointer
-  parallax.
+- Particle and strand density drop on compact viewports.
+- `prefers-reduced-motion` uses the lowest particle/strand tiers, freezes the
+  orbital head composition, and removes pointer parallax.
 - Parallax is enabled only when `(hover: hover) and (pointer: fine)` matches.
 - Pointer influence is bounded to `0.025` horizontally and `0.018` vertically,
   smoothed exponentially, and eased away near page edges.
@@ -90,7 +93,21 @@ errors. Stop the dev server, build, then restart it.
 
 ## Phase 6 — stabilization and release validation
 
-Phase 6 is planned and remains unimplemented. Its deliverables are:
+The reference-driven implementation portion is complete. It derives perceived
+3D from overlapping transparent layers rather than a model, image texture, or
+third-party engine:
+
+- The core fragment shader reconstructs a sphere normal for directional
+  shading, then adds a depth-occluded elliptical energy orbit and forward flare.
+- `EnergyStrands` instances one static ribbon into five independently swept and
+  depth-colored paths, reduced to three compact or two reduced-motion strands.
+- The broad tail combines two lightweight value-noise octaves with its existing
+  filaments to form translucent volumes and sharper wisps.
+- Particle seed depth now controls spread, opacity, size, and highlight color,
+  creating background dust, mid-layer motes, and rare foreground accents.
+
+The supplied reference image is a visual target only; it is not shipped as a
+texture or downloaded at runtime. Remaining Phase 6 validation deliverables are:
 
 - Capture stable desktop, mobile, and reduced-motion screenshot baselines.
 - Profile representative integrated-GPU and mobile devices and record frame

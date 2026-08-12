@@ -5,6 +5,7 @@ precision highp float;
 in float vAlpha;
 in float vBrightness;
 in float vU;
+in float vDepth;
 
 out vec4 fragColor;
 
@@ -22,7 +23,7 @@ void main() {
   vec3 electricBlue = vec3(0.322, 0.659, 1.0);
   vec3 white = vec3(1.0);
   vec3 color = mix(deepBlue, electricBlue, smoothstep(0.05, 0.72, vU));
-  color = mix(color, white, smoothstep(0.78, 1.0, vBrightness));
+  color = mix(color, white, smoothstep(0.78, 1.0, vBrightness) * vDepth);
 
   // Premultiplied output matches the scene's ONE / ONE_MINUS_SRC_ALPHA blend.
   fragColor = vec4(color * alpha, alpha);

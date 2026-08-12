@@ -16,6 +16,8 @@ interface CometUniformLocations {
   uRotation: WebGLUniformLocation | null;
   uTint: WebGLUniformLocation | null;
   uTexture: WebGLUniformLocation | null;
+  uTime: WebGLUniformLocation | null;
+  uMotionScale: WebGLUniformLocation | null;
 }
 
 /**
@@ -35,6 +37,8 @@ export class Comet {
   private x = -1.2;
   private y = 0;
   private visualScale = 1;
+  private elapsed = 0;
+  private motionScale = 1;
 
   constructor(gl: WebGL2RenderingContext, program: ShaderProgram, config: CometConfig) {
     this.gl = gl;
@@ -113,6 +117,8 @@ export class Comet {
     parallaxX: number,
     parallaxY: number
   ): void {
+    this.elapsed = elapsed;
+    this.motionScale = motionScale;
     const progress = (elapsed % this.config.loopDuration) / this.config.loopDuration;
     // easeInOutSine: a cinematic cruise rather than constant-velocity travel.
     const eased = 0.5 - 0.5 * Math.cos(progress * Math.PI);
@@ -150,6 +156,8 @@ export class Comet {
     );
     gl.uniform1f(uniforms.uRotation, 0);
     gl.uniform3f(uniforms.uTint, this.config.tint[0], this.config.tint[1], this.config.tint[2]);
+    gl.uniform1f(uniforms.uTime, this.elapsed);
+    gl.uniform1f(uniforms.uMotionScale, this.motionScale);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.texture);
