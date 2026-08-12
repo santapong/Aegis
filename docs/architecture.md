@@ -73,6 +73,17 @@ Next.js 15 App Router with a strict server / client split.
 
 Most pages are **client components** today — they fetch the dashboard bundle (or per-entity data) with React Query and render. [`design/003`](design/003-rsc-dashboard-migration.md) covers the RSC migration plan for the dashboard specifically (the only page where the LCP win is worth the cookie-forwarding complexity).
 
+### Landing-page WebGL
+
+The public landing hero mounts an isolated, dependency-free WebGL2 subsystem.
+React owns only the canvas lifecycle and user-input policy; the renderer owns
+GPU resources, timing, scene updates, responsive quality, and cleanup. The
+scene is split into the comet core, procedural tail, seeded GPU particle layer,
+and a reduced-resolution transparent bloom pass. Unsupported contexts keep the
+ordinary CSS page background, so the visual effect is never required for
+navigation or content. See
+[`design/007-webgl-comet-hero.md`](design/007-webgl-comet-hero.md).
+
 ## Data model
 
 The interesting relationships, not every column. Full schema is in [`backend/app/models/`](../backend/app/models/) and migrations are in [`backend/alembic/versions/`](../backend/alembic/versions/).
@@ -185,5 +196,6 @@ A few decisions worth understanding before contributing:
 | Why is the worker queue shaped this way? | [`design/001-background-worker-queue.md`](design/001-background-worker-queue.md) |
 | When should I convert a route to async SQLAlchemy? | [`design/002-async-sqlalchemy-migration.md`](design/002-async-sqlalchemy-migration.md) |
 | Is RSC worth migrating the dashboard to? | [`design/003-rsc-dashboard-migration.md`](design/003-rsc-dashboard-migration.md) |
+| How is the landing-page WebGL comet built? | [`design/007-webgl-comet-hero.md`](design/007-webgl-comet-hero.md) |
 | What performance work is still on the backlog? | [`PERFORMANCE_BACKLOG.md`](PERFORMANCE_BACKLOG.md) |
 | How do I run analytics on top of this data? | [`analytics-warehouses.md`](analytics-warehouses.md) |

@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Landing-page WebGL comet Phase 1: a dependency-free WebGL2 renderer with a
+  transparent canvas, moving comet core, responsive DPR, hidden-tab pause,
+  resource cleanup, and a graceful fallback when WebGL2 is unavailable.
 - Landing-page WebGL comet Phase 2: a responsive procedural plasma tail with
   shader-driven flow, curvature, taper, layered filaments, and reduced-motion
   behavior.
