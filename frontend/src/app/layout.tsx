@@ -6,6 +6,7 @@ import { Providers } from "@/components/ui/providers";
 import { AuthGate } from "@/components/auth/auth-gate";
 import { Backdrop } from "@/components/shell/backdrop";
 import { cn } from "@/lib/utils";
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -28,8 +29,20 @@ const serif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Aegis — AI-Powered Financial Planning",
-  description: "Plan your finances with calendar, Gantt charts, and AI-powered insights",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} — AI-Powered Financial Planning`,
+    template: `%s — ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  robots: {
+    // App/data routes are login-gated and offer nothing to a crawler;
+    // per-page metadata on the public routes (landing, welcome) narrows
+    // this back open where it matters. See app/robots.ts for the crawl
+    // rules that actually govern indexing.
+    index: false,
+    follow: false,
+  },
 };
 
 /**
