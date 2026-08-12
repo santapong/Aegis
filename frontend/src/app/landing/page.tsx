@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Syne, Sora } from "next/font/google";
-import { GrowthGL } from "@/components/shell/growth-gl";
+import { CometGL } from "@/components/shell/comet-gl";
 import { Reveal } from "./reveal";
 import s from "./landing.module.css";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
@@ -115,7 +115,7 @@ export default function LandingPage() {
       </header>
 
       <section className={s.hero}>
-        <GrowthGL className={s.heroCanvas} />
+        <CometGL className={s.heroCanvas} />
         <div className={s.heroVeil} />
         <div className={`${s.heroInner} ${s.reveal}`}>
           <div className={s.kicker}>

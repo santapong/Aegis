@@ -8,7 +8,7 @@ import { authAPI } from "@/lib/api";
 import { useAuthStore } from "@/stores/auth-store";
 import { CodeChip } from "@/components/shell/code-chip";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in";
-import { GrowthGL } from "@/components/shell/growth-gl";
+import { CometGL } from "@/components/shell/comet-gl";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -58,7 +58,7 @@ export default function LoginPage() {
   return (
     <div className="auth-split">
       <aside className="auth-aside">
-        <GrowthGL className="auth-gl" />
+        <CometGL className="auth-gl" />
         <div>
           <div
             className="flex items-center gap-2 font-mono text-[10px] tracking-[1.8px] uppercase mb-8"
