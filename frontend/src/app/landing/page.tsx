@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Syne, Sora } from "next/font/google";
-import { MeridianGL } from "./meridian-gl";
+import { GrowthGL } from "@/components/shell/growth-gl";
 import { Reveal } from "./reveal";
 import s from "./landing.module.css";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
@@ -98,17 +98,11 @@ export default function LandingPage() {
         <Link href="/landing" className={s.wordmark}>
           AEG<span>IS</span>
         </Link>
-        <Link href="/landing" className={s.navLink}>
-          Product
-        </Link>
-        <Link href="/landing" className={s.navLink}>
-          Pricing
-        </Link>
-        <Link href="/landing" className={s.navLink}>
-          Changelog
-        </Link>
         <Link href="/docs" className={s.navLink}>
           Docs
+        </Link>
+        <Link href="/changelog" className={s.navLink}>
+          Changelog
         </Link>
         <span className={s.navEnd}>
           <Link href="/login" className={s.navLink}>
@@ -121,7 +115,7 @@ export default function LandingPage() {
       </header>
 
       <section className={s.hero}>
-        <MeridianGL className={s.heroCanvas} />
+        <GrowthGL className={s.heroCanvas} />
         <div className={s.heroVeil} />
         <div className={`${s.heroInner} ${s.reveal}`}>
           <div className={s.kicker}>

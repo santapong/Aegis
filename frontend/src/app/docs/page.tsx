@@ -7,6 +7,8 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabList, Tab, TabPanel } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { PublicPageHeader } from "@/components/shell/public-page-header";
+import { AppPagePadding } from "@/components/shell/app-page-padding";
 import {
   BookOpen,
   Server,
@@ -113,12 +115,15 @@ export default function DocsPage() {
   const [activeTab, setActiveTab] = useState("guide");
 
   return (
-    <motion.div
-      className="max-w-4xl mx-auto space-y-6"
-      variants={staggerContainer}
-      initial="hidden"
-      animate="visible"
-    >
+    <>
+      <PublicPageHeader />
+      <AppPagePadding>
+      <motion.div
+        className="max-w-4xl mx-auto space-y-6"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+      >
       <motion.div variants={staggerItem}>
         <PageHeader
           code="DOC"
@@ -393,6 +398,8 @@ export default function DocsPage() {
           </TabPanel>
         </Tabs>
       </motion.div>
-    </motion.div>
+      </motion.div>
+      </AppPagePadding>
+    </>
   );
 }

@@ -13,5 +13,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.5,
     },
+    {
+      url: `${SITE_URL}/docs`,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${SITE_URL}/changelog`,
+      changeFrequency: "weekly",
+      priority: 0.6,
+    },
   ];
 }

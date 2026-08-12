@@ -8,6 +8,11 @@ import { StatusBar } from "@/components/ui/status-bar";
 
 const AUTH_PAGES = ["/login", "/register"];
 const PUBLIC_PAGES = ["/welcome", "/landing"];
+// Real content (docs, changelog) that a signed-out visitor should be able to
+// read without a redirect to /login, but that still belongs inside the app
+// shell (Sidebar/StatusBar) for a signed-in user — unlike PUBLIC_PAGES,
+// which are marketing pages that never get the shell.
+const OPEN_APP_PAGES = ["/docs", "/changelog"];
 
 function matchesPrefix(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
@@ -25,6 +30,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   const isAuthPage = matchesPrefix(pathname, AUTH_PAGES);
   const isPublicPage = matchesPrefix(pathname, PUBLIC_PAGES);
+  const isOpenAppPage = matchesPrefix(pathname, OPEN_APP_PAGES);
 
   // Side-effects (navigation) live in an effect so we never call
   // router.push() during render — that would trigger React's
@@ -32,7 +38,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   // strict mode and risks double-navigation.
   useEffect(() => {
     if (!mounted) return;
-    if (isPublicPage) return;
+    if (isPublicPage || isOpenAppPage) return;
     if (isAuthPage && isAuthenticated) {
       router.push("/");
       return;
@@ -42,7 +48,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       // landing page; deep links to specific app pages go to sign-in.
       router.push(pathname === "/" ? "/landing" : "/login");
     }
-  }, [mounted, isAuthPage, isPublicPage, isAuthenticated, pathname, router]);
+  }, [mounted, isAuthPage, isPublicPage, isOpenAppPage, isAuthenticated, pathname, router]);
 
   if (!mounted) {
     return null;
@@ -58,6 +64,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   }
 
   if (!isAuthenticated) {
+    if (isOpenAppPage) return <>{children}</>;
     return null;
   }
 

@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.4.7] - 2026-08-12
+
+### Added
+
+- `/changelog`: public page rendering `CHANGELOG.md` (Keep a Changelog
+  format) as release cards.
+
+### Changed
+
+- Landing nav trimmed to Docs + Changelog + Sign in/Get started —
+  the old Product/Pricing links pointed nowhere real.
+- `/docs` is reachable without login (still gets the full app shell
+  when signed in via a new `OPEN_APP_PAGES` category in `AuthGate`).
+- Landing hero and auth-page backgrounds now share one warm,
+  organic "rising embers" WebGL animation (`GrowthGL`) instead of two
+  unrelated concepts (Meridian terrain grid, Pulse orbit rings).
+
 ## [1.4.6] - 2026-08-12
 
 ### Fixed
