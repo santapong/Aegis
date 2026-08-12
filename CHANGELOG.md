@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.4.9] - 2026-08-12
+
+### Changed
+
+- Landing hero and auth-page backgrounds now use a comet field
+  (`CometGL`) instead of the rising-embers effect — seven comets with
+  fading tails, alternating redshift/blueshift, arcing on looping
+  parabolic paths.
+
 ## [1.4.8] - 2026-08-12
 
 ### Added
