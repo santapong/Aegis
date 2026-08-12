@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Landing-page WebGL comet Phase 2: a responsive procedural plasma tail with
+  shader-driven flow, curvature, taper, layered filaments, and reduced-motion
+  behavior.
+- Landing-page WebGL comet Phase 3: a GPU-driven energy-particle layer with
+  responsive density, soft point sprites, tail-aware motion, and no per-frame
+  buffer uploads.
+- Landing-page WebGL comet Phase 4: a restrained transparent bloom pipeline
+  using highlight extraction, reduced-resolution separable blur, and
+  premultiplied-alpha compositing.
+
 ## [1.4.9] - 2026-08-12
 
 ### Changed
