@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/landing", "/welcome", "/login", "/register"],
+        allow: ["/landing", "/welcome", "/login", "/register", "/docs", "/changelog"],
         // Everything else is login-gated app/data — nothing for a
         // crawler to index, and letting it try just wastes crawl budget.
         disallow: ["/"],

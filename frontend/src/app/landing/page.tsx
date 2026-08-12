@@ -98,17 +98,11 @@ export default function LandingPage() {
         <Link href="/landing" className={s.wordmark}>
           AEG<span>IS</span>
         </Link>
-        <Link href="/landing" className={s.navLink}>
-          Product
-        </Link>
-        <Link href="/landing" className={s.navLink}>
-          Pricing
-        </Link>
-        <Link href="/landing" className={s.navLink}>
-          Changelog
-        </Link>
         <Link href="/docs" className={s.navLink}>
           Docs
+        </Link>
+        <Link href="/changelog" className={s.navLink}>
+          Changelog
         </Link>
         <span className={s.navEnd}>
           <Link href="/login" className={s.navLink}>
