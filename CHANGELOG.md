@@ -17,6 +17,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Landing-page WebGL comet Phase 4: a restrained transparent bloom pipeline
   using highlight extraction, reduced-resolution separable blur, and
   premultiplied-alpha compositing.
+- Landing-page WebGL comet Phase 5: fine-pointer parallax with bounded,
+  frame-rate-independent smoothing and reduced-motion/coarse-pointer fallbacks.
 
 ## [1.4.9] - 2026-08-12
 

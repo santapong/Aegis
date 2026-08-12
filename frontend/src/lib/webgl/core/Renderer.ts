@@ -20,16 +20,23 @@ export class Renderer {
   private config: CometConfig;
   private timer = new FrameTimer();
   private motionQuery: MediaQueryList;
+  private pointerQuery: MediaQueryList;
   private reducedMotion: boolean;
+  private finePointer: boolean;
   private viewportScale = 1;
   private aspect = 1;
   private pixelRatio = 1;
+  private parallaxTargetX = 0;
+  private parallaxTargetY = 0;
+  private parallaxCurrentX = 0;
+  private parallaxCurrentY = 0;
   private rafId: number | null = null;
   private resizeObserver: ResizeObserver;
 
   private handleVisibility = (): void => {
     if (document.visibilityState === "hidden") {
       this.stop();
+      this.resetParallax(true);
     } else if (!this.reducedMotion && this.rafId === null) {
       // Avoid a huge delta-time jump from however long the tab was hidden.
       this.timer.reset();
@@ -41,6 +48,7 @@ export class Renderer {
     this.reducedMotion = event.matches;
     this.stop();
     this.timer.reset();
+    this.resetParallax(true);
 
     if (this.reducedMotion) {
       this.renderReducedMotionFrame();
@@ -52,6 +60,56 @@ export class Renderer {
 
   private handleWindowResize = (): void => this.resize();
 
+  private handlePointerCapability = (event: MediaQueryListEvent): void => {
+    this.finePointer = event.matches;
+    this.resetParallax(true);
+  };
+
+  private handlePointerMove = (event: PointerEvent): void => {
+    if (
+      !this.config.parallax.enabled ||
+      this.reducedMotion ||
+      !this.finePointer ||
+      !event.isPrimary ||
+      event.pointerType === "touch"
+    ) {
+      return;
+    }
+
+    const bounds = this.canvas.getBoundingClientRect();
+    if (
+      bounds.width <= 0 ||
+      bounds.height <= 0 ||
+      event.clientX < bounds.left ||
+      event.clientX > bounds.right ||
+      event.clientY < bounds.top ||
+      event.clientY > bounds.bottom
+    ) {
+      this.resetParallax(false);
+      return;
+    }
+
+    const normalizedX = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
+    const normalizedY = 1 - ((event.clientY - bounds.top) / bounds.height) * 2;
+    this.parallaxTargetX = -normalizedX * this.config.parallax.maxOffset[0];
+    this.parallaxTargetY = -normalizedY * this.config.parallax.maxOffset[1];
+  };
+
+  private handlePointerOut = (event: PointerEvent): void => {
+    if (event.relatedTarget === null) this.resetParallax(false);
+  };
+
+  private handleWindowBlur = (): void => this.resetParallax(false);
+
+  private resetParallax(immediate: boolean): void {
+    this.parallaxTargetX = 0;
+    this.parallaxTargetY = 0;
+    if (immediate) {
+      this.parallaxCurrentX = 0;
+      this.parallaxCurrentY = 0;
+    }
+  }
+
   /** Render an intentional mid-flight still instead of freezing offscreen at t=0. */
   private renderReducedMotionFrame(): void {
     const settledTime = this.config.loopDuration * 0.5;
@@ -59,14 +117,26 @@ export class Renderer {
       settledTime,
       this.viewportScale,
       REDUCED_MOTION_SCALE,
-      this.aspect
+      this.aspect,
+      0,
+      0
     );
     this.scene.render(this.canvas.width, this.canvas.height, this.pixelRatio);
   }
 
   private frame = (now: number): void => {
-    this.timer.tick(now);
-    this.scene.update(this.timer.elapsed, this.viewportScale, 1, this.aspect);
+    const delta = this.timer.tick(now);
+    const response = 1 - Math.exp(-this.config.parallax.smoothing * delta);
+    this.parallaxCurrentX += (this.parallaxTargetX - this.parallaxCurrentX) * response;
+    this.parallaxCurrentY += (this.parallaxTargetY - this.parallaxCurrentY) * response;
+    this.scene.update(
+      this.timer.elapsed,
+      this.viewportScale,
+      1,
+      this.aspect,
+      this.parallaxCurrentX,
+      this.parallaxCurrentY
+    );
     this.scene.render(this.canvas.width, this.canvas.height, this.pixelRatio);
     this.rafId = requestAnimationFrame(this.frame);
   };
@@ -84,7 +154,9 @@ export class Renderer {
     this.gl = gl;
 
     this.motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    this.pointerQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
     this.reducedMotion = this.motionQuery.matches;
+    this.finePointer = this.pointerQuery.matches;
     this.scene = new CometScene(gl, config);
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
@@ -93,7 +165,11 @@ export class Renderer {
 
     document.addEventListener("visibilitychange", this.handleVisibility);
     this.motionQuery.addEventListener("change", this.handleMotionPreference);
+    this.pointerQuery.addEventListener("change", this.handlePointerCapability);
     window.addEventListener("resize", this.handleWindowResize);
+    window.addEventListener("pointermove", this.handlePointerMove, { passive: true });
+    window.addEventListener("pointerout", this.handlePointerOut, { passive: true });
+    window.addEventListener("blur", this.handleWindowBlur);
   }
 
   start(): void {
@@ -110,7 +186,7 @@ export class Renderer {
       // actually visible. Without this check, start() would schedule a
       // frame anyway and rely on the browser to throttle it, rather than
       // us deliberately not running work on a hidden page.
-      this.scene.update(this.timer.elapsed, this.viewportScale, 1, this.aspect);
+      this.scene.update(this.timer.elapsed, this.viewportScale, 1, this.aspect, 0, 0);
       this.scene.render(this.canvas.width, this.canvas.height, this.pixelRatio);
       return;
     }
@@ -153,7 +229,11 @@ export class Renderer {
     this.resizeObserver.disconnect();
     document.removeEventListener("visibilitychange", this.handleVisibility);
     this.motionQuery.removeEventListener("change", this.handleMotionPreference);
+    this.pointerQuery.removeEventListener("change", this.handlePointerCapability);
     window.removeEventListener("resize", this.handleWindowResize);
+    window.removeEventListener("pointermove", this.handlePointerMove);
+    window.removeEventListener("pointerout", this.handlePointerOut);
+    window.removeEventListener("blur", this.handleWindowBlur);
     this.scene.dispose();
     this.gl.getExtension("WEBGL_lose_context")?.loseContext();
   }
