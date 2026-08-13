@@ -25,6 +25,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Landing-page WebGL comet Phase 6 depth pass: a procedurally shaded volumetric
   core, orbital head loop, instanced spline-like energy strands, cloud/wisp
   density breakup, and depth-tiered motes derived from the supplied concept art.
+- Landing-page WebGL comet Phase 6 stabilization: automatic WebGL context-loss
+  recovery, deterministic screenshot states, and development-only frame-pacing
+  diagnostics exposed on the canvas for repeatable validation.
 
 ## [1.4.9] - 2026-08-12
 

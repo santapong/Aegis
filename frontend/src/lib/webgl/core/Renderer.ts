@@ -16,7 +16,7 @@ const REDUCED_MOTION_SCALE = 0.15;
 export class Renderer {
   private canvas: HTMLCanvasElement;
   private gl: WebGL2RenderingContext;
-  private scene: CometScene;
+  private scene: CometScene | null;
   private config: CometConfig;
   private timer = new FrameTimer();
   private motionQuery: MediaQueryList;
@@ -32,12 +32,24 @@ export class Renderer {
   private parallaxCurrentY = 0;
   private rafId: number | null = null;
   private resizeObserver: ResizeObserver;
+  private contextLost = false;
+  private disposed = false;
+  private contextRestoreCount = 0;
+  private diagnosticFrameTimes: number[] = [];
+  private stillProgress: number | null = null;
+  private stillReducedMotion = false;
 
   private handleVisibility = (): void => {
     if (document.visibilityState === "hidden") {
       this.stop();
       this.resetParallax(true);
-    } else if (!this.reducedMotion && this.rafId === null) {
+    } else if (
+      !this.reducedMotion &&
+      !this.contextLost &&
+      !this.disposed &&
+      this.stillProgress === null &&
+      this.rafId === null
+    ) {
       // Avoid a huge delta-time jump from however long the tab was hidden.
       this.timer.reset();
       this.rafId = requestAnimationFrame(this.frame);
@@ -50,12 +62,13 @@ export class Renderer {
     this.timer.reset();
     this.resetParallax(true);
 
-    if (this.reducedMotion) {
+    if (this.stillProgress !== null) {
+      this.renderStill(this.stillProgress, this.stillReducedMotion);
+    } else if (this.reducedMotion) {
       this.renderReducedMotionFrame();
-      return;
+    } else {
+      this.start();
     }
-
-    this.start();
   };
 
   private handleWindowResize = (): void => this.resize();
@@ -101,6 +114,45 @@ export class Renderer {
 
   private handleWindowBlur = (): void => this.resetParallax(false);
 
+  private handleContextLost = (event: Event): void => {
+    // Opt in to restoration. Without preventDefault(), browsers may treat the
+    // context as permanently lost and never dispatch webglcontextrestored.
+    event.preventDefault();
+    this.contextLost = true;
+    this.stop();
+    this.timer.reset();
+    this.resetParallax(true);
+
+    // Every resource wrapper belongs to the lost context generation. It must
+    // not be disposed with GL calls or reused after restoration.
+    this.scene = null;
+    this.canvas.dataset.aegisWebglStatus = "lost";
+  };
+
+  private handleContextRestored = (): void => {
+    if (this.disposed) return;
+
+    try {
+      this.scene = new CometScene(this.gl, this.config);
+      this.contextLost = false;
+      this.contextRestoreCount += 1;
+      this.timer.reset();
+      this.canvas.dataset.aegisWebglStatus = "restored";
+      this.canvas.dataset.aegisContextRestores = String(this.contextRestoreCount);
+      this.resize();
+      if (this.stillProgress !== null) {
+        this.renderStill(this.stillProgress, this.stillReducedMotion);
+      } else {
+        this.start();
+      }
+    } catch (error) {
+      this.scene = null;
+      this.contextLost = true;
+      this.canvas.dataset.aegisWebglStatus = "restore-failed";
+      console.error("[AegisComet] WebGL2 context restoration failed:", error);
+    }
+  };
+
   private resetParallax(immediate: boolean): void {
     this.parallaxTargetX = 0;
     this.parallaxTargetY = 0;
@@ -112,6 +164,7 @@ export class Renderer {
 
   /** Render an intentional mid-flight still instead of freezing offscreen at t=0. */
   private renderReducedMotionFrame(): void {
+    if (!this.scene || this.contextLost || this.disposed) return;
     const settledTime = this.config.loopDuration * 0.5;
     this.scene.update(
       settledTime,
@@ -125,7 +178,13 @@ export class Renderer {
   }
 
   private frame = (now: number): void => {
+    if (!this.scene || this.contextLost || this.disposed) {
+      this.rafId = null;
+      return;
+    }
+
     const delta = this.timer.tick(now);
+    this.recordFrameDiagnostic(delta);
     const response = 1 - Math.exp(-this.config.parallax.smoothing * delta);
     this.parallaxCurrentX += (this.parallaxTargetX - this.parallaxCurrentX) * response;
     this.parallaxCurrentY += (this.parallaxTargetY - this.parallaxCurrentY) * response;
@@ -140,6 +199,28 @@ export class Renderer {
     this.scene.render(this.canvas.width, this.canvas.height, this.pixelRatio);
     this.rafId = requestAnimationFrame(this.frame);
   };
+
+  /**
+   * Publish a low-frequency development-only frame-pacing sample without
+   * allocating in production or touching GPU timing extensions. The canvas
+   * dataset is easy to read from DevTools or an automated visual-test client.
+   */
+  private recordFrameDiagnostic(delta: number): void {
+    if (process.env.NODE_ENV === "production" || delta <= 0) return;
+
+    this.diagnosticFrameTimes.push(delta * 1000);
+    if (this.diagnosticFrameTimes.length < 240) return;
+
+    const sorted = [...this.diagnosticFrameTimes].sort((a, b) => a - b);
+    const total = this.diagnosticFrameTimes.reduce((sum, value) => sum + value, 0);
+    const percentileIndex = Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95));
+    const longFrames = this.diagnosticFrameTimes.filter((value) => value > 25).length;
+
+    this.canvas.dataset.aegisFrameAverageMs = (total / sorted.length).toFixed(2);
+    this.canvas.dataset.aegisFrameP95Ms = sorted[percentileIndex].toFixed(2);
+    this.canvas.dataset.aegisLongFrames = String(longFrames);
+    this.diagnosticFrameTimes.length = 0;
+  }
 
   constructor(canvas: HTMLCanvasElement, config: CometConfig) {
     this.canvas = canvas;
@@ -158,6 +239,7 @@ export class Renderer {
     this.reducedMotion = this.motionQuery.matches;
     this.finePointer = this.pointerQuery.matches;
     this.scene = new CometScene(gl, config);
+    this.canvas.dataset.aegisWebglStatus = "ready";
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(canvas);
@@ -170,9 +252,12 @@ export class Renderer {
     window.addEventListener("pointermove", this.handlePointerMove, { passive: true });
     window.addEventListener("pointerout", this.handlePointerOut, { passive: true });
     window.addEventListener("blur", this.handleWindowBlur);
+    canvas.addEventListener("webglcontextlost", this.handleContextLost);
+    canvas.addEventListener("webglcontextrestored", this.handleContextRestored);
   }
 
   start(): void {
+    if (!this.scene || this.contextLost || this.disposed) return;
     if (this.reducedMotion) {
       // One settled frame — no continuous animation, per prefers-reduced-motion.
       // motionScale stays low (not zero) so the tail keeps a subtle glow
@@ -195,6 +280,40 @@ export class Renderer {
     }
   }
 
+  /** Render a deterministic still for screenshot baselines without starting RAF. */
+  renderStill(progress: number, reducedMotion = false): void {
+    if (!this.scene || this.contextLost || this.disposed) return;
+
+    this.stop();
+    const normalizedProgress = Math.min(1, Math.max(0, progress));
+    this.stillProgress = normalizedProgress;
+    this.stillReducedMotion = reducedMotion;
+    const elapsed = this.config.loopDuration * normalizedProgress;
+    const motionScale = reducedMotion ? REDUCED_MOTION_SCALE : 1;
+    this.scene.update(elapsed, this.viewportScale, motionScale, this.aspect, 0, 0);
+    this.scene.render(this.canvas.width, this.canvas.height, this.pixelRatio);
+  }
+
+  /**
+   * Exercise the browser's real loss/restoration path for Phase 6 validation.
+   * This is inert unless the explicit `comet-context-test=1` query is used.
+   */
+  testContextRestoration(delayMs = 250): boolean {
+    if (this.contextLost || this.disposed) return false;
+    const extension = this.gl.getExtension("WEBGL_lose_context");
+    if (!extension) {
+      this.canvas.dataset.aegisWebglStatus = "context-test-unsupported";
+      return false;
+    }
+
+    this.canvas.dataset.aegisWebglStatus = "context-test-started";
+    extension.loseContext();
+    window.setTimeout(() => {
+      if (!this.disposed) extension.restoreContext();
+    }, Math.max(0, delayMs));
+    return true;
+  }
+
   stop(): void {
     if (this.rafId !== null) {
       cancelAnimationFrame(this.rafId);
@@ -211,7 +330,7 @@ export class Renderer {
       this.canvas.width = width;
       this.canvas.height = height;
     }
-    this.gl.viewport(0, 0, width, height);
+    if (!this.contextLost) this.gl.viewport(0, 0, width, height);
 
     this.aspect = width / Math.max(height, 1);
     this.viewportScale = Math.max(
@@ -219,12 +338,16 @@ export class Renderer {
       Math.min(1, this.aspect / REFERENCE_ASPECT)
     );
 
-    if (this.reducedMotion) {
+    if (this.stillProgress !== null) {
+      this.renderStill(this.stillProgress, this.stillReducedMotion);
+    } else if (this.reducedMotion) {
       this.renderReducedMotionFrame();
     }
   }
 
   dispose(): void {
+    if (this.disposed) return;
+    this.disposed = true;
     this.stop();
     this.resizeObserver.disconnect();
     document.removeEventListener("visibilitychange", this.handleVisibility);
@@ -234,7 +357,11 @@ export class Renderer {
     window.removeEventListener("pointermove", this.handlePointerMove);
     window.removeEventListener("pointerout", this.handlePointerOut);
     window.removeEventListener("blur", this.handleWindowBlur);
-    this.scene.dispose();
+    this.canvas.removeEventListener("webglcontextlost", this.handleContextLost);
+    this.canvas.removeEventListener("webglcontextrestored", this.handleContextRestored);
+    if (!this.contextLost) this.scene?.dispose();
+    this.scene = null;
+    this.canvas.dataset.aegisWebglStatus = "disposed";
     this.gl.getExtension("WEBGL_lose_context")?.loseContext();
   }
 }

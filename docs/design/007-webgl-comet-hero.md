@@ -1,6 +1,6 @@
 # 007 — WebGL2 comet hero
 
-**Status:** Phases 1–5 implemented; Phase 6 in progress
+**Status:** Phases 1–6 implemented; physical-device sign-off pending
 **Date:** 2026-08-13
 
 ## Objective
@@ -44,7 +44,7 @@ The implementation lives in
 | 3 | Keep energy particles GPU-driven with a seeded static buffer; change density by responsive quality tier rather than uploading positions every frame. |
 | 4 | Apply bloom only to extracted highlights, blur at reduced resolution, and composite with premultiplied alpha so the DOM background remains visible. |
 | 5 | Add subtle parallax only for fine pointers, cap its displacement, smooth it independently of frame rate, and disable it for touch and reduced motion. |
-| 6 — in progress | Translate the supplied concept art into procedural depth cues: a shaded volumetric head, orbital loop, instanced energy strands, density breakup, and depth-tiered motes. Finish with screenshot baselines, real-device GPU profiling, context-loss testing, and measured release gates. |
+| 6 | Translate the supplied concept art into procedural depth cues, then add automatic context restoration, deterministic capture states, and frame-pacing diagnostics. Physical-device screenshots and profiling remain a release sign-off gate rather than implementation work. |
 
 ## Performance budgets
 
@@ -82,10 +82,11 @@ treating an overlay effect like an opaque scene.
 
 ## Verification
 
-For Phases 1–5, TypeScript and the production Next.js build passed. Visual
+For Phases 1–6, TypeScript and the production Next.js build passed. Visual
 review covered desktop, mobile-width, reduced-motion, pointer movement, resize,
-tab visibility, and transparent compositing. Phase 6 adds repeatable evidence
-and real-device coverage to those checks.
+tab visibility, and transparent compositing. Deterministic query states and
+canvas diagnostics make Phase 6 evidence repeatable; see
+[`../validation/comet-phase-6.md`](../validation/comet-phase-6.md).
 
 Do not run `next build` while a development server is using the same checkout:
 both processes mutate `.next`, which can create misleading missing-manifest
@@ -93,7 +94,7 @@ errors. Stop the dev server, build, then restart it.
 
 ## Phase 6 — stabilization and release validation
 
-The reference-driven implementation portion is complete. It derives perceived
+The reference-driven implementation derives perceived
 3D from overlapping transparent layers rather than a model, image texture, or
 third-party engine:
 
@@ -107,21 +108,23 @@ third-party engine:
   creating background dust, mid-layer motes, and rare foreground accents.
 
 The supplied reference image is a visual target only; it is not shipped as a
-texture or downloaded at runtime. Remaining Phase 6 validation deliverables are:
+texture or downloaded at runtime. Phase 6 stabilization adds:
 
-- Capture stable desktop, mobile, and reduced-motion screenshot baselines.
-- Profile representative integrated-GPU and mobile devices and record frame
-  pacing, memory pressure, and resize behavior.
-- Exercise `webglcontextlost` and `webglcontextrestored`; implement explicit
-  restoration only if the current fallback does not recover cleanly.
-- Verify the Vercel preview and production landing page with no shader, console,
-  transparency, or layout regressions.
-- Add adaptive DPR, particle, or bloom quality only when measurements show a
-  sustained performance problem.
+- Explicit `webglcontextlost` handling that pauses the loop and abandons invalid
+  resource wrappers, followed by full scene reconstruction on
+  `webglcontextrestored`.
+- `?comet-still=<0..1>` for deterministic capture at a fixed loop position and
+  `&comet-reduced-motion=1` for the corresponding accessibility baseline.
+- `?comet-context-test=1` to exercise the browser's real
+  `WEBGL_lose_context` restoration path.
+- Development-only 240-frame average, p95, and long-frame diagnostics exposed
+  as `data-aegis-*` attributes on the canvas.
 
-Phase 6 is complete when the evidence is recorded, release checks pass, and any
-measured blocker is fixed. It is a validation phase, not a mandate to add more
-visual intensity or interaction.
+All Phase 6 engineering work is complete. Physical-device screenshots and a
+mobile trace remain release sign-off evidence because no controllable browser or
+attached mobile device was available in the implementation environment. Do not
+claim those observations until they are captured. Adaptive quality remains
+deferred unless measurements demonstrate a sustained problem.
 
 Scroll coupling, stronger parallax, denser particles, and heavier bloom are not
 planned without visual and performance evidence.
