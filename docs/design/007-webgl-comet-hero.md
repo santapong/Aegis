@@ -189,3 +189,5 @@ a `4096×1024` horizontal tail-density layer, and an optional matching filament
 mask. Keep stars, planet, black background, and typography out of those files.
 Approved masters can then be converted to lossless WebP or KTX2 for delivery;
 the original reference PNG should not be shipped as a full-screen background.
+The complete handoff prompt is maintained in
+[`aegis-comet-asset-generation-prompt.md`](aegis-comet-asset-generation-prompt.md).
