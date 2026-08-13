@@ -28,6 +28,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Landing-page WebGL comet Phase 6 stabilization: automatic WebGL context-loss
   recovery, deterministic screenshot states, and development-only frame-pacing
   diagnostics exposed on the canvas for repeatable validation.
+- Landing-page WebGL comet Phase 7: a one-shot upper-left-to-right-center
+  cinematic arrival that settles into the reference composition, with one
+  shared rotated pose across the core, tail, strands, and particles plus subtle
+  post-arrival breathing and an immediate settled reduced-motion state.
 
 ## [1.4.9] - 2026-08-12
 

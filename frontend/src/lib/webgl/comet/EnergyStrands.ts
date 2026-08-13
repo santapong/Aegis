@@ -8,6 +8,7 @@ const SEGMENTS = 32;
 interface StrandUniforms {
   uCorePos: WebGLUniformLocation | null;
   uAspect: WebGLUniformLocation | null;
+  uRotation: WebGLUniformLocation | null;
   uTailLength: WebGLUniformLocation | null;
   uCurvature: WebGLUniformLocation | null;
   uTime: WebGLUniformLocation | null;
@@ -36,6 +37,8 @@ export class EnergyStrands {
   private elapsed = 0;
   private coreX = 0;
   private coreY = 0;
+  private rotation = 0;
+  private poseScale = 1;
   private viewportScale = 1;
   private motionScale = 1;
 
@@ -76,6 +79,7 @@ export class EnergyStrands {
     this.uniforms = {
       uCorePos: this.program.uniformLocation("uCorePos"),
       uAspect: this.program.uniformLocation("uAspect"),
+      uRotation: this.program.uniformLocation("uRotation"),
       uTailLength: this.program.uniformLocation("uTailLength"),
       uCurvature: this.program.uniformLocation("uCurvature"),
       uTime: this.program.uniformLocation("uTime"),
@@ -90,12 +94,16 @@ export class EnergyStrands {
     elapsed: number,
     coreX: number,
     coreY: number,
+    rotation: number,
+    poseScale: number,
     viewportScale: number,
     motionScale: number
   ): void {
     this.elapsed = elapsed;
     this.coreX = coreX;
     this.coreY = coreY;
+    this.rotation = rotation;
+    this.poseScale = poseScale;
     this.viewportScale = viewportScale;
     this.motionScale = motionScale;
   }
@@ -114,15 +122,22 @@ export class EnergyStrands {
     this.program.use();
     gl.uniform2f(this.uniforms.uCorePos, this.coreX, this.coreY);
     gl.uniform1f(this.uniforms.uAspect, aspect);
+    gl.uniform1f(this.uniforms.uRotation, this.rotation);
     gl.uniform1f(
       this.uniforms.uTailLength,
-      this.tailConfig.length * this.viewportScale
+      this.tailConfig.length * this.viewportScale * this.poseScale
     );
-    gl.uniform1f(this.uniforms.uCurvature, this.tailConfig.curvature);
+    gl.uniform1f(this.uniforms.uCurvature, this.tailConfig.curvature * this.poseScale);
     gl.uniform1f(this.uniforms.uTime, this.elapsed);
     gl.uniform1f(this.uniforms.uFlowSpeed, c.flowSpeed * this.motionScale);
-    gl.uniform1f(this.uniforms.uWidth, c.width * (0.72 + 0.28 * this.viewportScale));
-    gl.uniform1f(this.uniforms.uSpread, c.spread * this.viewportScale);
+    gl.uniform1f(
+      this.uniforms.uWidth,
+      c.width * (0.72 + 0.28 * this.viewportScale) * this.poseScale
+    );
+    gl.uniform1f(
+      this.uniforms.uSpread,
+      c.spread * this.viewportScale * this.poseScale
+    );
     gl.uniform1f(
       this.uniforms.uIntensity,
       c.intensity * (0.62 + 0.38 * this.viewportScale)

@@ -25,4 +25,10 @@ export class FrameTimer {
   reset(): void {
     this.lastTime = null;
   }
+
+  /** Set a deliberate animation state while resetting the next-frame delta. */
+  setElapsed(elapsed: number): void {
+    this.elapsed = Math.max(0, elapsed);
+    this.lastTime = null;
+  }
 }

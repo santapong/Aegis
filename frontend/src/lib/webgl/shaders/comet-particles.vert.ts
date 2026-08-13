@@ -9,6 +9,7 @@ in vec2 aStyle;
 
 uniform vec2 uCorePos;
 uniform float uAspect;
+uniform float uRotation;
 uniform float uTime;
 uniform float uTailLength;
 uniform float uTailWidth;
@@ -57,8 +58,14 @@ void main() {
     + aSeed.y * width * uSpread * depthSpread
     + drift;
 
-  vec2 local = vec2(localX / uAspect, localY);
-  gl_Position = vec4(uCorePos + local, 0.0, 1.0);
+  float c = cos(uRotation);
+  float s = sin(uRotation);
+  vec2 rotated = mat2(c, s, -s, c) * vec2(localX, localY);
+  gl_Position = vec4(
+    uCorePos + vec2(rotated.x / uAspect, rotated.y),
+    0.0,
+    1.0
+  );
 
   float lifecycle = smoothstep(0.0, 0.08, u) * (1.0 - smoothstep(0.94, 1.0, u));
   float density = smoothstep(0.02, 0.42, u);

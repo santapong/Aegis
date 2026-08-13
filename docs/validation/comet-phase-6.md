@@ -33,14 +33,21 @@ Use these routes at a fixed viewport and DPR:
 
 | Baseline | Route |
 |---|---|
-| Desktop still | `/landing?comet-still=0.5` |
-| Mobile still | `/landing?comet-still=0.5` at `390×844` |
-| Reduced motion | `/landing?comet-still=0.5&comet-reduced-motion=1` |
+| Arrival start | `/landing?comet-still=0` |
+| Descent midpoint | `/landing?comet-still=0.5` |
+| Desktop settled | `/landing?comet-still=1` |
+| Mobile settled | `/landing?comet-still=1` at `390×844` |
+| Reduced motion | `/landing?comet-still=1&comet-reduced-motion=1` |
 | Context recovery | `/landing?comet-context-test=1` |
 
 `comet-still` clamps to `0..1`, renders exactly one fixed frame, disables
 parallax, and never starts the animation loop. This makes screenshot diffs
 stable instead of dependent on capture timing.
+
+Phase 7 gives the progress values explicit composition semantics: `0` is the
+offscreen upper-left start, `0.5` is the diagonal descent, and `1` is the
+settled right-center hero. Use progress `1` for the mobile and reduced-motion
+release baselines.
 
 ## Context-restoration evidence
 

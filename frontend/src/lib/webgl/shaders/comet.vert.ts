@@ -17,8 +17,8 @@ out vec2 vUV;
 void main() {
   float c = cos(uRotation);
   float s = sin(uRotation);
-  mat2 rot = mat2(c, -s, s, c);
-  vec2 local = (rot * aPosition) * uScale;
+  mat2 rot = mat2(c, s, -s, c);
+  vec2 local = rot * (aPosition * uScale);
 
   // Position is already in NDC so the comet crosses the full viewport.
   // Only local geometry is aspect-corrected to keep the glow circular.
