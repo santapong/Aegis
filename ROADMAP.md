@@ -74,12 +74,15 @@ Captured here for continuity; not scoped.
   procedural tail, GPU particles, restrained transparent bloom, and
   fine-pointer parallax. See
   [`docs/design/007`](docs/design/007-webgl-comet-hero.md).
-- 🚧 **Phase 6 — reference depth and release validation:** the concept-art depth
-  pass is implemented (volumetric head, orbital loop, instanced energy strands,
-  density breakup, and depth-tiered motes). Remaining gates are stable desktop,
-  mobile, and reduced-motion screenshot baselines; representative integrated-GPU
-  and mobile profiling; and WebGL context loss/restoration testing. Add adaptive
-  quality only if profiling shows it is necessary.
+- ✅ **Phase 6 — reference depth and stabilization:** concept-art depth,
+  automatic context-loss recovery, deterministic desktop/mobile/reduced-motion
+  capture states, and development frame-pacing diagnostics are implemented.
+  Engineering verification is recorded in
+  [`docs/validation/comet-phase-6`](docs/validation/comet-phase-6.md).
+- ⏳ **Release sign-off:** capture the deterministic baselines and record a
+  physical mobile-device trace when browser/device access is available. This is
+  an evidence gate, not additional implementation scope; adaptive quality stays
+  deferred unless those measurements show a sustained problem.
 
 ---
 

@@ -22,7 +22,22 @@ export function AegisComet({ className }: { className?: string }) {
     let renderer: Renderer | null = null;
     try {
       renderer = new Renderer(canvas, DEFAULT_COMET_CONFIG);
-      renderer.start();
+      const params = new URLSearchParams(window.location.search);
+      const stillParam = params.get("comet-still");
+      const stillProgress = stillParam === null ? Number.NaN : Number(stillParam);
+
+      if (Number.isFinite(stillProgress)) {
+        renderer.renderStill(
+          stillProgress,
+          params.get("comet-reduced-motion") === "1"
+        );
+      } else {
+        renderer.start();
+      }
+
+      if (params.get("comet-context-test") === "1") {
+        window.setTimeout(() => renderer?.testContextRestoration(), 500);
+      }
     } catch (err) {
       // No WebGL2 support, or context creation failed — leave the
       // transparent canvas empty rather than crashing the page.
