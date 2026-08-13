@@ -114,34 +114,40 @@ export default function LandingPage() {
         </span>
       </header>
 
-      <section className={s.hero}>
-        <AegisComet className={s.heroCanvas} />
-        <div className={s.heroVeil} />
-        <div className={`${s.heroInner} ${s.reveal}`}>
-          <div className={s.kicker}>
-            <span className={s.dot} />
-            v1.4 · generally available
-          </div>
-          <h1 className={s.title}>
-            Personal finance, <span className={s.titleAccent}>mapped.</span>
-          </h1>
-          <p className={s.lede}>
-            A calendar planner, a Gantt timeline and an AI advisor for your money,
-            in one keyboard-first workspace. Self-hosted, open source.
-          </p>
-          <div className={s.actions}>
-            <Link href="/register" className={s.btn}>
-              Open the workspace
-            </Link>
-            <Link href="/login" className={s.btnQuiet}>
-              Sign in →
-            </Link>
-          </div>
-          {process.env.NODE_ENV === "development" && (
-            <p className={s.seed}>
-              Seed account · <code>demo@aegis.local</code> · <code>demo-password-123</code>
+      <section id="comet-scroll-scene" className={s.hero}>
+        <div className={s.heroStage}>
+          <AegisComet
+            className={s.heroCanvas}
+            scrollSourceId="comet-scroll-scene"
+          />
+          <div className={s.heroVeil} />
+          <div className={`${s.heroInner} ${s.reveal}`}>
+            <div className={s.kicker}>
+              <span className={s.dot} />
+              v1.4 · generally available
+            </div>
+            <h1 className={s.title}>
+              Personal finance, <span className={s.titleAccent}>mapped.</span>
+            </h1>
+            <p className={s.lede}>
+              A calendar planner, a Gantt timeline and an AI advisor for your money,
+              in one keyboard-first workspace. Self-hosted, open source.
             </p>
-          )}
+            <div className={s.actions}>
+              <Link href="/register" className={s.btn}>
+                Open the workspace
+              </Link>
+              <Link href="/login" className={s.btnQuiet}>
+                Sign in →
+              </Link>
+            </div>
+            {process.env.NODE_ENV === "development" && (
+              <p className={s.seed}>
+                Seed account · <code>demo@aegis.local</code> · <code>demo-password-123</code>
+              </p>
+            )}
+          </div>
+          <div className={s.scrollCue}>Scroll to guide the comet ↓</div>
         </div>
       </section>
 

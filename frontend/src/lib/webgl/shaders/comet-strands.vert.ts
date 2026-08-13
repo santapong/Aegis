@@ -25,6 +25,11 @@ float hash11(float value) {
   return fract(sin(value * 127.1) * 43758.5453123);
 }
 
+float tailCurve(float u) {
+  float t = 1.0 - u;
+  return t * (t - 0.46) * 2.0 * uCurvature;
+}
+
 void main() {
   float u = aUV.x;
   float id = float(gl_InstanceID);
@@ -51,7 +56,7 @@ void main() {
   ) * envelope * 0.018;
 
   float localX = -uTailLength * far * mix(0.9, 1.08, depth);
-  float localY = far * far * uCurvature
+  float localY = tailCurve(u)
     + broadArc
     + crossingArc
     + slowFlow;

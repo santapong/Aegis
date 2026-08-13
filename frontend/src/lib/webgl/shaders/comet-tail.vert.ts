@@ -20,17 +20,19 @@ uniform float uDistortionFreq;
 out float vU;
 out float vSide;
 
-// Thin at the far end, widest right at the core — smooth and continuous
-// since u is an exact per-vertex value, not a stepped texture lookup.
+// A narrow attachment at the head opens into a broad mid-tail cloud, then
+// dissolves to a fine point at the distant end.
 float tailWidth(float u) {
-  return mix(0.05, 1.0, smoothstep(0.0, 1.0, u)) * uTailWidth;
+  float envelope = pow(max(0.0, sin(u * 3.14159265)), 0.72);
+  return mix(0.055, 1.0, envelope) * uTailWidth;
 }
 
-// Bend increases toward the far end, so the tail sweeps rather than
-// running perfectly straight from the core.
+// Reference-shaped S sweep: the ribbon first drops below the head, then
+// rises toward the upper-left at the distant end. This is the large gesture
+// that gives the concept art its suspended, calligraphic silhouette.
 float tailCurve(float u) {
   float t = 1.0 - u;
-  return t * t * uCurvature;
+  return t * (t - 0.46) * 2.0 * uCurvature;
 }
 
 void main() {

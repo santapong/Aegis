@@ -62,7 +62,8 @@ export class CometScene {
     motionScale: number,
     aspect: number,
     parallaxX = 0,
-    parallaxY = 0
+    parallaxY = 0,
+    flightProgress: number | null = null
   ): void {
     this.comet.update(
       elapsed,
@@ -70,7 +71,8 @@ export class CometScene {
       motionScale,
       aspect,
       parallaxX,
-      parallaxY
+      parallaxY,
+      flightProgress
     );
     const pose = this.comet.pose;
     const [coreX, coreY] = pose.position;

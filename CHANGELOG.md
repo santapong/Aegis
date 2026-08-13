@@ -32,6 +32,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   cinematic arrival that settles into the reference composition, with one
   shared rotated pose across the core, tail, strands, and particles plus subtle
   post-arrival breathing and an immediate settled reduced-motion state.
+- Landing-page WebGL comet Phase 8: scroll-scrubbed flight inside a sticky hero
+  scene, plus a reference-proportion pass with a smaller star core, layered
+  orbital loops, a longer S-curved plasma ribbon, finer strands, and denser
+  energy dust. Internal plasma remains time-driven while translation follows
+  the visitor; reduced motion stays on the composed final frame.
 
 ## [1.4.9] - 2026-08-12
 

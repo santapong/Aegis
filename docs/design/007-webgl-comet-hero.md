@@ -1,6 +1,6 @@
 # 007 — WebGL2 comet hero
 
-**Status:** Phases 1–7 implemented; physical-device sign-off pending
+**Status:** Phases 1–8 implemented; physical-device sign-off pending
 **Date:** 2026-08-13
 
 ## Objective
@@ -86,7 +86,7 @@ treating an overlay effect like an opaque scene.
 
 ## Verification
 
-For Phases 1–7, TypeScript and the production Next.js build passed. Visual
+For Phases 1–8, TypeScript and the production Next.js build passed. Visual
 review covered desktop, mobile-width, reduced-motion, pointer movement, resize,
 tab visibility, and transparent compositing. Deterministic query states and
 canvas diagnostics make Phase 6 evidence repeatable; see
@@ -156,5 +156,36 @@ moment:
 Deterministic Phase 7 captures use `comet-still=0` for the start,
 `comet-still=0.5` for descent, and `comet-still=1` for the settled result.
 
-Scroll coupling, stronger parallax, denser particles, and heavier bloom are not
-planned without visual and performance evidence.
+## Phase 8 — scroll-directed flight and reference silhouette
+
+Phase 8 separates large-scale movement from ambient shader animation:
+
+- The landing hero is a `220svh` scroll scene with a `100svh` sticky stage.
+  Scroll position, rather than elapsed time, supplies the clamped flight
+  progress. The comet reaches its final pose in the first 62% of the scene and
+  remains composed while the visitor finishes reading the hero.
+- Elapsed time still drives plasma pulses, filament flow, particles, bloom, and
+  final breathing. Stopping the scroll therefore stops translation without
+  making the energy field look like a paused video.
+- The canvas exposes `data-aegis-scroll-progress` for repeatable interaction
+  inspection. Deterministic `comet-still` routes continue to override scrolling.
+- Reduced motion collapses the extended scene to one viewport and renders the
+  final composition immediately, with no scroll-coupled movement.
+- The reference pass reduces the core quad, moves the brightest sphere to the
+  forward edge of three orbital loops, extends the tail to 3.05 local units,
+  and replaces the monotonic bend with an S-curve that drops through the middle
+  before lifting toward the distant upper-left.
+- Nine fine instanced filaments and up to 280 depth-tiered particles widen the
+  cloud without per-frame buffer uploads. The ribbon is narrow at both the core
+  and distant tip and widest through its middle, matching the supplied artwork.
+
+The renderer remains procedural and dependency-free. A static concept image is
+not loaded at runtime because it would flatten the parallax, scroll response,
+flow, and transparent compositing into one bitmap.
+
+If later art direction requires authored textures, provide separate transparent
+RGBA PNG masters rather than a flattened scene: a `1024×1024` core/orbit layer,
+a `4096×1024` horizontal tail-density layer, and an optional matching filament
+mask. Keep stars, planet, black background, and typography out of those files.
+Approved masters can then be converted to lossless WebP or KTX2 for delivery;
+the original reference PNG should not be shipped as a full-screen background.

@@ -3,7 +3,7 @@ import { COMET_TAIL_VERT } from "../shaders/comet-tail.vert";
 import { COMET_TAIL_FRAG } from "../shaders/comet-tail.frag";
 import type { CometTailConfig } from "./CometConfig";
 
-const SEGMENTS = 24;
+const SEGMENTS = 48;
 
 /** Development-only: not exposed as a runtime control, just a local flip. */
 const COMET_DEBUG = false;

@@ -30,7 +30,7 @@ out float vDepth;
 
 float tailCurve(float u) {
   float t = 1.0 - u;
-  return t * t * uCurvature;
+  return t * (t - 0.46) * 2.0 * uCurvature;
 }
 
 void main() {
@@ -38,7 +38,8 @@ void main() {
   float u = fract(aSeed.x + uTime * uFlowSpeed * particleSpeed);
   float localX = -uTailLength * (1.0 - u);
 
-  float width = mix(0.05, 1.0, smoothstep(0.0, 1.0, u)) * uTailWidth;
+  float widthEnvelope = pow(max(0.0, sin(u * 3.14159265)), 0.72);
+  float width = mix(0.055, 1.0, widthEnvelope) * uTailWidth;
   float largeWave = sin(u * 3.0 * uDistortionFreq + uTime * 0.51);
   float smallWave = sin(u * 9.0 * uDistortionFreq - uTime * 1.37);
   float distortionEnvelope = sin(u * 3.14159265);

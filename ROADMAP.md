@@ -85,6 +85,12 @@ Captured here for continuity; not scoped.
   upper-left. Only restrained plasma, glow, particles, breathing, and pointer
   response continue after arrival; reduced motion opens directly on the final
   composition.
+- ✅ **Phase 8 — scroll direction and reference silhouette:** landing-page
+  scroll progress now scrubs the connected comet pose through a sticky hero
+  scene while shader flow remains ambient. The settled artwork uses a compact
+  star-like head, layered orbital rings, a viewport-spanning S-curve, finer
+  energy filaments, and denser depth-tiered dust to match the supplied concept's
+  proportions without adding a raster runtime dependency.
 - ⏳ **Release sign-off:** capture the deterministic baselines and record a
   physical mobile-device trace when browser/device access is available. This is
   an evidence gate, not additional implementation scope; adaptive quality stays
