@@ -72,15 +72,26 @@ export class CometScene {
       parallaxX,
       parallaxY
     );
-    const [coreX, coreY] = this.comet.position;
+    const pose = this.comet.pose;
+    const [coreX, coreY] = pose.position;
     this.strands.update(
       elapsed,
       coreX,
       coreY,
+      pose.rotation,
+      pose.scale,
       viewportScale,
       motionScale
     );
-    this.particles.update(elapsed, coreX, coreY, viewportScale, motionScale);
+    this.particles.update(
+      elapsed,
+      coreX,
+      coreY,
+      pose.rotation,
+      pose.scale,
+      viewportScale,
+      motionScale
+    );
     this.postProcessor.update(viewportScale, motionScale);
   }
 

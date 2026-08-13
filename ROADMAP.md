@@ -79,6 +79,12 @@ Captured here for continuity; not scoped.
   capture states, and development frame-pacing diagnostics are implemented.
   Engineering verification is recorded in
   [`docs/validation/comet-phase-6`](docs/validation/comet-phase-6.md).
+- ✅ **Phase 7 — cinematic arrival and settled composition:** the comet enters
+  once from the upper-left, follows a downward-right Bézier arc, and settles
+  near the desktop right-center with its long connected tail held toward the
+  upper-left. Only restrained plasma, glow, particles, breathing, and pointer
+  response continue after arrival; reduced motion opens directly on the final
+  composition.
 - ⏳ **Release sign-off:** capture the deterministic baselines and record a
   physical mobile-device trace when browser/device access is available. This is
   an evidence gate, not additional implementation scope; adaptive quality stays

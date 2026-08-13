@@ -8,6 +8,7 @@ const FLOATS_PER_PARTICLE = 6;
 interface ParticleUniformLocations {
   uCorePos: WebGLUniformLocation | null;
   uAspect: WebGLUniformLocation | null;
+  uRotation: WebGLUniformLocation | null;
   uTime: WebGLUniformLocation | null;
   uTailLength: WebGLUniformLocation | null;
   uTailWidth: WebGLUniformLocation | null;
@@ -45,6 +46,8 @@ export class ParticleSystem {
 
   private coreX = 0;
   private coreY = 0;
+  private rotation = 0;
+  private poseScale = 1;
   private elapsed = 0;
   private viewportScale = 1;
   private motionScale = 1;
@@ -107,6 +110,7 @@ export class ParticleSystem {
     this.uniforms = {
       uCorePos: this.program.uniformLocation("uCorePos"),
       uAspect: this.program.uniformLocation("uAspect"),
+      uRotation: this.program.uniformLocation("uRotation"),
       uTime: this.program.uniformLocation("uTime"),
       uTailLength: this.program.uniformLocation("uTailLength"),
       uTailWidth: this.program.uniformLocation("uTailWidth"),
@@ -126,12 +130,16 @@ export class ParticleSystem {
     elapsed: number,
     coreX: number,
     coreY: number,
+    rotation: number,
+    poseScale: number,
     viewportScale: number,
     motionScale: number
   ): void {
     this.elapsed = elapsed;
     this.coreX = coreX;
     this.coreY = coreY;
+    this.rotation = rotation;
+    this.poseScale = poseScale;
     this.viewportScale = viewportScale;
     this.motionScale = motionScale;
   }
@@ -148,10 +156,14 @@ export class ParticleSystem {
     this.program.use();
     gl.uniform2f(this.uniforms.uCorePos, this.coreX, this.coreY);
     gl.uniform1f(this.uniforms.uAspect, aspect);
+    gl.uniform1f(this.uniforms.uRotation, this.rotation);
     gl.uniform1f(this.uniforms.uTime, this.elapsed);
-    gl.uniform1f(this.uniforms.uTailLength, tail.length * this.viewportScale);
-    gl.uniform1f(this.uniforms.uTailWidth, tail.width * visualScale);
-    gl.uniform1f(this.uniforms.uCurvature, tail.curvature);
+    gl.uniform1f(
+      this.uniforms.uTailLength,
+      tail.length * this.viewportScale * this.poseScale
+    );
+    gl.uniform1f(this.uniforms.uTailWidth, tail.width * visualScale * this.poseScale);
+    gl.uniform1f(this.uniforms.uCurvature, tail.curvature * this.poseScale);
     gl.uniform1f(
       this.uniforms.uDistortion,
       tail.distortion * this.viewportScale * this.motionScale
@@ -160,7 +172,11 @@ export class ParticleSystem {
     gl.uniform1f(this.uniforms.uFlowSpeed, c.flowSpeed * this.motionScale);
     gl.uniform1f(this.uniforms.uSpread, c.spread);
     gl.uniform1f(this.uniforms.uTurbulence, c.turbulence * this.motionScale * visualScale);
-    gl.uniform2f(this.uniforms.uPointSize, c.size[0] * visualScale, c.size[1] * visualScale);
+    gl.uniform2f(
+      this.uniforms.uPointSize,
+      c.size[0] * visualScale * this.poseScale,
+      c.size[1] * visualScale * this.poseScale
+    );
     gl.uniform1f(this.uniforms.uPixelRatio, pixelRatio);
     gl.uniform1f(
       this.uniforms.uIntensity,

@@ -8,6 +8,7 @@ in vec2 aUV;
 
 uniform vec2 uCorePos;
 uniform float uAspect;
+uniform float uRotation;
 uniform float uTailLength;
 uniform float uTailWidth;
 uniform float uCurvature;
@@ -36,7 +37,7 @@ void main() {
   float u = aUV.x;
 
   // Local space: the core sits at local (0,0); the tail trails behind it
-  // (toward -x) as the comet travels left-to-right.
+  // (toward -x) before the shared flight heading rotates the full system.
   float localX = -uTailLength * (1.0 - u);
 
   float w = tailWidth(u);
@@ -55,8 +56,14 @@ void main() {
 
   float localY = aUV.y * w + curve + distort;
 
-  vec2 local = vec2(localX / uAspect, localY);
-  gl_Position = vec4(uCorePos + local, 0.0, 1.0);
+  float c = cos(uRotation);
+  float s = sin(uRotation);
+  vec2 rotated = mat2(c, s, -s, c) * vec2(localX, localY);
+  gl_Position = vec4(
+    uCorePos + vec2(rotated.x / uAspect, rotated.y),
+    0.0,
+    1.0
+  );
 
   vU = u;
   vSide = aUV.y;

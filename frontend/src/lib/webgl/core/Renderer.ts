@@ -162,10 +162,11 @@ export class Renderer {
     }
   }
 
-  /** Render an intentional mid-flight still instead of freezing offscreen at t=0. */
+  /** Render the intentional settled composition for reduced-motion users. */
   private renderReducedMotionFrame(): void {
     if (!this.scene || this.contextLost || this.disposed) return;
-    const settledTime = this.config.loopDuration * 0.5;
+    const settledTime = this.config.flight.arrivalDuration;
+    this.timer.setElapsed(Math.max(this.timer.elapsed, settledTime));
     this.scene.update(
       settledTime,
       this.viewportScale,
@@ -288,7 +289,7 @@ export class Renderer {
     const normalizedProgress = Math.min(1, Math.max(0, progress));
     this.stillProgress = normalizedProgress;
     this.stillReducedMotion = reducedMotion;
-    const elapsed = this.config.loopDuration * normalizedProgress;
+    const elapsed = this.config.flight.arrivalDuration * normalizedProgress;
     const motionScale = reducedMotion ? REDUCED_MOTION_SCALE : 1;
     this.scene.update(elapsed, this.viewportScale, motionScale, this.aspect, 0, 0);
     this.scene.render(this.canvas.width, this.canvas.height, this.pixelRatio);

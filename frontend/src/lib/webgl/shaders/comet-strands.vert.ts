@@ -8,6 +8,7 @@ in vec2 aUV;
 
 uniform vec2 uCorePos;
 uniform float uAspect;
+uniform float uRotation;
 uniform float uTailLength;
 uniform float uCurvature;
 uniform float uTime;
@@ -57,8 +58,11 @@ void main() {
   float strandWidth = uWidth * mix(0.72, 1.18, depth);
   localY += aUV.y * strandWidth;
 
+  float c = cos(uRotation);
+  float s = sin(uRotation);
+  vec2 rotated = mat2(c, s, -s, c) * vec2(localX, localY);
   gl_Position = vec4(
-    uCorePos + vec2(localX / uAspect, localY),
+    uCorePos + vec2(rotated.x / uAspect, rotated.y),
     mix(0.25, -0.25, depth),
     1.0
   );

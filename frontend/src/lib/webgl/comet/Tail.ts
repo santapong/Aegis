@@ -11,6 +11,7 @@ const COMET_DEBUG = false;
 interface TailUniformLocations {
   uCorePos: WebGLUniformLocation | null;
   uAspect: WebGLUniformLocation | null;
+  uRotation: WebGLUniformLocation | null;
   uTailLength: WebGLUniformLocation | null;
   uTailWidth: WebGLUniformLocation | null;
   uCurvature: WebGLUniformLocation | null;
@@ -42,6 +43,8 @@ export class Tail {
   private coreX = 0;
   private coreY = 0;
   private elapsed = 0;
+  private rotation = 0;
+  private poseScale = 1;
   private viewportScale = 1;
   private motionScale = 1;
 
@@ -79,6 +82,7 @@ export class Tail {
     this.uniforms = {
       uCorePos: this.program.uniformLocation("uCorePos"),
       uAspect: this.program.uniformLocation("uAspect"),
+      uRotation: this.program.uniformLocation("uRotation"),
       uTailLength: this.program.uniformLocation("uTailLength"),
       uTailWidth: this.program.uniformLocation("uTailWidth"),
       uCurvature: this.program.uniformLocation("uCurvature"),
@@ -96,10 +100,20 @@ export class Tail {
    * viewports (mobile); `motionScale` damps flow/distortion under
    * prefers-reduced-motion without fully freezing the glow.
    */
-  update(elapsed: number, coreX: number, coreY: number, viewportScale: number, motionScale: number): void {
+  update(
+    elapsed: number,
+    coreX: number,
+    coreY: number,
+    rotation: number,
+    poseScale: number,
+    viewportScale: number,
+    motionScale: number
+  ): void {
     this.elapsed = elapsed;
     this.coreX = coreX;
     this.coreY = coreY;
+    this.rotation = rotation;
+    this.poseScale = poseScale;
     this.viewportScale = viewportScale;
     this.motionScale = motionScale;
   }
@@ -112,9 +126,13 @@ export class Tail {
     this.program.use();
     gl.uniform2f(this.uniforms.uCorePos, this.coreX, this.coreY);
     gl.uniform1f(this.uniforms.uAspect, aspect);
-    gl.uniform1f(this.uniforms.uTailLength, c.length * this.viewportScale);
-    gl.uniform1f(this.uniforms.uTailWidth, c.width * visualScale);
-    gl.uniform1f(this.uniforms.uCurvature, c.curvature);
+    gl.uniform1f(this.uniforms.uRotation, this.rotation);
+    gl.uniform1f(
+      this.uniforms.uTailLength,
+      c.length * this.viewportScale * this.poseScale
+    );
+    gl.uniform1f(this.uniforms.uTailWidth, c.width * visualScale * this.poseScale);
+    gl.uniform1f(this.uniforms.uCurvature, c.curvature * this.poseScale);
     gl.uniform1f(this.uniforms.uTime, this.elapsed);
     gl.uniform1f(this.uniforms.uFlowSpeed, c.flowSpeed * this.motionScale);
     gl.uniform1f(this.uniforms.uDistortion, c.distortion * this.motionScale * this.viewportScale);

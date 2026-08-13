@@ -77,9 +77,30 @@ export interface CometParallaxConfig {
   smoothing: number;
 }
 
+export interface CometFlightPath {
+  start: [number, number];
+  control1: [number, number];
+  control2: [number, number];
+  end: [number, number];
+  /** Final screen-space heading in radians; negative angles descend right. */
+  settledHeading: number;
+}
+
+export interface CometFlightConfig {
+  /** Seconds from the offscreen start to the settled hero composition. */
+  arrivalDuration: number;
+  desktop: CometFlightPath;
+  compact: CometFlightPath;
+  /** Settled position drift in normalized device coordinates. */
+  breathingOffset: [number, number];
+  /** Fractional scale change around the settled scale. */
+  breathingScale: number;
+  /** Ambient breathing cycles per second after arrival. */
+  breathingSpeed: number;
+}
+
 export interface CometConfig {
-  /** Seconds for one full left-to-right traversal and loop. */
-  loopDuration: number;
+  flight: CometFlightConfig;
   /** Quad half-size, in the same clip-space-ish units as position. */
   scale: [number, number];
   /** RGB tint multiplied over the glow texture, 0..1. */
@@ -94,7 +115,26 @@ export interface CometConfig {
 }
 
 export const DEFAULT_COMET_CONFIG: CometConfig = {
-  loopDuration: 14,
+  flight: {
+    arrivalDuration: 4.8,
+    desktop: {
+      start: [-1.18, 1.06],
+      control1: [-0.76, 0.94],
+      control2: [0.2, 0.42],
+      end: [0.56, 0.16],
+      settledHeading: -0.38,
+    },
+    compact: {
+      start: [-1.32, 1.1],
+      control1: [-0.72, 0.94],
+      control2: [0.22, 0.4],
+      end: [0.68, 0.28],
+      settledHeading: -0.5,
+    },
+    breathingOffset: [0.008, 0.006],
+    breathingScale: 0.015,
+    breathingSpeed: 0.11,
+  },
   scale: [0.5, 0.28],
   // Electric blue / cyan / white, per the landing page's visual identity.
   tint: [0.55, 0.85, 1.0],

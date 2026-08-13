@@ -1,6 +1,6 @@
 # 007 — WebGL2 comet hero
 
-**Status:** Phases 1–6 implemented; physical-device sign-off pending
+**Status:** Phases 1–7 implemented; physical-device sign-off pending
 **Date:** 2026-08-13
 
 ## Objective
@@ -45,6 +45,7 @@ The implementation lives in
 | 4 | Apply bloom only to extracted highlights, blur at reduced resolution, and composite with premultiplied alpha so the DOM background remains visible. |
 | 5 | Add subtle parallax only for fine pointers, cap its displacement, smooth it independently of frame rate, and disable it for touch and reduced motion. |
 | 6 | Translate the supplied concept art into procedural depth cues, then add automatic context restoration, deterministic capture states, and frame-pacing diagnostics. Physical-device screenshots and profiling remain a release sign-off gate rather than implementation work. |
+| 7 | Replace the horizontal loop with a one-shot 4.8-second cubic-Bézier arrival from the upper-left to a settled right-center composition. Drive every layer from one rotated pose and continue only restrained ambient breathing after arrival. |
 
 ## Performance budgets
 
@@ -78,11 +79,14 @@ treating an overlay effect like an opaque scene.
 - Parallax is enabled only when `(hover: hover) and (pointer: fine)` matches.
 - Pointer influence is bounded to `0.025` horizontally and `0.018` vertically,
   smoothed exponentially, and eased away near page edges.
+- Normal motion arrives once and does not loop. The desktop head settles near
+  78% width and 42% height; compact layouts interpolate toward a slightly
+  higher, farther-right endpoint.
 - WebGL2 failure leaves the semantic page and its CSS background intact.
 
 ## Verification
 
-For Phases 1–6, TypeScript and the production Next.js build passed. Visual
+For Phases 1–7, TypeScript and the production Next.js build passed. Visual
 review covered desktop, mobile-width, reduced-motion, pointer movement, resize,
 tab visibility, and transparent compositing. Deterministic query states and
 canvas diagnostics make Phase 6 evidence repeatable; see
@@ -113,7 +117,7 @@ texture or downloaded at runtime. Phase 6 stabilization adds:
 - Explicit `webglcontextlost` handling that pauses the loop and abandons invalid
   resource wrappers, followed by full scene reconstruction on
   `webglcontextrestored`.
-- `?comet-still=<0..1>` for deterministic capture at a fixed loop position and
+- `?comet-still=<0..1>` for deterministic capture at a fixed flight position and
   `&comet-reduced-motion=1` for the corresponding accessibility baseline.
 - `?comet-context-test=1` to exercise the browser's real
   `WEBGL_lose_context` restoration path.
@@ -125,6 +129,32 @@ mobile trace remain release sign-off evidence because no controllable browser or
 attached mobile device was available in the implementation environment. Do not
 claim those observations until they are captured. Adaptive quality remains
 deferred unless measurements demonstrate a sustained problem.
+
+## Phase 7 — cinematic arrival and settled composition
+
+Phase 7 changes the comet from a repeating background pass into a composed hero
+moment:
+
+- A clamped cubic Bézier moves the head from outside the upper-left boundary to
+  desktop NDC `(0.56, 0.16)`, equivalent to approximately 78% width and 42%
+  height, over 4.8 seconds.
+- A shared pose carries position, screen-space heading, scale, and arrival state
+  to the core, tail, energy strands, and particles. Local tail geometry rotates
+  before aspect correction, so every layer stays physically connected along
+  the diagonal path.
+- The final `-0.38` rad desktop heading leaves the luminous head pointing
+  downward-right while the long tail extends toward the upper-left, matching
+  the supplied concept composition.
+- Once settled, position drift is capped at NDC `0.008 × 0.006` and scale
+  breathing at 1.5%. Plasma flow, motes, bloom, and bounded fine-pointer
+  parallax remain active; the entrance never repeats.
+- Compact layouts interpolate to NDC `(0.68, 0.28)` with a `-0.5` rad heading,
+  reduced tail density, and the existing particle/strand tiers.
+- Reduced motion skips the entrance, breathing, parallax, and continuous RAF,
+  rendering the settled composition immediately.
+
+Deterministic Phase 7 captures use `comet-still=0` for the start,
+`comet-still=0.5` for descent, and `comet-still=1` for the settled result.
 
 Scroll coupling, stronger parallax, denser particles, and heavier bloom are not
 planned without visual and performance evidence.

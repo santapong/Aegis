@@ -1,5 +1,5 @@
 import type { ShaderProgram } from "../core/ShaderProgram";
-import type { CometConfig } from "./CometConfig";
+import type { CometConfig, CometFlightPath } from "./CometConfig";
 import { Tail } from "./Tail";
 
 // Triangle-strip unit quad: x, y, u, v.
@@ -18,6 +18,13 @@ interface CometUniformLocations {
   uTexture: WebGLUniformLocation | null;
   uTime: WebGLUniformLocation | null;
   uMotionScale: WebGLUniformLocation | null;
+}
+
+export interface CometPose {
+  position: readonly [number, number];
+  rotation: number;
+  scale: number;
+  arrived: boolean;
 }
 
 /**
@@ -39,6 +46,9 @@ export class Comet {
   private visualScale = 1;
   private elapsed = 0;
   private motionScale = 1;
+  private rotation = 0;
+  private poseScale = 1;
+  private arrived = false;
 
   constructor(gl: WebGL2RenderingContext, program: ShaderProgram, config: CometConfig) {
     this.gl = gl;
@@ -119,25 +129,57 @@ export class Comet {
   ): void {
     this.elapsed = elapsed;
     this.motionScale = motionScale;
-    const progress = (elapsed % this.config.loopDuration) / this.config.loopDuration;
-    // easeInOutSine: a cinematic cruise rather than constant-velocity travel.
-    const eased = 0.5 - 0.5 * Math.cos(progress * Math.PI);
-    this.visualScale = 0.55 + 0.45 * viewportScale;
-    const coreHalfWidth = (this.config.scale[0] * this.visualScale * 0.5) / aspect;
-    const tailLength = (this.config.tail.length * viewportScale) / aspect;
-    const parallaxMargin = this.config.parallax.enabled
-      ? this.config.parallax.maxOffset[0]
-      : 0;
-    const startX = -1 - coreHalfWidth - parallaxMargin;
-    const endX = 1 + coreHalfWidth + tailLength + parallaxMargin;
-    this.x = startX + eased * (endX - startX) + parallaxX;
-    this.y = Math.sin(progress * Math.PI * 2) * 0.04 + parallaxY;
+    const flight = this.config.flight;
+    const progress = clamp01(elapsed / flight.arrivalDuration);
+    const eased = smootherstep(progress);
+    const desktopMix = smoothstep(0.55, 0.9, viewportScale);
+    const path = interpolatePath(flight.compact, flight.desktop, desktopMix);
+    const [pathX, pathY] = cubicBezier(path, eased);
+    const [tangentX, tangentY] = cubicBezierTangent(path, eased);
+    const trajectoryHeading = Math.atan2(tangentY, tangentX * aspect);
+    const headingBlend = smoothstep(0.68, 1, eased);
+    this.rotation = mix(trajectoryHeading, path.settledHeading, headingBlend);
+    this.arrived = progress >= 1;
 
-    this.tail.update(elapsed, this.x, this.y, viewportScale, motionScale);
+    const settledElapsed = Math.max(0, elapsed - flight.arrivalDuration);
+    const breathingPhase = settledElapsed * flight.breathingSpeed * Math.PI * 2;
+    const breathingEnabled = this.arrived && motionScale >= 0.5;
+    const breathingRamp = breathingEnabled
+      ? smoothstep(0, 1.2, settledElapsed)
+      : 0;
+    const breathingX = breathingEnabled
+      ? Math.sin(breathingPhase) * flight.breathingOffset[0] * breathingRamp
+      : 0;
+    const breathingY = breathingEnabled
+      ? Math.sin(breathingPhase * 0.73) * flight.breathingOffset[1] * breathingRamp
+      : 0;
+    const breathingScale = breathingEnabled
+      ? 1 + Math.sin(breathingPhase * 0.61) * flight.breathingScale * breathingRamp
+      : 1;
+
+    this.poseScale = breathingScale;
+    this.visualScale = (0.55 + 0.45 * viewportScale) * this.poseScale;
+    this.x = pathX + breathingX + parallaxX;
+    this.y = pathY + breathingY + parallaxY;
+
+    this.tail.update(
+      elapsed,
+      this.x,
+      this.y,
+      this.rotation,
+      this.poseScale,
+      viewportScale,
+      motionScale
+    );
   }
 
-  get position(): readonly [number, number] {
-    return [this.x, this.y];
+  get pose(): CometPose {
+    return {
+      position: [this.x, this.y],
+      rotation: this.rotation,
+      scale: this.poseScale,
+      arrived: this.arrived,
+    };
   }
 
   renderTail(aspect: number): void {
@@ -154,7 +196,7 @@ export class Comet {
       this.config.scale[0] * this.visualScale,
       this.config.scale[1] * this.visualScale
     );
-    gl.uniform1f(uniforms.uRotation, 0);
+    gl.uniform1f(uniforms.uRotation, this.rotation);
     gl.uniform3f(uniforms.uTint, this.config.tint[0], this.config.tint[1], this.config.tint[2]);
     gl.uniform1f(uniforms.uTime, this.elapsed);
     gl.uniform1f(uniforms.uMotionScale, this.motionScale);
@@ -175,4 +217,68 @@ export class Comet {
     gl.deleteTexture(this.texture);
     this.tail.dispose();
   }
+}
+
+function clamp01(value: number): number {
+  return Math.min(1, Math.max(0, value));
+}
+
+function mix(from: number, to: number, amount: number): number {
+  return from + (to - from) * amount;
+}
+
+function smoothstep(edge0: number, edge1: number, value: number): number {
+  const x = clamp01((value - edge0) / (edge1 - edge0));
+  return x * x * (3 - 2 * x);
+}
+
+function smootherstep(value: number): number {
+  const x = clamp01(value);
+  return x * x * x * (x * (x * 6 - 15) + 10);
+}
+
+function interpolatePath(
+  compact: CometFlightPath,
+  desktop: CometFlightPath,
+  amount: number
+): CometFlightPath {
+  const point = (
+    compactPoint: [number, number],
+    desktopPoint: [number, number]
+  ): [number, number] => [
+    mix(compactPoint[0], desktopPoint[0], amount),
+    mix(compactPoint[1], desktopPoint[1], amount),
+  ];
+
+  return {
+    start: point(compact.start, desktop.start),
+    control1: point(compact.control1, desktop.control1),
+    control2: point(compact.control2, desktop.control2),
+    end: point(compact.end, desktop.end),
+    settledHeading: mix(compact.settledHeading, desktop.settledHeading, amount),
+  };
+}
+
+function cubicBezier(path: CometFlightPath, t: number): [number, number] {
+  const inverse = 1 - t;
+  const a = inverse * inverse * inverse;
+  const b = 3 * inverse * inverse * t;
+  const c = 3 * inverse * t * t;
+  const d = t * t * t;
+  return [
+    path.start[0] * a + path.control1[0] * b + path.control2[0] * c + path.end[0] * d,
+    path.start[1] * a + path.control1[1] * b + path.control2[1] * c + path.end[1] * d,
+  ];
+}
+
+function cubicBezierTangent(path: CometFlightPath, t: number): [number, number] {
+  const inverse = 1 - t;
+  return [
+    3 * inverse * inverse * (path.control1[0] - path.start[0])
+      + 6 * inverse * t * (path.control2[0] - path.control1[0])
+      + 3 * t * t * (path.end[0] - path.control2[0]),
+    3 * inverse * inverse * (path.control1[1] - path.start[1])
+      + 6 * inverse * t * (path.control2[1] - path.control1[1])
+      + 3 * t * t * (path.end[1] - path.control2[1]),
+  ];
 }
