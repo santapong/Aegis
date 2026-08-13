@@ -7,6 +7,8 @@ const REFERENCE_ASPECT = 16 / 9;
 const MIN_VIEWPORT_SCALE = 0.34;
 /** Reduced-motion doesn't freeze the tail outright — this damps flow/distortion to near-static. */
 const REDUCED_MOTION_SCALE = 0.15;
+/** Leave the final part of the sticky scene composed for reading. */
+const SCROLL_ARRIVAL_FRACTION = 0.62;
 
 /**
  * Owns the WebGL2 context, the render loop, resize/DPR handling, and
@@ -38,6 +40,8 @@ export class Renderer {
   private diagnosticFrameTimes: number[] = [];
   private stillProgress: number | null = null;
   private stillReducedMotion = false;
+  private scrollSource: HTMLElement | null;
+  private scrollProgress: number | null = null;
 
   private handleVisibility = (): void => {
     if (document.visibilityState === "hidden") {
@@ -72,6 +76,10 @@ export class Renderer {
   };
 
   private handleWindowResize = (): void => this.resize();
+
+  private handleScroll = (): void => {
+    this.updateScrollProgress();
+  };
 
   private handlePointerCapability = (event: MediaQueryListEvent): void => {
     this.finePointer = event.matches;
@@ -162,6 +170,21 @@ export class Renderer {
     }
   }
 
+  /** Map the sticky hero's scroll range to a stable 0..1 flight position. */
+  private updateScrollProgress(): void {
+    if (!this.scrollSource) {
+      this.scrollProgress = null;
+      delete this.canvas.dataset.aegisScrollProgress;
+      return;
+    }
+
+    const bounds = this.scrollSource.getBoundingClientRect();
+    const travel = Math.max(1, this.scrollSource.offsetHeight - window.innerHeight);
+    const sceneProgress = Math.min(1, Math.max(0, -bounds.top / travel));
+    this.scrollProgress = Math.min(1, sceneProgress / SCROLL_ARRIVAL_FRACTION);
+    this.canvas.dataset.aegisScrollProgress = this.scrollProgress.toFixed(3);
+  }
+
   /** Render the intentional settled composition for reduced-motion users. */
   private renderReducedMotionFrame(): void {
     if (!this.scene || this.contextLost || this.disposed) return;
@@ -173,7 +196,8 @@ export class Renderer {
       REDUCED_MOTION_SCALE,
       this.aspect,
       0,
-      0
+      0,
+      1
     );
     this.scene.render(this.canvas.width, this.canvas.height, this.pixelRatio);
   }
@@ -195,7 +219,8 @@ export class Renderer {
       1,
       this.aspect,
       this.parallaxCurrentX,
-      this.parallaxCurrentY
+      this.parallaxCurrentY,
+      this.scrollProgress
     );
     this.scene.render(this.canvas.width, this.canvas.height, this.pixelRatio);
     this.rafId = requestAnimationFrame(this.frame);
@@ -223,9 +248,14 @@ export class Renderer {
     this.diagnosticFrameTimes.length = 0;
   }
 
-  constructor(canvas: HTMLCanvasElement, config: CometConfig) {
+  constructor(
+    canvas: HTMLCanvasElement,
+    config: CometConfig,
+    scrollSource: HTMLElement | null = null
+  ) {
     this.canvas = canvas;
     this.config = config;
+    this.scrollSource = scrollSource;
 
     const gl = canvas.getContext("webgl2", {
       alpha: true,
@@ -244,12 +274,14 @@ export class Renderer {
 
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(canvas);
+    this.updateScrollProgress();
     this.resize();
 
     document.addEventListener("visibilitychange", this.handleVisibility);
     this.motionQuery.addEventListener("change", this.handleMotionPreference);
     this.pointerQuery.addEventListener("change", this.handlePointerCapability);
     window.addEventListener("resize", this.handleWindowResize);
+    window.addEventListener("scroll", this.handleScroll, { passive: true });
     window.addEventListener("pointermove", this.handlePointerMove, { passive: true });
     window.addEventListener("pointerout", this.handlePointerOut, { passive: true });
     window.addEventListener("blur", this.handleWindowBlur);
@@ -272,7 +304,15 @@ export class Renderer {
       // actually visible. Without this check, start() would schedule a
       // frame anyway and rely on the browser to throttle it, rather than
       // us deliberately not running work on a hidden page.
-      this.scene.update(this.timer.elapsed, this.viewportScale, 1, this.aspect, 0, 0);
+      this.scene.update(
+        this.timer.elapsed,
+        this.viewportScale,
+        1,
+        this.aspect,
+        0,
+        0,
+        this.scrollProgress
+      );
       this.scene.render(this.canvas.width, this.canvas.height, this.pixelRatio);
       return;
     }
@@ -291,7 +331,15 @@ export class Renderer {
     this.stillReducedMotion = reducedMotion;
     const elapsed = this.config.flight.arrivalDuration * normalizedProgress;
     const motionScale = reducedMotion ? REDUCED_MOTION_SCALE : 1;
-    this.scene.update(elapsed, this.viewportScale, motionScale, this.aspect, 0, 0);
+    this.scene.update(
+      elapsed,
+      this.viewportScale,
+      motionScale,
+      this.aspect,
+      0,
+      0,
+      normalizedProgress
+    );
     this.scene.render(this.canvas.width, this.canvas.height, this.pixelRatio);
   }
 
@@ -323,6 +371,7 @@ export class Renderer {
   }
 
   private resize(): void {
+    this.updateScrollProgress();
     const dpr = Math.min(window.devicePixelRatio || 1, this.config.dprCap);
     this.pixelRatio = dpr;
     const width = Math.max(1, Math.round(this.canvas.clientWidth * dpr));
@@ -355,6 +404,7 @@ export class Renderer {
     this.motionQuery.removeEventListener("change", this.handleMotionPreference);
     this.pointerQuery.removeEventListener("change", this.handlePointerCapability);
     window.removeEventListener("resize", this.handleWindowResize);
+    window.removeEventListener("scroll", this.handleScroll);
     window.removeEventListener("pointermove", this.handlePointerMove);
     window.removeEventListener("pointerout", this.handlePointerOut);
     window.removeEventListener("blur", this.handleWindowBlur);

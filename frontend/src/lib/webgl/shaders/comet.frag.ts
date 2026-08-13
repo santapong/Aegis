@@ -10,14 +10,24 @@ uniform float uMotionScale;
 
 out vec4 fragColor;
 
+float ellipseRing(vec2 point, float angle, vec2 stretch, float radius, float width) {
+  float c = cos(angle);
+  float s = sin(angle);
+  vec2 rotated = mat2(c, -s, s, c) * point;
+  float distanceToRing = abs(length(rotated * stretch) - radius);
+  return 1.0 - smoothstep(width * 0.35, width, distanceToRing);
+}
+
 void main() {
   vec2 p = vUV * 2.0 - 1.0;
   vec4 texel = texture(uTexture, vUV);
 
-  // The compact head is shaded like a tiny emissive sphere. Its reconstructed
-  // normal and off-axis light create volume without introducing a 3D engine.
-  const float sphereRadius = 0.34;
-  vec2 sphereXY = p / sphereRadius;
+  // The reference's brightest point sits on the forward edge of its orbital
+  // loops, not in the middle of a large disc. Offset and shrink the sphere so
+  // the head reads as a compact star carried by a larger energy structure.
+  vec2 spherePoint = p - vec2(0.3, 0.0);
+  const float sphereRadius = 0.2;
+  vec2 sphereXY = spherePoint / sphereRadius;
   float sphereR2 = dot(sphereXY, sphereXY);
   float sphereMask = 1.0 - smoothstep(0.7, 1.0, sphereR2);
   float sphereZ = sqrt(max(0.0, 1.0 - sphereR2));
@@ -30,21 +40,23 @@ void main() {
 
   // A slowly precessing elliptical orbit supplies the strongest reference-art
   // depth cue. Reduced motion freezes it into an intentional composition.
-  float orbitAngle = -0.28 + sin(uTime * 0.16 * uMotionScale) * 0.1;
-  float c = cos(orbitAngle);
-  float s = sin(orbitAngle);
-  vec2 orbitP = mat2(c, -s, s, c) * p;
-  vec2 ellipse = vec2(orbitP.x * 0.78, orbitP.y * 1.55);
-  float orbitDistance = abs(length(ellipse) - 0.58);
-  float orbit = 1.0 - smoothstep(0.018, 0.055, orbitDistance);
-  float orbitOcclusion = mix(0.28, 1.0, smoothstep(-0.22, 0.38, orbitP.y));
-  float orbitAlpha = orbit * orbitOcclusion * 0.82;
+  float orbitMotion = sin(uTime * 0.16 * uMotionScale) * 0.08;
+  float orbitA = ellipseRing(p, -0.3 + orbitMotion, vec2(0.8, 1.5), 0.58, 0.05);
+  float orbitB = ellipseRing(p + vec2(0.06, -0.02), 0.48 - orbitMotion * 0.7, vec2(0.95, 1.65), 0.67, 0.035);
+  float orbitC = ellipseRing(p - vec2(0.04, 0.02), -0.75 + orbitMotion * 0.45, vec2(1.35, 0.86), 0.74, 0.026);
+  float orbitOcclusion = mix(0.34, 1.0, smoothstep(-0.3, 0.42, p.y));
+  float orbitAlpha = clamp(
+    (orbitA * 0.7 + orbitB * 0.42 + orbitC * 0.24) * orbitOcclusion,
+    0.0,
+    0.96
+  );
 
   // A short forward flare makes the head directional rather than a flat disc.
-  float flare = exp(-abs(p.y) * 70.0)
-    * smoothstep(0.02, 0.18, p.x)
-    * (1.0 - smoothstep(0.18, 0.96, p.x));
-  float flareAlpha = flare * 0.48;
+  float horizontalFlare = exp(-abs(spherePoint.y) * 76.0)
+    * (1.0 - smoothstep(0.05, 0.86, abs(spherePoint.x)));
+  float verticalFlare = exp(-abs(spherePoint.x) * 82.0)
+    * (1.0 - smoothstep(0.04, 0.64, abs(spherePoint.y)));
+  float flareAlpha = clamp(horizontalFlare * 0.52 + verticalFlare * 0.25, 0.0, 0.9);
 
   float haloAlpha = texel.a * 0.34;
   float alpha = 1.0

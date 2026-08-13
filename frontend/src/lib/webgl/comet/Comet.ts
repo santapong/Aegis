@@ -116,6 +116,8 @@ export class Comet {
 
   /**
    * `elapsed` is cumulative seconds, unaffected by pauses (see FrameTimer).
+   * `flightProgress` optionally decouples connected-system translation from
+   * that clock so the landing page can scrub the Bézier with scroll position.
    * `viewportScale` (mobile) and `motionScale` (reduced-motion) are forwarded
    * to the tail, which reacts to them independently of the core's own motion.
    */
@@ -125,12 +127,19 @@ export class Comet {
     motionScale: number,
     aspect: number,
     parallaxX: number,
-    parallaxY: number
+    parallaxY: number,
+    flightProgress: number | null = null
   ): void {
     this.elapsed = elapsed;
     this.motionScale = motionScale;
     const flight = this.config.flight;
-    const progress = clamp01(elapsed / flight.arrivalDuration);
+    // The landing page supplies scroll progress so translation is scrubbed by
+    // the visitor. Keeping elapsed separate lets plasma, motes, and bloom stay
+    // alive even while the page is stationary. The time fallback preserves the
+    // renderer's standalone behaviour and existing deterministic tooling.
+    const progress = flightProgress === null
+      ? clamp01(elapsed / flight.arrivalDuration)
+      : clamp01(flightProgress);
     const eased = smootherstep(progress);
     const desktopMix = smoothstep(0.55, 0.9, viewportScale);
     const path = interpolatePath(flight.compact, flight.desktop, desktopMix);
@@ -143,9 +152,13 @@ export class Comet {
 
     const settledElapsed = Math.max(0, elapsed - flight.arrivalDuration);
     const breathingPhase = settledElapsed * flight.breathingSpeed * Math.PI * 2;
-    const breathingEnabled = this.arrived && motionScale >= 0.5;
+    const scrollControlled = flightProgress !== null;
+    const breathingEnabled = motionScale >= 0.5
+      && (scrollControlled ? progress > 0.94 : this.arrived);
     const breathingRamp = breathingEnabled
-      ? smoothstep(0, 1.2, settledElapsed)
+      ? scrollControlled
+        ? smoothstep(0.94, 1, progress)
+        : smoothstep(0, 1.2, settledElapsed)
       : 0;
     const breathingX = breathingEnabled
       ? Math.sin(breathingPhase) * flight.breathingOffset[0] * breathingRamp

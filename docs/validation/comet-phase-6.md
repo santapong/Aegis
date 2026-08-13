@@ -44,10 +44,12 @@ Use these routes at a fixed viewport and DPR:
 parallax, and never starts the animation loop. This makes screenshot diffs
 stable instead of dependent on capture timing.
 
-Phase 7 gives the progress values explicit composition semantics: `0` is the
-offscreen upper-left start, `0.5` is the diagonal descent, and `1` is the
-settled right-center hero. Use progress `1` for the mobile and reduced-motion
-release baselines.
+Phase 8 keeps the fixed-progress semantics: `0` is the visible upper-left
+start, `0.5` is the diagonal descent, and `1` is the settled right-center hero.
+The regular `/landing` route derives that progress from the sticky hero's
+scroll range and publishes it as `data-aegis-scroll-progress`; fixed-progress
+routes override scrolling. Use progress `1` for the reference, mobile, and
+reduced-motion release baselines.
 
 ## Context-restoration evidence
 
@@ -89,6 +91,8 @@ session or attached Android/iOS device was available:
   Safari/WebKit where available.
 - [ ] Confirm there are no shader, alpha, layout, or console regressions on the
   Vercel production deployment.
+- [ ] Confirm scroll direction, reverse scrubbing, and the sticky-to-content
+  transition with a wheel, trackpad, touch scroll, and keyboard navigation.
 
 These checks are release sign-off, not missing renderer functionality. Never
 replace them with guessed numbers or emulator-only claims.

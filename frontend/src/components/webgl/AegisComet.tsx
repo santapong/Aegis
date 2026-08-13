@@ -9,7 +9,13 @@ import { DEFAULT_COMET_CONFIG } from "@/lib/webgl/comet/CometConfig";
  * Renderer, start, and dispose on unmount. All WebGL2/GLSL/animation logic
  * lives in src/lib/webgl; nothing here touches a GL context.
  */
-export function AegisComet({ className }: { className?: string }) {
+export function AegisComet({
+  className,
+  scrollSourceId,
+}: {
+  className?: string;
+  scrollSourceId?: string;
+}) {
   const hostRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,7 +27,10 @@ export function AegisComet({ className }: { className?: string }) {
 
     let renderer: Renderer | null = null;
     try {
-      renderer = new Renderer(canvas, DEFAULT_COMET_CONFIG);
+      const scrollSource = scrollSourceId
+        ? document.getElementById(scrollSourceId)
+        : null;
+      renderer = new Renderer(canvas, DEFAULT_COMET_CONFIG, scrollSource);
       const params = new URLSearchParams(window.location.search);
       const stillParam = params.get("comet-still");
       const stillProgress = stillParam === null ? Number.NaN : Number(stillParam);
@@ -48,7 +57,7 @@ export function AegisComet({ className }: { className?: string }) {
       renderer?.dispose();
       host.removeChild(canvas);
     };
-  }, []);
+  }, [scrollSourceId]);
 
   return <div ref={hostRef} className={className} aria-hidden="true" />;
 }
