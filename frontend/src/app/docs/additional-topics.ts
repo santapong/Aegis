@@ -69,7 +69,7 @@ export const additionalTopics:AdditionalTopic[] = [
         "steps": [
           "Open the appearance button in the header.",
           "Choose the other mode. Your current form values and documentation search stay in place.",
-          "In a signed-in workspace, open Settings → Appearance for the full theme collection."
+          "In a signed-in workspace, open Settings \u2192 Appearance for the full theme collection."
         ]
       },
       {
@@ -425,7 +425,7 @@ export const additionalTopics:AdditionalTopic[] = [
         "id": "destination",
         "title": "Choose the intended destination",
         "paragraphs": [
-          "Follow the destination/linking controls actually shown in Settings → LINE finance or Accounts on your installation. Verify the owner, workspace/account scope, and currency before confirming a destination.",
+          "Follow the destination/linking controls actually shown in Settings \u2192 LINE finance or Accounts on your installation. Verify the owner, workspace/account scope, and currency before confirming a destination.",
           "The older cash connector and the newer account-ledger workflow are different implementations. Do not assume a destination from one is a destination for the other."
         ]
       },
@@ -655,39 +655,6 @@ export const additionalTopics:AdditionalTopic[] = [
         "title": "If AI or MCP fails",
         "paragraphs": [
           "For AI, check configured provider availability, allowed model settings, and deployment status. For MCP, check the absolute project/database paths, an active configured user, stdio support in the client, and stderr logs. A successful public docs fetch does not establish either integration is connected."
-        ]
-      }
-    ]
-  },
-  {
-    "slug": "brand",
-    "title": "Use the Aegis identity",
-    "description": "Explore Union, the selected Aegis mark, and download its light and dark artwork.",
-    "audience": "guides",
-    "category": "start",
-    "kind": "Practical guide",
-    "outcome": "A consistent visual vocabulary and reusable logo artwork.",
-    "keywords": "brand logo union horizon vector svg identity light dark support guidance momentum",
-    "sections": [
-      {
-        "id": "direction",
-        "title": "Solid ground, open horizons",
-        "paragraphs": [
-          "Horizon combines warm ivory, deep evergreen, precise interface text, and quiet editorial imagery. It expresses confidence through understandable information and room to plan."
-        ]
-      },
-      {
-        "id": "logo",
-        "title": "Union, the Aegis mark",
-        "paragraphs": [
-          "Union brings supportive interlocking curves, a rising A, and a continuous folded path into one mark. The Brand page at /brand provides transparent SVG marks for light and dark backgrounds, plus SVG and PNG app icons. Keep the upright lowercase aegis. wordmark beside the symbol."
-        ]
-      },
-      {
-        "id": "usage",
-        "title": "Keep the identity useful",
-        "paragraphs": [
-          "Use enough contrast, preserve the mark's proportions, and keep dense information legible. Decorative artwork is illustrative; it should not be presented as a customer, a real financial outcome, or a security certification."
         ]
       }
     ]
