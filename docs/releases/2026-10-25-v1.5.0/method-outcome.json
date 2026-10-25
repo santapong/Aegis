@@ -1,0 +1,16 @@
+{
+  "case": "7bb45d23-ace5-4ac9-883a-597eefd9fe11",
+  "mechanism": "Qualify current source and dependency resolution, select the actual linked full-app project, then match main/tag, deployment provenance, live version and logo bytes. READY alone is insufficient.",
+  "working_prediction": "Current Union source and fixes pass checks; intended production serves the exact release commit.",
+  "working_observed": {
+    "source_ci": 40185207868,
+    "main_ci": 40185713757,
+    "tag_commit": "bbccfafedec410ad9d60d036c23219a6b6f4e04e",
+    "deployment": "dpl_619pdfdMyusHMcVSGNX1HsvtMxHK",
+    "live_checks_passed": 9
+  },
+  "boundary_prediction": "Old logo, failing CI, wrong project or stale vulnerable runtime keeps acceptance open despite a merge or READY status.",
+  "boundary_observed": "Initial develop snapshot had the prior icon and failing PostgreSQL CI; release acceptance remained open. Actual Vercel stages rejected ambiguous service detection and an environment-specific Google font failure. Corrected source, fresh CI/builds and runtime checks were required before acceptance.",
+  "outcome": "criterion verified",
+  "limits": "One prospective task; no causal learning-benefit or usage-saving claim. Container publishing and manual GitHub Release-page publication remain separately tracked. No live LINE/provider or production financial-write acceptance."
+}

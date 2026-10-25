@@ -10,7 +10,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 export function MarketingHeader({
   current = "landing",
 }: {
-  current?: "landing" | "docs" | "demo" | "brand" | "welcome";
+  current?: "landing" | "docs" | "demo" | "welcome";
 }) {
   const [open, setOpen] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);

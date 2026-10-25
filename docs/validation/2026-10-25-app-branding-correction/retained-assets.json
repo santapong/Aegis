@@ -1,0 +1,9 @@
+{
+  "frontend/src/lib/brand-mark.json": "ed88bb70b8d961eec2554d1a21731a06c613eff2af7402a260d7aa2df1e3e5c1",
+  "frontend/src/components/brand.tsx": "af0e722de29755b6f8b28b2b255e8c114d8745d71426d592c813e99a2895a9f0",
+  "frontend/src/app/layout.tsx": "45738de33ffbf0e4148981fe2937c1e9e8238006042f05b2124652a77256f3dd",
+  "frontend/src/app/icon.png": "31cfc71882bcaa6b5c738e4739a5d348ef6d3af25c3ceafe4b5bab1b78b0e4a3",
+  "frontend/src/app/apple-icon.png": "9deb7e3ff08697383fe5e7d766c87c7eee7b15dd8c98f58aa9d80ccb5879667a",
+  "frontend/src/app/favicon.ico": "89f8c93ccf0f651a6673e148c4b6f782c426651565fcc18266a230e2aa2f4472",
+  "frontend/public/brand/aegis-union-icon.svg": "436ed3b914512d50302cf6cff7601d07183512e69dee70d29fd398fae679c502"
+}

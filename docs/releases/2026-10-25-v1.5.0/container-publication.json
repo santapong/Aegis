@@ -1,0 +1,40 @@
+{
+  "checked_utc": "2026-10-25 10:55:53 UTC",
+  "release_run": {
+    "id": 40185713495,
+    "url": "https://github.com/santapong/Aegis/actions/runs/40185713495",
+    "jobs": [
+      {
+        "id": 121145945989,
+        "name": "Build & publish aegis-backend to GHCR",
+        "status": "completed",
+        "conclusion": "success"
+      },
+      {
+        "id": 121145946134,
+        "name": "Build & publish aegis-frontend to GHCR",
+        "status": "in_progress",
+        "conclusion": null
+      }
+    ]
+  },
+  "main_image_run": {
+    "id": 40185713732,
+    "url": "https://github.com/santapong/Aegis/actions/runs/40185713732",
+    "jobs": [
+      {
+        "id": 121145946547,
+        "name": "Build & publish aegis-frontend",
+        "status": "in_progress",
+        "conclusion": null
+      },
+      {
+        "id": 121145946681,
+        "name": "Build & publish aegis-backend",
+        "status": "completed",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "state": "Backend publications passed; frontend jobs still running. This is not a completed frontend-container publication claim. The requested Vercel web deployment is separately verified."
+}

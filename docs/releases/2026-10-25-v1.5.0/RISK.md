@@ -1,5 +1,7 @@
 # v1.5.0 scoped release review
 
+Current execution: [tag/deployment, schema result and scoped live checks](RELEASED.md). Preparation findings below remain dated evidence, with unresolved scope retained.
+
 Next15.5.28 and sharp0.35.5 are pinned in package/lock and were observed loaded
 by the actual isolated frontend runtime. The Next upgrade alone retained the
 vulnerable sharp0.34 family through the existing lock; the explicit pin/override

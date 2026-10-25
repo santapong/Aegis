@@ -1,5 +1,7 @@
 # Aegis accepted frontend design specification
 
+Historical September baseline. The October25 owner-selected [Horizon direction](2026-10-25-horizon/README.md) and [Union identity](2026-10-25-union-identity/README.md) supersede this document's old icon, palette and public-page contracts. Product-meaning and truthfulness constraints remain relevant. [v1.5.0 production receipt](../releases/2026-10-25-v1.5.0/RELEASED.md).
+
 Date: 2026-09-28, Asia/Bangkok. **Owner-accepted visual baseline for the public experience developed in this session.** The owner said frontend design was finished after selecting Meridian, Aegis Focus, revised docs, and the business/personal demo. This supersedes earlier pending-review wording for these surfaces; earlier artifacts remain historical evidence.
 
 Acceptance does not establish a production launch, every authenticated screen's acceptance, paid-service readiness, backend correctness, or independent customer comprehension testing. Checked local branch: `agent/comet-asset-prompt`, base `e2c4a9c`, with uncommitted design and unrelated LINE/backend changes. No commit, push, or deployment is implied.

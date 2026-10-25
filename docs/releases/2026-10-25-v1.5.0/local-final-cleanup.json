@@ -1,0 +1,12 @@
+{
+  "removed_owned_temporary_paths": [
+    "cli-tool",
+    "cli-tool.tgz",
+    "deploy-source-b9aff9a",
+    "deploy-source-88b5828",
+    "project-context.json"
+  ],
+  "retained_task_bytes": 65442379,
+  "global_auth_config": "untouched",
+  "final_frozen_source": "deploy-source-fea43a4"
+}

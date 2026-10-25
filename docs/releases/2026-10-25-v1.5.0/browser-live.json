@@ -1,0 +1,28 @@
+{
+  "landing": {
+    "icons": [
+      "/favicon.ico",
+      "/brand/aegis-union-icon.svg"
+    ],
+    "scrollWidth": 1274,
+    "unionMarks": 2,
+    "url": "https://aegis-eight-azure.vercel.app/landing",
+    "width": 1274
+  },
+  "login": {
+    "font": "\"Instrument Serif\", \"Instrument Serif Fallback\", Georgia, serif",
+    "fontsReady": "loaded",
+    "marks": 1,
+    "scrollWidth": 1274,
+    "url": "https://aegis-eight-azure.vercel.app/login",
+    "width": 1274
+  },
+  "brand": {
+    "fontsReady": "loaded",
+    "heading": "Stronger together.Open to tomorrow.",
+    "marks": 8,
+    "scrollWidth": 1274,
+    "url": "https://aegis-eight-azure.vercel.app/brand",
+    "width": 1274
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "run_id": 40185713757,
+  "url": "https://github.com/santapong/Aegis/actions/runs/40185713757",
+  "commit": "bbccfafedec410ad9d60d036c23219a6b6f4e04e",
+  "jobs": [
+    {
+      "id": 121145946653,
+      "name": "backend (sqlite / py3.12)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 121145946797,
+      "name": "security scan (trivy)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 121145946809,
+      "name": "backend (postgres / py3.12)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 121145946831,
+      "name": "backend (sqlite / py3.11)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 121145946832,
+      "name": "backend (postgres / py3.11)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 121145946881,
+      "name": "frontend",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ]
+}

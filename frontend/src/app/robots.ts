@@ -14,7 +14,6 @@ export default function robots(): MetadataRoute.Robots {
           "/docs",
           "/demo",
           "/changelog",
-          "/brand",
           "/llms.txt",
           "/llms-full.txt",
           "/mcp-catalog.json",

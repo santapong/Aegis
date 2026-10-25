@@ -1,3 +1,5 @@
+Current result: **v1.5.0 is tagged and deployed**. See [released receipt](RELEASED.md) and [outcome](outcome.json). The preparation checkpoints below remain historical.
+
 # Aegis v1.5.0 — release preparation
 
 User authorized merging, a tagged release and Vercel deployment. A later steering

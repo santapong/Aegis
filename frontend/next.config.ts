@@ -36,6 +36,13 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_APP_VERSION: appVersion,
   },
+  async redirects() {
+    // Retire the public logo showcase without matching the app's /brand/* assets.
+    return [
+      { source: "/brand", destination: "/landing", permanent: true },
+      { source: "/brand/", destination: "/landing", permanent: true },
+    ];
+  },
   async rewrites() {
     // Two deploy topologies supported:
     //
