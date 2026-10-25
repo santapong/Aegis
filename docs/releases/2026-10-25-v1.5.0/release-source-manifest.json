@@ -461,5 +461,5 @@
   "scripts/verify-cashflow-workflow.py": "a06823ac9e476ac1d052902d3771ac2db7584b33f09a43e902eaa26a103c99bb",
   "scripts/verify-ledger-client.mjs": "0e83404f793dcb8190fd91b408559f7ee93c94dca4d9e131e37ee80e8b35927d",
   "scripts/verify-line-workflows.py": "6e498989f9e28eee6b597be1d39f2c0f27b19456a544e56f1a51324b2cb477c2",
-  "vercel.json": "c526888c5f4db13aee16e7574db73ad9ee2ba0a2c417f57f5b7694e5fc78a6a5"
+  "vercel.json": "f46173c889d197e16d795ca090caac644c1ef2026607b3e66fdb885f901a1520"
 }

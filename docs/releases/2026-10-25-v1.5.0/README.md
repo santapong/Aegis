@@ -45,3 +45,5 @@ are not accepted as production DB proof. The gated backend build step uses the
 actual production connection in Vercel; four real PostgreSQL rehearsal cases
 passed, including data-preservation failure rollback. See schema-gate.md.
 Existing exact-ledger client boundary script passed; it is now included in CI.
+
+Native develop preview dpl_52zUz23FrFQcziR56qpKQZVe35cd rejected ambiguous Next.js/Container detection before building. The frontend Services framework is now pinned to nextjs, matching the existing app. This configuration repair requires its own cloud build; application-test results remain scoped to their recorded source.
