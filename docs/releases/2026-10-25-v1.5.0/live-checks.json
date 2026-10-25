@@ -1,0 +1,82 @@
+{
+  "deployment": {
+    "id": "dpl_619pdfdMyusHMcVSGNX1HsvtMxHK",
+    "uid": null,
+    "url": "aegis-jvhgfqz3s-santapongs-projects.vercel.app",
+    "readyState": "READY",
+    "state": null,
+    "target": "production",
+    "alias": [
+      "aegis-eight-azure.vercel.app",
+      "aegis-santapongs-projects.vercel.app",
+      "aegis-git-main-santapongs-projects.vercel.app"
+    ],
+    "aliasAssigned": true,
+    "errorCode": null,
+    "errorMessage": null,
+    "commit": "bbccfafedec410ad9d60d036c23219a6b6f4e04e",
+    "releaseCommit": null,
+    "ref": "main"
+  },
+  "checks": [
+    {
+      "path": "/api/health",
+      "http": 200,
+      "status": "ok",
+      "version": "1.5.0",
+      "db": "ok",
+      "pass": true
+    },
+    {
+      "path": "/brand/aegis-union-icon.svg",
+      "http": 200,
+      "content_type": "image/svg+xml",
+      "sha256": "436ed3b914512d50302cf6cff7601d07183512e69dee70d29fd398fae679c502",
+      "pass": true
+    },
+    {
+      "path": "/icon.png",
+      "http": 200,
+      "content_type": "image/png",
+      "sha256": "31cfc71882bcaa6b5c738e4739a5d348ef6d3af25c3ceafe4b5bab1b78b0e4a3",
+      "pass": true
+    },
+    {
+      "path": "/apple-icon.png",
+      "http": 200,
+      "content_type": "image/png",
+      "sha256": "9deb7e3ff08697383fe5e7d766c87c7eee7b15dd8c98f58aa9d80ccb5879667a",
+      "pass": true
+    },
+    {
+      "path": "/favicon.ico",
+      "http": 200,
+      "content_type": "image/x-icon",
+      "sha256": "89f8c93ccf0f651a6673e148c4b6f782c426651565fcc18266a230e2aa2f4472",
+      "pass": true
+    },
+    {
+      "path": "/api/budgets/",
+      "http": 401,
+      "pass": true
+    },
+    {
+      "path": "/api/transactions/",
+      "http": 401,
+      "pass": true
+    },
+    {
+      "path": "/landing",
+      "http": 200,
+      "union_marker": true,
+      "pass": true
+    },
+    {
+      "path": "/login",
+      "http": 200,
+      "union_marker": true,
+      "pass": true
+    }
+  ],
+  "pass": true
+}

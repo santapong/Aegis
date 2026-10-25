@@ -1,0 +1,14 @@
+{
+  "scope": [
+    "ci-final.json",
+    "live-checks.json",
+    "browser-live.json",
+    "main-source-equivalence.json",
+    "old-production-after-schema.json",
+    "outcome.json",
+    "ci-main.json",
+    "pi-final-cleanup.json"
+  ],
+  "mode": "bounded exact-pattern check, not comprehensive",
+  "findings": []
+}

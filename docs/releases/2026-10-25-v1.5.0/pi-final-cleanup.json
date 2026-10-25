@@ -1,0 +1,15 @@
+{
+  "owned_containers_absent": true,
+  "owned_watchdog_absent": true,
+  "shared_record_status": "released",
+  "removed_owned_paths": [
+    "candidate/frontend/node_modules",
+    "deps",
+    "cache"
+  ],
+  "retained_bytes": 41351801,
+  "n8n_http": {
+    "healthz": 200,
+    "healthz/readiness": 200
+  }
+}

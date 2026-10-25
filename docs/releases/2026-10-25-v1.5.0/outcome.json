@@ -1,0 +1,18 @@
+{
+  "main": "bbccfafedec410ad9d60d036c23219a6b6f4e04e",
+  "tag": "v1.5.0",
+  "annotated_tag_object": "92d7d25f1fa0c644757fba9dee78b1a55f32278a",
+  "deployment": "dpl_619pdfdMyusHMcVSGNX1HsvtMxHK",
+  "canonical_url": "https://aegis-eight-azure.vercel.app",
+  "source_tree": "6ed0469e9ac3cce6ae59ad402b8cd6994594efaf",
+  "schema": {
+    "revision": "a1022lf00001",
+    "explicit_stage_migrated": true,
+    "legacy_data_preserved": true,
+    "native_main_migrated": false
+  },
+  "line_phone_pilot": "remains paused",
+  "github_release_page": "manual publication per standing GitHub-only workflow",
+  "images": "backend published; frontend jobs still running at this receipt",
+  "main_ci": "40185713757: all six jobs passed"
+}

@@ -1,5 +1,7 @@
 # Aegis Union — selected identity implementation
 
+Current availability: included in [v1.5.0, tagged and deployed](../../releases/2026-10-25-v1.5.0/RELEASED.md). The implementation checkpoints below remain historical.
+
 25 October2026, Asia/Bangkok. Owner accepted the combined J / Union concept: “Yes ths is cool let using this one”. Binding visual: [02-aegis-union-combined.png](../2026-10-25-logo-combined/02-aegis-union-combined.png), SHA256 c8a06559dbcb8b1c7716401a0669a63ca440c901a18f77d821387bbb3f3bbcf3. This supersedes prior pending-logo and preserve-old-mark instructions for the authorized frontend.
 
 ## Contract

@@ -1,0 +1,9 @@
+{
+  "http": 200,
+  "health": {
+    "status": "ok",
+    "version": "1.0.0",
+    "db": "ok"
+  },
+  "url": "https://aegis-eight-azure.vercel.app/api/health"
+}

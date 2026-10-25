@@ -1,5 +1,7 @@
 # Aegis Horizon — frontend identity
 
+Current availability: included in [v1.5.0, tagged and deployed](../../releases/2026-10-25-v1.5.0/RELEASED.md). The implementation checkpoints below remain historical.
+
 25 October 2026, Asia/Bangkok. The owner requested renewed identity exploration across the landing page and every page, then selected **calm confidence: warm ivory, deep green, precise financial views**. This supersedes the old requirement to preserve the dark Meridian direction for this redesign. The name Aegis remains. Owner acceptance of the implemented screens is pending.
 
 The idea is **solid ground, open horizons**: understandable money today creates room for future choices. The public promise is “A clearer today. A bigger tomorrow.” Horizon names the design direction, not a newly released product or subscription.
