@@ -12,6 +12,18 @@
       "entrypoint": "main.py"
     }
   },
+  "redirects": [
+    {
+      "source": "/brand",
+      "destination": "/landing",
+      "permanent": true
+    },
+    {
+      "source": "/brand/",
+      "destination": "/landing",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/:path*",
