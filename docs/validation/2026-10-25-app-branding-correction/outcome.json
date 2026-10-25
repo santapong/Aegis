@@ -1,0 +1,14 @@
+{
+  "main_commit": "a28bb9b57e1b5b67464f62120e6d6bd35eb40599",
+  "deployment": "dpl_GFPMNtyuYFXy15yqXVURvyy1ZrXy",
+  "project": "aegis",
+  "project_id": "prj_AZS5jNpi2EN4DMuwmXhfpWJeYjcv",
+  "environment": "production",
+  "url": "https://aegis-eight-azure.vercel.app/landing",
+  "live_checks_passed": 13,
+  "retained_source_identity_hashes": 7,
+  "showcase": "removed; /brand and /brand/ redirect to /landing",
+  "backend_and_locks_unchanged": true,
+  "learning_case": "780c7f1b-562f-4eb3-91b3-84028b47d573",
+  "learning_benefit": "unmeasured"
+}

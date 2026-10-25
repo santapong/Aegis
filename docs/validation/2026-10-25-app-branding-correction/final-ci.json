@@ -1,0 +1,43 @@
+{
+  "run_id": 40188615067,
+  "source_commit": "a28bb9b57e1b5b67464f62120e6d6bd35eb40599",
+  "jobs": [
+    {
+      "id": 121154656170,
+      "name": "security scan (trivy)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 121154656306,
+      "name": "backend (sqlite / py3.11)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 121154656359,
+      "name": "frontend",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 121154656367,
+      "name": "backend (sqlite / py3.12)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 121154656382,
+      "name": "backend (postgres / py3.12)",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "id": 121154656751,
+      "name": "backend (postgres / py3.11)",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "scope": "Final frontend build/type/client checks passed. Backend/dependency source is unchanged from fully passing run40187570642; remaining automatic rerun state is shown without inference."
+}

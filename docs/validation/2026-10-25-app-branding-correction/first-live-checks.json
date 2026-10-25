@@ -1,0 +1,89 @@
+{
+  "target": "https://aegis-eight-azure.vercel.app",
+  "main_commit": "35dcc962e2c838c7a1323619cd50dd087b4ae830",
+  "checks": [
+    {
+      "path": "/brand",
+      "http": 308,
+      "location": "/landing",
+      "pass": true
+    },
+    {
+      "path": "/brand/",
+      "http": 404,
+      "location": null,
+      "pass": false
+    },
+    {
+      "path": "/landing",
+      "http": 200,
+      "union_mark": true,
+      "showcase_link_absent": true,
+      "pass": true
+    },
+    {
+      "path": "/login",
+      "http": 200,
+      "union_mark": true,
+      "showcase_link_absent": true,
+      "pass": true
+    },
+    {
+      "path": "/brand/aegis-union-icon.svg",
+      "http": 200,
+      "sha256": "436ed3b914512d50302cf6cff7601d07183512e69dee70d29fd398fae679c502",
+      "pass": true
+    },
+    {
+      "path": "/icon.png",
+      "http": 200,
+      "sha256": "31cfc71882bcaa6b5c738e4739a5d348ef6d3af25c3ceafe4b5bab1b78b0e4a3",
+      "pass": true
+    },
+    {
+      "path": "/apple-icon.png",
+      "http": 200,
+      "sha256": "9deb7e3ff08697383fe5e7d766c87c7eee7b15dd8c98f58aa9d80ccb5879667a",
+      "pass": true
+    },
+    {
+      "path": "/favicon.ico",
+      "http": 200,
+      "sha256": "89f8c93ccf0f651a6673e148c4b6f782c426651565fcc18266a230e2aa2f4472",
+      "pass": true
+    },
+    {
+      "path": "/llms.txt",
+      "http": 200,
+      "showcase_absent": true,
+      "pass": true
+    },
+    {
+      "path": "/sitemap.xml",
+      "http": 200,
+      "showcase_absent": true,
+      "pass": true
+    },
+    {
+      "path": "/docs/guides/brand",
+      "http": 404,
+      "pass": true
+    },
+    {
+      "path": "/api/health",
+      "http": 200,
+      "health": {
+        "status": "ok",
+        "version": "1.5.0",
+        "db": "ok"
+      },
+      "pass": true
+    },
+    {
+      "path": "/api/budgets/",
+      "http": 401,
+      "pass": true
+    }
+  ],
+  "pass": false
+}

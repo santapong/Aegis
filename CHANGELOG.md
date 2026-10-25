@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- Apply Union as Aegis application branding; retire the public Brand Studio page and links while preserving app icons and old-link redirects.
+
 ## [1.5.0] - 2026-10-25
 
 ### Union identity and release hardening
