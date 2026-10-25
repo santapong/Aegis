@@ -1,0 +1,503 @@
+{
+  "name": "Aegis \u2014 LINE delivery (inactive)",
+  "active": false,
+  "nodes": [
+    {
+      "id": "cdb45fc3-49e8-5c1d-b913-d49d40b67060",
+      "name": "Manual start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "c409e3ce-cc47-5756-ae7a-a2d51d07dc37",
+      "name": "Settings",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{fixture_mode:true,api_base:'https://aegis.example.invalid'}}];"
+      }
+    },
+    {
+      "id": "e9355dd5-9fc4-5f40-9439-297eae0b37f3",
+      "name": "Operator setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        100,
+        -330
+      ],
+      "parameters": {
+        "content": "## INACTIVE \u2014 fictional fixture by default\nTarget: n8n 2.33.3. Manual trigger only. Set Settings.fixture_mode=false only after G1/G2 review. Select separate Header Auth credentials for ingestion claim, delivery claim and LINE push. Lease headers are server issued. Never add direct ledger/database writes. Save execution data: none. Do not pin real financial data.",
+        "height": 250,
+        "width": 650
+      }
+    },
+    {
+      "id": "2221d2ac-0c10-527d-a639-9ff789985cd3",
+      "name": "Fixture delivery?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "38b2788c-60c2-559f-baca-81b353effeba",
+              "leftValue": "={{ $json.fixture_mode === true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "b2ce7657-2380-5228-9f60-21c39b0ca4b4",
+      "name": "Fixture delivery claim",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        -150
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{delivery:{id:'00000000-0000-4000-8000-000000000001',generation:1,lease_token:'fixture-delivery-capability',retry_key:'00000000-0000-4000-8000-000000000001',payload:{to:'U00000000000000000000000000000000',messages:[{type:'text',text:'FICTIONAL fixture: draft awaiting review. Nothing recorded.'}]}}}}];"
+      }
+    },
+    {
+      "id": "397be6aa-3223-5d17-ab0f-08d39fe4133a",
+      "name": "Claim delivery",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        660,
+        150
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Settings').first().json.api_base + '/api/integrations/delivery/claim' }}",
+        "options": {
+          "timeout": 45000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{}"
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "4f8bfc8b-6265-5989-bac3-ea4c30f14abf",
+      "name": "Delivery available?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        880,
+        150
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "ab38a9b5-3d31-5fa2-8364-bb7fe7c15116",
+              "leftValue": "={{ !!$json.delivery && !$json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "754f8293-17d0-571f-9d3d-a59b1bf2b354",
+      "name": "Delivery idle or blocked",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        350
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{state:$json.error?'delivery_blocked':'idle_or_budget_exhausted',no_financial_write:true}}];"
+      }
+    },
+    {
+      "id": "3984b736-729d-561c-89ac-035e035e512f",
+      "name": "Frozen LINE request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const d=$json.delivery;if(!d||typeof d.payload?.to!=='string'||!Array.isArray(d.payload.messages)||!d.retry_key)throw new Error('Invalid frozen delivery');return [{json:{delivery:d,payload:d.payload,fixture_mode:$('Settings').first().json.fixture_mode}}];"
+      }
+    },
+    {
+      "id": "58e5519c-c6f6-5383-be02-e13bf00af56b",
+      "name": "Fixture provider?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1320,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "13d0490f-a689-5d59-b567-e47daa95b8db",
+              "leftValue": "={{ $json.fixture_mode === true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "99c6f31c-c2b4-5a4d-9b0f-a7397b868675",
+      "name": "Fixture provider acceptance",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        -150
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{state:'fixture_provider_accepted',real_message_sent:false,no_financial_write:true}}];"
+      }
+    },
+    {
+      "id": "b5063b91-4429-5ce3-8b1e-82f3d6731b59",
+      "name": "LINE push frozen body",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1540,
+        150
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.line.me/v2/bot/message/push",
+        "options": {
+          "timeout": 45000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Line-Retry-Key",
+              "value": "={{ $json.delivery.retry_key }}"
+            }
+          ]
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "d57c77fa-c6ce-56ab-8714-4d497aaac06a",
+      "name": "Network uncertain?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1760,
+        150
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2a00f7e8-e46b-59ca-bcc5-c3fd8362ede7",
+              "leftValue": "={{ !!$json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "aa36bb2e-0a6b-5f72-b8fc-7dcd2dde0956",
+      "name": "Delivery uncertain",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1980,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Settings').first().json.api_base + '/api/integrations/delivery/' + $('Frozen LINE request').first().json.delivery.id + '/fail' }}",
+        "options": {
+          "timeout": 45000
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('Claim delivery').first().json.delivery.lease_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({generation:$('Frozen LINE request').first().json.delivery.generation}) }}"
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "a43b59c6-ee62-5b9b-a218-a4107ac653eb",
+      "name": "Record provider outcome",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1980,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Settings').first().json.api_base + '/api/integrations/delivery/' + $('Frozen LINE request').first().json.delivery.id + '/complete' }}",
+        "options": {
+          "timeout": 45000
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('Claim delivery').first().json.delivery.lease_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({generation:$('Frozen LINE request').first().json.delivery.generation,provider_status:$json.statusCode,provider_ack:($json.headers||{})['x-line-accepted-request-id']||null}) }}"
+      },
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Fixture delivery?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixture delivery?": {
+      "main": [
+        [
+          {
+            "node": "Fixture delivery claim",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Claim delivery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim delivery": {
+      "main": [
+        [
+          {
+            "node": "Delivery available?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delivery available?": {
+      "main": [
+        [
+          {
+            "node": "Frozen LINE request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delivery idle or blocked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixture delivery claim": {
+      "main": [
+        [
+          {
+            "node": "Frozen LINE request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Frozen LINE request": {
+      "main": [
+        [
+          {
+            "node": "Fixture provider?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixture provider?": {
+      "main": [
+        [
+          {
+            "node": "Fixture provider acceptance",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "LINE push frozen body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LINE push frozen body": {
+      "main": [
+        [
+          {
+            "node": "Network uncertain?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Network uncertain?": {
+      "main": [
+        [
+          {
+            "node": "Delivery uncertain",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Record provider outcome",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual start": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Asia/Bangkok",
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "saveExecutionProgress": false
+  },
+  "pinData": {}
+}

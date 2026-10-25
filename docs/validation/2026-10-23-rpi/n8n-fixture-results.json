@@ -1,0 +1,49 @@
+{
+  "ingestion": {
+    "status": "success",
+    "runtime": "ARM64 n8n2.33.3",
+    "result": {
+      "state": "awaiting_owner_review",
+      "draft_id": "fixture-pending-draft",
+      "version": 1,
+      "no_money_posted": true
+    },
+    "http_nodes_executed": 0,
+    "network": "none"
+  },
+  "delivery": {
+    "status": "success",
+    "runtime": "ARM64 n8n2.33.3",
+    "result": {
+      "state": "fixture_provider_accepted",
+      "real_message_sent": false,
+      "no_financial_write": true
+    },
+    "http_nodes_executed": 0,
+    "network": "none"
+  },
+  "operations": {
+    "status": "success",
+    "runtime": "ARM64 n8n2.33.3",
+    "result": {
+      "state": "review_operations",
+      "counts": {
+        "jobs": {
+          "queued": 2,
+          "failed": 1
+        },
+        "outbox": {
+          "pending": 1
+        },
+        "reconciliation": {
+          "unresolved": 1
+        },
+        "fixture": true
+      },
+      "notify": false,
+      "note": "Manual report only. Scheduling or owner notification needs deliberate setup."
+    },
+    "http_nodes_executed": 0,
+    "network": "none"
+  }
+}

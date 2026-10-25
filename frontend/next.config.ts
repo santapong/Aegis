@@ -25,6 +25,13 @@ const appVersion: string = JSON.parse(
 ).version;
 
 const nextConfig: NextConfig = {
+  // FastAPI collection routes retain their slash through the same-origin proxy.
+  skipTrailingSlashRedirect: true,
+  // Keep page generation serial on the owner's four-core workstation/Pi.
+  // Container CPU quotas are still required to bound the whole build process.
+  experimental: { cpus: 1 },
+  // Isolate optional preview output from release builds in the shared checkout.
+  distDir: process.env.AEGIS_DIST_DIR || ".next",
   output: isVercel ? undefined : "standalone",
   env: {
     NEXT_PUBLIC_APP_VERSION: appVersion,
@@ -42,10 +49,17 @@ const nextConfig: NextConfig = {
     //    / Docker / etc.). Browser hits `/api/*`, Next.js rewrites
     //    server-side to BACKEND_INTERNAL_URL. Same-origin from the
     //    browser's POV; cookie + auth + CORS work cleanly.
+    const markdownRoutes = [{ source: "/docs/:audience/:topic.md", destination: "/docs-source/:audience/:topic" }];
     const explicitBackendUrl = process.env.BACKEND_INTERNAL_URL;
     if (explicitBackendUrl) {
       // Topology 2 (or local dev with the var set).
       return [
+        ...markdownRoutes,
+        // Wildcard captures omit the final slash; preserve it explicitly.
+        {
+          source: "/api/:path*/",
+          destination: `${explicitBackendUrl}/api/:path*/`,
+        },
         {
           source: "/api/:path*",
           destination: `${explicitBackendUrl}/api/:path*`,
@@ -55,10 +69,15 @@ const nextConfig: NextConfig = {
     if (isVercel) {
       // Topology 1 on Vercel — Vercel's experimentalServices handles
       // /api/* routing. A rewrite here would collide.
-      return [];
+      return markdownRoutes;
     }
     // Local dev fallback — `npm run dev` against a uvicorn on :8000.
     return [
+      ...markdownRoutes,
+      {
+        source: "/api/:path*/",
+        destination: "http://localhost:8000/api/:path*/",
+      },
       {
         source: "/api/:path*",
         destination: "http://localhost:8000/api/:path*",

@@ -1,0 +1,254 @@
+{
+  "date": "2026-09-28",
+  "browser": "152.0.7977.83",
+  "mode": "isolated headless Chromium; mocked auth responses; no real account",
+  "checks": [
+    {
+      "name": "Page title and one h1",
+      "passed": true
+    },
+    {
+      "name": "No fabricated claims or recovery link",
+      "passed": true
+    },
+    {
+      "name": "Google not offered when unconfigured",
+      "passed": true
+    },
+    {
+      "name": "Layout 320",
+      "passed": true,
+      "detail": {
+        "width": 320,
+        "scroll": 320,
+        "overflow": [],
+        "small": []
+      }
+    },
+    {
+      "name": "44px controls 320",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "Access without planner on 320",
+      "passed": true
+    },
+    {
+      "name": "Layout 390",
+      "passed": true,
+      "detail": {
+        "width": 390,
+        "scroll": 390,
+        "overflow": [],
+        "small": []
+      }
+    },
+    {
+      "name": "44px controls 390",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "Access without planner on 390",
+      "passed": true
+    },
+    {
+      "name": "Layout 768",
+      "passed": true,
+      "detail": {
+        "width": 768,
+        "scroll": 768,
+        "overflow": [],
+        "small": []
+      }
+    },
+    {
+      "name": "44px controls 768",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "Access without planner on 768",
+      "passed": true
+    },
+    {
+      "name": "Layout 1024",
+      "passed": true,
+      "detail": {
+        "width": 1024,
+        "scroll": 1024,
+        "overflow": [],
+        "small": []
+      }
+    },
+    {
+      "name": "44px controls 1024",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "Access without planner on 1024",
+      "passed": true
+    },
+    {
+      "name": "Layout 1440",
+      "passed": true,
+      "detail": {
+        "width": 1440,
+        "scroll": 1440,
+        "overflow": [],
+        "small": []
+      }
+    },
+    {
+      "name": "44px controls 1440",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "Access without planner on 1440",
+      "passed": true
+    },
+    {
+      "name": "Layout 1920",
+      "passed": true,
+      "detail": {
+        "width": 1920,
+        "scroll": 1920,
+        "overflow": [],
+        "small": []
+      }
+    },
+    {
+      "name": "44px controls 1920",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "Access without planner on 1920",
+      "passed": true
+    },
+    {
+      "name": "Help opens by keyboard with truthful recovery limits",
+      "passed": true
+    },
+    {
+      "name": "Help preserves typed input",
+      "passed": true
+    },
+    {
+      "name": "Help closes by keyboard",
+      "passed": true
+    },
+    {
+      "name": "Autofill hints",
+      "passed": true
+    },
+    {
+      "name": "Empty form stays local",
+      "passed": true
+    },
+    {
+      "name": "Malformed email stays local",
+      "passed": true
+    },
+    {
+      "name": "Reveal preserves input",
+      "passed": true
+    },
+    {
+      "name": "Keyboard hides password",
+      "passed": true
+    },
+    {
+      "name": "Keyboard email to password",
+      "passed": true
+    },
+    {
+      "name": "Keyboard password to reveal",
+      "passed": true
+    },
+    {
+      "name": "Visible keyboard focus on submit",
+      "passed": true
+    },
+    {
+      "name": "Pending disables fields and announces progress",
+      "passed": true
+    },
+    {
+      "name": "One POST with credentials in body",
+      "passed": true
+    },
+    {
+      "name": "Error announces and receives focus",
+      "passed": true
+    },
+    {
+      "name": "Error retains input and permits retry",
+      "passed": true
+    },
+    {
+      "name": "Recoverable 429 error",
+      "passed": true
+    },
+    {
+      "name": "Recoverable 503 error",
+      "passed": true
+    },
+    {
+      "name": "Recoverable 422 error",
+      "passed": true
+    },
+    {
+      "name": "Recoverable network error",
+      "passed": true
+    },
+    {
+      "name": "Recoverable session error",
+      "passed": true
+    },
+    {
+      "name": "No client exceptions through errors",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "Destination /landing",
+      "passed": true
+    },
+    {
+      "name": "Destination /register",
+      "passed": true
+    },
+    {
+      "name": "Destination /docs",
+      "passed": true
+    },
+    {
+      "name": "Success redirects and sets user without token/password storage",
+      "passed": true
+    },
+    {
+      "name": "No JS visible fallback",
+      "passed": true
+    },
+    {
+      "name": "No JS disables credential submission",
+      "passed": true
+    },
+    {
+      "name": "Native help works without JavaScript",
+      "passed": true
+    },
+    {
+      "name": "No canvas or decorative motion",
+      "passed": true
+    },
+    {
+      "name": "Brand image decoded",
+      "passed": true
+    }
+  ]
+}

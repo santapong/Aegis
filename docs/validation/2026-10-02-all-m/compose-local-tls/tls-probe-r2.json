@@ -1,0 +1,60 @@
+{
+  "started_at": "2026-10-02T13:25:35.612678+00:00",
+  "scope": "actual Caddy local-CA HTTPS; client trusts only the generated public root; fictional records, no real channel",
+  "checks": {
+    "tls": {
+      "version": "TLSv1.3",
+      "certificate_hostname_verified": true,
+      "generated_ca_sha256": "98d0547881247aa95069e7d6ae392eff604aea20943af7d3b41cde3e3f83f542"
+    },
+    "https_api_health": {
+      "status": "ok",
+      "version": "1.0.0",
+      "db": "ok",
+      "features": {
+        "ai": "not_configured",
+        "ai_provider": "anthropic",
+        "stripe": "not_configured"
+      },
+      "stripe_mode": "not_configured"
+    },
+    "https_pages": {
+      "/landing": 200,
+      "/login": 200,
+      "/docs": 200,
+      "/docs/developers/local-setup": 200,
+      "/demo": 200,
+      "/changelog": 200,
+      "/cashflow": 200
+    },
+    "https_static_assets": 39,
+    "production_session_cookie": {
+      "secure": true,
+      "http_only": true,
+      "same_site": "lax"
+    },
+    "personal": {
+      "missing_opening_unknown": true,
+      "same_key_movement_once": true,
+      "cash_before_and_after_match": "5100.00",
+      "closing_before_match": "5300.00",
+      "closing_after_match": "5200.00",
+      "reserve_does_not_post_cash": true
+    },
+    "business": {
+      "matching_cash_effect": "0.00",
+      "remaining_receivable": "800.00",
+      "cash": "5700.00",
+      "weeks": 13,
+      "opening_variance": "500.00",
+      "unclassified": "0.00",
+      "saved_payload_immutable": true
+    },
+    "session_and_isolation": {
+      "anonymous_and_after_logout": 401,
+      "other_owner_workspace_and_snapshot": 404
+    }
+  },
+  "status": "passed",
+  "finished_at": "2026-10-02T13:25:39.695578+00:00"
+}

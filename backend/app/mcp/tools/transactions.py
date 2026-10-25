@@ -19,6 +19,8 @@ from ...schemas.transaction import (
     TransactionUpdate,
 )
 from ...services.notification_service import evaluate_budget_thresholds
+from ...services.transaction_scope import claim_transaction
+from ...services.finance_reads import guard_legacy_writer, cutover_active, canonical_transactions, lock_legacy_owner
 from ..schemas import pydantic_to_mcp_schema
 from ..session import resolve_user_id, session_scope
 
@@ -42,7 +44,20 @@ def _serialize(txn: Transaction) -> dict[str, Any]:
 async def list_transactions(args: dict[str, Any]) -> str:
     user_id = resolve_user_id()
     with session_scope() as db:
-        q = db.query(Transaction).filter(Transaction.user_id == user_id)
+        if cutover_active(db, user_id):
+            rows = canonical_transactions(db, user_id, date.fromisoformat(args["start_date"]) if args.get("start_date") else None, date.fromisoformat(args["end_date"]) if args.get("end_date") else None)
+            for field in ("category", "trip_id"):
+                if args.get(field):
+                    rows = [row for row in rows if row[field] == args[field]]
+            if args.get("type") in {"income", "expense"}:
+                rows = [row for row in rows if int(row[args["type"] + "_effect_minor"]) != 0]
+            if args.get("q"):
+                needle = args["q"].strip().lower()
+                rows = [row for row in rows if needle in (row["description"] or "").lower() or needle in (row["category"] or "").lower()]
+            rows.reverse()
+            offset, limit = max(int(args.get("offset", 0)), 0), min(max(int(args.get("limit", 100)), 1), 500)
+            return json.dumps(rows[offset:offset+limit])
+        q = db.query(Transaction).filter((Transaction.user_id == user_id) & Transaction.workspace_id.is_(None))
         if t := args.get("type"):
             q = q.filter(Transaction.type == TransactionType(t))
         if c := args.get("category"):
@@ -68,6 +83,7 @@ async def create_transaction(args: dict[str, Any]) -> str:
     payload = TransactionCreate.model_validate(args)
     user_id = resolve_user_id()
     with session_scope() as db:
+        guard_legacy_writer(db, user_id)
         _check_trip_owner(db, payload.trip_id, user_id)
         tag_ids = payload.tag_ids
         data = payload.model_dump(exclude={"tag_ids"})
@@ -90,11 +106,8 @@ async def update_transaction(args: dict[str, Any]) -> str:
     update = TransactionUpdate.model_validate({k: v for k, v in args.items() if k != "transaction_id"})
     user_id = resolve_user_id()
     with session_scope() as db:
-        db_txn = (
-            db.query(Transaction)
-            .filter(Transaction.id == txn_id, Transaction.user_id == user_id)
-            .first()
-        )
+        lock_legacy_owner(db, user_id)
+        db_txn = claim_transaction(db, user_id, txn_id, legacy_only=True)
         if not db_txn:
             raise ValueError(f"Transaction {txn_id} not found")
         data = update.model_dump(exclude_unset=True)

@@ -1,0 +1,7 @@
+{
+  "manifest_entries_match": 334,
+  "evidence_json_parsed": 55,
+  "compose_only_delta": true,
+  "original_external_gates_still_open": true,
+  "unchanged_suites_not_rerun": true
+}

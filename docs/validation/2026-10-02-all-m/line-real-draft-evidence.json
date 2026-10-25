@@ -1,0 +1,37 @@
+{
+  "checked_at": "2026-10-05T03:09:38.867325+00:00",
+  "destination": {
+    "workspace": "LINE personal pilot · fictional",
+    "account": "Personal test cash",
+    "currency": "THB"
+  },
+  "real_draft": {
+    "state": "pending",
+    "amount": "1.00",
+    "type": "expense",
+    "date": "2026-10-05",
+    "draft_reference_hash": "1a096a4e4f5e2d1fb6cb03e2d6236ad063858512f289a64a8c0cd7cb1be11764",
+    "expected_label": true,
+    "expected_destination": true,
+    "current_connection": true,
+    "same_revision": true
+  },
+  "before_confirmation": {
+    "cash_today": "1000.00",
+    "movement_count": 0,
+    "revision": 3,
+    "checked_at": "2026-10-05T03:05:58.148999+00:00"
+  },
+  "preview_delivery": {
+    "provider_status_codes": [
+      200
+    ],
+    "checked_at": "2026-10-05T03:06:34.599065+00:00",
+    "total_reply_counts": {
+      "delivered": 3
+    },
+    "handset_receipt": "awaiting owner report"
+  },
+  "next_action": "Owner reviews preview and sends its exact confirm line in LINE. Then root inspects once-only actual/cash999 and sends only own participant reply.",
+  "limits": "Real draft and provider acceptance only; no confirmed expense, money transfer, correction or completed M4.3/release claim. Application source/image/schema unchanged."
+}

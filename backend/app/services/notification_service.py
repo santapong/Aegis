@@ -4,9 +4,10 @@ Each entry point creates one row in ``notifications`` with an idempotent
 ``dedupe_key`` so callers can fire it from mutation hooks without worrying
 about duplicates.
 """
+
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta
+from datetime import date
 
 from sqlalchemy import func as sa_func
 from sqlalchemy.exc import IntegrityError
@@ -64,7 +65,9 @@ def notify_budget_overrun(
     ``period_start`` to dedupe trip-budget notifications by their actual window.
     """
     if period_key is None:
-        period_key = date.today().strftime("%Y-%m")
+        from .finance_reads import financial_today
+
+        period_key = financial_today(db, user_id).strftime("%Y-%m")
     pct = int(spent / cap * 100) if cap > 0 else 0
     if threshold >= 100:
         title = f"Budget over: {budget_name}"
@@ -132,7 +135,7 @@ def evaluate_budget_thresholds(
         spent_query = db.query(
             sa_func.coalesce(sa_func.sum(Transaction.amount), 0)
         ).filter(
-            Transaction.user_id == user_id,
+            (Transaction.user_id == user_id) & Transaction.workspace_id.is_(None),
             Transaction.type == TransactionType.expense,
             Transaction.date >= budget.period_start,
             Transaction.date <= budget.period_end,
@@ -163,7 +166,15 @@ def evaluate_budget_thresholds(
     return fired
 
 
-def notify_bill_reminder(db: Session, *, user_id: str, txn_id: str, description: str, amount: float, due: date) -> Notification | None:
+def notify_bill_reminder(
+    db: Session,
+    *,
+    user_id: str,
+    txn_id: str,
+    description: str,
+    amount: float,
+    due: date,
+) -> Notification | None:
     return _create(
         db,
         user_id=user_id,
@@ -175,7 +186,9 @@ def notify_bill_reminder(db: Session, *, user_id: str, txn_id: str, description:
     )
 
 
-def notify_goal_milestone(db: Session, *, user_id: str, goal_id: str, goal_name: str, percent: int) -> Notification | None:
+def notify_goal_milestone(
+    db: Session, *, user_id: str, goal_id: str, goal_name: str, percent: int
+) -> Notification | None:
     return _create(
         db,
         user_id=user_id,
@@ -187,7 +200,15 @@ def notify_goal_milestone(db: Session, *, user_id: str, goal_id: str, goal_name:
     )
 
 
-def notify_anomaly(db: Session, *, user_id: str, txn_id: str, category: str, amount: float, average: float) -> Notification | None:
+def notify_anomaly(
+    db: Session,
+    *,
+    user_id: str,
+    txn_id: str,
+    category: str,
+    amount: float,
+    average: float,
+) -> Notification | None:
     return _create(
         db,
         user_id=user_id,

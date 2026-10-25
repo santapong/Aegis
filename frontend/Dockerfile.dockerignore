@@ -1,0 +1,13 @@
+# Repository-root context for this Dockerfile only. Exclude all unrelated
+# source, databases, evidence and credentials before admitting frontend files.
+**
+!frontend/
+!frontend/**
+!CHANGELOG.md
+frontend/node_modules
+frontend/.next
+frontend/.next-*
+frontend/*.tsbuildinfo
+frontend/.git
+frontend/.env
+frontend/.env.*

@@ -1,0 +1,44 @@
+[
+  {
+    "service": "db",
+    "state": "running",
+    "health": "healthy",
+    "restart_count": 0,
+    "image_id": "sha256:108b27c919e6e7bc124350fb265deea9adac58e118eade428c6d1ad44b90debe"
+  },
+  {
+    "service": "redis",
+    "state": "running",
+    "health": "healthy",
+    "restart_count": 0,
+    "image_id": "sha256:aa189b5a1954929c393585e6dc5717a75b18f75a931df8bdcc00a3d3bd546be6"
+  },
+  {
+    "service": "backend",
+    "state": "running",
+    "health": "healthy",
+    "restart_count": 1,
+    "image_id": "sha256:25a6294af2e7bea62c16fbf3f0fbe71c5c27a46657aab5dcbd3e275907d50e4e"
+  },
+  {
+    "service": "worker",
+    "state": "running",
+    "health": "healthy",
+    "restart_count": 0,
+    "image_id": "sha256:25a6294af2e7bea62c16fbf3f0fbe71c5c27a46657aab5dcbd3e275907d50e4e"
+  },
+  {
+    "service": "frontend",
+    "state": "running",
+    "health": null,
+    "restart_count": 0,
+    "image_id": "sha256:d2bc2f72cea9b4e2a549884e93a832cdacacab804cf405bf075b68ce5960e10a"
+  },
+  {
+    "service": "caddy",
+    "state": "running",
+    "health": null,
+    "restart_count": 0,
+    "image_id": "sha256:2d8b1708bf8008935c0e2a9b6564f7f080cf9a73af3b27718f286230449b7101"
+  }
+]

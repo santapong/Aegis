@@ -1,0 +1,10 @@
+{
+  "checked_at": "2026-10-22T17:27:17.436499+00:00",
+  "memory_method": "summed RSS watchdog; not a kernel aggregate RAM cap",
+  "peak_summed_rss_bytes": 1033568256,
+  "last_summed_rss_bytes": 0,
+  "mem_available_bytes": 13404749824,
+  "temperature_c": 57.3,
+  "containers": [],
+  "events": []
+}

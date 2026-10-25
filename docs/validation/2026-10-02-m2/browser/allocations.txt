@@ -1,0 +1,31 @@
+GIVE CASH A PURPOSE
+Goals without counting money twice.
+
+A reservation leaves money in its account and reduces available headroom. A transferred goal links a transfer you already recorded. It creates no second cash movement or reservation.
+
+Add a goal allocation
+
+Saved. Reserved headroom and entered payments have been recalculated. Legacy goal progress and debt principal are unchanged.
+
+Savings transfer purpose · fictional
+
+THB 100.00 · Linked to a recorded transfer · Savings cash · fictional
+
+Release allocation
+Emergency reserve · fictional
+
+THB 1,000.00 · Reserved in the account · Everyday checking · fictional
+
+Review reserved amount
+Release allocation
+ENTER WHAT YOU OWE WHEN YOU KNOW IT
+Installments on real dates
+
+Enter each expected payment and its full amount. You can link an existing debt after checking its currency. Aegis does not calculate interest, amortization, or update the debt’s principal from these entered dates.
+
+Enter an installment schedule
+Device installments · fictional
+
+2 entered payments · Manual schedule
+
+Review dates, matches, and cancellations in Upcoming plans.

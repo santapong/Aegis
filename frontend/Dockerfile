@@ -3,7 +3,7 @@ FROM oven/bun:1 AS deps
 
 WORKDIR /app
 
-COPY package.json bun.lock* ./
+COPY frontend/package.json frontend/bun.lock* ./
 RUN bun install --frozen-lockfile
 
 # ---------- Build stage ----------
@@ -12,7 +12,10 @@ FROM oven/bun:1 AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY frontend/ .
+# The changelog page reads the canonical repository file one level above
+# the frontend directory. Build from the repository root (see Makefile).
+COPY CHANGELOG.md /CHANGELOG.md
 
 # NEXT_PUBLIC_* env vars are inlined at build time. Aegis prefers the
 # same-origin Next.js `rewrites()` proxy (see `next.config.ts`), so we
@@ -48,6 +51,7 @@ RUN addgroup --system --gid 1001 appgroup && \
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=appuser:appgroup /app/.next/standalone ./
 COPY --from=builder --chown=appuser:appgroup /app/.next/static ./.next/static
+COPY --from=builder /CHANGELOG.md /CHANGELOG.md
 
 USER appuser
 

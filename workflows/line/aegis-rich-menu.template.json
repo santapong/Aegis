@@ -1,0 +1,83 @@
+{
+  "size": {
+    "width": 2500,
+    "height": 1686
+  },
+  "selected": false,
+  "name": "Aegis finance — reviewed setup required",
+  "chatBarText": "Aegis finance",
+  "areas": [
+    {
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 833,
+        "height": 843
+      },
+      "action": {
+        "type": "postback",
+        "data": "aegis-menu:slip"
+      }
+    },
+    {
+      "bounds": {
+        "x": 833,
+        "y": 0,
+        "width": 833,
+        "height": 843
+      },
+      "action": {
+        "type": "postback",
+        "data": "aegis-menu:entry"
+      }
+    },
+    {
+      "bounds": {
+        "x": 1666,
+        "y": 0,
+        "width": 834,
+        "height": 843
+      },
+      "action": {
+        "type": "postback",
+        "data": "aegis-menu:balances"
+      }
+    },
+    {
+      "bounds": {
+        "x": 0,
+        "y": 843,
+        "width": 833,
+        "height": 843
+      },
+      "action": {
+        "type": "postback",
+        "data": "aegis-menu:budgets"
+      }
+    },
+    {
+      "bounds": {
+        "x": 833,
+        "y": 843,
+        "width": 833,
+        "height": 843
+      },
+      "action": {
+        "type": "postback",
+        "data": "aegis-menu:pending"
+      }
+    },
+    {
+      "bounds": {
+        "x": 1666,
+        "y": 843,
+        "width": 834,
+        "height": 843
+      },
+      "action": {
+        "type": "postback",
+        "data": "aegis-menu:help"
+      }
+    }
+  ]
+}

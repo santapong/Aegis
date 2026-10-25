@@ -1,0 +1,95 @@
+{
+  "date": "2026-10-25",
+  "timezone": "Asia/Bangkok",
+  "product_validation": "INCOMPLETE: real budget browser flow failed",
+  "source": "isolated Horizon+LINE candidate, Git base e2c4a9c; unapplied feature integration patch",
+  "robot": {
+    "first": {
+      "pass": 16,
+      "fail": 4
+    },
+    "rerun": {
+      "pass": 20,
+      "fail": 0
+    },
+    "version": "7.5",
+    "transport": "real HTTP",
+    "database": "real isolated PostgreSQL",
+    "independent_qr_decode": "PASS via ZXing3.1.1"
+  },
+  "pytest": {
+    "full_sqlite": {
+      "pass": 266,
+      "skip": 20
+    },
+    "pg_selection_first": {
+      "pass": 63,
+      "fail": 1
+    },
+    "pg_selection_rerun": {
+      "pass": 64,
+      "skip": 0
+    },
+    "qualification": "Two new budget races and previously skipped lock boundaries executed on PostgreSQL. Some read fixtures within the selection remain SQLite."
+  },
+  "frontend": {
+    "build": "PASS",
+    "pages": 97,
+    "types": "PASS",
+    "browser": {
+      "login": "PASS",
+      "accounts_opening": "PASS",
+      "qr_and_signed_synthetic_link": "PASS",
+      "budget_collection": "FAIL",
+      "corrected_budget_ui": "NOT RUN",
+      "mobile_full_candidate": "NOT RUN"
+    },
+    "proposed_proxy_regression": "NOT RUN"
+  },
+  "findings": [
+    "P1 Next/FastAPI collection slash redirects escape frontend origin and prevent budget data loading",
+    "Horizon input snapshot omitted new feature widgets; isolated integration patch remains unapplied",
+    "Secondary dashboard currency/unassigned labels need a separate recheck"
+  ],
+  "resources": {
+    "host": "Raspberry Pi ARM64",
+    "container_cpu_total_max_cores": 1,
+    "configured_pid_total_max": 256,
+    "sampled_peak_rss_bytes": 1033682944,
+    "memory_cap": "No hard aggregate memory cap; soft1.5GiB RSS watchdog",
+    "watchdog_lifetime_seconds": 1800.98,
+    "guard_events": [],
+    "temporary_bytes_before_cleanup": 396944960,
+    "postgres_storage": "256MiB tmpfs; removed",
+    "heavy_phase_timeout_seconds": 600
+  },
+  "cleanup": {
+    "task_containers_remaining": 0,
+    "watchdog_present": false,
+    "private_link_file_absent": true,
+    "temporary_bytes_before_cleanup": 396944960,
+    "dependencies_and_build_cache_removed": true,
+    "postgres_data_was_tmpfs_and_is_gone": true,
+    "source_and_built_artifact_retained": true,
+    "guard_lifetime_seconds": 1800.98,
+    "preview_and_forward_closed": true,
+    "fixture_browser_cookie_removed": true,
+    "browser_tabs_closed": true,
+    "live_line_workflows": "both inactive",
+    "production_n8n_health": "200/200"
+  },
+  "not_run": [
+    "live LINE/phone camera/provider delivery",
+    "CVE scan",
+    "remote CI",
+    "production rollout",
+    "new frontend-proxy Robot case",
+    "post-fix budget UI"
+  ],
+  "learning": {
+    "mechanism": "Combine direct HTTP/PostgreSQL acceptance with the actual browser-facing proxy topology. Keep queue creator/selector clocks coherent and PG statistics observation fresh.",
+    "working_result": "Direct API succeeds, but the browser budget path contradicts complete feature acceptance.",
+    "boundary_result": "Expiry, ownership, duplicate confirmations and actual row-lock behavior supported.",
+    "benefit": "unmeasured; passing runs do not prove a general learning benefit."
+  }
+}

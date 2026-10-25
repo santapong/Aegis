@@ -1,0 +1,17 @@
+{
+  "samples": 20,
+  "peak_rss_bytes": 154763264,
+  "available_bytes": 12100714496,
+  "temperature_c": 65.0,
+  "controls": {
+    "/aegis-line-tools-20261025-bun-prepare": {
+      "cpu.max": "75000 100000",
+      "pids.max": "128"
+    },
+    "/aegis-line-tools-20261025-frontend-prepare": {
+      "cpu.max": "50000 100000",
+      "pids.max": "128"
+    }
+  },
+  "events": []
+}

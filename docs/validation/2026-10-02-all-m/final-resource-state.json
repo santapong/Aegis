@@ -1,0 +1,23 @@
+{
+  "checked_at": "2026-10-02T13:34:51.813693+00:00",
+  "exact_disposable_containers_remaining": [],
+  "original_pilot_database": "exited",
+  "original_preview_services": {
+    "aegis-cashflow-api.service": {
+      "ActiveState": "inactive",
+      "SubState": "dead",
+      "MainPID": "0"
+    },
+    "aegis-cashflow-web-isolated.service": {
+      "ActiveState": "inactive",
+      "SubState": "dead",
+      "MainPID": "0"
+    }
+  },
+  "reviewed_images_preserved": {
+    "aegis-backend:cash-review-20261002": "sha256:25a6294af2e7bea62c16fbf3f0fbe71c5c27a46657aab5dcbd3e275907d50e4e",
+    "aegis-frontend:cash-review-20261002": "sha256:d2bc2f72cea9b4e2a549884e93a832cdacacab804cf405bf075b68ce5960e10a"
+  },
+  "latest_compose_cleanup": "compose-local-tls/cleanup-r2.json",
+  "scope": "read-only final state; no restarted preview or real messaging"
+}

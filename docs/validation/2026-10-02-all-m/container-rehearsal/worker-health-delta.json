@@ -1,0 +1,11 @@
+{
+  "previous_build_input_hash": "0855752f343c865fb21a092896dbee73b4f6ad4be2e10fcc89b3ac410dd41a41",
+  "current_operational_input_hash": "490ac350835000e53c809512c2770f10e1f613212afa4699e29ec137cfed7875",
+  "delta": {
+    "docker-compose.yml": {
+      "before": "7a29d5ab52c424b31efc4ab7c44017c0a425abb74d7f421253479e658690ac94",
+      "after": "0477670786f5490d958845c8a4300a3840df26b8267292fcb9f2e7a4d9ef9553"
+    }
+  },
+  "image_source_unchanged": true
+}

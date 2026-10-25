@@ -1,0 +1,87 @@
+- complementary:
+  - button "Expand sidebar":
+  - navigation:
+    - link "Cash planning":
+      - /url: /cashflow
+    - link "Dashboard":
+      - /url: /
+    - link "Unassigned records":
+      - /url: /transactions
+    - link "Reports":
+      - /url: /reports
+    - link "Budgets":
+      - /url: /budgets
+    - link "Savings":
+      - /url: /savings
+    - link "Investments":
+      - /url: /investments
+    - link "Debts":
+      - /url: /debts
+    - link "Calendar":
+      - /url: /calendar
+    - link "Gantt":
+      - /url: /gantt
+    - link "Trips":
+      - /url: /trips
+    - link "Scenarios":
+      - /url: /plans
+    - link "Docs":
+      - /url: /docs
+    - link "Settings":
+      - /url: /settings
+    - link "Onboarding":
+      - /url: /welcome
+  - button "AI advisor":
+  - generic: A
+  - button "Sign out":
+- main:
+  - generic: SET · system / preferences
+  - heading "Settings" [level=1]
+  - generic: Customize your Aegis experience.
+  - button "Appearance"
+  - button "Preferences"
+  - button "LINE finance"
+  - button "About"
+  - heading "LINE finance" [level=3]
+  - paragraph: Send a short money entry to your separate finance bot. Review its destination, amount and date in chat, then confirm before Aegis records it. This does not send money.
+  - paragraph: Not connected
+  - paragraph: The separate finance bot is awaiting server setup.
+  - group "Choose where confirmed money is recorded":
+    - generic: Choose where confirmed money is recorded
+    - generic: LINE cash workspace
+    - combobox "LINE cash workspace":
+      - option "Choose a THB workspace" [disabled]
+      - option "Business M3 review · fictional · business · THB"
+      - option "Business X · fictional example · business · THB" [selected]
+      - option "M2 everyday review · fictional · personal · THB"
+      - option "Mina · fictional example · personal · THB"
+      - option "Setup check · fictional · business · THB"
+    - generic: LINE cash account
+    - combobox "LINE cash account":
+      - option "Choose a cash account" [disabled]
+      - option "Operating cash · THB" [selected]
+    - checkbox "I checked that confirmed entries belong in Business X · fictional example → Operating cash, in THB." [checked] [active]
+    - generic: I checked that confirmed entries belong in Business X · fictional example → Operating cash, in THB.
+    - button "Generate destination link code" [disabled]
+  - button "Check connection"
+  - paragraph:
+    - text: Try “expense 65 coffee” or “รับ 35000 เงินเดือน”. Each draft names its workspace and account. If the workspace changes, send a fresh draft. Use “month” for recorded activity in this account; match payments in
+    - link "Cash planning":
+      - /url: /cashflow
+    - text: . Undo preserves cash history; unmatch a payment before reversing it. Receipt images and transfers are not enabled.
+- status "Application status":
+  - generic: AEGIS
+  - generic: ·
+  - generic: draft meridian
+  - generic: ·
+  - generic: node aegis-01
+  - generic: ·
+  - text: latency
+  - generic: 46ms
+  - generic: ·
+  - generic: last sync just now
+  - generic: BKK · 15:40:21
+  - generic: ·
+  - generic: / command · ? shortcuts
+- button "Open Next.js Dev Tools":
+- alert

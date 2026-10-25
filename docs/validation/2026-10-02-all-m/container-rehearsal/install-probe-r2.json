@@ -1,0 +1,20 @@
+{
+  "started_at": "2026-10-02T10:09:08.013538+00:00",
+  "scope": "fresh local container installation; fictional users only; provider delivery disabled",
+  "checks": {
+    "same_origin_api_health": {
+      "status": "ok",
+      "version": "1.0.0",
+      "db": "ok",
+      "features": {
+        "ai": "not_configured",
+        "ai_provider": "anthropic",
+        "stripe": "not_configured"
+      },
+      "stripe_mode": "not_configured"
+    }
+  },
+  "status": "failed",
+  "error": "",
+  "finished_at": "2026-10-02T10:09:40.249700+00:00"
+}

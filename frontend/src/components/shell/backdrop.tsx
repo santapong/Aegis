@@ -11,7 +11,8 @@ import { BlackHole } from "./black-hole";
  * a data screen and renders on the plain base surface only (body gets the
  * `route-app` class, which also zeroes the glow tokens — see globals.css).
  */
-const MARKETING_ROUTES = ["/landing", "/welcome", "/login", "/register"];
+// Landing and sign-in own opaque, static surfaces; do not animate behind them.
+const MARKETING_ROUTES = ["/welcome", "/register"];
 
 /**
  * Backdrop — 4 stacked layers behind all app content:
@@ -28,7 +29,7 @@ const MARKETING_ROUTES = ["/landing", "/welcome", "/login", "/register"];
 export function Backdrop() {
   const theme = useAppStore((s) => s.theme);
   const pathname = usePathname();
-  const decorated = MARKETING_ROUTES.some((r) => pathname?.startsWith(r));
+  const decorated = !["horizon", "horizon-dark"].includes(theme) && MARKETING_ROUTES.some((r) => pathname?.startsWith(r));
 
   useEffect(() => {
     document.body.classList.toggle("route-app", !decorated);

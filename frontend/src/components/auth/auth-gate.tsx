@@ -5,14 +5,15 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
 import { Sidebar } from "@/components/ui/sidebar";
 import { StatusBar } from "@/components/ui/status-bar";
+import { safeAuthReturn } from "@/lib/auth-return";
 
 const AUTH_PAGES = ["/login", "/register"];
-const PUBLIC_PAGES = ["/welcome", "/landing"];
-// Real content (docs, changelog) that a signed-out visitor should be able to
+const PUBLIC_PAGES = ["/welcome", "/landing", "/docs", "/demo", "/brand"];
+// Changelog content that a signed-out visitor should be able to
 // read without a redirect to /login, but that still belongs inside the app
 // shell (Sidebar/StatusBar) for a signed-in user — unlike PUBLIC_PAGES,
 // which are marketing pages that never get the shell.
-const OPEN_APP_PAGES = ["/docs", "/changelog"];
+const OPEN_APP_PAGES = ["/changelog"];
 
 function matchesPrefix(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`));
@@ -40,22 +41,27 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     if (!mounted) return;
     if (isPublicPage || isOpenAppPage) return;
     if (isAuthPage && isAuthenticated) {
-      router.push("/");
+      router.replace(safeAuthReturn(new URLSearchParams(window.location.search).get("next")));
       return;
     }
     if (!isAuthPage && !isAuthenticated) {
       // A signed-out visitor hitting the app root gets the marketing
       // landing page; deep links to specific app pages go to sign-in.
-      router.push(pathname === "/" ? "/landing" : "/login");
+      const returnPath = safeAuthReturn(pathname + window.location.search);
+      router.replace(pathname === "/" ? "/landing" : `/login?next=${encodeURIComponent(returnPath)}`);
     }
   }, [mounted, isAuthPage, isPublicPage, isOpenAppPage, isAuthenticated, pathname, router]);
 
-  if (!mounted) {
-    return null;
+  // Public marketing and documentation content must be present in the server-rendered HTML,
+  // including when JavaScript is unavailable. It does not depend on auth state.
+  // Sign-in renders its public shell before hydration. Its form stays disabled
+  // until ready, with a noscript explanation instead of a blank page.
+  if (isPublicPage || (isAuthPage && !mounted)) {
+    return <>{children}</>;
   }
 
-  if (isPublicPage) {
-    return <>{children}</>;
+  if (!mounted) {
+    return null;
   }
 
   if (isAuthPage) {
@@ -83,7 +89,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
             {children}
           </div>
         </main>
-        <StatusBar />
+        {!["/cashflow", "/accounts", "/review"].includes(pathname) && <StatusBar />}
       </div>
     </div>
   );

@@ -1,0 +1,195 @@
+- link "Skip to documentation":
+  - /url: "#docs-main"
+- banner:
+  - link "Aegis home":
+    - /url: /landing
+    - text: AEGIS
+  - navigation "Main navigation":
+    - link "How it works":
+      - /url: /landing#how-it-works
+    - link "Your plans":
+      - /url: /landing#your-plans
+    - link "Your data":
+      - /url: /landing#your-data
+    - link "Try the demo":
+      - /url: /demo
+    - link "Documentation":
+      - /url: /docs
+  - link "Sign in":
+    - /url: /login
+  - link "Get started":
+    - /url: /register
+    - text: Get started
+- navigation "Documentation sections":
+  - link "Overview":
+    - /url: /docs
+  - link "User guide":
+    - /url: /docs/guides
+  - link "Developers":
+    - /url: /docs/developers
+- search "Search documentation":
+  - searchbox "Search documentation"
+- complementary:
+  - link "Documentation home":
+    - /url: /docs
+  - paragraph: User guide
+  - navigation "Guides in this collection":
+    - link "Plan personal and business cash":
+      - /url: /docs/guides/cash-planning
+    - link "Record your first expense":
+      - /url: /docs/guides/first-steps
+    - link "Add or import transactions":
+      - /url: /docs/guides/transactions
+    - link "Set a budget or savings goal":
+      - /url: /docs/guides/budgets
+    - link "Put a plan on your calendar":
+      - /url: /docs/guides/plans
+    - link "Understand optional AI insights":
+      - /url: /docs/guides/ai
+    - link "Export your records":
+      - /url: /docs/guides/exports
+  - text: Building an integration?
+  - link "Go to developer docs":
+    - /url: /docs/developers
+    - text: Go to developer docs
+- main:
+  - link "Docs":
+    - /url: /docs
+  - generic: /
+  - link "User guide":
+    - /url: /docs/guides
+  - paragraph: Owner pilot
+  - heading "Plan personal and business cash" [level=1]
+  - paragraph: Start with checked balances, see upcoming dates, compare a change, and match payments once.
+  - generic: YOU'LL LEARN
+  - text: A dated cash plan with the accounts and assumptions you have reviewed.
+  - heading "Start with checked cash" [level=2]:
+    - link "Start with checked cash":
+      - /url: "#setup"
+  - complementary:
+    - strong: Available on installations with the cash-workspace pilot enabled.
+    - generic: This guide describes the first cash-planning release. The separately hosted landing and its fictional demo do not store account balances. Your installation administrator enables the feature after migrating and backing up its database.
+  - list:
+    - text: Sign in and open
+    - link "Cash planning":
+      - /url: /cashflow
+    - text: . Choose
+    - strong: New workspace
+    - text: ", a personal or business workspace, and THB or USD. Each workspace keeps one currency."
+    - text: Select
+    - strong: Add cash account
+    - text: . Name a bank account or cash you hold; this is a manual record, with no bank connection.
+    - text: In
+    - strong: Review opening cash
+    - text: ", enter a checked start-of-day amount, its date, and where you checked it. Include money that moved on that date using"
+    - strong: Record money
+    - text: .
+  - strong: What you should see
+  - paragraph: The overview shows cash from the checked opening amount plus recorded money since that date. Without an opening amount, Aegis asks for it and leaves cash unknown.
+  - paragraph:
+    - text: Keep personal and business accounts in their own workspaces. To record money already moved between your accounts, use
+    - strong: Accounts → Record transfer
+    - text: . A shared reference connects both workspaces; this action does not send money.
+  - heading "Read the dates and compare a change" [level=2]:
+    - link "Read the dates and compare a change":
+      - /url: "#dates"
+  - paragraph:
+    - text: Choose
+    - strong: Add upcoming money
+    - text: for an expected receipt or cost. Its expected cash date controls the forecast; a contractual due date is a separate reminder. One-time, weekly and monthly plans never post themselves as payments.
+  - paragraph:
+    - text: The overview, daily source table and
+    - strong: Money calendar
+    - text: use the same end-of-day amounts.
+    - strong: Lowest cash
+    - text: can reveal a shortage even when the closing amount is positive. A buffer reduces headroom without removing money from an account.
+  - table "Example values to enter":
+    - caption: Example values to enter
+    - rowgroup:
+      - row "Field in Aegis Example":
+        - columnheader "Field in Aegis"
+        - columnheader "Example"
+    - rowgroup:
+      - row "Fictional personal cash 47,000 THB":
+        - rowheader "Fictional personal cash"
+        - cell "47,000 THB"
+      - row "Laptop scenario 45,000 THB on October 12, 2026":
+        - rowheader "Laptop scenario"
+        - cell "45,000 THB on October 12, 2026"
+      - row "Lowest cash −500 THB on October 16":
+        - rowheader "Lowest cash"
+        - cell "−500 THB on October 16"
+      - row "October closing cash 3,900 THB":
+        - rowheader "October closing cash"
+        - cell "3,900 THB"
+  - paragraph:
+    - text: Use
+    - strong: Compare a change
+    - text: to save a different expected date or extra cost. The comparison uses the same starting cash and preserves the base records. Items moved beyond
+    - strong: Plan through
+    - text: remain under
+    - strong: Outside the visible plan
+    - text: . If the base changes, review it and choose
+    - strong: Refresh comparison
+    - text: .
+  - complementary:
+    - strong: Expected money is an assumption.
+    - generic: Daily closing amounts do not guarantee that a receipt arrives before a bill on the same day. Missing balances, unassigned records and unpaid past commitments produce review warnings.
+  - heading "Record and match once" [level=2]:
+    - link "Record and match once":
+      - /url: "#matching"
+  - list:
+    - text: Use
+    - strong: Record money
+    - text: when the payment has actually happened, with the correct account and actual date.
+    - text: Open
+    - strong: Review & match → Match a payment
+    - text: . Select the recorded payment, its unpaid commitment and the amount to allocate. Account, currency and direction must agree.
+    - text: Select
+    - strong: Preview match
+    - text: . Check the remaining amount before and after; the cash effect is zero because the payment already affects cash. Then select
+    - strong: Confirm match
+    - text: .
+  - strong: What you should see
+  - paragraph: For a 1,200 THB utilities payment, recorded cash falls once and the planned utilities amount becomes zero. A partial payment leaves only the unpaid remainder in the forecast.
+  - paragraph:
+    - strong: Undo match
+    - text: restores the planned remainder without changing cash. For an entry made by mistake, unmatch it first and use
+    - strong: Reverse record
+    - text: ; Aegis keeps the original and an opposite correction on its original date. An actual refund on a later date is a separate recorded movement.
+  - heading "Review older records" [level=2]:
+    - link "Review older records":
+      - /url: "#older-records"
+  - paragraph:
+    - text: Older transactions start in
+    - strong: Unassigned records
+    - text: . Their old currency preference is not proof of currency or account. Under
+    - strong: Accounts → Review and assign
+    - text: ", select reviewed records and explicitly confirm their account and currency. IDs and plan/trip links are preserved; no currency conversion happens."
+  - paragraph:
+    - text: If reviewed records belong outside a workspace, choose
+    - strong: Review exclusion
+    - text: . They remain unassigned and a new or edited record requires review again. Legacy dashboard, reports, budgets and exports use unassigned records; use Cash planning for account-scoped balances.
+  - paragraph: These are cash-planning workspaces for one owner. Invoice issuance, payroll, tax, bank feeds, CSV intake into cash accounts and chat capture into a workspace are later releases. Unsaved forms remain while changing views in this session; saved balances, commitments and scenarios survive reload.
+  - navigation "Continue reading":
+    - link "BACK TO COLLECTION User guide":
+      - /url: /docs/guides
+      - generic: BACK TO COLLECTION
+      - text: User guide
+    - link "NEXT GUIDE Record your first expense":
+      - /url: /docs/guides/first-steps
+      - generic: NEXT GUIDE
+      - text: Record your first expense
+- contentinfo:
+  - generic: Aegis documentation
+  - navigation "Documentation footer":
+    - link "Back to Aegis":
+      - /url: /landing
+    - link "Changelog":
+      - /url: /changelog
+    - link "Report an issue":
+      - /url: https://github.com/santapong/Aegis/issues
+    - link "Source code":
+      - /url: https://github.com/santapong/Aegis
+- button "Open Next.js Dev Tools":
+- alert

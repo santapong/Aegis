@@ -54,6 +54,24 @@ function notifySessionExpired() {
 
 async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
   const isPublic = PUBLIC_ENDPOINTS.some((p) => url.startsWith(p));
+  const origin = useAuthStore.getState();
+  const sessionChanged = () => {
+    const current = useAuthStore.getState();
+    return (
+      current.user !== origin.user ||
+      current.token !== origin.token ||
+      current.isAuthenticated !== origin.isAuthenticated
+    );
+  };
+  const checkSession = () => {
+    if (!isPublic && sessionChanged()) {
+      throw new APIError(
+        409,
+        "Session changed",
+        "Your sign-in changed while this request was running. Review the current workspace and retry.",
+      );
+    }
+  };
   // Auth is now cookie-based — the backend sets an httpOnly cookie on
   // login that the browser auto-attaches when `credentials: 'include'`
   // is set. For backward-compat with users mid-migration, if a token
@@ -69,6 +87,7 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
     credentials: "include",
     ...init,
   });
+  checkSession();
   if (res.status === 401) {
     if (isPublic) {
       let detail: string | undefined;
@@ -86,12 +105,28 @@ async function fetchJSON<T>(url: string, init?: RequestInit): Promise<T> {
     let detail: string | undefined;
     try {
       const body = await res.json();
-      detail = body.detail || body.message;
+      const raw = body.detail || body.message;
+      detail =
+        typeof raw === "string"
+          ? raw
+          : Array.isArray(raw)
+            ? raw
+                .slice(0, 5)
+                .map((issue: { loc?: (string | number)[]; msg?: string }) => {
+                  const field =
+                    issue.loc?.filter((part) => part !== "body").join(" ") ||
+                    "Field";
+                  return `${field}: ${issue.msg || "Check this value"}`;
+                })
+                .join(". ")
+            : undefined;
     } catch {}
     throw new APIError(res.status, `API error: ${res.status}`, detail);
   }
   if (res.status === 204) return undefined as T;
-  return res.json();
+  const result = await res.json();
+  checkSession();
+  return result;
 }
 
 /** DELETE helper that runs through fetchJSON's auth + error pipeline. */
@@ -110,12 +145,15 @@ interface AuthUser {
 
 export const authAPI = {
   register: (data: { email: string; username: string; password: string }) =>
-    fetchJSON<AuthUser>("/api/auth/register", { method: "POST", body: JSON.stringify(data) }),
+    fetchJSON<AuthUser>("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
   login: (data: { email: string; password: string }) =>
-    fetchJSON<{ access_token: string; token_type: string }>(
-      "/api/auth/login",
-      { method: "POST", body: JSON.stringify(data) }
-    ),
+    fetchJSON<{ access_token: string; token_type: string }>("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
   /**
    * Exchange a Google Identity Services credential (ID token) for an
    * Aegis JWT. Backend verifies the credential's signature against
@@ -125,13 +163,14 @@ export const authAPI = {
   googleSignIn: (credential: string) =>
     fetchJSON<{ access_token: string; token_type: string }>(
       "/api/auth/google",
-      { method: "POST", body: JSON.stringify({ credential }) }
+      { method: "POST", body: JSON.stringify({ credential }) },
     ),
   me: () => fetchJSON<AuthUser>("/api/auth/me"),
   /** Clear the httpOnly session cookie server-side. The client store
    *  is wiped separately by useAuthStore.logout(). */
   logout: () => fetchJSON<void>("/api/auth/logout", { method: "POST" }),
-  markOnboarded: () => fetchJSON<AuthUser>("/api/auth/onboarded", { method: "POST" }),
+  markOnboarded: () =>
+    fetchJSON<AuthUser>("/api/auth/onboarded", { method: "POST" }),
 };
 
 export const dashboardAPI = {
@@ -160,12 +199,18 @@ export const transactionsAPI = {
   },
   search: (q: string, limit = 20) =>
     fetchJSON<Transaction[]>(
-      `/api/transactions/?q=${encodeURIComponent(q)}&limit=${limit}`
+      `/api/transactions/?q=${encodeURIComponent(q)}&limit=${limit}`,
     ),
   create: (data: Record<string, unknown>) =>
-    fetchJSON("/api/transactions/", { method: "POST", body: JSON.stringify(data) }),
+    fetchJSON("/api/transactions/", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
   update: (id: string, data: Record<string, unknown>) =>
-    fetchJSON(`/api/transactions/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    fetchJSON(`/api/transactions/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
   summary: (start?: string, end?: string) => {
     const params = new URLSearchParams();
     if (start) params.set("start_date", start);
@@ -173,7 +218,9 @@ export const transactionsAPI = {
     return fetchJSON(`/api/transactions/summary?${params}`);
   },
   anomalies: (days = 90, threshold = 2.0) =>
-    fetchJSON(`/api/transactions/anomalies?days=${days}&threshold=${threshold}`),
+    fetchJSON(
+      `/api/transactions/anomalies?days=${days}&threshold=${threshold}`,
+    ),
   recurring: () => fetchJSON("/api/transactions/recurring"),
   upcoming: (days = 30) => fetchJSON(`/api/transactions/upcoming?days=${days}`),
   delete: (id: string) => fetchDELETE(`/api/transactions/${id}`),
@@ -218,7 +265,10 @@ export const plansAPI = {
   create: (data: Record<string, unknown>) =>
     fetchJSON("/api/plans/", { method: "POST", body: JSON.stringify(data) }),
   update: (id: string, data: Record<string, unknown>) =>
-    fetchJSON(`/api/plans/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    fetchJSON(`/api/plans/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
   updateProgress: (id: string, progress: number) =>
     fetchJSON(`/api/plans/${id}/progress`, {
       method: "PATCH",
@@ -235,7 +285,10 @@ export const budgetsAPI = {
   create: (data: Record<string, unknown>) =>
     fetchJSON("/api/budgets/", { method: "POST", body: JSON.stringify(data) }),
   update: (id: string, data: Record<string, unknown>) =>
-    fetchJSON(`/api/budgets/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    fetchJSON(`/api/budgets/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
   delete: (id: string) => fetchDELETE(`/api/budgets/${id}`),
   comparison: (start?: string, end?: string) => {
     const params = new URLSearchParams();
@@ -263,7 +316,10 @@ export const tripsAPI = {
   create: (data: Record<string, unknown>) =>
     fetchJSON("/api/trips/", { method: "POST", body: JSON.stringify(data) }),
   update: (id: string, data: Record<string, unknown>) =>
-    fetchJSON(`/api/trips/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    fetchJSON(`/api/trips/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
   delete: (id: string) => fetchDELETE(`/api/trips/${id}`),
   summary: (id: string) => fetchJSON(`/api/trips/${id}/summary`),
 };
@@ -273,7 +329,7 @@ export const calendarAPI = {
     fetchJSON(`/api/calendar/events?start=${start}&end=${end}`),
   moveEvent: (
     id: string,
-    data: { new_start: string; new_end?: string | null }
+    data: { new_start: string; new_end?: string | null },
   ) => {
     const params = new URLSearchParams();
     params.set("new_start", data.new_start);
@@ -288,12 +344,13 @@ export const ganttAPI = {
   tasks: () => fetchJSON("/api/gantt/tasks"),
   update: (
     id: string,
-    data: { start?: string; end?: string; progress?: number }
+    data: { start?: string; end?: string; progress?: number },
   ) => {
     const params = new URLSearchParams();
     if (data.start) params.set("start", data.start);
     if (data.end) params.set("end", data.end);
-    if (data.progress !== undefined) params.set("progress", String(data.progress));
+    if (data.progress !== undefined)
+      params.set("progress", String(data.progress));
     return fetchJSON(`/api/gantt/tasks/${id}?${params.toString()}`, {
       method: "PUT",
     });
@@ -388,8 +445,9 @@ export const reportsAPI = {
     if (!res.ok) throw new APIError(res.status, "CSV export failed");
     const blob = await res.blob();
     const filename =
-      res.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1] ||
-      "aegis-transactions.csv";
+      res.headers
+        .get("Content-Disposition")
+        ?.match(/filename="([^"]+)"/)?.[1] || "aegis-transactions.csv";
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -411,8 +469,9 @@ export const reportsAPI = {
     if (!res.ok) throw new APIError(res.status, "PDF export failed");
     const blob = await res.blob();
     const filename =
-      res.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1] ||
-      "aegis-report.pdf";
+      res.headers
+        .get("Content-Disposition")
+        ?.match(/filename="([^"]+)"/)?.[1] || "aegis-report.pdf";
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -439,7 +498,12 @@ export const reportsAPI = {
     params.set("background", "true");
 
     const enqueueRes = await fetchJSON<
-      | { job_id: string; status: string; poll_url: string; download_url: string }
+      | {
+          job_id: string;
+          status: string;
+          poll_url: string;
+          download_url: string;
+        }
       | Blob
     >(`/api/reports/export.pdf?${params}`);
 
@@ -448,7 +512,10 @@ export const reportsAPI = {
     // have failed to JSON-parse those, so the legacy path doesn't
     // come through here — we get the queued-job JSON envelope.
     if (typeof enqueueRes !== "object" || !("job_id" in enqueueRes)) {
-      throw new APIError(500, "Unexpected response shape from background PDF export");
+      throw new APIError(
+        500,
+        "Unexpected response shape from background PDF export",
+      );
     }
 
     const { job_id } = enqueueRes;
@@ -469,13 +536,16 @@ export const reportsAPI = {
         const legacyToken = useAuthStore.getState().token;
         const dl = await fetch(`${API_BASE}${status.result_url}`, {
           credentials: "include",
-          headers: legacyToken ? { Authorization: `Bearer ${legacyToken}` } : {},
+          headers: legacyToken
+            ? { Authorization: `Bearer ${legacyToken}` }
+            : {},
         });
         if (!dl.ok) throw new APIError(dl.status, "PDF download failed");
         const blob = await dl.blob();
         const filename =
-          dl.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1] ||
-          "aegis-report.pdf";
+          dl.headers
+            .get("Content-Disposition")
+            ?.match(/filename="([^"]+)"/)?.[1] || "aegis-report.pdf";
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -501,23 +571,30 @@ export const reportsAPI = {
 export const notificationsAPI = {
   list: (unreadOnly = false, limit = 50) =>
     fetchJSON<NotificationListResponse>(
-      `/api/notifications/?unread_only=${unreadOnly}&limit=${limit}`
+      `/api/notifications/?unread_only=${unreadOnly}&limit=${limit}`,
     ),
   markRead: (id: string) =>
-    fetchJSON<Notification>(`/api/notifications/${id}/read`, { method: "POST" }),
+    fetchJSON<Notification>(`/api/notifications/${id}/read`, {
+      method: "POST",
+    }),
   markAllRead: () =>
     fetchJSON<void>("/api/notifications/read-all", { method: "POST" }),
-  clearAll: () =>
-    fetchJSON<void>("/api/notifications/", { method: "DELETE" }),
+  clearAll: () => fetchJSON<void>("/api/notifications/", { method: "DELETE" }),
 };
 
 export const savingsGoalsAPI = {
   list: () => fetchJSON("/api/savings-goals/"),
   create: (data: Record<string, unknown>) =>
-    fetchJSON("/api/savings-goals/", { method: "POST", body: JSON.stringify(data) }),
+    fetchJSON("/api/savings-goals/", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
   get: (id: string) => fetchJSON(`/api/savings-goals/${id}`),
   update: (id: string, data: Record<string, unknown>) =>
-    fetchJSON(`/api/savings-goals/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    fetchJSON(`/api/savings-goals/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
   contribute: (id: string, amount: number) =>
     fetchJSON(`/api/savings-goals/${id}/contribute`, {
       method: "POST",
@@ -533,7 +610,11 @@ export const paymentsAPI = {
     return fetchJSON(`/api/payments/${qs}`);
   },
   get: (id: string) => fetchJSON(`/api/payments/${id}`),
-  createCheckout: (data: { amount: number; currency?: string; description?: string }) =>
+  createCheckout: (data: {
+    amount: number;
+    currency?: string;
+    description?: string;
+  }) =>
     fetchJSON("/api/payments/create-checkout-session", {
       method: "POST",
       body: JSON.stringify(data),
@@ -594,7 +675,10 @@ export const investmentsAPI = {
   },
   get: (id: string) => fetchJSON(`/api/investments/${id}`),
   create: (data: Record<string, unknown>) =>
-    fetchJSON("/api/investments/", { method: "POST", body: JSON.stringify(data) }),
+    fetchJSON("/api/investments/", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
   update: (id: string, data: Record<string, unknown>) =>
     fetchJSON(`/api/investments/${id}`, {
       method: "PATCH",
@@ -607,11 +691,11 @@ export const investmentsAPI = {
 export const marketAPI = {
   search: (q: string) =>
     fetchJSON<SymbolSearchResponse>(
-      "/api/market/search?q=" + encodeURIComponent(q)
+      "/api/market/search?q=" + encodeURIComponent(q),
     ),
   quote: (symbol: string) =>
     fetchJSON<QuoteResponse>(
-      "/api/market/quote?symbol=" + encodeURIComponent(symbol)
+      "/api/market/quote?symbol=" + encodeURIComponent(symbol),
     ),
   status: () => fetchJSON<MarketStatus>("/api/market/status"),
 };
@@ -622,13 +706,57 @@ export const debtsAPI = {
     fetchJSON("/api/debts/", { method: "POST", body: JSON.stringify(data) }),
   get: (id: string) => fetchJSON(`/api/debts/${id}`),
   update: (id: string, data: Record<string, unknown>) =>
-    fetchJSON(`/api/debts/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+    fetchJSON(`/api/debts/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
   makePayment: (id: string, amount: number) =>
     fetchJSON(`/api/debts/${id}/payment`, {
       method: "POST",
       body: JSON.stringify({ amount }),
     }),
   payoffPlan: (strategy = "avalanche", extraPayment = 0) =>
-    fetchJSON(`/api/debts/payoff-plan?strategy=${strategy}&extra_payment=${extraPayment}`),
+    fetchJSON(
+      `/api/debts/payoff-plan?strategy=${strategy}&extra_payment=${extraPayment}`,
+    ),
   delete: (id: string) => fetchDELETE(`/api/debts/${id}`),
 };
+
+export interface LineFinanceDestination {
+  workspace_id: string;
+  workspace_name: string;
+  account_id: string;
+  account_name: string;
+  currency: "THB";
+}
+export interface LineFinanceStatus {
+  configured: boolean;
+  linked: boolean;
+  currency: string;
+  pending: number;
+  destination: LineFinanceDestination | null;
+  needs_destination_review: boolean;
+  cash_enabled: boolean;
+  delivery_configured: boolean;
+  delivery: Record<string, number>;
+}
+export const lineFinanceAPI = {
+  status: () => fetchJSON<LineFinanceStatus>("/api/line-finance/status"),
+  linkCode: (body: {
+    workspace_id: string;
+    account_id: string;
+    confirmed_currency: "THB";
+  }) =>
+    fetchJSON<{
+      command: string;
+      expires_in_seconds: number;
+      destination: LineFinanceDestination;
+    }>("/api/line-finance/link-code", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
+  disconnect: () => fetchDELETE("/api/line-finance/link"),
+};
+
+// Shared authenticated request path for explicitly scoped cash-planning contracts.
+export { fetchJSON };

@@ -1,0 +1,15 @@
+{
+  "scope": "actual local API, existing fictional owner only",
+  "legacy_guard_workspace_id": "620dadef-74b7-4522-998e-8155ec9a530a",
+  "snapshot_workspace_id": "2b090c99-1d5e-4010-84c8-b1858f245f2d",
+  "snapshot_id": "055c2745-2a9a-4da1-9838-0167d62e9d34",
+  "matched_record_preserved": true,
+  "legacy_edit_delete_status": 404,
+  "same_target_retry_identical": true,
+  "different_target_key_status": 409,
+  "expected_cash": "5000.00",
+  "recorded_cash": "5500.00",
+  "opening_difference": "500.00",
+  "unexplained_difference": "0.00",
+  "snapshot_immutable": true
+}

@@ -25,6 +25,7 @@ from ..models.savings_goal import SavingsGoal
 from ..models.tag import Tag
 from ..models.transaction import Transaction, TransactionType
 from ..models.user import User
+from ..services.finance_reads import guard_legacy_writer
 
 DEMO_EMAIL = "demo@aegis.local"
 DEMO_USERNAME = "demo"
@@ -49,7 +50,8 @@ INCOME_SOURCES = [
 
 
 def _wipe_existing(db: Session, user: User) -> None:
-    db.query(Transaction).filter(Transaction.user_id == user.id).delete(synchronize_session=False)
+    guard_legacy_writer(db, user.id)
+    db.query(Transaction).filter((Transaction.user_id == user.id) & Transaction.workspace_id.is_(None)).delete(synchronize_session=False)
     db.query(Budget).filter(Budget.user_id == user.id).delete(synchronize_session=False)
     db.query(SavingsGoal).filter(SavingsGoal.user_id == user.id).delete(synchronize_session=False)
     db.query(Debt).filter(Debt.user_id == user.id).delete(synchronize_session=False)

@@ -1,0 +1,42 @@
+# Complete the cash-planning milestones
+
+October 2, 2026 · Asia/Bangkok. User objective: “Can you finish all M by create a workflow of work.” This workflow executes the existing M0–M4 [implementation plan](2026-10-02-cashflow-implementation.md), preserving its original gates. It does not redefine completion as a checklist or local-only substitute for the real LINE pilot.
+
+## Work order and ownership
+
+One implementation owner in this thread unless the user explicitly requests a small team. Backend owns cash models/services/routes/migrations; frontend owns typed clients and scoped cash components; QA uses disposable data. No global styling, accepted public-page redesign, unrelated LINE-channel replacement or hidden customer-data migration.
+
+The unblocker is the M3 document/snapshot contract. Each stage advances only on inspected artifacts and execution evidence; failures return to the affected stage. The source baseline is `/mnt/data/aegis-all-m-2026-10-02/baseline/`. Use plain Git, never `gh`.
+
+| Stage | Deliverable and completion evidence | Current state |
+| --- | --- | --- |
+| 1. Reconcile M0–M2 | Current source, prior evidence and protected invariants inspected; final regression rerun after new work | Source inspected; previous checks dated October 2 |
+| 2. Freeze M3 | Document, settlement, weekly and immutable-snapshot contract with exact API/migration choices | [Contract](../design/014-business-cash-operations.md) |
+| 3. Build M3.1–M3.2 | Receivables/bills, original/credited/outstanding amounts, dates, partial settlements, overdue/cancel review | Implemented locally; 17 acceptance cases added |
+| 4. Build M3.3–M3.4 | Thirteen calendar weeks with daily lows/drill-down; immutable snapshots and scoped variance attribution | Implemented locally; exact variance/residual and daily-low checks |
+| 5. Verify M3 | Actual SQLite/PostgreSQL tests and migration preservation; browser business task; snapshot immutability after edits | Initial 54 SQLite/57 PostgreSQL checks passed. After reviewed repairs, combined gates passed 209 backend / 84 actual PostgreSQL cash / 71 SQLite cash checks; prior populated migration/restore and visible tasks retain scope. The same authorized reviewer signed off; owner comprehension remains open. [Evidence](../validation/2026-10-02-all-m/README.md) |
+| 6. Reconcile/build M4.1–M4.2 | Explicit THB workspace/account links; confirmed capture/correction through shared writer; event/outbox atomicity | Writer, destination schema/migration and Settings chooser implemented. 24 SQLite/9 PostgreSQL initial LINE checks pass; populated migration/restore and visible Settings checks pass. Final current-source evidence below. [Contract](../design/015-workspace-line-capture.md) |
+| 7. Verify local M4 | Signature, ownership, retries, interrupted delivery, disconnect, draft freshness and shared cash assertions | Initial pre-review checks passed 62 / 66 cash and 200 backend cases. Reviewed repairs then passed 71 cash SQLite/13 PostgreSQL skips,84actual PostgreSQL cash,209 full backend/13 skips. Migration/restore, lint, types/session/build and 320/390/1280px destination checks pass; source delta records the final layout fix. [Evidence](../validation/2026-10-02-all-m/README.md) |
+| 8. M4.3 real-channel pilot | Authorized separate finance channel; private linking; labeled disposable entry, confirm, duplicate/interruption, disconnect and undo; actual delivery evidence | Actual own-account link and reported Connected receipt. Real THB1 draft left cash1000/no movements; actual confirm produced cash999, one expense and one matching shared audit. Own receipt accepted200. Confirmation handset receipt, repeated-confirm/duplicate/interruption and remaining correction/disconnect criteria open. [Evidence](../validation/2026-10-02-all-m/line-real-confirm-evidence.json) |
+| 9. M4.4 connector decision | Review real LINE use and current official WhatsApp/Instagram requirements; save bounded next-connector decision | Depends on real pilot evidence |
+| 10. Full verification/review | Complete regressions/build, populated migrations, restored backup equality, keyboard/mobile tasks, independent review and owner feedback | Local checks executed; one owner-authorized independent reviewer signed off after four repaired findings; current-source gates pass 209 backend / 84 PostgreSQL cash / 71 SQLite cash checks; uncoached owner feedback remains open |
+| 11. Ship gate | Reviewable release artifacts and scoped Git change; authorized target deployment, remote CI and required release checks | Reviewable contracts, source manifests, guides and pilot runbook prepared. Fresh Linux/amd64 image installation, worker heartbeat and actual base/prod Compose/local-CA TLS checks passed. The same reviewer approved packaging and first-boot migration ordering; public-domain TLS, target/authorization, remote CI and release remain open |
+| 12. Improve/completion audit | Save verified recovery lessons; every M0.1–M4.4 criterion and release gate has direct evidence | Focused Aegis skill procedure saved and structurally validated; [criterion audit](../validation/2026-10-02-all-m/completion-audit.md) records local proof and open external gates |
+
+Current checkpoint (October5 10:16Bangkok): real own-account confirmation verified with one THB1 expense, cash999 and one shared audit. Only that participant's queued receipt was sent, provider200. Owner is asked to check receipt and repeat confirmation before the remaining correction pilot. Earlier credential/agreement blockers are historical. See [resume state](../validation/2026-10-02-all-m/continuation-state.md) and [confirmation evidence](../validation/2026-10-02-all-m/line-real-confirm-evidence.json).
+
+## Required acceptance ledger
+
+M0.1–M0.4 and M1.1–M1.4 retain their existing contracts: exact dated cash, reviewed historical assignment, owner/account/currency isolation, no fictional bank balance, transfers and corrections, daily/calendar/scenario consistency and payment matching once. M2.1–M2.4 retain durable import decisions, recurrence identities, purpose semantics and explained alerts. Re-run affected invariants rather than overwriting prior dated evidence.
+
+M3.1: one business document has one linked commitment; only its unpaid amount enters forecasts. M3.2: existing/new partial settlements use the shared allocation boundary; due dates drive aging, expected dates drive projection; credits/cancellation are explicit and audited. M3.3: 13 workspace calendar weeks show close and minimum/date, with daily sources; later records stay discoverable. M3.4: snapshot scope/dates/version/assumptions/sources remain immutable, comparison uses identical account/boundary scope, timing/amount/new/unmatched changes and anchor revisions are separated, and unexplained residual stays visible.
+
+M4.1: old account-only links cannot guess a cash destination. M4.2: no cash write before confirmation; posting, audit and reply receipt commit atomically; matching/correction follow the same rules as the app. M4.3 requires real delivery/correction and cannot pass from mocks. M4.4 uses actual pilot observations before recommending a next connector; research alone is insufficient.
+
+## Execution and resume rules
+
+Use the repository's contract → implement → verify → independent review workflow pattern. The Claude-specific `Workflow` runtime is not exposed in this Codex session; the implementation and checks run through available local tools. A repeatable local verification runner will retain commands, source hashes, exit codes and logs without claiming review, CI or delivery from file presence.
+
+For each active process, retain its live session/handle; poll that handle instead of restarting from a timeout. Checkpoint completed evidence and the next unfinished criterion after each stage. Use new dedicated rehearsal databases and local fictional records; preserve real credentials and channel setup for the owner's authenticated steps. Do all reviewable local work before asking for an external publish/deployment decision. The finite runner is now `scripts/verify-cashflow-workflow.py`; its executed results identify selected checks only and cannot close the external gates.
+
+Completion means all original packages and gates are proven, including real LINE use and release checks. An unavailable external gate remains explicitly open while independent implementation/verification continues. This is a finite work workflow, not a scheduled/background automation.

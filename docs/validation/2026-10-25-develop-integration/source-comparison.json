@@ -1,0 +1,7 @@
+{
+  "prior_backend_app_files_equal": 117,
+  "prior_backend_app_differences": [
+    "backend/app/templates/report.html"
+  ],
+  "note": "Prior candidate test helpers include subsequently repaired source; app hashes only are compared here."
+}

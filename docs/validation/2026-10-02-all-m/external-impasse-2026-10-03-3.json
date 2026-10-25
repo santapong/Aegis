@@ -1,0 +1,25 @@
+{
+  "checked_at": "2026-10-03T16:18:29.449136+00:00",
+  "cycle": "2026-10-03-resumed",
+  "current_cycle_consecutive_turns": 3,
+  "previous_turn": "no progress",
+  "current_turn": "no progress",
+  "source_manifest_entries_match": 334,
+  "confirmed_live_verification_process": false,
+  "preview_services": {
+    "aegis-cashflow-api.service": {
+      "ActiveState": "inactive",
+      "MainPID": "0"
+    },
+    "aegis-cashflow-web-isolated.service": {
+      "ActiveState": "inactive",
+      "MainPID": "0"
+    }
+  },
+  "same_blocker": "real finance channel/HTTPS target/private participant and uncoached user evidence unprovided or unverified; real M4.3/M4.4 and release gates remain open",
+  "setup_choice": "pending human reply; no default inferred",
+  "blocked_audit_satisfied": true,
+  "original_criteria_waived": false,
+  "unchanged_suites_rerun": false,
+  "status_transition": "ready for update_goal blocked"
+}

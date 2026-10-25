@@ -1,0 +1,128 @@
+- complementary:
+  - button "Expand sidebar":
+  - navigation:
+    - link "Cash planning":
+      - /url: /cashflow
+    - link "Dashboard":
+      - /url: /
+    - link "Unassigned records":
+      - /url: /transactions
+    - link "Reports":
+      - /url: /reports
+    - link "Budgets":
+      - /url: /budgets
+    - link "Savings":
+      - /url: /savings
+    - link "Investments":
+      - /url: /investments
+    - link "Debts":
+      - /url: /debts
+    - link "Calendar":
+      - /url: /calendar
+    - link "Gantt":
+      - /url: /gantt
+    - link "Trips":
+      - /url: /trips
+    - link "Scenarios":
+      - /url: /plans
+    - link "Docs":
+      - /url: /docs
+    - link "Settings":
+      - /url: /settings
+    - link "Onboarding":
+      - /url: /welcome
+  - button "AI advisor":
+  - generic: A
+  - button "Sign out":
+- main:
+  - region "Cash planning":
+    - text: AEGIS / CASH PLANNING
+    - heading "See the dates behind your money." [level=1]
+    - button "New workspace"
+    - paragraph: Record what moved. Plan what comes next. See whether the dates and amounts fit.
+    - region "Forecast scope":
+      - text: Workspace
+      - combobox "Workspace":
+        - option "Business M3 review · fictional · business · THB" [selected]
+        - option "Business X · fictional example · business · THB"
+        - option "M2 everyday review · fictional · personal · THB"
+        - option "Mina · fictional example · personal · THB"
+        - option "Setup check · fictional · business · THB"
+      - text: Cash as of
+      - textbox "Cash as of": 2026-10-02
+      - text: Plan through
+      - textbox "Plan through": 2026-10-31
+      - text: Comparison
+      - combobox "Comparison":
+        - option "Base plan" [selected]
+    - text: THB · Asia/Bangkok · All active cash accounts
+    - generic "Choose included accounts"
+    - navigation "Cash workspace views":
+      - button "Overview"
+      - button "Money calendar"
+      - button "Scenarios"
+      - button "Review & match"
+      - button "Upcoming plans"
+      - button "Goals & installments"
+      - button "Accounts"
+      - button "Business review" [pressed]
+    - button "Record money"
+    - button "Add upcoming money"
+    - button "Add cash account"
+    - region "Business cash review":
+      - text: BUSINESS CASH, WITH THE SOURCE ATTACHED
+      - heading "What is owed. What actually arrived." [level=2]
+      - paragraph: Keep customer receivables and supplier bills separate from recorded cash. Review partial payments and the dates behind the next thirteen weeks.
+      - navigation "Business review tasks":
+        - button "Receivables & bills"
+        - button "13-week cash"
+        - button "Saved forecast review" [active] [pressed]
+      - status: Saved. The cash plan and sources have been refreshed.
+      - heading "Review a saved forecast." [level=2]
+      - button "Save this forecast"
+      - paragraph: A saved forecast keeps its original dates, account scope, source versions and assumptions. Later edits create a comparison; they never replace the saved plan.
+      - text: Saved forecast
+      - combobox "Saved forecast":
+        - option "October plan before payment · fictional · 2026-10-02 → 2026-10-31" [selected]
+      - paragraph: "Saved scope: Operating cash · fictional · 2026-10-02 → 2026-10-31. This review uses those saved accounts."
+      - text: Review actual cash through
+      - textbox "Review actual cash through": 2026-10-02
+      - article:
+        - generic: Expected cash at review date · 2026-10-02
+        - strong: THB 5,000.00
+      - article:
+        - generic: Recorded cash at review date · 2026-10-02
+        - strong: THB 5,100.00
+      - article:
+        - generic: Difference · 2026-10-02
+        - strong: THB 100.00
+      - heading "Where the difference comes from" [level=3]
+      - generic: Reviewed amounts and credits
+      - strong: THB 0.00
+      - generic: Timing or still unpaid
+      - strong: THB 100.00
+      - generic: New matched plans
+      - strong: THB 0.00
+      - generic: Recorded money without a saved-plan match
+      - strong: THB 0.00
+      - generic: Transfers in this account scope
+      - strong: THB 0.00
+      - generic: Opening balance changes
+      - strong: THB 0.00
+      - generic: Unexplained difference
+      - strong: THB 0.00
+      - article:
+        - strong: Customer Y · fictional · Y-001
+        - paragraph: Saved expectation 2026-10-09; now reviewed for 2026-10-09.
+        - paragraph: Saved remaining THB 6,500.00 · reviewed effective amount THB 6,450.00 · matched cash change THB 100.00
+        - paragraph: Amount difference THB 0.00 · timing or unpaid difference THB 100.00
+      - generic "Inspect saved and reviewed opening balances"
+      - paragraph: Original end-date forecast THB 5,500.00; reviewed end-date forecast THB 5,450.00. The reviewed close still depends on remaining expected money.
+      - paragraph: Same saved account scope and end boundary. Amount and timing/unpaid attribution uses current reviewed source versions; it is not proof of customer behavior. Unmatched activity and incomplete provenance stay separate. Changed opening anchors are isolated from payments. Closing cash still includes unpaid future assumptions.
+    - paragraph:
+      - text: Cash accounts are an entered record of money, not a bank connection. Completing a task does not record a payment.
+      - link "Read the Aegis guides":
+        - /url: /docs
+- button "Open Next.js Dev Tools":
+- alert
+- generic: "-THB 2,000"

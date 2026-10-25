@@ -1,0 +1,10 @@
+{
+  "task_containers_remaining": 0,
+  "watchdog_present": false,
+  "private_link_file_absent": true,
+  "temporary_bytes_before_cleanup": 418051489,
+  "dependencies_and_build_cache_removed": true,
+  "postgres_data_was_tmpfs_and_is_gone": true,
+  "source_and_built_artifact_retained": true,
+  "guard_lifetime_seconds": 1404.76
+}

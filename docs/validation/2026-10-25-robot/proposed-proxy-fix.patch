@@ -1,0 +1,11 @@
+--- a/frontend/next.config.ts
++++ b/frontend/next.config.ts
+@@ -25,6 +25,8 @@
+ ).version;
+ 
+ const nextConfig: NextConfig = {
++  // Preserve API collection slashes expected by FastAPI.
++  skipTrailingSlashRedirect: true,
+   // Keep page generation serial on the owner's four-core workstation/Pi.
+   // Container CPU quotas are still required to bound the whole build process.
+   experimental: { cpus: 1 },

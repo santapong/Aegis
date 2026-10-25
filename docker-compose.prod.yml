@@ -33,8 +33,8 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: https://localhost
     # Frontend no longer publishes a host port — go through Caddy.

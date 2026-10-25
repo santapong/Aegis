@@ -1,0 +1,1021 @@
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -5,6 +5,11 @@
+ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+ 
+ ## [Unreleased]
++
++### LINE setup and budget shortcuts — 2026-10-25 (local implementation)
++
++- New one-use setup codes default to 24 hours, with local QR/Open LINE linking, expiry countdown and renewal. Established LINE links remain active until disconnected; web login and transaction confirmation keep separate lifetimes.
++- Added inline owner-scoped budget spending/remaining replies and help/pending shortcuts, preserving exact ledger reports and financial review. Updated the inactive six-action menu asset; no live menu or workflow activation is implied.
+ 
+ ### Exact-money LINE workflow — 2026-10-22 (inactive local implementation)
+ 
+--- a/backend/.env.example
++++ b/backend/.env.example
+@@ -142,6 +142,10 @@
+ FINANCE_LEDGER_ENABLED=false
+ # Observed bot destination ID; distinct from LINE_FINANCE_CHANNEL_ID.
+ LINE_FINANCE_DESTINATION=
++# Public @basic/premium ID of this exact bot, used for QR/Open LINE setup.
++LINE_FINANCE_BOT_BASIC_ID=
++# New setup codes last a day; existing LINE links persist until disconnected.
++FINANCE_INTEGRATION_LINK_TTL_HOURS=24
+ # Separate random credentials (at least 32 characters); never reuse channel tokens.
+ FINANCE_INTEGRATION_SERVICE_TOKEN=
+ FINANCE_INTEGRATION_DELIVERY_TOKEN=
+--- a/backend/pyproject.toml
++++ b/backend/pyproject.toml
+@@ -13,6 +13,7 @@
+     "loguru>=0.7.3",
+     "matplotlib>=3.9.2",
+     "pillow>=10.0",
++    "qrcode>=8.2,<9",
+     "numpy>=2.4.0",
+     # pandas removed in v1.1 — CSV import now uses stdlib csv.DictReader
+     # (~10× faster on ingest, drops ~30 MB of cold-start memory).
+--- a/backend/uv.lock
++++ b/backend/uv.lock
+@@ -1468,6 +1468,7 @@
+     { name = "python-dotenv" },
+     { name = "python-jose", extra = ["cryptography"] },
+     { name = "python-multipart" },
++    { name = "qrcode" },
+     { name = "redis" },
+     { name = "sqlalchemy" },
+     { name = "stripe" },
+@@ -1514,6 +1515,7 @@
+     { name = "python-dotenv", specifier = ">=1.2.1" },
+     { name = "python-jose", extras = ["cryptography"], specifier = ">=3.3.0" },
+     { name = "python-multipart", specifier = ">=0.0.20" },
++    { name = "qrcode", specifier = ">=8.2,<9" },
+     { name = "redis", specifier = ">=5.0.0" },
+     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8.0" },
+     { name = "sqlalchemy", specifier = ">=2.0.45" },
+@@ -2152,6 +2154,18 @@
+     { url = "https://files.pythonhosted.org/packages/da/92/1446574745d74df0c92e6aa4a7b0b3130706a4142b2d1a5869f2eaa423c6/pyyaml-6.0.3-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:16249ee61e95f858e83976573de0f5b2893b3677ba71c9dd36b9cf8be9ac6d65", size = 829923, upload-time = "2025-09-25T21:32:54.537Z" },
+     { url = "https://files.pythonhosted.org/packages/f0/7a/1c7270340330e575b92f397352af856a8c06f230aa3e76f86b39d01b416a/pyyaml-6.0.3-cp314-cp314t-win_amd64.whl", hash = "sha256:4ad1906908f2f5ae4e5a8ddfce73c320c2a1429ec52eafd27138b7f1cbe341c9", size = 174062, upload-time = "2025-09-25T21:32:55.767Z" },
+     { url = "https://files.pythonhosted.org/packages/f1/12/de94a39c2ef588c7e6455cfbe7343d3b2dc9d6b6b2f40c4c6565744c873d/pyyaml-6.0.3-cp314-cp314t-win_arm64.whl", hash = "sha256:ebc55a14a21cb14062aa4162f906cd962b28e2e9ea38f9b4391244cd8de4ae0b", size = 149341, upload-time = "2025-09-25T21:32:56.828Z" },
++]
++
++[[package]]
++name = "qrcode"
++version = "8.2"
++source = { registry = "https://pypi.org/simple" }
++dependencies = [
++    { name = "colorama", marker = "sys_platform == 'win32'" },
++]
++sdist = { url = "https://files.pythonhosted.org/packages/8f/b2/7fc2931bfae0af02d5f53b174e9cf701adbb35f39d69c2af63d4a39f81a9/qrcode-8.2.tar.gz", hash = "sha256:35c3f2a4172b33136ab9f6b3ef1c00260dd2f66f858f24d88418a015f446506c", size = 43317, upload-time = "2025-05-01T15:44:24.726Z" }
++wheels = [
++    { url = "https://files.pythonhosted.org/packages/dd/b8/d2d6d731733f51684bbf76bf34dab3b70a9148e8f2cef2bb544fccec681a/qrcode-8.2-py3-none-any.whl", hash = "sha256:16e64e0716c14960108e85d853062c9e8bba5ca8252c0b4d0231b9df4060ff4f", size = 45986, upload-time = "2025-05-01T15:44:22.781Z" },
+ ]
+ 
+ [[package]]
+--- a/scripts/build-line-rich-menu.py
++++ b/scripts/build-line-rich-menu.py
+@@ -5,9 +5,9 @@
+ 
+ root=Path(__file__).resolve().parents[1]
+ out=root/'workflows/line';out.mkdir(parents=True,exist_ok=True)
+-labels=['Add slip','Income / expense','Balances','Trips / budgets','Review pending','Open Aegis']
+-sub=['Camera or photos · one payment','Review before recording','Tracked THB accounts','Plans and exact spending','Confirm · edit · cancel','Your private finance workspace']
+-codes=['slip','entry','balances','trips','pending',None]
++labels=['Add slip','Income / expense','Balances','My budgets','Review pending','Help / tools']
++sub=['Camera or photos · one payment','Review before recording','Tracked THB accounts','Spent · remaining · limits','Confirm · edit · cancel','Commands and your accounts']
++codes=['slip','entry','balances','budgets','pending','help']
+ image=Image.new('RGB',(2500,1686),'#0A0C0E');draw=ImageDraw.Draw(image)
+ font='/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+ large=ImageFont.truetype(font,58);small=ImageFont.truetype(font,29);brand=ImageFont.truetype(font,25)
+@@ -27,4 +27,4 @@
+ image.save(out/'aegis-rich-menu.png',optimize=True)
+ menu={'size':{'width':2500,'height':1686},'selected':False,'name':'Aegis finance — reviewed setup required','chatBarText':'Aegis finance','areas':areas}
+ (out/'aegis-rich-menu.template.json').write_text(json.dumps(menu,ensure_ascii=False,indent=2)+'\n')
+-print('Rendered inactive setup asset: 2500 × 1686; HTTPS app URL remains placeholder.')
++print('Rendered inactive setup asset: 2500 × 1686; six postback shortcuts; no live menu provisioned.')
+--- a/frontend/src/lib/finance-api.ts
++++ b/frontend/src/lib/finance-api.ts
+@@ -26,6 +26,21 @@
+   liability_balance_minor: string;
+   net_position_minor: string;
+   last_reconciled_at: string | null;
++}
++export interface FinanceBudget {
++  id: string;
++  facts_hash: string;
++  category: string;
++  trip_id: string | null;
++  period_start: string;
++  period_end: string;
++  currency: "THB";
++  budget_currency_confirmed: boolean;
++  budget_minor: string | null;
++  spent_minor: string;
++  remaining_minor: string | null;
++  unverified_legacy_budget_amount: string | null;
++  unverified_legacy_count: number;
+ }
+ export interface DraftPayload {
+   type: Operation;
+@@ -213,6 +228,12 @@
+       canonical_transactions_url: string;
+     }>("/api/finance/status"),
+   balances: () => request<AccountBalances>("/api/accounts/balances"),
++  budgets: () => request<FinanceBudget[]>("/api/finance/budgets"),
++  confirmBudgetCurrency: (id: string, factsHash: string) =>
++    command<{ confirmed: boolean }>(
++      `/api/finance/budgets/${encodeURIComponent(id)}/confirm-currency`,
++      { currency: "THB", reviewed: true, expected_facts_hash: factsHash },
++    ),
+   createAccount: (
+     body: { name: string; subtype: FinanceAccount["subtype"]; currency: "THB" },
+     key: string,
+@@ -285,11 +306,21 @@
+       configured: boolean;
+       delivery_enabled: boolean;
+       linked: boolean;
++      linked_at: string | null;
++      setup_lifetime_seconds: number;
++      web_session_lifetime_seconds: number;
+       pending_jobs: number;
+       delivery: Record<string, number>;
+     }>("/api/integrations/line/status"),
+   createLineChallenge: () =>
+-    command<{ command: string; expires_in_seconds: number }>(
++    command<{
++      command: string;
++      expires_in_seconds: number;
++      expires_at: string;
++      bot_basic_id: string | null;
++      line_url: string | null;
++      qr_image_data_url: string | null;
++    }>(
+       "/api/integrations/line/link-challenges",
+       {},
+     ),
+--- a/frontend/src/app/budgets/page.tsx
++++ b/frontend/src/app/budgets/page.tsx
+@@ -15,6 +15,7 @@
+ import { Card, CardHeader, CardContent } from "@/components/ui/card";
+ import { EmptyState } from "@/components/ui/empty-state";
+ import { Skeleton } from "@/components/ui/skeleton";
++import { BudgetCurrencyReview } from "@/components/finance/budget-currency-review";
+ import { Plus, Trash2, AlertTriangle, Pencil, Wallet, LayoutTemplate } from "lucide-react";
+ import type { Budget, BudgetComparisonResponse, BudgetTemplate } from "@/types";
+ 
+@@ -123,6 +124,7 @@
+   });
+ 
+   const invalidateAll = () => {
++    queryClient.invalidateQueries({ queryKey: ["finance"], predicate: (query) => query.queryKey[2] === "budgets" });
+     queryClient.invalidateQueries({ queryKey: ["budgets"] });
+     queryClient.invalidateQueries({ queryKey: ["budget-comparison"] });
+   };
+@@ -291,6 +293,8 @@
+           </Card>
+         </motion.div>
+       )}
++
++      <BudgetCurrencyReview budgets={budgets || []} />
+ 
+       {/* Budget Details with Progress */}
+       {comparison && comparison.comparisons.length > 0 && (
+--- a/frontend/src/components/finance/finance.module.css
++++ b/frontend/src/components/finance/finance.module.css
+@@ -287,3 +287,12 @@
+     width: 100%;
+   }
+ }
++.lineQr {
++  display: block;
++  width: 256px;
++  max-width: 100%;
++  height: auto;
++  margin: 1rem 0;
++  background: #fff;
++  border-radius: 0.5rem;
++}
+--- a/frontend/src/components/finance/line-connection.tsx
++++ b/frontend/src/components/finance/line-connection.tsx
+@@ -1,25 +1,55 @@
+ "use client";
+ 
+-import { useState } from "react";
++import { useEffect, useState } from "react";
+ import { useQuery, useQueryClient } from "@tanstack/react-query";
+ import { financeAPI } from "@/lib/finance-api";
+ import { FinanceError } from "./shared";
+ import s from "./finance.module.css";
+ 
+ export function LedgerLineConnection({ owner }: { owner: string }) {
++  // A new owner gets fresh setup state, including in-flight request completions.
++  return <LineConnection key={owner} owner={owner} />;
++}
++
++function LineConnection({ owner }: { owner: string }) {
+   const client = useQueryClient();
++  const [command, setCommand] = useState<
++    (Awaited<ReturnType<typeof financeAPI.createLineChallenge>> & { deadline: number }) | null
++  >(null);
++  const [now, setNow] = useState(() => Date.now());
++  const [expired, setExpired] = useState(false);
++  const [copied, setCopied] = useState(false);
+   const query = useQuery({
+     queryKey: ["finance", owner, "line"],
+     queryFn: financeAPI.lineStatus,
+     retry: false,
++    refetchInterval: command ? 5000 : false,
+   });
+-  const [command, setCommand] = useState<{
+-    command: string;
+-    expires_in_seconds: number;
+-  } | null>(null);
+   const [error, setError] = useState<unknown>(null);
+   const [busy, setBusy] = useState(false);
+   const [disconnectReview, setDisconnectReview] = useState(false);
++  useEffect(() => {
++    if (!command) return;
++    const tick = () => {
++      const value = Date.now();
++      setNow(value);
++      if (value >= command.deadline) {
++        setCommand(null);
++        setExpired(true);
++        setCopied(false);
++      }
++    };
++    tick();
++    const timer = window.setInterval(tick, 1000);
++    return () => window.clearInterval(timer);
++  }, [command]);
++  useEffect(() => {
++    if (query.data?.linked) {
++      setCommand(null);
++      setExpired(false);
++      setCopied(false);
++    }
++  }, [query.data?.linked]);
+   async function connect(disconnect = false) {
+     setBusy(true);
+     setError(null);
+@@ -28,7 +58,14 @@
+         await financeAPI.disconnectLine();
+         setCommand(null);
+         setDisconnectReview(false);
+-      } else setCommand(await financeAPI.createLineChallenge());
++      } else {
++        const result = await financeAPI.createLineChallenge();
++        const received = Date.now();
++        setNow(received);
++        setCommand({ ...result, deadline: received + result.expires_in_seconds * 1000 });
++      }
++      setExpired(false);
++      setCopied(false);
+       await client.invalidateQueries({ queryKey: ["finance", owner, "line"] });
+     } catch (e) {
+       setError(e);
+@@ -36,7 +73,18 @@
+       setBusy(false);
+     }
+   }
++  async function copy() {
++    if (!command || Date.now() >= command.deadline) return;
++    try {
++      await navigator.clipboard.writeText(command.command);
++      setCopied(true);
++    } catch {
++      setError(new Error("Copy is unavailable. Select the private command and copy it manually."));
++    }
++  }
+   const status = query.data;
++  const remaining = command ? Math.max(0, Math.ceil((command.deadline - now) / 1000)) : 0;
++  const timeLeft = `${Math.floor(remaining / 3600)}h ${Math.floor((remaining % 3600) / 60)}m ${remaining % 60}s`;
+   return (
+     <section
+       className={`${s.panel} ${s.stack}`}
+@@ -45,8 +93,8 @@
+       <div>
+         <h2 id="ledger-line-title">LINE account tracking</h2>
+         <p className={s.muted}>
+-          This connection uses the account ledger. The existing cash-workspace
+-          bot remains in Settings.
++          Connect once to check budgets, track balances and review entries in LINE.
++          Your connection stays active until you disconnect it.
+         </p>
+       </div>
+       {query.isPending && <p role="status">Checking LINE setup…</p>}
+@@ -57,8 +105,13 @@
+         <>
+           <p>
+             {status.linked
+-              ? "Your LINE identity is linked."
++              ? "LINE is connected. You do not need a new QR code each day."
+               : "No LINE identity is linked to these accounts."}
++          </p>
++          <p className={s.muted}>
++            New setup codes last {status.setup_lifetime_seconds / 3600} hours.
++            Your web login lasts {status.web_session_lifetime_seconds / 3600} hours;
++            signing in again does not disconnect LINE.
+           </p>
+           {(!status.enabled || !status.configured) && (
+             <p className={s.notice}>
+@@ -93,7 +146,7 @@
+                 disabled={busy || !status.enabled || !status.configured}
+                 onClick={() => void connect()}
+               >
+-                Create one-use link command
++                {command || expired ? "Create a new setup code" : "Connect LINE / show QR"}
+               </button>
+             )}
+             {status.linked && (
+@@ -107,6 +160,13 @@
+               </button>
+             )}
+           </div>
++          {status.linked && (
++            <p className={s.muted}>
++              Send <strong>budgets</strong>, <strong>balances</strong>,{" "}
++              <strong>pending</strong> or <strong>help</strong> in LINE.
++              If replies stop, check service availability before reconnecting.
++            </p>
++          )}
+           {disconnectReview && (
+             <div className={s.notice}>
+               <p>
+@@ -135,14 +195,50 @@
+           )}
+         </>
+       )}
+-      {command && !status?.linked && (
++      {expired && !status?.linked && (
++        <p className={s.notice} role="status">
++          This setup code has expired. Create a new setup code above; the old QR
++          and command will no longer connect your account.
++        </p>
++      )}
++      {command && remaining > 0 && !status?.linked && (
+         <div className={s.notice}>
+           <p>
+-            Send this command in a private chat with your configured
+-            account-tracking bot within{" "}
+-            {Math.floor(command.expires_in_seconds / 60)} minutes, then check
+-            the connection. It can be used once.
+-          </p>
++            {command.bot_basic_id
++              ? `Scan the QR or open LINE, check that the bot is ${command.bot_basic_id}, then press Send.`
++              : "Copy the command and send it in a private chat with your configured Aegis bot."}{" "}
++            This setup code can be used once. Creating a new code replaces this one.
++          </p>
++          {command.qr_image_data_url && (
++            // The API generates this QR locally; its private contents never go to an image service.
++            // eslint-disable-next-line @next/next/no-img-element
++            <img
++              src={command.qr_image_data_url}
++              alt="Private QR code to open your Aegis bot in LINE with the setup command"
++              width={256}
++              height={256}
++              className={s.lineQr}
++              referrerPolicy="no-referrer"
++            />
++          )}
++          <p>Setup time remaining: <strong>{timeLeft}</strong></p>
++          <div className={s.actions}>
++            {command.line_url && (
++              <a href={command.line_url} target="_blank" rel="noopener noreferrer"
++                referrerPolicy="no-referrer" className={s.button}>
++                Open LINE
++              </a>
++            )}
++            <button type="button" className={`${s.button} ${s.secondary}`} onClick={() => void copy()}>
++              {copied ? "Copied" : "Copy setup command"}
++            </button>
++          </div>
++          {!command.line_url && (
++            <p className={s.muted}>
++              QR and Open LINE need this bot&apos;s public @ID configured. You can
++              still connect using the private command below.
++            </p>
++          )}
+           <label className={s.field}>
+             Private link command
+             <input
+--- a/workflows/line/aegis-rich-menu.template.json
++++ b/workflows/line/aegis-rich-menu.template.json
+@@ -52,7 +52,7 @@
+       },
+       "action": {
+         "type": "postback",
+-        "data": "aegis-menu:trips"
++        "data": "aegis-menu:budgets"
+       }
+     },
+     {
+@@ -75,8 +75,8 @@
+         "height": 843
+       },
+       "action": {
+-        "type": "uri",
+-        "uri": "https://aegis.example.invalid/review"
++        "type": "postback",
++        "data": "aegis-menu:help"
+       }
+     }
+   ]
+--- a/backend/app/config.py
++++ b/backend/app/config.py
+@@ -1,7 +1,7 @@
+ from functools import lru_cache
+ 
+ from loguru import logger
+-from pydantic import model_validator
++from pydantic import Field, model_validator
+ from pydantic_settings import BaseSettings
+ 
+ PLACEHOLDER_JWT_SECRET = "CHANGE-ME-IN-PRODUCTION"
+@@ -23,6 +23,7 @@
+     finance_integration_ocr_key: str = ""
+     finance_integration_ocr_model: str = ""
+     finance_integration_daily_push_budget: int = 20
++    finance_integration_link_ttl_hours: int = Field(default=24, ge=1, le=168)
+ 
+     # Database — see docs/databases.md for the full compatibility matrix.
+     # Tested: SQLite (dev), PostgreSQL 13+ (incl. RDS / Aurora / Cloud SQL
+@@ -46,6 +47,10 @@
+ 
+     # Separate personal finance LINE channel; disabled until configured.
+     line_finance_channel_id: str = "finance"
++    # Public @basic/premium ID, not a channel or webhook destination ID.
++    line_finance_bot_basic_id: str = Field(
++        default="", pattern=r"^(?:@[A-Za-z0-9_.-]{1,63})?$"
++    )
+     line_finance_channel_secret: str = ""
+     line_finance_access_token: str = ""
+     line_finance_delivery_secret: str = ""
+--- a/backend/app/services/finance_integration.py
++++ b/backend/app/services/finance_integration.py
+@@ -16,7 +16,7 @@
+ from datetime import timedelta
+ from decimal import Decimal
+ from pathlib import Path
+-from urllib.parse import urlencode
++from urllib.parse import quote, urlencode
+ from zoneinfo import ZoneInfo
+ 
+ from sqlalchemy import or_
+@@ -78,6 +78,50 @@
+             "Tracked records do not prove bank settlement.",
+         ]
+     )
++    return "\n".join(lines)
++
++
++def budget_message(db, owner):
++    """Read up to six active owner limits using the canonical exact report."""
++    from ..models.budget import Budget
++    from .finance_reads import budget_report
++
++    today = utcnow().replace(tzinfo=ZoneInfo("UTC")).astimezone(
++        ZoneInfo("Asia/Bangkok")
++    ).date()
++    budgets = (
++        db.query(Budget)
++        .filter(Budget.user_id == owner, Budget.period_start <= today, Budget.period_end >= today)
++        .order_by(Budget.period_end, Budget.name, Budget.id)
++        .limit(7)
++        .all()
++    )
++    base = get_settings().frontend_url.rstrip("/")
++    lines = [f"Spending budgets · {today.isoformat()} · THB"]
++    if not budgets:
++        lines.append("No active spending limits. Create a monthly budget in Aegis.")
++    for budget in budgets[:6]:
++        result = budget_report(db, owner, budget)
++        lines.append(f"\n{budget.name[:100]} · {budget.category[:60]}")
++        lines.append(f"{result['period_start']} to {result['period_end']}")
++        lines.append("Recorded spending: " + display_money(result["spent_minor"]))
++        if result["budget_currency_confirmed"]:
++            remaining = int(result["remaining_minor"])
++            lines.append("Limit: " + display_money(result["budget_minor"]))
++            lines.append(
++                ("Remaining: " + display_money(str(remaining))) if remaining >= 0
++                else ("Over limit: " + display_money(str(-remaining)))
++            )
++        else:
++            lines.append("Review this limit's currency in Aegis before calculating remaining budget.")
++        if result["unverified_legacy_count"]:
++            lines.append("Historical records with unconfirmed currency are excluded; spending may be incomplete.")
++    if len(budgets) > 6:
++        lines.append("\nShowing the first 6 active limits. View all in Aegis.")
++    lines.extend([
++        "\nLimits can overlap; they are not added together. Remaining budget is not your account balance.",
++        "Manage budgets: " + base + "/budgets",
++    ])
+     return "\n".join(lines)
+ 
+ 
+@@ -222,15 +266,39 @@
+         )
+     db.query(Challenge).filter_by(owner_id=owner, consumed_at=None).delete()
+     token = secrets.token_urlsafe(32)
++    lifetime = settings.finance_integration_link_ttl_hours * 3600
++    expires_at = utcnow() + timedelta(seconds=lifetime)
+     db.add(
+         Challenge(
+             token_hash=digest(token),
+             owner_id=owner,
+             channel_id=settings.line_finance_channel_id,
+-            expires_at=utcnow() + timedelta(minutes=10),
+-        )
+-    )
+-    return {"command": "link " + token, "expires_in_seconds": 600}
++            expires_at=expires_at,
++        )
++    )
++    command = "link " + token
++    line_url = qr_image = None
++    if settings.line_finance_bot_basic_id:
++        import qrcode
++
++        line_url = (
++            "https://line.me/R/oaMessage/"
++            + quote(settings.line_finance_bot_basic_id, safe="")
++            + "/?" + quote(command, safe="")
++        )
++        # Encode in-process. No external QR service receives this capability.
++        image = qrcode.make(line_url)
++        buffer = io.BytesIO()
++        image.save(buffer, format="PNG")
++        qr_image = "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode()
++    return {
++        "command": command,
++        "expires_in_seconds": lifetime,
++        "expires_at": expires_at.isoformat() + "Z",
++        "bot_basic_id": settings.line_finance_bot_basic_id or None,
++        "line_url": line_url,
++        "qr_image_data_url": qr_image,
++    }
+ 
+ 
+ def unlink(db, owner):
+@@ -601,7 +669,7 @@
+             identity,
+             "link:" + row.id,
+             "link",
+-            "Aegis exact-money ledger connected. Nothing is posted without your review. Use expense 150 account:<account-id>.",
++            "Aegis connected. Your LINE link stays active until you disconnect it in Aegis. Nothing is recorded without your review. Send help for shortcuts, or expense 150 account:<account-id>.",
+         )
+         return {"id": row.id, "linked": True}
+     identity = active_identity(db, actor=actor)
+@@ -650,6 +718,16 @@
+     if event.get("type") != "message":
+         row.safe_code = "UNSUPPORTED_EVENT"
+         return {"id": row.id, "ignored": True}
++    shortcuts = {
++        "budget": "budgets", "budgets": "budgets", "งบ": "budgets", "งบประมาณ": "budgets",
++        "pending": "pending", "review": "pending", "รอตรวจ": "pending",
++        "help": "help", "tools": "help", "menu": "help", "ช่วยเหลือ": "help", "เมนู": "help",
++    }
++    shortcut = shortcuts.get(text.strip().lower()) if isinstance(text, str) else None
++    if shortcut:
++        handle_menu(db, identity, row.id, shortcut)
++        row.state = "processed"
++        return {"id": row.id}
+     if isinstance(text, str) and text.strip().lower() in {
+         "balance",
+         "balances",
+@@ -738,6 +816,25 @@
+             f"{count} drafts awaiting review; {failed} failed preparation jobs. Review missing fields, duplicates and errors in authenticated Aegis: "
+             + base
+             + "/review",
++        )
++    elif code == "budgets":
++        queue_message(
++            db, identity, "menu:" + event_id, "budgets",
++            budget_message(db, identity.owner_id),
++        )
++    elif code == "help":
++        queue_message(
++            db, identity, "menu:" + event_id, "help",
++            "Aegis shortcuts:\n"
++            "budgets / งบ — spending limits, recorded spending and remaining budget\n"
++            "balances / ยอดเงิน — tracked account balances\n"
++            "pending / รอตรวจ — drafts awaiting review\n"
++            "expense 150 account:<account-id> — prepare an expense\n"
++            "income 500 account:<account-id> — prepare income\n"
++            "transfer 100 from:<account-id> to:<account-id> — prepare a transfer\n"
++            "Entries still need your explicit confirmation.\n"
++            "Accounts: " + base + "/accounts\n"
++            "Your LINE link stays active until disconnected. If replies stop, check service availability before linking again.",
+         )
+     elif code == "trips":
+         queue_message(
+--- a/backend/app/services/finance_reads.py
++++ b/backend/app/services/finance_reads.py
+@@ -157,6 +157,7 @@
+ 
+ 
+ def budget_report(db, owner_id, budget):
++    from .money_ledger import digest
+     # A trip budget is category-scoped inside that trip and its own period.
+     result = report(
+         db,
+@@ -171,6 +172,7 @@
+     verified = currency_confirmed(db, owner_id, "budget", budget)
+     return {
+         "id": budget.id,
++        "facts_hash": digest(currency_facts("budget", budget)),
+         "currency": "THB",
+         "category": budget.category,
+         "trip_id": budget.trip_id,
+--- a/backend/app/routers/finance_reconciliation.py
++++ b/backend/app/routers/finance_reconciliation.py
+@@ -76,6 +76,7 @@
+     model_config = ConfigDict(extra="forbid")
+     currency: Literal["THB"]
+     reviewed: bool
++    expected_facts_hash: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+ 
+ 
+ @router.get("/reports")
+@@ -157,6 +158,15 @@
+     if not body.reviewed:
+         raise HTTPException(422, "Review the actual budget amount and explicitly confirm its currency")
+     try:
++        from ..services.money_ledger import digest, lock_owner
++        lock_owner(db, owner_id)
++        # Legacy budget/trip editors need not lock the owner. Hold the actual
++        # limit row through the reviewed-facts check and audit confirmation.
++        row = db.query(type(row)).filter_by(id=row.id, user_id=owner_id).with_for_update().populate_existing().first()
++        if row is None:
++            raise HTTPException(404, "Record not found")
++        if body.expected_facts_hash is not None and body.expected_facts_hash != digest(finance_reads.currency_facts(kind, row)):
++            raise HTTPException(409, "The budget changed. Refresh and review its current amount and period before confirming currency.")
+         result = finance_reads.confirm_currency(db, owner_id, kind, row)
+         db.commit()
+         invalidate_user_all(owner_id)
+--- a/backend/app/routers/finance_integration.py
++++ b/backend/app/routers/finance_integration.py
+@@ -6,7 +6,7 @@
+ 
+ import httpx
+ 
+-from fastapi import APIRouter, Depends, HTTPException, Request
++from fastapi import APIRouter, Depends, HTTPException, Request, Response
+ from fastapi.responses import FileResponse
+ from pydantic import BaseModel, ConfigDict, Field
+ from sqlalchemy import func
+@@ -106,6 +106,9 @@
+         ),
+         "delivery_enabled": settings.finance_integration_delivery_enabled,
+         "linked": False,
++        "linked_at": None,
++        "setup_lifetime_seconds": settings.finance_integration_link_ttl_hours * 3600,
++        "web_session_lifetime_seconds": settings.jwt_expire_minutes * 60,
+         "pending_jobs": 0,
+         "delivery": {},
+     }
+@@ -115,6 +118,7 @@
+         integration.enabled(db)
+         identity = integration.active_identity(db, owner=user.id)
+         result["linked"] = identity is not None
++        result["linked_at"] = identity.created_at.isoformat() + "Z" if identity else None
+         result["pending_jobs"] = (
+             db.query(FinanceIntegrationJob)
+             .filter(
+@@ -133,7 +137,9 @@
+ 
+ 
+ @router.post("/line/link-challenges")
+-def link_challenge(db: DB, user: Owner):
++def link_challenge(db: DB, user: Owner, response: Response):
++    response.headers["Cache-Control"] = "no-store, private"
++    response.headers["Pragma"] = "no-cache"
+     with domain_errors():
+         result = integration.link_challenge(db, user.id)
+         db.commit()
+--- /dev/null
++++ b/frontend/src/components/finance/budget-currency-review.tsx
+@@ -0,0 +1,77 @@
++"use client";
++
++import { useState } from "react";
++import { useQuery, useQueryClient } from "@tanstack/react-query";
++import { financeAPI } from "@/lib/finance-api";
++import { useAuthStore } from "@/stores/auth-store";
++import { FinanceError } from "./shared";
++import s from "./finance.module.css";
++
++export function BudgetCurrencyReview({ budgets }: {
++  budgets: { id: string; name: string }[];
++}) {
++  const owner = useAuthStore((state) => state.user?.id);
++  return <CurrencyReview key={owner} owner={owner} budgets={budgets} />;
++}
++
++function CurrencyReview({ owner, budgets }: {
++  owner?: string;
++  budgets: { id: string; name: string }[];
++}) {
++  const cache = useQueryClient();
++  const [busy, setBusy] = useState(false);
++  const [error, setError] = useState<unknown>(null);
++  const status = useQuery({
++    queryKey: ["finance", owner, "status"], queryFn: financeAPI.status,
++    enabled: !!owner, retry: false,
++  });
++  const enabled = !!status.data?.enabled && !!status.data?.cutover_active;
++  const reports = useQuery({
++    queryKey: ["finance", owner, "budgets"], queryFn: financeAPI.budgets,
++    enabled, retry: false,
++  });
++  if (!enabled) return null;
++  const active = new Map(budgets.map((budget) => [budget.id, budget.name]));
++  const pending = reports.data?.filter((row) => active.has(row.id) && !row.budget_currency_confirmed) || [];
++  async function confirm(id: string, factsHash: string) {
++    setBusy(true);
++    setError(null);
++    try {
++      await financeAPI.confirmBudgetCurrency(id, factsHash);
++      await Promise.all([
++        cache.invalidateQueries({ queryKey: ["finance", owner, "budgets"] }),
++        cache.invalidateQueries({ queryKey: ["budget-comparison"] }),
++      ]);
++    } catch (e) { setError(e); }
++    finally { setBusy(false); }
++  }
++  if (!reports.isPending && !reports.isError && !pending.length) {
++    return <p className={s.muted}>In LINE, send <strong>budgets</strong> or tap My budgets to check your spending and remaining limits.</p>;
++  }
++  return (
++    <section className={`${s.panel} ${s.stack}`} aria-labelledby="budget-currency-title">
++      <h2 id="budget-currency-title">Review budget currency</h2>
++      <p className={s.muted}>
++        Confirm each limit is in Thai baht before comparing it with tracked THB
++        spending. This records the limit&apos;s currency; it does not move money.
++      </p>
++      {reports.isPending && <p role="status">Checking budget currencies…</p>}
++      {reports.isError && <FinanceError error={reports.error} retry={() => void reports.refetch()} />}
++      {pending.map((row) => (
++        <div className={s.notice} key={row.id}>
++          <p><strong>{active.get(row.id)}</strong> · {row.category}</p>
++          <p>{row.period_start} to {row.period_end}</p>
++          <p>Entered limit: <strong>{row.unverified_legacy_budget_amount}</strong></p>
++          <button type="button" disabled={busy}
++            className={s.button} onClick={() => void confirm(row.id, row.facts_hash)}>
++            Confirm this limit is THB
++          </button>
++        </div>
++      ))}
++      {error != null && <FinanceError error={error} retry={() => {
++        setError(null);
++        void reports.refetch();
++      }} />}
++    </section>
++  );
++}
+--- /dev/null
++++ b/backend/tests/test_line_onboarding_tools.py
+@@ -0,0 +1,154 @@
++"""Long-lived setup, local QR, persistent identity and owner-scoped shortcuts."""
++
++import base64
++import io
++from datetime import UTC, date, datetime, timedelta
++from decimal import Decimal
++from urllib.parse import quote
++
++from app.config import get_settings
++from app.models.budget import Budget
++from app.models.finance_integration import (
++    FinanceIntegrationJob,
++    FinanceLineIdentity,
++    FinanceLinkChallenge,
++    FinanceNotificationOutbox,
++)
++from app.models.finance_ledger import LedgerAudit
++from app.models.user import User
++from app.services import finance_integration as service
++from app.services import finance_reads as reads
++from PIL import Image
++
++from .conftest import _register
++from .test_finance_integration import client, configuration, database, event, setup
++from .test_finance_reads import ledger_db, post
++
++# Imported fixtures are intentionally collected by pytest.
++# ruff: noqa: F401, F811
++
++
++def issue(client, headers):
++    response = client.post("/api/integrations/line/link-challenges", headers=headers)
++    assert response.status_code == 200, response.text
++    assert response.headers["cache-control"] == "no-store, private"
++    return response.json()
++
++
++def test_setup_qr_survives_twenty_hours_then_link_is_persistent(client, monkeypatch):
++    monkeypatch.setattr(get_settings(), "line_finance_bot_basic_id", "@aegis-test")
++    monkeypatch.setattr(get_settings(), "finance_integration_link_ttl_hours", 24)
++    start = datetime(2026, 10, 25, 1, tzinfo=UTC).replace(tzinfo=None)
++    monkeypatch.setattr(service, "utcnow", lambda: start)
++    headers, owner = _register(client)
++    challenge = issue(client, headers)
++    assert challenge["expires_in_seconds"] == 86400
++    assert challenge["expires_at"] == "2026-10-26T01:00:00Z"
++    assert challenge["line_url"] == (
++        "https://line.me/R/oaMessage/%40aegis-test/?" + quote(challenge["command"], safe="")
++    )
++    image = Image.open(io.BytesIO(base64.b64decode(challenge["qr_image_data_url"].split(",", 1)[1])))
++    assert image.format == "PNG" and image.width == image.height
++    assert database(lambda db: db.query(FinanceLinkChallenge).one().token_hash) == service.digest(challenge["command"][5:])
++
++    monkeypatch.setattr(service, "utcnow", lambda: start + timedelta(hours=20, minutes=1))
++    event(client, challenge["command"])
++    assert client.get("/api/integrations/line/status", headers=headers).json()["linked"]
++    monkeypatch.setattr(service, "utcnow", lambda: start + timedelta(days=7))
++    event(client, challenge["command"], actor="attacker")
++    assert database(lambda db: db.query(FinanceLineIdentity).filter_by(owner_id=owner).count()) == 1
++    event(client, "help")
++    assert client.get("/api/integrations/line/status", headers=headers).json()["linked"]
++    client.delete("/api/integrations/line/link", headers=headers)
++    event(client, "budgets")
++    assert not client.get("/api/integrations/line/status", headers=headers).json()["linked"]
++
++
++def test_setup_expiry_and_renewal_invalidate_old_codes(client, monkeypatch):
++    start = datetime(2026, 10, 25, 1, tzinfo=UTC).replace(tzinfo=None)
++    monkeypatch.setattr(service, "utcnow", lambda: start)
++    monkeypatch.setattr(get_settings(), "finance_integration_link_ttl_hours", 24)
++    headers, _ = _register(client)
++    old = issue(client, headers)
++    monkeypatch.setattr(service, "utcnow", lambda: start + timedelta(hours=24))
++    event(client, old["command"])
++    assert not client.get("/api/integrations/line/status", headers=headers).json()["linked"]
++    fresh = issue(client, headers)
++    assert fresh["command"] != old["command"]
++    event(client, old["command"])
++    assert not client.get("/api/integrations/line/status", headers=headers).json()["linked"]
++    event(client, fresh["command"])
++    assert client.get("/api/integrations/line/status", headers=headers).json()["linked"]
++
++
++def test_unexpired_code_is_replaced_and_missing_bot_keeps_copy_fallback(client, monkeypatch):
++    monkeypatch.setattr(get_settings(), "line_finance_bot_basic_id", "")
++    headers, _ = _register(client)
++    old, fresh = issue(client, headers), issue(client, headers)
++    assert fresh["line_url"] is None and fresh["qr_image_data_url"] is None
++    event(client, old["command"])
++    assert not client.get("/api/integrations/line/status", headers=headers).json()["linked"]
++    event(client, fresh["command"])
++    assert client.get("/api/integrations/line/status", headers=headers).json()["linked"]
++
++
++def test_budget_reply_exact_refunds_periods_owners_and_unknown_currency(ledger_db, monkeypatch):
++    db, owner, account = ledger_db
++    monkeypatch.setattr(service, "utcnow", lambda: datetime(2026, 1, 3, tzinfo=UTC).replace(tzinfo=None))
++    expense = post(db, owner, account, "expense", "15025")
++    post(db, owner, account, "refund", "5005", original_expense_entry_id=expense)
++    other = User(email="other-limit@example.invalid", username="other-limit", hashed_password="fixture")
++    db.add(other)
++    db.flush()
++    rows = [
++        Budget(user_id=owner, name="Food monthly", amount=Decimal("200.30"), category="food", period_start=date(2026, 1, 1), period_end=date(2026, 1, 31)),
++        Budget(user_id=owner, name="Overlapping cap", amount=Decimal("100.00"), category="food", period_start=date(2026, 1, 1), period_end=date(2026, 1, 31)),
++        Budget(user_id=owner, name="Unknown currency", amount=Decimal("300.00"), category="food", period_start=date(2026, 1, 1), period_end=date(2026, 1, 31)),
++        Budget(user_id=other.id, name="Private other owner", amount=Decimal("900.00"), category="food", period_start=date(2026, 1, 1), period_end=date(2026, 1, 31)),
++        Budget(user_id=owner, name="Expired limit", amount=Decimal("900.00"), category="food", period_start=date(2026, 1, 1), period_end=date(2026, 1, 2)),
++    ]
++    db.add_all(rows)
++    db.flush()
++    for row in rows[:2]:
++        reads.confirm_currency(db, owner, "budget", row)
++    text = service.budget_message(db, owner)
++    assert "Recorded spending: 100.20" in text
++    assert "Limit: 200.30" in text and "Remaining: 100.10" in text
++    assert "Over limit: 0.20" in text
++    assert "Review this limit's currency" in text
++    assert "Private other owner" not in text and "Expired limit" not in text
++    assert "not added together" in text
++
++
++def test_shortcuts_and_new_menu_never_prepare_money(client):
++    headers, owner, _ = setup(client)
++    for text in ["budget", "budgets", "งบ", "help", "tools", "pending", "รอตรวจ"]:
++        assert event(client, text).status_code == 200
++    for code in ["budgets", "help", "trips"]:
++        assert event(client, postback="aegis-menu:" + code).status_code == 200
++    assert database(lambda db: db.query(FinanceIntegrationJob).filter_by(owner_id=owner).count()) == 0
++    assert len(client.get("/api/financial-transactions", headers=headers).json()) == 1
++    replies = database(lambda db: [r.payload["messages"][0]["text"] for r in db.query(FinanceNotificationOutbox).filter_by(owner_id=owner, purpose="budgets")])
++    assert replies and all("No active spending limits" in text for text in replies)
++
++
++def test_currency_review_rejects_stale_budget_facts(client):
++    headers, owner, _ = setup(client)
++    def seed(db):
++        row = Budget(user_id=owner, name="Monthly", amount=Decimal("1000.00"), category="food", period_start=date(2026, 10, 1), period_end=date(2026, 10, 31))
++        db.add(row)
++        db.flush()
++        result = reads.budget_report(db, owner, row)
++        db.commit()
++        return result
++    report = database(seed)
++    def change(db):
++        db.get(Budget, report["id"]).amount = Decimal("2000.00")
++        db.commit()
++    database(change)
++    path = f"/api/finance/budgets/{report['id']}/confirm-currency"
++    stale = client.post(path, headers=headers, json={"currency": "THB", "reviewed": True, "expected_facts_hash": report["facts_hash"]})
++    assert stale.status_code == 409
++    assert database(lambda db: db.query(LedgerAudit).filter_by(owner_id=owner, operation="budget_currency_confirmed").count()) == 0
++    current = client.get("/api/finance/budgets", headers=headers).json()[0]
++    assert client.post(path, headers=headers, json={"currency": "THB", "reviewed": True, "expected_facts_hash": current["facts_hash"]}).status_code == 200
+--- /dev/null
++++ b/docs/design/018-line-onboarding-and-budget-tools.md
+@@ -0,0 +1,86 @@
++# LINE onboarding and budget tools
++
++Status: owner requirements confirmed 25 October 2026; local implementation and
++selected verification complete. See the dated receipt for skips and release
++checks. No release or pilot activation is implied.
++
++## Goal and scope
++
++The owner reported that the QR/setup code expired before linking was complete,
++and selected monthly spending limits, remaining budgets and useful LINE
++shortcuts. New setup challenges should last 24 hours. Established LINE identity
++links remain persistent until explicitly disconnected. The web session already
++defaults to 24 hours; it is a separate lifetime.
++
++Extend the existing exact-money LINE integration in the isolated
++`feature/line-money-ledger-20261022` worktree. Preserve the original dirty
++checkout, accepted Aegis styling, immutable ledger and draft confirmation.
++
++## Decisions
++
++| Choice | Decision |
++| --- | --- |
++| Setup capability lifetime | Configurable, 24-hour default; hash stored, single-use; renewal invalidates the old challenge. |
++| QR generation | Generate locally in the API, encoding LINE's official prefilled chat URL for the configured bot basic ID. Never use an external QR service. |
++| Setup presentation | QR, Open LINE, copy fallback, countdown, expiry and renewal; stop showing the capability after successful linking. Opening the QR still requires pressing Send in LINE. |
++| Routine LINE use | Persistent identity; no daily relinking. Web login and transaction action expiry remain separate. |
++| Budget shortcut | Read current owner-scoped budgets and signed exact ledger spending; show period, cap, spent, remaining/over-limit and currency-review gaps. Do not add overlapping caps together. |
++| Other shortcuts | Balances, pending reviews, entry guidance and help. No financial posting without the existing explicit confirmation boundary. |
++
++The backend returns a QR only when a valid bot basic ID is configured. A channel
++ID or webhook destination is not a user-facing bot ID. Missing bot configuration
++retains the copy-command fallback and explains how to enable QR onboarding.
++
++## Acceptance
++
++1. A newly issued setup challenge remains valid after 20 hours, expires after
++   its configured 24 hours, cannot be reused, and is superseded by renewal.
++2. QR and direct link encode the same intended bot and command. The challenge
++   response is private/no-store. No capability enters repository artifacts.
++3. The UI exposes expiry and recovery, polls only during active setup, and clears
++   setup state when linked or when the owner changes. Keyboard and narrow-phone
++   controls remain usable.
++4. A linked owner remains connected beyond a day; a revoked identity remains
++   rejected. Financial confirmation capability expiry is not extended.
++5. `budget`/`budgets` and the rich-menu budget action show only the linked owner's
++   active budgets. Ledger amounts retain integer-satang arithmetic. Unconfirmed
++   historical currency is explicitly excluded from a definitive remaining cap.
++6. Help and pending-review shortcuts do not create financial drafts. The old
++   `trips` menu code remains compatible.
++7. Templates remain inactive and credential-free. Provisioning, stable phone web
++   access and resumed phone acceptance remain distinct operator steps.
++
++## Sequence and verification
++
++The first unblocker is the clarified setup lifetime (now confirmed by the owner).
++Implement API contract and bounded budget reads, then the existing connection
++panel and menu assets. The primary agent owns these sequential changes; no extra
++agents were requested. Run focused expiry/renewal/identity/owner/budget checks,
++frontend type validation and a scoped visual/interaction check where the resource
++budget permits. Existing unrelated source is backed up before edits.
++
++Read-only check on 25 October found the Pi reachable, n8n healthy, both dedicated
++pilot workflows inactive, and retained Aegis pilot containers running. This does
++not prove current public-webhook or handset delivery. No workflow was activated.
++Do not repeat the previous concurrent Kali pytest/Next/n8n wave.
++
++## Rollout and rollback
++
++There is no schema migration. Revert only this feature's patch to roll source
++back, preserving prior work. Existing issued challenges keep their stored expiry;
++the new lifetime applies to newly generated challenges. Configure the verified
++bot basic ID and deploy/test the reviewed source separately before publishing a
++rich menu or resuming the paused fictional pilot. Keep the owner-selected bot
++separate from other LINE assistants. No production financial cutover is included.
++
++## Primary platform references
++
++Checked 25 October 2026:
++
++- [LINE prefilled Official Account chat URLs](https://developers.line.biz/en/docs/line-login/using-line-url-scheme/).
++- [Rich menu creation, image upload and activation](https://developers.line.biz/en/docs/messaging-api/using-rich-menus/).
++- [LINE account-linking mechanism](https://developers.line.biz/en/docs/messaging-api/linking-accounts/).
++
++The existing Aegis link challenge is application-issued. LINE's own link token
++expiry is not changed by the application's 24-hour setting. Native LINE account
++linking is a separate possible future replacement, not implemented here.

@@ -5,8 +5,11 @@ WORKDIR /app
 
 RUN pip install --no-cache-dir uv
 
-COPY pyproject.toml .
-RUN uv pip install --system --no-cache -r pyproject.toml
+COPY pyproject.toml uv.lock ./
+# Install the reviewed resolution, including hashes. Resolving pyproject.toml
+# afresh selected SQLAlchemy 2.1's psycopg3 default while this app uses psycopg2.
+RUN uv export --locked --no-dev --no-emit-project -o /tmp/requirements.txt \
+    && uv pip install --system --no-cache --require-hashes -r /tmp/requirements.txt
 
 # ---------- Production stage ----------
 FROM python:3.12-slim

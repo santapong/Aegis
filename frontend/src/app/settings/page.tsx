@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { LineFinanceSettings } from "@/components/line-finance-settings";
 import { motion } from "framer-motion";
 import { useAppStore, COSMIC_THEMES, type CosmicTheme } from "@/stores/app-store";
 import {
@@ -51,6 +52,12 @@ interface ThemeMeta {
 }
 
 const THEME_META: ThemeMeta[] = [
+  { name: "horizon-dark", label: "Horizon Dark", tagline: "The same calm clarity, with forest-green surfaces and soft light.", swatch: { void: "#0d1b17", pane: "#14271f", accent: "#dce9af" }, display: { fontFamily: "var(--font-sans)", fontStyle: "normal" } },
+  {
+    name: "horizon", label: "Horizon", tagline: "Calm confidence. Warm ivory, deep evergreen, room to look ahead.",
+    swatch: { void: "#f6f5ef", pane: "#ffffff", accent: "#1b5745" },
+    display: { fontFamily: "var(--font-sans)", fontStyle: "normal" },
+  },
   {
     name: "meridian",
     label: "Meridian",
@@ -210,7 +217,7 @@ export default function SettingsPage() {
 
   const handleReset = () => {
     resetSettings();
-    setTheme("meridian");
+    setTheme("horizon");
     setShowReset(false);
     toast.success("Settings reset to defaults");
   };
@@ -227,7 +234,7 @@ export default function SettingsPage() {
 
   return (
     <motion.div
-      className="max-w-3xl mx-auto space-y-6 px-6 py-7"
+      className="max-w-3xl mx-auto space-y-6 px-4 py-7 sm:px-6"
       variants={staggerContainer}
       initial="hidden"
       animate="visible"
@@ -242,12 +249,14 @@ export default function SettingsPage() {
 
       <motion.div variants={staggerItem}>
         <Tabs value={activeTab} onChange={setActiveTab}>
-          <TabList>
+          <TabList className="flex w-full flex-wrap sm:inline-flex sm:w-auto">
             <Tab value="appearance">Appearance</Tab>
             <Tab value="preferences">Preferences</Tab>
+            <Tab value="line-finance">LINE finance</Tab>
             <Tab value="about">About</Tab>
           </TabList>
 
+          <TabPanel value="line-finance"><LineFinanceSettings /></TabPanel>
           <TabPanel value="appearance">
             <div className="space-y-6">
               <Card>
@@ -263,7 +272,7 @@ export default function SettingsPage() {
                     className="text-xs mb-4 font-mono"
                     style={{ color: "var(--dim)" }}
                   >
-                    Pick a cosmic theme. Switches instantly, persists across sessions.
+                    Choose your workspace appearance. Your preference stays with this browser.
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     {THEME_META.map((meta) => {

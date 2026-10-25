@@ -1,0 +1,79 @@
+{
+  "routes": [
+    {
+      "route": "/docs",
+      "status": 200,
+      "h1_count": 1,
+      "rendered_sections": 1
+    },
+    {
+      "route": "/docs/guides",
+      "status": 200,
+      "h1_count": 1,
+      "rendered_sections": 0
+    },
+    {
+      "route": "/docs/developers",
+      "status": 200,
+      "h1_count": 1,
+      "rendered_sections": 0
+    },
+    {
+      "route": "/docs/guides/first-steps",
+      "status": 200,
+      "h1_count": 1,
+      "rendered_sections": 4
+    },
+    {
+      "route": "/docs/guides/transactions",
+      "status": 200,
+      "h1_count": 1,
+      "rendered_sections": 4
+    },
+    {
+      "route": "/docs/guides/budgets",
+      "status": 200,
+      "h1_count": 1,
+      "rendered_sections": 4
+    },
+    {
+      "route": "/docs/guides/plans",
+      "status": 200,
+      "h1_count": 1,
+      "rendered_sections": 4
+    },
+    {
+      "route": "/docs/guides/ai",
+      "status": 200,
+      "h1_count": 1,
+      "rendered_sections": 4
+    },
+    {
+      "route": "/docs/guides/exports",
+      "status": 200,
+      "h1_count": 1,
+      "rendered_sections": 3
+    },
+    {
+      "route": "/docs/developers/local-setup",
+      "status": 200,
+      "h1_count": 1,
+      "rendered_sections": 5
+    },
+    {
+      "route": "/docs/developers/api",
+      "status": 200,
+      "h1_count": 1,
+      "rendered_sections": 6
+    },
+    {
+      "route": "/docs/developers/architecture",
+      "status": 200,
+      "h1_count": 1,
+      "rendered_sections": 4
+    }
+  ],
+  "broken_doc_anchors": [],
+  "download_matches_source": true,
+  "unknown_guide_status": 404
+}

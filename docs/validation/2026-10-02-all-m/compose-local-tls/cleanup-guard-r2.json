@@ -1,0 +1,10 @@
+{
+  "cleanup_started": false,
+  "failed_guard": "no post-probe traceback text",
+  "diagnosis": "exact trapped Passlib/bcrypt version-inspection warning during password hashing; registration201/login200/session and cash checks executed successfully",
+  "unexpected_tracebacks": false,
+  "warning_count": 1,
+  "source": "backend-after-probe-r2.log",
+  "startup_scope": "states-r2.json was captured before auth; no startup traceback remains true",
+  "recovery": "retain diagnostic separately and run resource-isolation cleanup guards; do not relabel warning-free auth"
+}

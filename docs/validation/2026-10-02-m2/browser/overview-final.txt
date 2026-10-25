@@ -1,0 +1,131 @@
+- complementary:
+  - button "Expand sidebar":
+  - navigation:
+    - link "Cash planning":
+      - /url: /cashflow
+    - link "Dashboard":
+      - /url: /
+    - link "Unassigned records":
+      - /url: /transactions
+    - link "Reports":
+      - /url: /reports
+    - link "Budgets":
+      - /url: /budgets
+    - link "Savings":
+      - /url: /savings
+    - link "Investments":
+      - /url: /investments
+    - link "Debts":
+      - /url: /debts
+    - link "Calendar":
+      - /url: /calendar
+    - link "Gantt":
+      - /url: /gantt
+    - link "Trips":
+      - /url: /trips
+    - link "Scenarios":
+      - /url: /plans
+    - link "Docs":
+      - /url: /docs
+    - link "Settings":
+      - /url: /settings
+    - link "Onboarding":
+      - /url: /welcome
+  - button "AI advisor":
+  - generic: A
+  - button "Sign out":
+- main:
+  - region "Cash planning":
+    - text: AEGIS / CASH PLANNING
+    - heading "See the dates behind your money." [level=1]
+    - button "New workspace"
+    - paragraph: Record what moved. Plan what comes next. See whether the dates and amounts fit.
+    - region "Forecast scope":
+      - text: Workspace
+      - combobox "Workspace":
+        - option "Business X · fictional example · business · THB"
+        - option "M2 everyday review · fictional · personal · THB" [selected]
+        - option "Mina · fictional example · personal · THB"
+        - option "Setup check · fictional · business · THB"
+      - text: Cash as of
+      - textbox "Cash as of": 2026-10-02
+      - text: Plan through
+      - textbox "Plan through": 2026-10-31
+      - text: Comparison
+      - combobox "Comparison":
+        - option "Base plan" [selected]
+    - text: THB · Asia/Bangkok · All active cash accounts
+    - generic "Choose included accounts"
+    - navigation "Cash workspace views":
+      - button "Overview" [active] [pressed]
+      - button "Money calendar"
+      - button "Scenarios"
+      - button "Review & match"
+      - button "Upcoming plans"
+      - button "Goals & installments"
+      - button "Accounts"
+    - button "Record money"
+    - button "Add upcoming money"
+    - button "Add cash account"
+    - region "Cash summary":
+      - article:
+        - generic: Cash as of 2026-10-02 · THB
+        - strong: 4,934.75
+      - article:
+        - generic: Closing cash · 2026-10-31 · THB
+        - strong: 5,037.50
+      - article:
+        - generic: Lowest cash · 2026-10-11 · THB
+        - strong: 4,887.50
+      - article:
+        - generic: Closing after buffer and reservations · THB
+        - strong: 3,537.50
+    - text: DATED CASH FORECAST
+    - heading "Will your next plans fit?" [level=2]
+    - button "Compare a change"
+    - paragraph: The entered plan stays above your buffer within this period.
+    - list:
+      - text: Recorded cash
+      - text: Base plan · end of day
+    - paragraph:
+      - text: Expected receipts THB 250.00 · remaining costs THB 147.25 · reserved THB 1,000.00 · buffer THB 500.00
+      - button "Edit buffer"
+    - paragraph: End-of-day amounts; same-day income may arrive after same-day bills. Expected receipts are assumptions, not cash held.
+    - generic "Inspect daily values and their sources"
+    - region "Cash alerts":
+      - text: UNDERSTAND THE CASH GAP
+      - heading "Cash alerts" [level=2]
+      - button "Refresh alert review"
+      - paragraph: Alerts explain the base plan for these dates and included accounts. Comparisons remain separate. This review stays inside Aegis.
+      - paragraph: No cash-gap alerts in this entered base plan. Check your inputs and dates when the plan changes.
+      - generic "Resolved alert history (1)"
+    - heading "Upcoming commitments" [level=2]
+    - article:
+      - strong: Device installments · fictional · installment 1
+      - paragraph: Remaining cost THB 100.00 · expected 2026-10-15 · due 2026-10-15
+      - button "Change date"
+      - button "Cancel remaining"
+    - article:
+      - strong: Membership exception · fictional
+      - paragraph: Remaining cost THB 12.50 · expected 2026-10-11 · due 2026-10-10
+      - button "Change date"
+      - button "Cancel remaining"
+    - article:
+      - strong: Split income · fictional
+      - paragraph: Expected receipt THB 250.00 · expected 2026-10-15 · due 2026-10-15
+      - button "Change date"
+      - button "Cancel remaining"
+    - article:
+      - strong: Utilities · entered bill
+      - paragraph: Remaining cost THB 34.75 · expected 2026-10-05 · due Not entered
+      - button "Change date"
+      - button "Cancel remaining"
+    - heading "Outside the visible plan" [level=2]
+    - generic "Later obligations and receipts (77)"
+    - paragraph:
+      - text: Cash accounts are an entered record of money, not a bank connection. Completing a task does not record a payment.
+      - link "Read the Aegis guides":
+        - /url: /docs
+- button "Open Next.js Dev Tools":
+- alert
+- generic: THB 1,500

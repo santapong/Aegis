@@ -1,0 +1,23 @@
+{
+  "checked_at": "2026-10-22T18:34:38.416478+00:00",
+  "scope": "fictional-phone-test-only",
+  "result": "text_confirm_round_trip_passed",
+  "before_minor": "100000",
+  "after_minor": "99900",
+  "currency": "THB",
+  "matching_expense_journal_count": 1,
+  "preview_had_no_posted_journal": true,
+  "native_ingestion_execution": "17269",
+  "native_preview_delivery_execution": "17272",
+  "native_posted_delivery_execution": "17314",
+  "owner_reported_posted_confirmation_on_phone": true,
+  "handset_evidence_source": "Explicit owner answer after Confirm in this chat on 2026-10-23 Asia/Bangkok",
+  "pilot_n8n_workflows_paused": true,
+  "pause_authorized_by_owner": true,
+  "slip_ocr_configured": false,
+  "load_test_performed": false,
+  "hard_aggregate_memory_cap": false,
+  "production_financial_cutover": false,
+  "resource_guard_events": 0,
+  "evidence_contains_secrets_or_raw_execution_bodies": false
+}

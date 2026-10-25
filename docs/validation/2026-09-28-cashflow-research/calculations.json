@@ -1,0 +1,323 @@
+{
+  "checks": "Script syntax, four expected scenarios, reserve inequality, first business buffer crossing on 26 Oct",
+  "results": [
+    {
+      "id": "business",
+      "delay": false,
+      "points": [
+        {
+          "day": 0,
+          "title": "Opening example",
+          "cash": 60000,
+          "remaining": 60000,
+          "actual": true
+        },
+        {
+          "day": 2,
+          "title": "Project deposit",
+          "amount": 50000,
+          "kind": "income",
+          "actual": true,
+          "cash": 110000,
+          "remaining": 110000
+        },
+        {
+          "day": 3,
+          "title": "Studio rent",
+          "amount": 18000,
+          "kind": "expense",
+          "actual": true,
+          "cash": 92000,
+          "remaining": 92000
+        },
+        {
+          "day": 5,
+          "title": "Design software",
+          "amount": 3000,
+          "kind": "expense",
+          "actual": true,
+          "cash": 89000,
+          "remaining": 89000
+        },
+        {
+          "day": 15,
+          "title": "Final client payment",
+          "amount": 90000,
+          "kind": "income",
+          "cash": 179000,
+          "remaining": 179000
+        },
+        {
+          "day": 20,
+          "title": "Contractor costs",
+          "amount": 65000,
+          "kind": "expense",
+          "cash": 114000,
+          "remaining": 114000
+        },
+        {
+          "day": 23,
+          "title": "Hosting & tools",
+          "amount": 4000,
+          "kind": "expense",
+          "cash": 110000,
+          "remaining": 110000
+        },
+        {
+          "day": 26,
+          "title": "Equipment purchase",
+          "amount": 12000,
+          "kind": "expense",
+          "cash": 98000,
+          "remaining": 98000
+        },
+        {
+          "day": 28,
+          "title": "Business reserve",
+          "amount": 10000,
+          "kind": "reserve",
+          "cash": 98000,
+          "remaining": 88000
+        }
+      ],
+      "recorded": 89000,
+      "cash": 98000,
+      "remaining": 88000
+    },
+    {
+      "id": "business",
+      "delay": true,
+      "points": [
+        {
+          "day": 0,
+          "title": "Opening example",
+          "cash": 60000,
+          "remaining": 60000,
+          "actual": true
+        },
+        {
+          "day": 2,
+          "title": "Project deposit",
+          "amount": 50000,
+          "kind": "income",
+          "actual": true,
+          "cash": 110000,
+          "remaining": 110000
+        },
+        {
+          "day": 3,
+          "title": "Studio rent",
+          "amount": 18000,
+          "kind": "expense",
+          "actual": true,
+          "cash": 92000,
+          "remaining": 92000
+        },
+        {
+          "day": 5,
+          "title": "Design software",
+          "amount": 3000,
+          "kind": "expense",
+          "actual": true,
+          "cash": 89000,
+          "remaining": 89000
+        },
+        {
+          "day": 20,
+          "title": "Contractor costs",
+          "amount": 65000,
+          "kind": "expense",
+          "cash": 24000,
+          "remaining": 24000
+        },
+        {
+          "day": 23,
+          "title": "Hosting & tools",
+          "amount": 4000,
+          "kind": "expense",
+          "cash": 20000,
+          "remaining": 20000
+        },
+        {
+          "day": 26,
+          "title": "Equipment purchase",
+          "amount": 12000,
+          "kind": "expense",
+          "cash": 8000,
+          "remaining": 8000
+        },
+        {
+          "day": 28,
+          "title": "Business reserve",
+          "amount": 10000,
+          "kind": "reserve",
+          "cash": 8000,
+          "remaining": -2000
+        }
+      ],
+      "recorded": 89000,
+      "cash": 8000,
+      "remaining": -2000
+    },
+    {
+      "id": "personal",
+      "delay": false,
+      "points": [
+        {
+          "day": 0,
+          "title": "Opening example",
+          "cash": 18000,
+          "remaining": 18000,
+          "actual": true
+        },
+        {
+          "day": 1,
+          "title": "Monthly salary",
+          "amount": 45000,
+          "kind": "income",
+          "actual": true,
+          "cash": 63000,
+          "remaining": 63000
+        },
+        {
+          "day": 2,
+          "title": "Rent",
+          "amount": 12000,
+          "kind": "expense",
+          "actual": true,
+          "cash": 51000,
+          "remaining": 51000
+        },
+        {
+          "day": 4,
+          "title": "Groceries",
+          "amount": 2400,
+          "kind": "expense",
+          "actual": true,
+          "cash": 48600,
+          "remaining": 48600
+        },
+        {
+          "day": 5,
+          "title": "Commuting",
+          "amount": 1600,
+          "kind": "expense",
+          "actual": true,
+          "cash": 47000,
+          "remaining": 47000
+        },
+        {
+          "day": 15,
+          "title": "Side-project payment",
+          "amount": 8000,
+          "kind": "income",
+          "cash": 55000,
+          "remaining": 55000
+        },
+        {
+          "day": 18,
+          "title": "Utilities",
+          "amount": 2500,
+          "kind": "expense",
+          "cash": 52500,
+          "remaining": 52500
+        },
+        {
+          "day": 24,
+          "title": "Remaining groceries",
+          "amount": 3600,
+          "kind": "expense",
+          "cash": 48900,
+          "remaining": 48900
+        },
+        {
+          "day": 28,
+          "title": "Emergency fund",
+          "amount": 5000,
+          "kind": "reserve",
+          "cash": 48900,
+          "remaining": 43900
+        }
+      ],
+      "recorded": 47000,
+      "cash": 48900,
+      "remaining": 43900
+    },
+    {
+      "id": "personal",
+      "delay": true,
+      "points": [
+        {
+          "day": 0,
+          "title": "Opening example",
+          "cash": 18000,
+          "remaining": 18000,
+          "actual": true
+        },
+        {
+          "day": 1,
+          "title": "Monthly salary",
+          "amount": 45000,
+          "kind": "income",
+          "actual": true,
+          "cash": 63000,
+          "remaining": 63000
+        },
+        {
+          "day": 2,
+          "title": "Rent",
+          "amount": 12000,
+          "kind": "expense",
+          "actual": true,
+          "cash": 51000,
+          "remaining": 51000
+        },
+        {
+          "day": 4,
+          "title": "Groceries",
+          "amount": 2400,
+          "kind": "expense",
+          "actual": true,
+          "cash": 48600,
+          "remaining": 48600
+        },
+        {
+          "day": 5,
+          "title": "Commuting",
+          "amount": 1600,
+          "kind": "expense",
+          "actual": true,
+          "cash": 47000,
+          "remaining": 47000
+        },
+        {
+          "day": 18,
+          "title": "Utilities",
+          "amount": 2500,
+          "kind": "expense",
+          "cash": 44500,
+          "remaining": 44500
+        },
+        {
+          "day": 24,
+          "title": "Remaining groceries",
+          "amount": 3600,
+          "kind": "expense",
+          "cash": 40900,
+          "remaining": 40900
+        },
+        {
+          "day": 28,
+          "title": "Emergency fund",
+          "amount": 5000,
+          "kind": "reserve",
+          "cash": 40900,
+          "remaining": 35900
+        }
+      ],
+      "recorded": 47000,
+      "cash": 40900,
+      "remaining": 35900
+    }
+  ]
+}

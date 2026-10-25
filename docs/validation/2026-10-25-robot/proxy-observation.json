@@ -1,0 +1,26 @@
+{
+  "status": "FAIL",
+  "actor": "disposable authenticated Robot browser fixture",
+  "observed": [
+    {
+      "path": "/api/budgets?active=true",
+      "status": 307,
+      "location": "http://127.0.0.1:8000/api/budgets/?active=true"
+    },
+    {
+      "path": "/api/budgets/?active=true",
+      "status": 308,
+      "location": "/api/budgets?active=true"
+    },
+    {
+      "path": "/api/finance/budgets",
+      "status": 200
+    },
+    {
+      "path": "/api/budgets/comparison",
+      "status": 409
+    }
+  ],
+  "browser": "Budget page showed Failed to fetch and No budgets set yet despite a stored budget.",
+  "fix": "Proposed skipTrailingSlashRedirect option; unapplied and untested. Rebuild and rerun frontend_proxy.robot plus browser validation."
+}

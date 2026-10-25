@@ -1,0 +1,57 @@
+{
+  "samples": 280,
+  "peak_rss_bytes": 1294516224,
+  "available_bytes": 12788613120,
+  "temperature_c": 65.0,
+  "controls": {
+    "aegis-merge-20261025-prepare": {
+      "cpu.max": "50000 100000",
+      "pids.max": "128"
+    },
+    "aegis-merge-20261025-candidate-build-network": {
+      "cpu.max": "50000 100000",
+      "pids.max": "128"
+    },
+    "aegis-merge-20261025-candidate-build-network-v2": {
+      "cpu.max": "50000 100000",
+      "pids.max": "128"
+    },
+    "aegis-merge-20261025-api": {
+      "cpu.max": "35000 100000",
+      "pids.max": "64"
+    },
+    "aegis-merge-20261025-db": {
+      "cpu.max": "15000 100000",
+      "pids.max": "64"
+    },
+    "aegis-merge-20261025-robot-schema": {
+      "cpu.max": "35000 100000",
+      "pids.max": "128"
+    },
+    "aegis-merge-20261025-robot-acceptance": {
+      "cpu.max": "15000 100000",
+      "pids.max": "128"
+    },
+    "aegis-merge-20261025-frontend": {
+      "cpu.max": "25000 100000",
+      "pids.max": "64"
+    },
+    "aegis-merge-20261025-proxy-acceptance": {
+      "cpu.max": "15000 100000",
+      "pids.max": "64"
+    },
+    "aegis-merge-20261025-candidate-build-network-v3": {
+      "cpu.max": "50000 100000",
+      "pids.max": "128"
+    },
+    "aegis-merge-20261025-frontend-v3": {
+      "cpu.max": "25000 100000",
+      "pids.max": "64"
+    },
+    "aegis-merge-20261025-proxy-acceptance-rerun": {
+      "cpu.max": "15000 100000",
+      "pids.max": "64"
+    }
+  },
+  "events": []
+}

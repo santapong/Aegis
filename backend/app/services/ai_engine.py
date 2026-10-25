@@ -1,6 +1,6 @@
 import json
 import re
-from datetime import date, timedelta
+from datetime import timedelta
 from functools import lru_cache
 from typing import TypedDict
 
@@ -19,6 +19,7 @@ from ..models.ai_usage import AIUsage
 from ..models.user_preferences import UserPreferences
 from ..models.user_secret import SECRET_AI_PROVIDER_KEY, UserSecret
 from .secrets import decrypt
+from .finance_reads import financial_today, cutover_active, report
 
 
 # SDK clients hold an httpx connection pool; constructing one per request
@@ -76,7 +77,12 @@ ANALYZE_TOOL = {
                             "description": "Type of recommended action",
                         },
                     },
-                    "required": ["recommendation", "confidence", "category", "action_type"],
+                    "required": [
+                        "recommendation",
+                        "confidence",
+                        "category",
+                        "action_type",
+                    ],
                 },
                 "minItems": 3,
                 "maxItems": 5,
@@ -113,7 +119,12 @@ FORECAST_TOOL = {
                 "description": "3-5 key insights about the financial forecast",
             },
         },
-        "required": ["projected_balance", "projected_income", "projected_expenses", "insights"],
+        "required": [
+            "projected_balance",
+            "projected_income",
+            "projected_expenses",
+            "insights",
+        ],
     },
 }
 
@@ -341,7 +352,10 @@ class AIEngine:
         else:
             raise HTTPException(
                 status_code=500,
-                detail={"error": "ai_provider_invalid", "message": f"Unknown AI_PROVIDER {self.provider!r}."},
+                detail={
+                    "error": "ai_provider_invalid",
+                    "message": f"Unknown AI_PROVIDER {self.provider!r}.",
+                },
             )
 
         # A stored preference overrides the env default. Resolved here, after
@@ -412,7 +426,9 @@ class AIEngine:
             },
         )
 
-    def _record_usage(self, operation: str, input_tokens: int, output_tokens: int) -> None:
+    def _record_usage(
+        self, operation: str, input_tokens: int, output_tokens: int
+    ) -> None:
         """Persist one AIUsage row. Never raises.
 
         Metering exists to observe the AI feature, so it must not be able to
@@ -513,31 +529,90 @@ class AIEngine:
             return None
 
     def _gather_context(self, days: int = 90) -> dict:
-        cutoff = date.today() - timedelta(days=days)
+        cutoff = financial_today(self.db, self.user_id) - timedelta(days=days)
+
+        if self.user_id and cutover_active(self.db, self.user_id):
+            exact = report(
+                self.db, self.user_id, cutoff, financial_today(self.db, self.user_id)
+            )
+            plans = (
+                self.db.query(Plan)
+                .filter(
+                    Plan.user_id == self.user_id,
+                    Plan.status.in_([PlanStatus.planned, PlanStatus.in_progress]),
+                )
+                .all()
+            )
+            income, expense = int(exact["income_minor"]), int(exact["expense_minor"])
+            return {
+                "period_days": days,
+                "currency": "THB",
+                "total_income": income / 100,
+                "total_expenses": expense / 100,
+                "net_savings": (income - expense) / 100,
+                "savings_rate": round((income - expense) / income * 100, 1)
+                if income > 0
+                else 0,
+                "spending_by_category": {
+                    k: int(v) / 100
+                    for k, v in exact["expense_by_category_minor"].items()
+                },
+                "active_plans": [
+                    {
+                        "title": p.title,
+                        "amount": float(p.amount),
+                        "category": p.category.value,
+                        "status": p.status.value,
+                        "progress": p.progress,
+                    }
+                    for p in plans
+                ],
+                "transaction_count": len(exact["transactions"]),
+                "unverified_legacy_history_excluded": exact["unverified_legacy_count"],
+            }
 
         txn_filters = [Transaction.date >= cutoff]
         plans_q = self.db.query(Plan).filter(
             Plan.status.in_([PlanStatus.planned, PlanStatus.in_progress])
         )
         if self.user_id:
-            txn_filters.append(Transaction.user_id == self.user_id)
+            txn_filters.append(
+                (Transaction.user_id == self.user_id)
+                & Transaction.workspace_id.is_(None)
+            )
             plans_q = plans_q.filter(Plan.user_id == self.user_id)
 
-        total_income, total_expenses, txn_count = self.db.query(
-            sa_func.coalesce(
-                sa_func.sum(
-                    case((Transaction.type == TransactionType.income, Transaction.amount), else_=0)
+        total_income, total_expenses, txn_count = (
+            self.db.query(
+                sa_func.coalesce(
+                    sa_func.sum(
+                        case(
+                            (
+                                Transaction.type == TransactionType.income,
+                                Transaction.amount,
+                            ),
+                            else_=0,
+                        )
+                    ),
+                    0,
                 ),
-                0,
-            ),
-            sa_func.coalesce(
-                sa_func.sum(
-                    case((Transaction.type == TransactionType.expense, Transaction.amount), else_=0)
+                sa_func.coalesce(
+                    sa_func.sum(
+                        case(
+                            (
+                                Transaction.type == TransactionType.expense,
+                                Transaction.amount,
+                            ),
+                            else_=0,
+                        )
+                    ),
+                    0,
                 ),
-                0,
-            ),
-            sa_func.count(Transaction.id),
-        ).filter(*txn_filters).one()
+                sa_func.count(Transaction.id),
+            )
+            .filter(*txn_filters)
+            .one()
+        )
         total_income = float(total_income)
         total_expenses = float(total_expenses)
 
@@ -556,10 +631,20 @@ class AIEngine:
             "total_income": total_income,
             "total_expenses": total_expenses,
             "net_savings": total_income - total_expenses,
-            "savings_rate": round((total_income - total_expenses) / total_income * 100, 1) if total_income > 0 else 0,
+            "savings_rate": round(
+                (total_income - total_expenses) / total_income * 100, 1
+            )
+            if total_income > 0
+            else 0,
             "spending_by_category": category_spending,
             "active_plans": [
-                {"title": p.title, "amount": float(p.amount), "category": p.category.value, "status": p.status.value, "progress": p.progress}
+                {
+                    "title": p.title,
+                    "amount": float(p.amount),
+                    "category": p.category.value,
+                    "status": p.status.value,
+                    "progress": p.progress,
+                }
                 for p in plans_q.all()
             ],
             "transaction_count": int(txn_count),
@@ -581,7 +666,12 @@ Be specific with numbers and percentages. Provide 3-5 recommendations."""
             system_prompt, user_message, ANALYZE_TOOL, operation="analyze"
         )
         recommendations = (result or {}).get("recommendations") or [
-            {"recommendation": "Unable to generate AI recommendations at this time.", "confidence": 0.5, "category": "general", "action_type": "alert"}
+            {
+                "recommendation": "Unable to generate AI recommendations at this time.",
+                "confidence": 0.5,
+                "category": "general",
+                "action_type": "alert",
+            }
         ]
 
         # Store recommendations
@@ -610,12 +700,20 @@ Be specific with numbers and percentages. Provide 3-5 recommendations."""
     def forecast(self, months_ahead: int = 3) -> dict:
         context = self._gather_context(days=180)
 
-        monthly_income = context["total_income"] / (context["period_days"] / 30) if context["period_days"] > 0 else 0
-        monthly_expenses = context["total_expenses"] / (context["period_days"] / 30) if context["period_days"] > 0 else 0
+        monthly_income = (
+            context["total_income"] / (context["period_days"] / 30)
+            if context["period_days"] > 0
+            else 0
+        )
+        monthly_expenses = (
+            context["total_expenses"] / (context["period_days"] / 30)
+            if context["period_days"] > 0
+            else 0
+        )
 
         system_prompt = """You are a financial forecasting AI. Based on the user's financial history, provide a forecast."""
 
-        user_message = f"""Financial data (last {context['period_days']} days):
+        user_message = f"""Financial data (last {context["period_days"]} days):
 {json.dumps(context, indent=2)}
 
 Monthly averages: income={monthly_income:.2f}, expenses={monthly_expenses:.2f}
@@ -629,7 +727,9 @@ Please forecast my finances for the next {months_ahead} months."""
                 "projected_balance": (monthly_income - monthly_expenses) * months_ahead,
                 "projected_income": monthly_income * months_ahead,
                 "projected_expenses": monthly_expenses * months_ahead,
-                "insights": ["Unable to generate AI insights. Using simple projection."],
+                "insights": [
+                    "Unable to generate AI insights. Using simple projection."
+                ],
             }
 
         forecast["months_ahead"] = months_ahead

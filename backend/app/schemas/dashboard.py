@@ -3,6 +3,13 @@ from pydantic import BaseModel
 
 class KPISummary(BaseModel):
     total_balance: float
+    balance_basis: str = "legacy_net_movement"
+    asset_balance_minor: str | None = None
+    liability_balance_minor: str | None = None
+    net_position_minor: str | None = None
+    monthly_income_minor: str | None = None
+    monthly_expenses_minor: str | None = None
+    unverified_legacy_count: int = 0
     monthly_income: float
     monthly_expenses: float
     savings_rate: float
@@ -43,6 +50,8 @@ class CashFlowPoint(BaseModel):
 
 
 class CashFlowForecastResponse(BaseModel):
+    balance_basis: str = "legacy_net_movement"
+    assumptions: str | None = None
     current_balance: float
     forecast: list[CashFlowPoint]
 

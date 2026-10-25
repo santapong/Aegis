@@ -34,6 +34,7 @@ from ..models.budget import Budget
 from ..models.plan import Plan
 from ..models.transaction import Transaction
 from ..models.user import User
+from ..services.finance_reads import cutover_active, report
 
 router = APIRouter(prefix="/api/export", tags=["export"])
 
@@ -84,9 +85,14 @@ async def export_transactions(
     Async version of the previous sync endpoint. Identical semantics
     + identical wire output — only the in-process I/O model changed.
     """
+    if await db.run_sync(lambda session: cutover_active(session, current_user.id)):
+        exact = await db.run_sync(lambda session: report(session, current_user.id))
+        return StreamingResponse((json.dumps(row) + "\n" for row in exact["transactions"]), media_type="application/x-ndjson",
+                                 headers={"Content-Disposition": "attachment; filename=financial-transactions.ndjson",
+                                          "X-Unverified-Legacy-Count": str(exact["unverified_legacy_count"])})
     stmt = (
         select(Transaction)
-        .where(Transaction.user_id == current_user.id)
+        .where((Transaction.user_id == current_user.id) & Transaction.workspace_id.is_(None))
         .order_by(Transaction.date)
         .execution_options(yield_per=100)
     )

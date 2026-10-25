@@ -7,6 +7,8 @@ from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from loguru import logger
 from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from .services.money_ledger import MoneyError
 
 from .config import get_settings
 from .database import SessionLocal, engine
@@ -18,7 +20,12 @@ from .middleware import (
     SecurityHeadersMiddleware,
 )
 from .routers import (
+    financial_ledger,
+    finance_integration,
+    finance_reconciliation,
     auth,
+    line_finance,
+    cashflow,
     plans,
     calendar,
     gantt,
@@ -80,11 +87,53 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
+@app.exception_handler(MoneyError)
+async def money_error(request, exc):
+    import uuid
+
+    return JSONResponse(
+        status_code=exc.status,
+        content={
+            "detail": {
+                "code": exc.code,
+                "message": exc.message,
+                "field_errors": exc.field_errors,
+                "retryable": False,
+                "correlation_id": getattr(request.state, "request_id", None)
+                or uuid.uuid4().hex,
+            }
+        },
+    )
+
+
+@app.exception_handler(SQLAlchemyError)
+async def database_error(request, exc):
+    import uuid
+
+    logger.error("Database operation failed: {kind}", kind=type(exc).__name__)
+    return JSONResponse(
+        status_code=503,
+        content={
+            "detail": {
+                "code": "DATABASE_UNAVAILABLE",
+                "message": "The database could not commit this operation. Retry using the same idempotency key.",
+                "field_errors": [],
+                "retryable": True,
+                "correlation_id": getattr(request.state, "request_id", None)
+                or uuid.uuid4().hex,
+            }
+        },
+    )
+
+
 # add_middleware prepends, so the last call wraps outermost.
 # RequestIDMiddleware must be outermost so its logger.contextualize() covers
 # every downstream log line (including SecurityHeadersMiddleware's request log).
 app.add_middleware(SecurityHeadersMiddleware)
-app.add_middleware(RateLimitMiddleware, requests_per_minute=settings.rate_limit_per_minute)
+app.add_middleware(
+    RateLimitMiddleware, requests_per_minute=settings.rate_limit_per_minute
+)
 app.add_middleware(BodySizeLimitMiddleware, max_bytes=settings.max_request_body_bytes)
 # gzip after the routing middlewares so headers we set (Content-Security-Policy
 # etc.) still apply to the compressed response. 500-byte floor skips tiny
@@ -96,12 +145,18 @@ app.add_middleware(
     allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
-    allow_headers=["Content-Type", "Authorization", "X-Request-ID"],
+    allow_headers=["Content-Type", "Authorization", "X-Request-ID", "Idempotency-Key"],
     expose_headers=["X-Request-ID"],
 )
 app.add_middleware(RequestIDMiddleware)
 
 app.include_router(auth.router)
+app.include_router(financial_ledger.router)
+app.include_router(financial_ledger.status_router)
+app.include_router(finance_integration.router)
+app.include_router(finance_reconciliation.router)
+app.include_router(line_finance.router)
+app.include_router(cashflow.router)
 app.include_router(plans.router)
 app.include_router(calendar.router)
 app.include_router(gantt.router)
@@ -165,7 +220,9 @@ def health():
             "ai_provider": settings.ai_provider,
             "stripe": "configured" if settings.stripe_secret_key else "not_configured",
         },
-        "stripe_mode": settings.stripe_mode if settings.stripe_secret_key else "not_configured",
+        "stripe_mode": settings.stripe_mode
+        if settings.stripe_secret_key
+        else "not_configured",
     }
     if not db_ok:
         body["db_error"] = db_error

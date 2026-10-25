@@ -1,0 +1,11 @@
+{
+  "changed_source_files": [
+    "frontend/src/app/settings/page.tsx",
+    "frontend/src/components/line-finance-settings.tsx"
+  ],
+  "backend_test_migration_and_ci_sources_unchanged": true,
+  "responsive_source_hash": "9ee17346071c794e19090c15baa464dfb4453bb5a006a02bc5719de62cb5b5b8",
+  "frontend_selected_stages_passed": true,
+  "backend_evidence": "workflow-m4-final/result.json",
+  "frontend_evidence": "workflow-m4-responsive/result.json"
+}

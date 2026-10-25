@@ -1,0 +1,18 @@
+{
+  "source_hash": "c96f75fc359be021ede5b04b864fc3a703bd7e306cb7b2d94e966aab2f2f3cca",
+  "changed_since_responsive": [
+    ".github/workflows/test.yml",
+    "backend/app/mcp/tools/transactions.py",
+    "backend/app/routers/cashflow.py",
+    "backend/app/routers/line_finance.py",
+    "backend/app/routers/transactions.py",
+    "backend/app/services/cashflow/__init__.py",
+    "backend/app/services/cashflow/business.py",
+    "backend/app/services/line_finance.py",
+    "backend/app/services/transaction_scope.py",
+    "backend/tests/test_cashflow_review.py",
+    "scripts/verify-cashflow-workflow.py"
+  ],
+  "frontend_unchanged": true,
+  "migrations_unchanged": true
+}

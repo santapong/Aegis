@@ -1,0 +1,345 @@
+{
+  "name": "aegis-local-tls-20261002",
+  "networks": {
+    "default": {
+      "name": "aegis-local-tls-20261002_default",
+      "ipam": {},
+      "internal": true
+    },
+    "edge": {
+      "name": "aegis-local-tls-20261002_edge",
+      "ipam": {}
+    }
+  },
+  "services": {
+    "backend": {
+      "build": {
+        "context": "/mnt/data/company/apps/Aegis/backend",
+        "dockerfile": "Dockerfile"
+      },
+      "command": null,
+      "depends_on": {
+        "db": {
+          "condition": "service_healthy",
+          "required": true
+        },
+        "redis": {
+          "condition": "service_healthy",
+          "required": true
+        }
+      },
+      "deploy": {
+        "resources": {
+          "limits": {
+            "memory": "536870912"
+          }
+        },
+        "placement": {}
+      },
+      "entrypoint": null,
+      "environment": {
+        "ANTHROPIC_API_KEY": "",
+        "CACHE_BACKEND": "redis",
+        "CACHE_REDIS_URL": "redis://redis:6379/0",
+        "CASHFLOW_WORKSPACES_ENABLED": "true",
+        "CORS_ORIGINS": "[\"https://localhost:3444\"]",
+        "DATABASE_URL": "postgresql://fictional_compose:fictional-compose-only-20261002@db:5432/money_management",
+        "DB_MAX_OVERFLOW": "2",
+        "DB_POOL_SIZE": "3",
+        "DEBUG": "false",
+        "FRONTEND_URL": "https://localhost:3444",
+        "JWT_SECRET_KEY": "aegis-fictional-local-compose-key-20261002",
+        "LINE_FINANCE_ACCESS_TOKEN": "",
+        "LINE_FINANCE_CHANNEL_SECRET": "",
+        "LINE_FINANCE_DELIVERY_SECRET": "",
+        "LOG_FORMAT": "json",
+        "POSTGRES_PASSWORD": "fictional-compose-only-20261002",
+        "POSTGRES_USER": "fictional_compose",
+        "STRIPE_SECRET_KEY": ""
+      },
+      "expose": [
+        "8000"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request,sys; r=urllib.request.urlopen('http://localhost:8000/api/health', timeout=3); sys.exit(0 if r.status==200 else 1)"
+        ],
+        "timeout": "5s",
+        "interval": "30s",
+        "retries": 5,
+        "start_period": "15s",
+        "start_interval": "3s"
+      },
+      "image": "aegis-backend:cash-review-20261002",
+      "networks": {
+        "default": null
+      },
+      "restart": "unless-stopped",
+      "stop_grace_period": "30s"
+    },
+    "caddy": {
+      "command": null,
+      "depends_on": {
+        "backend": {
+          "condition": "service_healthy",
+          "required": true
+        }
+      },
+      "deploy": {
+        "resources": {
+          "limits": {
+            "memory": "134217728"
+          }
+        },
+        "placement": {}
+      },
+      "entrypoint": null,
+      "image": "caddy:2-alpine",
+      "networks": {
+        "default": null,
+        "edge": null
+      },
+      "ports": [
+        {
+          "mode": "ingress",
+          "host_ip": "127.0.0.1",
+          "target": 80,
+          "published": "3311",
+          "protocol": "tcp"
+        },
+        {
+          "mode": "ingress",
+          "host_ip": "127.0.0.1",
+          "target": 443,
+          "published": "3444",
+          "protocol": "tcp"
+        }
+      ],
+      "restart": "unless-stopped",
+      "stop_grace_period": "30s",
+      "volumes": [
+        {
+          "type": "bind",
+          "source": "/mnt/data/company/apps/Aegis/Caddyfile",
+          "target": "/etc/caddy/Caddyfile",
+          "read_only": true,
+          "bind": {
+            "create_host_path": true
+          }
+        },
+        {
+          "type": "volume",
+          "source": "caddy_data",
+          "target": "/data",
+          "volume": {}
+        },
+        {
+          "type": "volume",
+          "source": "caddy_config",
+          "target": "/config",
+          "volume": {}
+        }
+      ]
+    },
+    "db": {
+      "command": null,
+      "deploy": {
+        "resources": {
+          "limits": {
+            "memory": "536870912"
+          }
+        },
+        "placement": {}
+      },
+      "entrypoint": null,
+      "environment": {
+        "POSTGRES_DB": "money_management",
+        "POSTGRES_PASSWORD": "fictional-compose-only-20261002",
+        "POSTGRES_USER": "fictional_compose"
+      },
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U fictional_compose -d money_management"
+        ],
+        "timeout": "5s",
+        "interval": "10s",
+        "retries": 5,
+        "start_period": "15s",
+        "start_interval": "2s"
+      },
+      "image": "postgres:16-alpine",
+      "networks": {
+        "default": null
+      },
+      "restart": "unless-stopped",
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "pgdata",
+          "target": "/var/lib/postgresql/data",
+          "volume": {}
+        }
+      ]
+    },
+    "frontend": {
+      "build": {
+        "context": "/mnt/data/company/apps/Aegis",
+        "dockerfile": "frontend/Dockerfile",
+        "args": {
+          "BACKEND_INTERNAL_URL": "http://backend:8000",
+          "NEXT_PUBLIC_API_URL": "https://localhost"
+        }
+      },
+      "command": null,
+      "depends_on": {
+        "backend": {
+          "condition": "service_healthy",
+          "required": true
+        }
+      },
+      "deploy": {
+        "resources": {
+          "limits": {
+            "memory": "268435456"
+          }
+        },
+        "placement": {}
+      },
+      "entrypoint": null,
+      "environment": {
+        "BACKEND_INTERNAL_URL": "http://backend:8000"
+      },
+      "expose": [
+        "3000"
+      ],
+      "image": "aegis-frontend:cash-review-20261002",
+      "networks": {
+        "default": null
+      },
+      "restart": "unless-stopped",
+      "stop_grace_period": "30s"
+    },
+    "redis": {
+      "command": [
+        "redis-server",
+        "--maxmemory",
+        "96mb",
+        "--maxmemory-policy",
+        "volatile-lru"
+      ],
+      "deploy": {
+        "resources": {
+          "limits": {
+            "memory": "134217728"
+          }
+        },
+        "placement": {}
+      },
+      "entrypoint": null,
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "redis-cli",
+          "ping"
+        ],
+        "timeout": "3s",
+        "interval": "10s",
+        "retries": 5,
+        "start_period": "10s",
+        "start_interval": "1s"
+      },
+      "image": "redis:7-alpine",
+      "networks": {
+        "default": null
+      },
+      "restart": "unless-stopped"
+    },
+    "worker": {
+      "build": {
+        "context": "/mnt/data/company/apps/Aegis/backend",
+        "dockerfile": "Dockerfile"
+      },
+      "command": [
+        "arq",
+        "app.worker.WorkerSettings"
+      ],
+      "depends_on": {
+        "backend": {
+          "condition": "service_healthy",
+          "required": true
+        },
+        "db": {
+          "condition": "service_healthy",
+          "required": true
+        },
+        "redis": {
+          "condition": "service_healthy",
+          "required": true
+        }
+      },
+      "deploy": {
+        "resources": {
+          "limits": {
+            "memory": "536870912"
+          }
+        },
+        "placement": {}
+      },
+      "entrypoint": null,
+      "environment": {
+        "ANTHROPIC_API_KEY": "",
+        "CACHE_BACKEND": "redis",
+        "CACHE_REDIS_URL": "redis://redis:6379/0",
+        "CASHFLOW_WORKSPACES_ENABLED": "true",
+        "CORS_ORIGINS": "[\"https://localhost:3444\"]",
+        "DATABASE_URL": "postgresql://fictional_compose:fictional-compose-only-20261002@db:5432/money_management",
+        "DB_MAX_OVERFLOW": "2",
+        "DB_POOL_SIZE": "3",
+        "DEBUG": "false",
+        "FRONTEND_URL": "https://localhost:3444",
+        "JWT_SECRET_KEY": "aegis-fictional-local-compose-key-20261002",
+        "LINE_FINANCE_ACCESS_TOKEN": "",
+        "LINE_FINANCE_CHANNEL_SECRET": "",
+        "LINE_FINANCE_DELIVERY_SECRET": "",
+        "LOG_FORMAT": "json",
+        "POSTGRES_PASSWORD": "fictional-compose-only-20261002",
+        "POSTGRES_USER": "fictional_compose",
+        "STRIPE_SECRET_KEY": ""
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "arq",
+          "--check",
+          "app.worker.WorkerSettings"
+        ],
+        "timeout": "5s",
+        "interval": "30s",
+        "retries": 3,
+        "start_period": "15s",
+        "start_interval": "3s"
+      },
+      "image": "aegis-backend:cash-review-20261002",
+      "networks": {
+        "default": null
+      },
+      "restart": "unless-stopped",
+      "stop_grace_period": "30s"
+    }
+  },
+  "volumes": {
+    "caddy_config": {
+      "name": "aegis-local-tls-20261002_caddy_config"
+    },
+    "caddy_data": {
+      "name": "aegis-local-tls-20261002_caddy_data"
+    },
+    "pgdata": {
+      "name": "aegis-local-tls-20261002_pgdata"
+    }
+  }
+}

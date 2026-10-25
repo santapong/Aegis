@@ -1,0 +1,71 @@
+{
+  "states": [
+    {
+      "service": "db",
+      "state": "running",
+      "health": "healthy",
+      "restart_count": 0,
+      "image_id": "sha256:108b27c919e6e7bc124350fb265deea9adac58e118eade428c6d1ad44b90debe",
+      "host_bindings": {}
+    },
+    {
+      "service": "redis",
+      "state": "running",
+      "health": "healthy",
+      "restart_count": 0,
+      "image_id": "sha256:aa189b5a1954929c393585e6dc5717a75b18f75a931df8bdcc00a3d3bd546be6",
+      "host_bindings": {}
+    },
+    {
+      "service": "backend",
+      "state": "running",
+      "health": "healthy",
+      "restart_count": 0,
+      "image_id": "sha256:25a6294af2e7bea62c16fbf3f0fbe71c5c27a46657aab5dcbd3e275907d50e4e",
+      "host_bindings": {}
+    },
+    {
+      "service": "worker",
+      "state": "running",
+      "health": "healthy",
+      "restart_count": 0,
+      "image_id": "sha256:25a6294af2e7bea62c16fbf3f0fbe71c5c27a46657aab5dcbd3e275907d50e4e",
+      "host_bindings": {}
+    },
+    {
+      "service": "frontend",
+      "state": "running",
+      "health": null,
+      "restart_count": 0,
+      "image_id": "sha256:d2bc2f72cea9b4e2a549884e93a832cdacacab804cf405bf075b68ce5960e10a",
+      "host_bindings": {}
+    },
+    {
+      "service": "caddy",
+      "state": "running",
+      "health": null,
+      "restart_count": 0,
+      "image_id": "sha256:2d8b1708bf8008935c0e2a9b6564f7f080cf9a73af3b27718f286230449b7101",
+      "host_bindings": {
+        "443/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "3444"
+          }
+        ],
+        "80/tcp": [
+          {
+            "HostIp": "127.0.0.1",
+            "HostPort": "3311"
+          }
+        ]
+      }
+    }
+  ],
+  "migration_head": "a1002cf00004",
+  "first_migrations_run_by": "backend",
+  "worker_migration": "already at head, no DDL upgrade",
+  "all_restart_counts_zero": true,
+  "tracebacks_absent": true,
+  "public_ca_copied_for_client_only": true
+}
