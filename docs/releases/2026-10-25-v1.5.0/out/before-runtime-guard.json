@@ -1,0 +1,17 @@
+{
+  "samples": 9,
+  "peak_rss_bytes": 23658496,
+  "available_bytes": 12816465920,
+  "temperature_c": 64.45,
+  "controls": {
+    "aegis-release-v150-20261025-lock-sharp": {
+      "cpu.max": "50000 100000",
+      "pids.max": "128"
+    },
+    "aegis-release-v150-20261025-install-sharp": {
+      "cpu.max": "50000 100000",
+      "pids.max": "128"
+    }
+  },
+  "events": []
+}

@@ -5,6 +5,8 @@ import dynamic from "next/dynamic";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { budgetsAPI } from "@/lib/api";
+import { financeAPI } from "@/lib/finance-api";
+import { useAuthStore } from "@/stores/auth-store";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { staggerContainer, staggerItem } from "@/lib/animations";
@@ -15,6 +17,7 @@ import { Modal, ModalBody, ModalFooter } from "@/components/ui/modal";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BudgetCurrencyReview } from "@/components/finance/budget-currency-review";
 import { Plus, Trash2, AlertTriangle, Pencil, Wallet, LayoutTemplate } from "lucide-react";
 import type { Budget, BudgetComparisonResponse, BudgetTemplate } from "@/types";
 
@@ -95,6 +98,23 @@ const defaultForm = {
 
 export default function BudgetsPage() {
   const queryClient = useQueryClient();
+  const owner = useAuthStore((state) => state.user?.id);
+  const financeStatus = useQuery({
+    queryKey: ["finance", owner, "status"], queryFn: financeAPI.status,
+    enabled: !!owner, retry: false,
+  });
+  const trackedTHB = !!financeStatus.data?.enabled && !!financeStatus.data?.cutover_active;
+  const financeBudgets = useQuery({
+    queryKey: ["finance", owner, "budgets"], queryFn: financeAPI.budgets,
+    enabled: trackedTHB, retry: false,
+  });
+  const reviewed = new Set(financeBudgets.data?.filter((row) => row.budget_currency_confirmed).map((row) => row.id));
+  const formatBudgetCurrency = (amount: number, id?: string) => {
+    if (!financeStatus.data || (trackedTHB && id && !reviewed.has(id))) {
+      return `${amount.toLocaleString()} (currency unreviewed)`;
+    }
+    return formatCurrency(amount, trackedTHB ? "THB" : undefined);
+  };
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
@@ -105,7 +125,7 @@ export default function BudgetsPage() {
   const [templateIncome, setTemplateIncome] = useState("");
   const [templateError, setTemplateError] = useState<string | null>(null);
 
-  const { data: budgets } = useQuery<Budget[]>({
+  const { data: budgets, isPending: budgetsLoading, isError: budgetsFailed, refetch: reloadBudgets } = useQuery<Budget[]>({
     queryKey: ["budgets"],
     queryFn: () => budgetsAPI.list({ active: "true" }) as Promise<Budget[]>,
   });
@@ -123,6 +143,7 @@ export default function BudgetsPage() {
   });
 
   const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ["finance"], predicate: (query) => query.queryKey[2] === "budgets" });
     queryClient.invalidateQueries({ queryKey: ["budgets"] });
     queryClient.invalidateQueries({ queryKey: ["budget-comparison"] });
   };
@@ -265,16 +286,16 @@ export default function BudgetsPage() {
         <motion.div variants={staggerItem} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card><CardContent className="p-6">
             <p className="text-sm text-muted-foreground">Total Budgeted</p>
-            <p className="text-2xl font-bold mt-1">{formatCurrency(comparison.total_budgeted)}</p>
+            <p className="text-2xl font-bold mt-1">{formatBudgetCurrency(comparison.total_budgeted)}</p>
           </CardContent></Card>
           <Card><CardContent className="p-6">
             <p className="text-sm text-muted-foreground">Total Spent</p>
-            <p className="text-2xl font-bold mt-1">{formatCurrency(comparison.total_spent)}</p>
+            <p className="text-2xl font-bold mt-1">{formatBudgetCurrency(comparison.total_spent)}</p>
           </CardContent></Card>
           <Card><CardContent className="p-6">
             <p className="text-sm text-muted-foreground">Remaining</p>
             <p className={`text-2xl font-bold mt-1 ${comparison.total_budgeted - comparison.total_spent >= 0 ? "text-[var(--ok)]" : "text-[var(--bad)]"}`}>
-              {formatCurrency(comparison.total_budgeted - comparison.total_spent)}
+              {formatBudgetCurrency(comparison.total_budgeted - comparison.total_spent)}
             </p>
           </CardContent></Card>
         </motion.div>
@@ -286,11 +307,20 @@ export default function BudgetsPage() {
           <Card>
             <CardContent className="p-6">
               <h2 className="text-lg font-semibold mb-4">Budget vs Actual Spending</h2>
-              <BudgetComparisonChart data={chartData} />
+              <BudgetComparisonChart data={chartData} currency={trackedTHB ? "THB" : undefined} />
             </CardContent>
           </Card>
         </motion.div>
       )}
+
+      {budgetsLoading && <p role="status">Loading budgets…</p>}
+      {budgetsFailed && (
+        <div role="alert" className="rounded-lg border border-border p-4 space-y-2">
+          <p>Budgets could not be loaded. Try again to see your spending limits.</p>
+          <Button variant="outline" size="sm" onClick={() => void reloadBudgets()}>Try again</Button>
+        </div>
+      )}
+      {budgets && <BudgetCurrencyReview budgets={budgets} />}
 
       {/* Budget Details with Progress */}
       {comparison && comparison.comparisons.length > 0 && (
@@ -310,7 +340,7 @@ export default function BudgetsPage() {
                       )}
                     </div>
                     <span className="text-sm text-muted-foreground">
-                      {formatCurrency(c.actual_spent)} / {formatCurrency(c.budget_amount)}
+                      {formatBudgetCurrency(c.actual_spent)} / {formatBudgetCurrency(c.budget_amount)}
                     </span>
                   </div>
                   <div className="w-full bg-muted rounded-full h-2.5">
@@ -324,7 +354,7 @@ export default function BudgetsPage() {
                   <div className="flex justify-between mt-1">
                     <span className="text-xs text-muted-foreground">{c.usage_percent}% used</span>
                     <span className={`text-xs font-medium ${c.remaining >= 0 ? "text-[var(--ok)]" : "text-[var(--bad)]"}`}>
-                      {c.remaining >= 0 ? `${formatCurrency(c.remaining)} left` : `${formatCurrency(Math.abs(c.remaining))} over`}
+                      {c.remaining >= 0 ? `${formatBudgetCurrency(c.remaining)} left` : `${formatBudgetCurrency(Math.abs(c.remaining))} over`}
                     </span>
                   </div>
                 </div>
@@ -356,7 +386,7 @@ export default function BudgetsPage() {
                     <tr key={b.id} className="border-b border-border hover:bg-muted">
                       <td className="px-4 py-3 text-sm">{b.name}</td>
                       <td className="px-4 py-3 text-sm capitalize">{b.category}</td>
-                      <td className="px-4 py-3 text-sm text-right font-medium">{formatCurrency(b.amount)}</td>
+                      <td className="px-4 py-3 text-sm text-right font-medium">{formatBudgetCurrency(b.amount, b.id)}</td>
                       <td className="px-4 py-3 text-sm text-right text-muted-foreground">
                         {b.period_start} - {b.period_end}
                       </td>
@@ -384,7 +414,7 @@ export default function BudgetsPage() {
                     <p className="text-xs text-muted-foreground capitalize">{b.category}</p>
                   </div>
                   <div className="text-right flex items-center gap-2">
-                    <p className="text-sm font-medium">{formatCurrency(b.amount)}</p>
+                    <p className="text-sm font-medium">{formatBudgetCurrency(b.amount, b.id)}</p>
                     <button onClick={() => openEdit(b)} className="text-muted-foreground p-1"><Pencil size={14} /></button>
                     <button onClick={() => setDeleteId(b.id)} className="text-[var(--bad)] p-1"><Trash2 size={14} /></button>
                   </div>
@@ -395,7 +425,7 @@ export default function BudgetsPage() {
         </motion.div>
       )}
 
-      {(!budgets || budgets.length === 0) && !comparison && (
+      {!budgetsLoading && !budgetsFailed && budgets?.length === 0 && !comparison && (
         <EmptyState
           icon={Wallet}
           title="No budgets set yet"

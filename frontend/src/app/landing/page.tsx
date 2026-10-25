@@ -1,220 +1,49 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Syne, Sora } from "next/font/google";
-import { CometGL } from "@/components/shell/comet-gl";
-import { Reveal } from "./reveal";
-import s from "./landing.module.css";
+import { ArrowRight, ArrowUpRight, BookOpen, CalendarDays, Check, Code2, Download, Eye, Fingerprint, Leaf, SlidersHorizontal, Wallet } from "lucide-react";
+import { MarketingHeader } from "@/components/marketing/marketing-header";
+import { AegisBrand } from "@/components/brand";
+import { HorizonPreview } from "./horizon-preview";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "@/lib/site";
-
-export const metadata: Metadata = {
-  title: { absolute: `${SITE_NAME} — AI-Powered Financial Planning` },
-  description: SITE_DESCRIPTION,
-  alternates: { canonical: `${SITE_URL}/landing` },
-  robots: { index: true, follow: true },
-  openGraph: {
-    title: `${SITE_NAME} — AI-Powered Financial Planning`,
-    description: SITE_DESCRIPTION,
-    url: `${SITE_URL}/landing`,
-    siteName: SITE_NAME,
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `${SITE_NAME} — AI-Powered Financial Planning`,
-    description: SITE_DESCRIPTION,
-  },
-};
-
-const JSON_LD = {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: SITE_NAME,
-  description: SITE_DESCRIPTION,
-  url: `${SITE_URL}/landing`,
-  applicationCategory: "FinanceApplication",
-  operatingSystem: "Web",
-  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-};
-
-const FOLDS = [
-  {
-    n: "01",
-    title: (
-      <>
-        Every baht on a <em>calendar</em>.
-      </>
-    ),
-    body: "Bills, salary, subscriptions and one-off plans sit on the month where they land. Scan a week the way you scan a diary — nothing hides in a table.",
-    meta: "calendar · recurring · reminders",
-  },
-  {
-    n: "02",
-    title: (
-      <>
-        Plans stretch on a <span className="amber">Gantt</span>.
-      </>
-    ),
-    body: "A debt payoff, a trip, a savings goal — each is a bar with a start, an end and a running total. Drag it and the numbers follow.",
-    meta: "gantt · goals · debts · trips",
-  },
-  {
-    n: "03",
-    title: (
-      <>
-        An advisor that <em>shows its work</em>.
-      </>
-    ),
-    body: "Claude reads your last ninety days and answers in plain sentences with the figures it used. No scores, no badges, no nudges to spend.",
-    meta: "claude · typhoon · groq",
-  },
+import s from "./landing.module.css";
+const title = "Aegis — A clearer today. A bigger tomorrow.";
+export const metadata: Metadata = { title: { absolute: title }, description: SITE_DESCRIPTION, alternates: { canonical: `${SITE_URL}/landing` }, robots: { index: true, follow: true }, openGraph: { title, description: SITE_DESCRIPTION, url: `${SITE_URL}/landing`, siteName: SITE_NAME, type: "website" } };
+const questions = [
+  { q: "What can I do with Aegis?", a: "Record income and expenses, review budgets, arrange upcoming costs, and track savings goals. Personal and business cash workspaces help you review dated plans and explore scenarios with their assumptions visible." },
+  { q: "Does Aegis connect to my bank or move money?", a: "You manage the records and plans in Aegis. It does not automatically sync with your bank or make transfers. Completing a plan records its status; it does not make a payment." },
+  { q: "Is the demo using real financial data?", a: "No. Mina and Business X are fictional examples. Changes stay in the demo’s browser memory and reset on reload. The illustrations are planning examples, not predictions or financial advice." },
+  { q: "Do I need AI to use it?", a: "No. Everyday recording, budgets and plans work without AI. If you request an optional AI insight, relevant data is sent to your deployment’s configured provider. Availability and charges depend on that setup." },
+  { q: "Can I keep control of my data?", a: "Aegis is open source under the MIT license and has a documented self-hosting setup. You can export supported records. A transaction CSV is not a complete database backup; the developer documentation explains deployment and backup responsibilities." },
 ];
-
-const CAPABILITIES = [
-  { name: "Keyboard-first", desc: "Every screen reachable without the mouse; a command palette on /.", tag: "⌘1 – ⌘7" },
-  { name: "Self-hosted", desc: "One docker compose up. SQLite to Postgres, your box, your data.", tag: "docker" },
-  { name: "PDF reports", desc: "Monthly statements rendered server-side with real charts.", tag: "weasyprint" },
-  { name: "Payments", desc: "Stripe test and live modes with webhooks wired in.", tag: "stripe" },
-  { name: "Exports", desc: "NDJSON streaming into whatever warehouse you already run.", tag: "ndjson" },
-];
-
-const syne = Syne({ subsets: ["latin"], weight: ["700", "800"], variable: "--font-syne" });
-const sora = Sora({ subsets: ["latin"], weight: ["400", "600"], variable: "--font-sora" });
-
-const STATS = [
-  { l: "Latency", v: "42ms", s: "p95 · global" },
-  { l: "Coverage", v: "12.4k", s: "merchants mapped" },
-  { l: "Self-host", v: "100%", s: "your data, your box" },
-  { l: "Open", v: "MIT", s: "source available" },
-];
-
 export default function LandingPage() {
-  return (
-    <div className={`${s.page} ${syne.variable} ${sora.variable}`}>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON_LD) }}
-      />
-      <header className={s.nav}>
-        <Link href="/landing" className={s.wordmark}>
-          AEG<span>IS</span>
-        </Link>
-        <Link href="/docs" className={s.navLink}>
-          Docs
-        </Link>
-        <Link href="/changelog" className={s.navLink}>
-          Changelog
-        </Link>
-        <span className={s.navEnd}>
-          <Link href="/login" className={s.navLink}>
-            Sign in
-          </Link>
-          <Link href="/register" className={s.btn}>
-            Get started
-          </Link>
-        </span>
-      </header>
-
-      <section className={s.hero}>
-        <CometGL className={s.heroCanvas} />
-        <div className={s.heroVeil} />
-        <div className={`${s.heroInner} ${s.reveal}`}>
-          <div className={s.kicker}>
-            <span className={s.dot} />
-            v1.4 · generally available
-          </div>
-          <h1 className={s.title}>
-            Personal finance, <span className={s.titleAccent}>mapped.</span>
-          </h1>
-          <p className={s.lede}>
-            A calendar planner, a Gantt timeline and an AI advisor for your money,
-            in one keyboard-first workspace. Self-hosted, open source.
-          </p>
-          <div className={s.actions}>
-            <Link href="/register" className={s.btn}>
-              Open the workspace
-            </Link>
-            <Link href="/login" className={s.btnQuiet}>
-              Sign in →
-            </Link>
-          </div>
-          {process.env.NODE_ENV === "development" && (
-            <p className={s.seed}>
-              Seed account · <code>demo@aegis.local</code> · <code>demo-password-123</code>
-            </p>
-          )}
-        </div>
+  return <div className={s.page} data-theme="horizon-landing">
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ "@context": "https://schema.org", "@type": "SoftwareApplication", name: SITE_NAME, description: SITE_DESCRIPTION, url: `${SITE_URL}/landing`, applicationCategory: "FinanceApplication", operatingSystem: "Web" }) }} />
+    <a href="#main" className={s.skip}>Skip to content</a><MarketingHeader />
+    <main id="main">
+      <section className={s.hero} aria-labelledby="hero-title"><div className={s.heroCopy}>
+        <p className={s.eyebrow}><span /> THE FREEDOM TO LOOK AHEAD</p>
+        <h1 id="hero-title">A clearer today.<br />A bigger <em>tomorrow.</em></h1>
+        <p className={s.lede}>Feel at home with your money.<br />Make room for where you want to go.</p>
+        <p className={s.description}>Bring everyday spending, upcoming plans, and bigger goals into one clear view. For your life, and the business you&apos;re building.</p>
+        <div className={s.actions}><Link href="/register" className={s.primary}>Start planning <ArrowRight size={17} /></Link><Link href="/demo" className={s.secondary}>Explore the demo <ArrowUpRight size={16} /></Link></div>
+        <p className={s.heroNote}><Code2 size={15} /> Open source <span>·</span> Self-hostable <span>·</span> AI optional</p>
+      </div><HorizonPreview /></section>
+      <div className={s.principles} aria-label="The Aegis approach">{[{ Icon: Eye, title: "A clearer picture", text: "Understand today before planning ahead." }, { Icon: Fingerprint, title: "Always your decision", text: "Explore a possibility. Choose the next step." }, { Icon: Leaf, title: "Room to grow", text: "Small routines. Meaningful possibilities." }].map(({ Icon, title, text }) => <div key={title}><span className={s.principleIcon}><Icon size={20} strokeWidth={1.4} /></span><span><b>{title}</b><small>{text}</small></span></div>)}</div>
+      <section className={s.section} id="how-it-works" aria-labelledby="routine-title">
+        <div className={s.sectionHeading}><div><p className={s.eyebrow}>BUILD FROM SOLID GROUND</p><h2 id="routine-title">Confidence starts<br />with a little <em>clarity.</em></h2></div><p>A quieter way to manage money.<br />Know what happened, see what&apos;s ahead,<br />and choose your next step.</p></div>
+        <div className={s.routineGrid}>
+          <article><div className={s.step}><span>01 / UNDERSTAND</span><Wallet size={20} strokeWidth={1.4} /></div><h3>Bring the everyday together.</h3><p>Record income and expenses, or review a CSV import. Give every movement a place.</p><div className={s.record}><span className={s.smallIcon}><Wallet size={17} /></span><div><b>Groceries</b><small>Food · Recorded expense</small></div><strong>−฿2,400</strong></div><span className={s.exampleLabel}>Fictional example · October 2026</span></article>
+          <article><div className={s.step}><span>02 / LOOK AHEAD</span><CalendarDays size={20} strokeWidth={1.4} /></div><h3>Give what matters a date.</h3><p>Put upcoming costs and recurring plans on your calendar. Leave fewer things to guesswork.</p><div className={s.record}><span className={s.date}>18<small>OCT</small></span><div><b>Utilities</b><small>Planned expense · ฿2,500</small></div><CalendarDays size={17} /></div><span className={s.exampleLabel}>A plan is an intention. It does not move money.</span></article>
+          <article><div className={s.step}><span>03 / MOVE FORWARD</span><SlidersHorizontal size={20} strokeWidth={1.4} /></div><h3>See the room you have.</h3><p>Review budgets, set money aside for a purpose, and explore a different month before you act.</p><div className={s.budget}><div><b>Food budget</b><span>฿2,400 / ฿6,000</span></div><i><span /></i><small>฿3,600 left in this example&apos;s budget</small></div><span className={s.exampleLabel}>Budget headroom is separate from cash.</span></article>
+        </div><Link href="/demo" className={s.textLink}>See how it comes together <ArrowRight size={16} /></Link>
       </section>
-
-      {FOLDS.map((fold) => (
-        <Reveal key={fold.n}>
-          <section className={s.fold}>
-            <div className={s.foldNumeral}>{fold.n}</div>
-            <div>
-              <h2 className={s.foldTitle}>{fold.title}</h2>
-              <p className={s.foldBody}>{fold.body}</p>
-              <div className={s.foldMeta}>
-                <i>→</i> {fold.meta}
-              </div>
-            </div>
-          </section>
-        </Reveal>
-      ))}
-
-      <Reveal>
-        <section className={s.capTable}>
-          <div className={s.sectionLabel}>
-            <span className={s.dot} />
-            What ships in the box
-          </div>
-          <div className={s.capHead}>
-            <span>Capability</span>
-            <span>Detail</span>
-            <span>Stack</span>
-          </div>
-          {CAPABILITIES.map((cap) => (
-            <div key={cap.name} className={s.capRow}>
-              <div className={s.capName}>{cap.name}</div>
-              <div className={s.capDesc}>{cap.desc}</div>
-              <div className={s.capTag}>{cap.tag}</div>
-            </div>
-          ))}
-        </section>
-      </Reveal>
-
-      <section className={`${s.stats} ${s.revealLate}`}>
-        {STATS.map((stat) => (
-          <div key={stat.l} className={s.stat}>
-            <div className={s.statLabel}>{stat.l}</div>
-            <div className={s.statValue}>{stat.v}</div>
-            <div className={s.statSub}>{stat.s}</div>
-          </div>
-        ))}
+      <section className={`${s.section} ${s.plans}`} id="your-plans" aria-labelledby="plans-title"><div className={s.sectionHeading}><div><p className={s.eyebrow}>ONE LIFE. MORE POSSIBILITIES.</p><h2 id="plans-title">For your next chapter.<br /><em>Whatever it looks like.</em></h2></div><p>A personal month and a business month have different questions. Give each its own space.</p></div>
+        <div className={s.storyGrid}><Link href="/demo" className={s.storyCard}><img className={s.storyVisual} src="/brand/horizon-personal.png" alt="A notebook and morning coffee beside a quiet view of green hills" width="1536" height="1024" loading="lazy" /><span className={s.storyNumber}>01 <span>YOUR EVERYDAY LIFE</span></span><h3>A plan with<br />you at the centre.</h3><p>The bills, the rainy-day fund, the trip you keep thinking about. See how today&apos;s choices fit tomorrow&apos;s plans.</p><div className={s.storyTags}><span>Everyday spending</span><span>Savings goals</span><span>Upcoming plans</span></div><b>Explore a personal month <ArrowUpRight size={18} /></b></Link><Link href="/demo?story=business" className={`${s.storyCard} ${s.businessCard}`}><img className={s.storyVisual} src="/brand/horizon-studio.png" alt="A thoughtfully arranged independent studio with natural materials and an open view" width="1536" height="1024" loading="lazy" /><span className={s.storyNumber}>02 <span>THE BUSINESS YOU&apos;RE BUILDING</span></span><h3>More perspective.<br />More room to build.</h3><p>Review money coming in, costs coming due, and the impact of a late payment. Plan your owner-run business&apos;s cash.</p><div className={s.storyTags}><span>Cash planning</span><span>Dated commitments</span><span>What-if scenarios</span></div><b>Explore a business month <ArrowUpRight size={18} /></b></Link></div>
       </section>
-
-      <Reveal>
-        <section className={s.statement}>
-          <h2 className={s.statementText}>
-            Money software that shows the work and lets you <span className={s.titleAccent}>think</span>.
-          </h2>
-          <div className={s.actions} style={{ justifyContent: "center" }}>
-            <Link href="/register" className={s.btn}>
-              Open the workspace
-            </Link>
-          </div>
-        </section>
-      </Reveal>
-
-      <footer className={s.footer}>
-        <span>© Aegis · MIT licensed</span>
-        <span>
-          <Link href="/docs">Docs</Link>
-          {" · "}
-          <a href="https://github.com/santapong/aegis" target="_blank" rel="noopener noreferrer">
-            GitHub
-          </a>
-          {" · "}v1.4.0
-        </span>
-      </footer>
-    </div>
-  );
+      <section className={s.ownership} id="your-data" aria-labelledby="ownership-title"><div><p className={s.eyebrow}>TRUST STARTS WITH UNDERSTANDING</p><h2 id="ownership-title">Your money story.<br /><em>Your terms.</em></h2><p>A clear view should come with clear choices. Understand what Aegis records, where it runs, and when an optional service is involved.</p><Link href="/docs" className={s.lightLink}>Get to know Aegis <BookOpen size={16} /></Link></div><div className={s.ownershipItems}>{[{ Icon: Code2, title: "Open by design", text: "Read the source. Explore the setup. Self-host your own workspace." }, { Icon: Download, title: "A way to take your records with you", text: "Export supported records, with formats and limits explained in the guides." }, { Icon: Check, title: "The choice stays with you", text: "Core planning works without AI. Optional insights use your configured provider when requested." }].map(({ Icon, title, text }) => <article key={title}><Icon size={22} strokeWidth={1.5} /><div><h3>{title}</h3><p>{text}</p></div></article>)}</div></section>
+      <section className={`${s.section} ${s.faq}`} aria-labelledby="faq-title"><div><p className={s.eyebrow}>A FEW THINGS, MADE CLEAR</p><h2 id="faq-title">Good questions.<br /><em>Clear answers.</em></h2><Link href="/docs" className={s.textLink}>Find more in the guides <ArrowUpRight size={16} /></Link></div><div>{questions.map(({ q, a }) => <details key={q}><summary>{q}<span aria-hidden="true">+</span></summary><p>{a}</p></details>)}</div></section>
+      <section className={s.closing} aria-labelledby="closing-title"><div className={s.landscape} role="img" aria-label="A quiet stone terrace overlooking a lake and an open horizon" /><div className={s.closingCopy}><p className={s.eyebrow}>SOLID GROUND. OPEN HORIZONS.</p><h2 id="closing-title">More room for<br /><em>what matters.</em></h2><p>Start with a clearer view.<br />See where it can take you.</p><Link href="/register" className={s.primary}>Find your next step <ArrowRight size={17} /></Link></div></section>
+    </main>
+    <footer className={s.footer}><div><Link href="/landing" aria-label="Aegis home"><AegisBrand /></Link><p>A clearer today. A bigger tomorrow.</p></div><nav aria-label="Footer navigation"><Link href="/demo">Explore the demo</Link><Link href="/docs">Documentation</Link><Link href="/changelog">What&apos;s new</Link><Link href="/brand">Brand studio</Link><a href="https://github.com/santapong/Aegis" target="_blank" rel="noreferrer">Source code <ArrowUpRight size={13} /></a></nav><small>Money planning, at your pace.<br />Aegis records and plans; it does not hold or move money.</small></footer>
+  </div>;
 }

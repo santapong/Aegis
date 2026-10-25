@@ -1,0 +1,17 @@
+{
+  "robot": {
+    "pass": "20",
+    "fail": "0",
+    "skip": "0"
+  },
+  "proxy": {
+    "pass": "0",
+    "fail": "1",
+    "skip": "0"
+  },
+  "proxy-rerun": {
+    "pass": "1",
+    "fail": "0",
+    "skip": "0"
+  }
+}

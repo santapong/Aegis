@@ -1,0 +1,48 @@
+{
+  "phase": "preview",
+  "checks_passed": true,
+  "fictional_source_account_verified": true,
+  "validation_error_count": 0,
+  "read_only_observer": {
+    "state": "observed",
+    "checked_at": "2026-10-22T18:31:35.769147+00:00",
+    "scope": "approved_fictional_phone_pilot_only",
+    "database_verified": true,
+    "feature_enabled": true,
+    "delivery_enabled": true,
+    "linked": true,
+    "fictional_opening_minor": "100000",
+    "tracked_fictional_balance_minor": "100000",
+    "unexpected_balance_requires_private_review": false,
+    "owned_inbox_count": 2,
+    "pilot_channel_intake_states": {
+      "processed": 2
+    },
+    "pilot_channel_intake_codes": {},
+    "latest_owned_inbox_age_seconds": 52,
+    "jobs": [
+      {
+        "kind": "text",
+        "state": "done",
+        "count": 1
+      }
+    ],
+    "delivery": {
+      "provider_accepted": 2
+    },
+    "failure_codes": {},
+    "fictional_one_thb_draft_count": 1,
+    "latest_fictional_one_thb_draft": {
+      "status": "pending",
+      "version": 1,
+      "amount_minor": "100",
+      "currency": "THB",
+      "has_journal": false
+    },
+    "fictional_one_thb_expense_journal_count": 0,
+    "at_most_one_matching_financial_effect": true,
+    "other_financial_journal_count": 0,
+    "generic_notifications": {}
+  },
+  "owner_handset_receipt_separately_required": true
+}

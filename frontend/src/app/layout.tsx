@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import { Inter, JetBrains_Mono, Instrument_Serif } from "next/font/google";
 import "./globals.css";
+import "./horizon.css";
 import { Providers } from "@/components/ui/providers";
 import { AuthGate } from "@/components/auth/auth-gate";
 import { Backdrop } from "@/components/shell/backdrop";
@@ -31,10 +32,14 @@ const serif = Instrument_Serif({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: `${SITE_NAME} — AI-Powered Financial Planning`,
+    default: `${SITE_NAME} — A clearer today. A bigger tomorrow.`,
     template: `%s — ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
+  icons: {
+    icon: [{ url: "/brand/aegis-union-icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   robots: {
     // App/data routes are login-gated and offer nothing to a crawler;
     // per-page metadata on the public routes (landing, welcome) narrows
@@ -59,9 +64,9 @@ const PREHYDRATE_THEME = `
     if (!raw) return;
     var parsed = JSON.parse(raw);
     var t = parsed && parsed.state && parsed.state.theme;
-    var allowed = ['meridian', 'pulse', 'observatory', 'constellation', 'supernova'];
+    var allowed = ['horizon', 'horizon-dark', 'meridian', 'pulse', 'observatory', 'constellation', 'supernova'];
     if (allowed.indexOf(t) === -1) return;
-    document.body.classList.remove('theme-meridian', 'theme-pulse', 'theme-observatory', 'theme-constellation', 'theme-supernova');
+    document.body.classList.remove('theme-horizon', 'theme-horizon-dark', 'theme-meridian', 'theme-pulse', 'theme-observatory', 'theme-constellation', 'theme-supernova');
     document.body.classList.add('theme-' + t);
   } catch (e) {}
 })();
@@ -75,7 +80,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           inter.variable,
           mono.variable,
           serif.variable,
-          "antialiased font-sans theme-meridian"
+          "antialiased font-sans theme-horizon"
         )}
       >
         <Script

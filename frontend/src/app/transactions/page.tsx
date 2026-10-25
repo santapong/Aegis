@@ -1,5 +1,11 @@
 "use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/stores/auth-store";
+import { financeAPI } from "@/lib/finance-api";
+import { FinanceError } from "@/components/finance/shared";
+
 import { memo, useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -97,6 +103,41 @@ const TransactionRow = memo(function TransactionRow({
 });
 
 export default function TransactionsPage() {
+  const owner = useAuthStore((state) => state.user?.id);
+  return owner ? (
+    <TransactionRoute key={owner} owner={owner} />
+  ) : (
+    <p role="status">Loading your records…</p>
+  );
+}
+
+function TransactionRoute({ owner }: { owner: string }) {
+  const router = useRouter();
+  const status = useQuery({
+    queryKey: ["finance", owner, "status"],
+    queryFn: financeAPI.status,
+    retry: false,
+  });
+  useEffect(() => {
+    if (status.data?.cutover_active) router.replace("/review");
+  }, [status.data?.cutover_active, router]);
+  if (status.isPending)
+    return <p role="status">Checking your account-tracking setup…</p>;
+  if (status.isError)
+    return (
+      <FinanceError error={status.error} retry={() => void status.refetch()} />
+    );
+  if (status.data?.cutover_active)
+    return (
+      <p role="status">
+        Opening your account-linked review and activity…{" "}
+        <Link href="/review">Continue to review</Link>
+      </p>
+    );
+  return <LegacyTransactionsPage />;
+}
+
+function LegacyTransactionsPage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -469,8 +510,8 @@ export default function TransactionsPage() {
       <motion.div variants={staggerItem}>
         <PageHeader
           code="TXN"
-          title="Transactions"
-          subtitle="Track your income and expenses"
+          title="Unassigned records"
+          subtitle="Older records and quick entries awaiting an explicit cash workspace/account. Assigned records are in Cash planning."
           action={
             <div className="flex gap-2">
               <input ref={fileInputRef} type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
@@ -487,6 +528,8 @@ export default function TransactionsPage() {
           }
         />
       </motion.div>
+
+      <p className="rounded-lg border p-4 text-sm">These unassigned records are separate from verified account balances. <Link href="/review#posted" className="underline underline-offset-4">Review exact posted account activity, refunds and transfers</Link> or <Link href="/review" className="underline underline-offset-4">create an account-linked draft</Link>.</p>
 
       {/* Tabs */}
       <motion.div variants={staggerItem}>

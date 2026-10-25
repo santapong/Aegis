@@ -1,0 +1,95 @@
+# Optional persistent finance workers. This file starts nothing by itself.
+# Operator approval and private configuration are required before selecting a
+# profile. Delivery has a separate profile and a hard false gate in this file.
+
+x-ledger-environment: &ledger-environment
+  DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/money_management
+  FINANCE_LEDGER_ENABLED: ${FINANCE_LEDGER_ENABLED:-false}
+  FINANCE_INTEGRATION_EVIDENCE_DIR: /var/lib/aegis/evidence
+  FINANCE_INTEGRATION_DELIVERY_ENABLED: "false"
+  LOG_FORMAT: ${LOG_FORMAT:-json}
+
+x-ledger-worker: &ledger-worker
+  build:
+    context: ./backend
+    dockerfile: Dockerfile
+  profiles: [line-ledger]
+  restart: unless-stopped
+  stop_grace_period: 30s
+  # API owns migration startup; workers wait for it and skip the image's
+  # migration entrypoint to avoid concurrent DDL on the first boot.
+  entrypoint: [python, -m, app.services.finance_integration_worker]
+  env_file: [.env]
+  environment: *ledger-environment
+  volumes:
+    - ledger_evidence:/var/lib/aegis/evidence
+  depends_on:
+    backend:
+      condition: service_healthy
+    ledger-evidence-init:
+      condition: service_completed_successfully
+  # The API image's HTTP check cannot test a worker. Use the supervisor and
+  # durable job age/lease/failure monitoring described in the operations guide.
+  healthcheck:
+    disable: true
+  deploy:
+    resources:
+      limits:
+        memory: 256M
+
+services:
+  backend:
+    environment: *ledger-environment
+    volumes:
+      - ledger_evidence:/var/lib/aegis/evidence:ro
+
+  ledger-evidence-init:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    profiles: [line-ledger, line-ledger-delivery]
+    restart: "no"
+    user: "0:0"
+    # No app, database connection or provider credential is loaded here.
+    entrypoint: [python, -c]
+    command:
+      - >-
+        import os,pwd;
+        p='/var/lib/aegis/evidence';
+        u=pwd.getpwnam('appuser');
+        os.chown(p,u.pw_uid,u.pw_gid);
+        os.chmod(p,0o700)
+    volumes:
+      - ledger_evidence:/var/lib/aegis/evidence
+    healthcheck:
+      disable: true
+
+  ledger-text:
+    <<: *ledger-worker
+    command: [text]
+
+  ledger-capture:
+    <<: *ledger-worker
+    command: [capture]
+
+  ledger-extract:
+    <<: *ledger-worker
+    command: [extract]
+    volumes:
+      - ledger_evidence:/var/lib/aegis/evidence:ro
+
+  ledger-deliver:
+    <<: *ledger-worker
+    profiles: [line-ledger-delivery]
+    command: [deliver]
+    restart: "no"
+    # Deliberately false even if an operator environment contains true.
+    # A separately reviewed activation override must enable real delivery.
+    environment:
+      <<: *ledger-environment
+      FINANCE_INTEGRATION_DELIVERY_ENABLED: "false"
+    volumes:
+      - ledger_evidence:/var/lib/aegis/evidence:ro
+
+volumes:
+  ledger_evidence:

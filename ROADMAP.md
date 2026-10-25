@@ -1,11 +1,15 @@
 # Aegis — Roadmap
 
-This roadmap reflects the project state as of **v1.3.0** (2026-08-01). See
+This roadmap reflects the project state as of **v1.4.9** (2026-08-13). See
 [CHANGELOG.md](CHANGELOG.md) for the full release history.
 
 Current status: **generally available**.
 
 ---
+
+## Cash-planning extension — October 2, 2026
+
+M0–M3 is implemented and locally verified for a single-owner personal/business pilot, including reviewed CSV intake, recurring payments, reservations/installments, in-app alerts, receivables/bills, partial settlements, thirteen-week cash and immutable saved forecasts. Production rollout, independent review and comprehension feedback remain open. M4.1–M4.2 workspace LINE capture is implemented and locally verified; its real channel pilot and next-connector decision remain open. See the [M3 guide](docs/releases/2026-10-02-m3-business-cash-review.md), [full workflow](docs/plans/2026-10-02-all-m-workflow.md), [implementation plan](docs/plans/2026-10-02-cashflow-implementation.md) and [first-release guide](docs/releases/2026-10-02-first-cashflow-release.md). This extension does not replace the historical v1.4.9 release status above.
 
 ## Release map
 
@@ -23,9 +27,14 @@ Current status: **generally available**.
 | v1.1.0 | MCP server + Trip entity + budget overrun alerts | ✅ Shipped |
 | v1.2.0 | Perf audits + deploy story + market data + budget templates | ✅ Shipped |
 | v1.3.0 | UX restraint pass + customizable dashboard widgets | ✅ Shipped |
-| v1.4.0 | Runtime AI provider configuration (model picker, usage metering, key storage) | 🚧 Unreleased |
+| v1.4.0–v1.4.9 | Runtime AI configuration + public-site and visual-system refinements | ✅ Shipped |
+| v1.5.0 | WebGL2 comet hero Phase 6: stabilization and release validation | 🚧 Unreleased |
 
 ---
+
+## Personal and business cash planning — planned October 2, 2026
+
+The [implementation plan](docs/plans/2026-10-02-cashflow-implementation.md) turns the October 1 workspace proposal into five gated milestones: trusted cash inputs, dated planning, everyday review, business operations, then LINE capture. M0–M1 are the proposed first usable release. That initial planning checkpoint is historical. The current local status is recorded above and in the [completion audit](docs/validation/2026-10-02-all-m/completion-audit.md); the public application feature release remains open. This addition does not change the historical release table above.
 
 ## Post-v1.2 direction
 
@@ -66,6 +75,34 @@ Captured here for continuity; not scoped.
 - Prometheus `/metrics` endpoint.
 - Structured error tracking (Sentry).
 - Automated load testing against a seeded demo DB.
+
+### Experience & visual platform
+
+- ✅ WebGL2 comet implementation delivered through Phase 5: renderer and core,
+  procedural tail, GPU particles, restrained transparent bloom, and
+  fine-pointer parallax. See
+  [`docs/design/007`](docs/design/007-webgl-comet-hero.md).
+- ✅ **Phase 6 — reference depth and stabilization:** concept-art depth,
+  automatic context-loss recovery, deterministic desktop/mobile/reduced-motion
+  capture states, and development frame-pacing diagnostics are implemented.
+  Engineering verification is recorded in
+  [`docs/validation/comet-phase-6`](docs/validation/comet-phase-6.md).
+- ✅ **Phase 7 — cinematic arrival and settled composition:** the comet enters
+  once from the upper-left, follows a downward-right Bézier arc, and settles
+  near the desktop right-center with its long connected tail held toward the
+  upper-left. Only restrained plasma, glow, particles, breathing, and pointer
+  response continue after arrival; reduced motion opens directly on the final
+  composition.
+- ✅ **Phase 8 — scroll direction and reference silhouette:** landing-page
+  scroll progress now scrubs the connected comet pose through a sticky hero
+  scene while shader flow remains ambient. The settled artwork uses a compact
+  star-like head, layered orbital rings, a viewport-spanning S-curve, finer
+  energy filaments, and denser depth-tiered dust to match the supplied concept's
+  proportions without adding a raster runtime dependency.
+- ⏳ **Release sign-off:** capture the deterministic baselines and record a
+  physical mobile-device trace when browser/device access is available. This is
+  an evidence gate, not additional implementation scope; adaptive quality stays
+  deferred unless those measurements show a sustained problem.
 
 ---
 

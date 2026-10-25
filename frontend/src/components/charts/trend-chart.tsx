@@ -18,6 +18,7 @@ import { TrendingUp } from "lucide-react";
 
 interface TrendChartProps {
   data: { month: string; income: number; expenses: number }[];
+  currency?: string;
 }
 
 const glassTooltipStyle = {
@@ -32,7 +33,7 @@ const glassTooltipStyle = {
 const COL_INCOME = "oklch(0.78 0.14 145)";
 const COL_EXPENSE = "oklch(0.78 0.16 75)";
 
-export function TrendChart({ data }: TrendChartProps) {
+export function TrendChart({ data, currency }: TrendChartProps) {
   // Animate on first paint only. Recharts re-mounts its 1 s entry
   // animation whenever the parent re-renders with new data identity
   // (e.g. every React Query refetch). Gating to first mount stops the
@@ -75,12 +76,13 @@ export function TrendChart({ data }: TrendChartProps) {
         <YAxis
           stroke="var(--border)"
           tick={{ fontSize: 10, fontFamily: "var(--font-mono)", fill: "var(--muted-foreground)" }}
-          tickFormatter={(v) => `$${v}`}
+          tickFormatter={(v) => formatCurrency(v, currency)}
+          width={76}
           tickLine={false}
           axisLine={false}
         />
         <Tooltip
-          formatter={(value: number) => formatCurrency(value)}
+          formatter={(value: number) => formatCurrency(value, currency)}
           contentStyle={glassTooltipStyle}
           cursor={{ stroke: "var(--border)", strokeDasharray: "2 4" }}
         />

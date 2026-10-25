@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import case, func as sa_func
 from sqlalchemy.orm import Session
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 
 from loguru import logger
 
@@ -24,6 +24,7 @@ from ..schemas.ai import (
     WeeklySummaryResponse,
 )
 from ..services.ai_pricing import PRICES_AS_OF, estimate_cost
+from ..services.finance_reads import financial_today, cutover_active, report
 from ..services.ai_engine import (
     AIEngine,
     configured_provider_and_model,
@@ -210,7 +211,11 @@ def ai_usage(
 
 
 @router.post("/analyze", response_model=list[AIRecommendationResponse])
-def analyze_finances(request: AIAnalyzeRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def analyze_finances(
+    request: AIAnalyzeRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     engine = AIEngine(db, user_id=current_user.id)
     recommendations = engine.analyze(
         question=request.question,
@@ -220,7 +225,9 @@ def analyze_finances(request: AIAnalyzeRequest, db: Session = Depends(get_db), c
 
 
 @router.post("/recommend", response_model=list[AIRecommendationResponse])
-def get_recommendations(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_recommendations(
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+):
     engine = AIEngine(db, user_id=current_user.id)
     return engine.analyze()
 
@@ -251,8 +258,18 @@ def get_ai_history(
 
 
 @router.patch("/history/{rec_id}/accept")
-def accept_recommendation(rec_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    rec = db.query(AIRecommendation).filter(AIRecommendation.id == rec_id, AIRecommendation.user_id == current_user.id).first()
+def accept_recommendation(
+    rec_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    rec = (
+        db.query(AIRecommendation)
+        .filter(
+            AIRecommendation.id == rec_id, AIRecommendation.user_id == current_user.id
+        )
+        .first()
+    )
     if rec:
         rec.accepted = True
         db.commit()
@@ -260,14 +277,16 @@ def accept_recommendation(rec_id: str, db: Session = Depends(get_db), current_us
 
 
 @router.get("/weekly-summary", response_model=WeeklySummaryResponse)
-def weekly_summary(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def weekly_summary(
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+):
     cache = get_cache()
     cache_key = user_scope("ai:weekly-summary", current_user.id)
     cached = cache.get(cache_key)
     if cached is not None:
         return WeeklySummaryResponse(**cached)
 
-    today = date.today()
+    today = financial_today(db, current_user.id)
     week_ago = today - timedelta(days=7)
     two_weeks_ago = today - timedelta(days=14)
 
@@ -276,13 +295,19 @@ def weekly_summary(db: Session = Depends(get_db), current_user: User = Depends(g
     # four Python loops.
     income_sum = sa_func.coalesce(
         sa_func.sum(
-            case((Transaction.type == TransactionType.income, Transaction.amount), else_=0)
+            case(
+                (Transaction.type == TransactionType.income, Transaction.amount),
+                else_=0,
+            )
         ),
         0,
     )
     expense_sum = sa_func.coalesce(
         sa_func.sum(
-            case((Transaction.type == TransactionType.expense, Transaction.amount), else_=0)
+            case(
+                (Transaction.type == TransactionType.expense, Transaction.amount),
+                else_=0,
+            )
         ),
         0,
     )
@@ -295,7 +320,8 @@ def weekly_summary(db: Session = Depends(get_db), current_user: User = Depends(g
             sa_func.count(Transaction.id).label("cnt"),
         )
         .filter(
-            Transaction.user_id == current_user.id,
+            (Transaction.user_id == current_user.id)
+            & Transaction.workspace_id.is_(None),
             Transaction.date >= week_ago,
             Transaction.date <= today,
         )
@@ -304,7 +330,8 @@ def weekly_summary(db: Session = Depends(get_db), current_user: User = Depends(g
     last_row = (
         db.query(income_sum.label("inc"), expense_sum.label("exp"))
         .filter(
-            Transaction.user_id == current_user.id,
+            (Transaction.user_id == current_user.id)
+            & Transaction.workspace_id.is_(None),
             Transaction.date >= two_weeks_ago,
             Transaction.date < week_ago,
         )
@@ -323,7 +350,8 @@ def weekly_summary(db: Session = Depends(get_db), current_user: User = Depends(g
             sa_func.coalesce(sa_func.sum(Transaction.amount), 0).label("total"),
         )
         .filter(
-            Transaction.user_id == current_user.id,
+            (Transaction.user_id == current_user.id)
+            & Transaction.workspace_id.is_(None),
             Transaction.type == TransactionType.expense,
             Transaction.date >= week_ago,
             Transaction.date <= today,
@@ -335,8 +363,34 @@ def weekly_summary(db: Session = Depends(get_db), current_user: User = Depends(g
     )
     top_categories = [(cat, float(total or 0)) for cat, total in category_rows]
 
-    expense_change = ((this_expenses - last_expenses) / last_expenses * 100) if last_expenses > 0 else 0
-    income_change = ((this_income - last_income) / last_income * 100) if last_income > 0 else 0
+    if cutover_active(db, current_user.id):
+        exact = report(db, current_user.id, week_ago, today)
+        prior = report(db, current_user.id, two_weeks_ago, week_ago - timedelta(days=1))
+        this_income, this_expenses = (
+            int(exact["income_minor"]) / 100,
+            int(exact["expense_minor"]) / 100,
+        )
+        last_income, last_expenses = (
+            int(prior["income_minor"]) / 100,
+            int(prior["expense_minor"]) / 100,
+        )
+        top_categories = sorted(
+            ((k, int(v) / 100) for k, v in exact["expense_by_category_minor"].items()),
+            key=lambda x: x[1],
+            reverse=True,
+        )[:5]
+        this_count = len(exact["transactions"])
+    else:
+        this_count = int(this_row.cnt or 0)
+
+    expense_change = (
+        ((this_expenses - last_expenses) / last_expenses * 100)
+        if last_expenses > 0
+        else 0
+    )
+    income_change = (
+        ((this_income - last_income) / last_income * 100) if last_income > 0 else 0
+    )
 
     result = WeeklySummaryResponse(
         period_start=week_ago.isoformat(),
@@ -346,22 +400,26 @@ def weekly_summary(db: Session = Depends(get_db), current_user: User = Depends(g
         net_savings=round(this_income - this_expenses, 2),
         income_change_percent=round(income_change, 1),
         expense_change_percent=round(expense_change, 1),
-        top_spending_categories=[{"category": c, "amount": round(a, 2)} for c, a in top_categories],
-        transaction_count=int(this_row.cnt or 0),
+        top_spending_categories=[
+            {"category": c, "amount": round(a, 2)} for c, a in top_categories
+        ],
+        transaction_count=this_count,
     )
     cache.set(cache_key, result, ttl=_settings.cache_default_ttl)
     return result
 
 
 @router.get("/insights", response_model=list[InsightItem])
-def get_insights(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_insights(
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+):
     cache = get_cache()
     cache_key = user_scope("ai:insights", current_user.id)
     cached = cache.get(cache_key)
     if cached is not None:
         return [InsightItem(**item) for item in cached]
 
-    today = date.today()
+    today = financial_today(db, current_user.id)
     month_ago = today - timedelta(days=30)
     two_months_ago = today - timedelta(days=60)
 
@@ -369,19 +427,6 @@ def get_insights(db: Session = Depends(get_db), current_user: User = Depends(get
     # plus four Python passes. Now one GROUP BY over the full window
     # bucketed by (bucket, type, category) gives us every number used
     # below. Returns ≤ 2 × types × categories rows (typically 4-60).
-    income_sum = sa_func.coalesce(
-        sa_func.sum(
-            case((Transaction.type == TransactionType.income, Transaction.amount), else_=0)
-        ),
-        0,
-    )
-    expense_sum = sa_func.coalesce(
-        sa_func.sum(
-            case((Transaction.type == TransactionType.expense, Transaction.amount), else_=0)
-        ),
-        0,
-    )
-
     # "bucket" is 1 for current month, 0 for prior month. Computed in
     # SQL so we only do one round-trip; portable across all engines
     # via CASE (no date_trunc dialect quirks).
@@ -398,7 +443,8 @@ def get_insights(db: Session = Depends(get_db), current_user: User = Depends(get
             cnt,
         )
         .filter(
-            Transaction.user_id == current_user.id,
+            (Transaction.user_id == current_user.id)
+            & Transaction.workspace_id.is_(None),
             Transaction.date >= two_months_ago,
             Transaction.date < today + timedelta(days=1),
         )
@@ -430,7 +476,8 @@ def get_insights(db: Session = Depends(get_db), current_user: User = Depends(get
             sa_func.coalesce(sa_func.sum(Transaction.amount), 0).label("total"),
         )
         .filter(
-            Transaction.user_id == current_user.id,
+            (Transaction.user_id == current_user.id)
+            & Transaction.workspace_id.is_(None),
             Transaction.type == TransactionType.expense,
             Transaction.date >= two_months_ago,
             Transaction.date < today + timedelta(days=1),
@@ -446,43 +493,69 @@ def get_insights(db: Session = Depends(get_db), current_user: User = Depends(get
         else:
             prev_cats[category] = float(total or 0)
 
+    if cutover_active(db, current_user.id):
+        exact = report(db, current_user.id, month_ago, today)
+        prior = report(
+            db, current_user.id, two_months_ago, month_ago - timedelta(days=1)
+        )
+        recent_income, recent_expenses = (
+            int(exact["income_minor"]) / 100,
+            int(exact["expense_minor"]) / 100,
+        )
+        prev_expenses = int(prior["expense_minor"]) / 100
+        recent_count = len(exact["transactions"])
+        recent_cats = {
+            k: int(v) / 100 for k, v in exact["expense_by_category_minor"].items()
+        }
+        prev_cats = {
+            k: int(v) / 100 for k, v in prior["expense_by_category_minor"].items()
+        }
+
     insights = []
 
     # Savings rate insight
     if recent_income > 0:
         savings_rate = (recent_income - recent_expenses) / recent_income * 100
         if savings_rate >= 20:
-            insights.append(InsightItem(
-                type="positive",
-                title="Strong Savings Rate",
-                message=f"You're saving {savings_rate:.0f}% of your income this month. Great job!",
-                metric=f"{savings_rate:.0f}%",
-            ))
+            insights.append(
+                InsightItem(
+                    type="positive",
+                    title="Strong Savings Rate",
+                    message=f"You're saving {savings_rate:.0f}% of your income this month. Great job!",
+                    metric=f"{savings_rate:.0f}%",
+                )
+            )
         elif savings_rate < 10:
-            insights.append(InsightItem(
-                type="warning",
-                title="Low Savings Rate",
-                message=f"Your savings rate is {savings_rate:.0f}%. Consider reducing discretionary spending.",
-                metric=f"{savings_rate:.0f}%",
-            ))
+            insights.append(
+                InsightItem(
+                    type="warning",
+                    title="Low Savings Rate",
+                    message=f"Your savings rate is {savings_rate:.0f}%. Consider reducing discretionary spending.",
+                    metric=f"{savings_rate:.0f}%",
+                )
+            )
 
     # Spending trend
     if prev_expenses > 0:
         change = (recent_expenses - prev_expenses) / prev_expenses * 100
         if change > 15:
-            insights.append(InsightItem(
-                type="warning",
-                title="Spending Increase",
-                message=f"Your spending increased by {change:.0f}% compared to last month.",
-                metric=f"+{change:.0f}%",
-            ))
+            insights.append(
+                InsightItem(
+                    type="warning",
+                    title="Spending Increase",
+                    message=f"Your spending increased by {change:.0f}% compared to last month.",
+                    metric=f"+{change:.0f}%",
+                )
+            )
         elif change < -10:
-            insights.append(InsightItem(
-                type="positive",
-                title="Spending Decrease",
-                message=f"Your spending decreased by {abs(change):.0f}% compared to last month.",
-                metric=f"{change:.0f}%",
-            ))
+            insights.append(
+                InsightItem(
+                    type="positive",
+                    title="Spending Decrease",
+                    message=f"Your spending decreased by {abs(change):.0f}% compared to last month.",
+                    metric=f"{change:.0f}%",
+                )
+            )
 
     # Top growing category
     biggest_increase = None
@@ -496,22 +569,28 @@ def get_insights(db: Session = Depends(get_db), current_user: User = Depends(get
                 biggest_increase = cat
 
     if biggest_increase and biggest_change > 20:
-        insights.append(InsightItem(
-            type="info",
-            title=f"Rising: {biggest_increase.title()}",
-            message=f"Spending on {biggest_increase} increased {biggest_change:.0f}% this month.",
-            metric=f"+{biggest_change:.0f}%",
-        ))
+        insights.append(
+            InsightItem(
+                type="info",
+                title=f"Rising: {biggest_increase.title()}",
+                message=f"Spending on {biggest_increase} increased {biggest_change:.0f}% this month.",
+                metric=f"+{biggest_change:.0f}%",
+            )
+        )
 
     # Transaction frequency
     if recent_count > 0:
         avg_per_day = recent_count / 30
-        insights.append(InsightItem(
-            type="info",
-            title="Transaction Activity",
-            message=f"You averaged {avg_per_day:.1f} transactions per day this month ({recent_count} total).",
-            metric=str(recent_count),
-        ))
+        insights.append(
+            InsightItem(
+                type="info",
+                title="Transaction Activity",
+                message=f"You averaged {avg_per_day:.1f} transactions per day this month ({recent_count} total).",
+                metric=str(recent_count),
+            )
+        )
 
-    cache.set(cache_key, [i.model_dump() for i in insights], ttl=_settings.cache_default_ttl)
+    cache.set(
+        cache_key, [i.model_dump() for i in insights], ttl=_settings.cache_default_ttl
+    )
     return insights

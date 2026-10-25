@@ -1,0 +1,20 @@
+[
+  {
+    "route": "landing",
+    "status": 200,
+    "server_content_present": true,
+    "has_main": true
+  },
+  {
+    "route": "docs",
+    "status": 200,
+    "server_content_present": true,
+    "has_main": true
+  },
+  {
+    "route": "login",
+    "status": 200,
+    "server_content_present": true,
+    "has_main": true
+  }
+]

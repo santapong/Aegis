@@ -1,0 +1,53 @@
+{
+  "checked_at": "2026-10-02T13:00:41.363201+00:00",
+  "scope": "only disposable labeled release-check installation; original pilot DB/image/evidence preserved",
+  "containers": [
+    {
+      "name": "aegis-cash-releasecheck-worker-20261002",
+      "id": "90c1885b6aeba13bc5d480e5bd270e49e9f54722ae42ed7511fc3815c87c997c",
+      "observed_before_cleanup": "exited",
+      "health_before_cleanup": "unhealthy",
+      "worker_scope": "idle ARQ startup; no job rendering/LINE delivery claimed; inherited HTTP healthcheck is unsuitable for ARQ",
+      "removed": true
+    },
+    {
+      "name": "aegis-cash-releasecheck-web-20261002",
+      "id": "a87636a3aaab9edb6d8ec5b9b46f9e3a6d8ce12f771424124e465a368f5294a4",
+      "observed_before_cleanup": "exited",
+      "health_before_cleanup": null,
+      "removed": true
+    },
+    {
+      "name": "aegis-cash-releasecheck-api-20261002",
+      "id": "29e009bb5597c6c0c752545cac1920544d4851a2bf78c655bf6152ca385c600e",
+      "observed_before_cleanup": "exited",
+      "health_before_cleanup": "unhealthy",
+      "removed": true
+    },
+    {
+      "name": "aegis-cash-releasecheck-redis-20261002",
+      "id": "65ba18d737cda4f392c0d6714903a2b74593b8f4af037fc67a4af9ae8f4a7b8b",
+      "observed_before_cleanup": "exited",
+      "health_before_cleanup": null,
+      "removed": true
+    },
+    {
+      "name": "aegis-cash-releasecheck-db-20261002",
+      "id": "65c50def817e3db77a36ee38eb27013c072189e9e294580047d3694201b3dd06",
+      "observed_before_cleanup": "exited",
+      "health_before_cleanup": null,
+      "removed": true
+    }
+  ],
+  "networks": [
+    {
+      "name": "aegis-cash-releasecheck-host-20261002",
+      "removed": true
+    },
+    {
+      "name": "aegis-cash-releasecheck-20261002",
+      "removed": true
+    }
+  ],
+  "preview_observation": "original transient API/web unit definitions absent and original pilot DB exited after interruption; not claimed running or restarted"
+}

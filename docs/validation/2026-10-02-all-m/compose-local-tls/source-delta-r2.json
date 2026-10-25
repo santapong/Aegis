@@ -1,0 +1,13 @@
+{
+  "previous_worker_health_input_hash": "490ac350835000e53c809512c2770f10e1f613212afa4699e29ec137cfed7875",
+  "current_operational_input_hash": "46523a93f9b03c24e5c24a5cdba0b8d118a3ed7beebdfada3aaec3cf040eac56",
+  "hash_serialization": "sorted_default",
+  "delta": {
+    "docker-compose.yml": {
+      "before": "0477670786f5490d958845c8a4300a3840df26b8267292fcb9f2e7a4d9ef9553",
+      "after": "e602fc50d1f2d077c86606993cdd55741d7051370926fa0a5f45aabf07e8d43a"
+    }
+  },
+  "image_source_unchanged": true,
+  "application_tests_migrations_unchanged": true
+}

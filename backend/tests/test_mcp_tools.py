@@ -170,3 +170,31 @@ def test_update_transaction_unknown_id_raises(mcp_env):
 
     with pytest.raises(ValueError, match="not found"):
         _run(update_transaction({"transaction_id": "no-such-id", "amount": 5}))
+
+
+def test_cash_records_are_outside_legacy_mcp_and_cannot_be_edited(mcp_env):
+    from datetime import date
+    from decimal import Decimal
+    from app.models.cashflow import CashWorkspace, CashAccount
+    from app.models.transaction import Transaction, TransactionType
+    from app.mcp.tools.transactions import list_transactions, update_transaction
+    from app.mcp.tools.reports import get_dashboard
+
+    with mcp_env["Session"]() as db:
+        w = CashWorkspace(user_id=mcp_env["user_id"], name="Business cash", kind="business", currency="THB", create_key="mcp-test", create_hash="mcp-test")
+        db.add(w)
+        db.flush()
+        a = CashAccount(workspace_id=w.id, name="Operating cash", currency="THB")
+        db.add(a)
+        db.flush()
+        txn = Transaction(user_id=mcp_env["user_id"], workspace_id=w.id, account_id=a.id, currency="THB", amount=Decimal("123.45"), type=TransactionType.expense, category="Other", date=date.today())
+        db.add(txn)
+        db.commit()
+        ident = txn.id
+    assert json.loads(_run(list_transactions({}))) == []
+    summary = json.loads(_run(get_dashboard({})))
+    assert summary["total_expenses"] == 0
+    with pytest.raises(ValueError, match="not found"):
+        _run(update_transaction({"transaction_id":ident,"amount":999}))
+    with mcp_env["Session"]() as db:
+        assert db.get(Transaction, ident).amount == Decimal("123.45")

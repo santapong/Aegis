@@ -1,0 +1,3 @@
+date,description,amount,type,currency,reference,category
+2026-10-01,Fictional client receipt,30000.00,income,THB,EXAMPLE-RECEIPT-01,Client work
+2026-10-01,Fictional bank fee,20.00,expense,THB,EXAMPLE-FEE-01,Fees

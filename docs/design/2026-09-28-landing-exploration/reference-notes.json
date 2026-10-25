@@ -1,0 +1,102 @@
+[
+  {
+    "slug": "sunsama",
+    "name": "Sunsama",
+    "url": "https://www.sunsama.com/",
+    "category": "Planning / direction A",
+    "observation": "A visible planner beside the promise, followed by a daily-workflow story.",
+    "adaptation": "Put the financial calendar beside the headline. Explain a short monthly routine.",
+    "limit": "Do not transfer its trial, integration or testimonial claims.",
+    "visual": true
+  },
+  {
+    "slug": "daybridge",
+    "name": "Daybridge",
+    "url": "https://daybridge.com/",
+    "category": "Planning / direction A",
+    "observation": "Familiar calendar entries become the hero’s visual language.",
+    "adaptation": "Use income, rent and savings dates to explain Aegis before listing features.",
+    "limit": "Avoid a cloud of unrelated labels. Native-app and offline claims do not transfer.",
+    "visual": true
+  },
+  {
+    "slug": "lunch-money",
+    "name": "Lunch Money",
+    "url": "https://lunchmoney.app/",
+    "category": "Personal finance / direction A",
+    "observation": "Feature groups are organized around tracking, analysis and human context.",
+    "adaptation": "Group Aegis around Record, Plan and Review, with a concrete example.",
+    "limit": "Bank imports, pricing and testimonials are not Aegis facts. Browser verification prevented visual capture.",
+    "visual": false
+  },
+  {
+    "slug": "actual-budget",
+    "name": "Actual Budget",
+    "url": "https://actualbudget.org/",
+    "category": "Ownership / all directions",
+    "observation": "A product demo and explicit setup paths sit alongside data-ownership explanations.",
+    "adaptation": "Provide a sample plus clear source, export and self-hosting destinations.",
+    "limit": "Do not imply Aegis has equivalent offline or encryption guarantees. Screenshot capture stalled.",
+    "visual": false
+  },
+  {
+    "slug": "ynab",
+    "name": "YNAB",
+    "url": "https://www.ynab.com/",
+    "category": "Personal finance / direction C",
+    "observation": "A familiar money concern leads into reassurance, setup and life outcomes.",
+    "adaptation": "Open with a recognizable priority, then show the product action that supports it.",
+    "limit": "Keep Aegis’s own voice. Do not reuse savings statistics, promises or customer evidence.",
+    "visual": true
+  },
+  {
+    "slug": "wealthfront",
+    "name": "Wealthfront",
+    "url": "https://www.wealthfront.com/",
+    "category": "Financial services / direction C",
+    "observation": "A focused offer and product view lead to explanations organized by service and life context.",
+    "adaptation": "Let each chapter answer one decision, then connect a plan to its purpose.",
+    "limit": "Rates, returns, deposit protections and investment-service claims do not transfer.",
+    "visual": true
+  },
+  {
+    "slug": "mercury",
+    "name": "Mercury",
+    "url": "https://mercury.com/",
+    "category": "Product narrative / supporting",
+    "observation": "Product and demo paths sit within a broader story about building a business.",
+    "adaptation": "Connect the reason to plan with a direct route into an example.",
+    "limit": "No banking or adoption claims. Capture stalled, so no visual material or typography judgment is made.",
+    "visual": false
+  },
+  {
+    "slug": "ramp",
+    "name": "Ramp",
+    "url": "https://ramp.com/",
+    "category": "Workflow / supporting",
+    "observation": "An outcome-led opening is followed by a concrete financial workflow and grouped use cases.",
+    "adaptation": "Show how one record relates to its date and budget.",
+    "limit": "Leave out autonomous-agent claims, counters and the campaign treatment. Some captured imagery was still loading.",
+    "visual": true
+  },
+  {
+    "slug": "chronicle",
+    "name": "Chronicle",
+    "url": "https://chroniclehq.com/",
+    "category": "Product evidence / direction B",
+    "observation": "Large output previews have named use-case controls immediately beside them.",
+    "adaptation": "Use Now, Next and Later controls to change the financial example in place.",
+    "limit": "Do not hide essential content behind motion. The second capture caught an unfinished reveal.",
+    "visual": true
+  },
+  {
+    "slug": "raycast",
+    "name": "Raycast",
+    "url": "https://www.raycast.com/",
+    "category": "Brand expression / direction B",
+    "observation": "A bold dark opening leads into an enlarged interface demonstration.",
+    "adaptation": "Give the DravenIQ-inspired direction one focal point, then show the product clearly.",
+    "limit": "Preserve Aegis identity. Do not copy Raycast artwork or delay the useful product explanation.",
+    "visual": true
+  }
+]

@@ -1,0 +1,261 @@
+- complementary:
+  - generic: AEGIS
+  - generic: money / console
+  - button "Collapse sidebar":
+  - navigation:
+    - button "01 · Overview" [expanded]:
+      - generic: 01 · Overview
+    - link "Cash planning":
+      - /url: /cashflow
+      - generic: Cash planning
+    - link "Dashboard ⌘⇧1":
+      - /url: /
+      - generic: Dashboard
+      - generic: ⌘⇧1
+    - link "Unassigned records ⌘⇧2":
+      - /url: /transactions
+      - generic: Unassigned records
+      - generic: ⌘⇧2
+    - link "Reports ⌘⇧3":
+      - /url: /reports
+      - generic: Reports
+      - generic: ⌘⇧3
+    - button "02 · Money" [expanded]:
+      - generic: 02 · Money
+    - link "Budgets ⌘⇧4":
+      - /url: /budgets
+      - generic: Budgets
+      - generic: ⌘⇧4
+    - link "Savings ⌘⇧5":
+      - /url: /savings
+      - generic: Savings
+      - generic: ⌘⇧5
+    - link "Investments ⌘⇧6":
+      - /url: /investments
+      - generic: Investments
+      - generic: ⌘⇧6
+    - link "Debts ⌘⇧7":
+      - /url: /debts
+      - generic: Debts
+      - generic: ⌘⇧7
+    - button "03 · Plan" [expanded]:
+      - generic: 03 · Plan
+    - link "Calendar ⇧C":
+      - /url: /calendar
+      - generic: Calendar
+      - generic: ⇧C
+    - link "Gantt ⇧G":
+      - /url: /gantt
+      - generic: Gantt
+      - generic: ⇧G
+    - link "Trips ⇧T":
+      - /url: /trips
+      - generic: Trips
+      - generic: ⇧T
+    - link "Scenarios ⇧P":
+      - /url: /plans
+      - generic: Scenarios
+      - generic: ⇧P
+    - button "04 · System":
+      - generic: 04 · System
+  - button "AI Advisor":
+    - generic: AI Advisor
+  - generic: A
+  - paragraph: Aegis Preview
+  - paragraph: release-preview@aegis.local
+  - button "Sign out":
+    - generic: Sign out
+- main:
+  - region "Cash planning":
+    - text: AEGIS / CASH PLANNING
+    - heading "See the dates behind your money." [level=1]
+    - button "New workspace"
+    - paragraph: Record what moved. Plan what comes next. See whether the dates and amounts fit.
+    - region "Forecast scope":
+      - text: Workspace
+      - combobox "Workspace":
+        - option "Business X · fictional example · business · THB"
+        - option "Mina · fictional example · personal · THB" [selected]
+      - text: Cash as of
+      - textbox "Cash as of": 2026-10-02
+      - text: Plan through
+      - textbox "Plan through": 2026-10-31
+      - text: Comparison
+      - combobox "Comparison":
+        - option "Base plan" [selected]
+        - option "Laptop · fictional purchase"
+    - text: THB · Asia/Bangkok · All active cash accounts
+    - generic "Choose included accounts"
+    - navigation "Cash workspace views":
+      - button "Overview"
+      - button "Money calendar" [pressed]
+      - button "Scenarios"
+      - button "Review & match"
+      - button "Accounts"
+    - status: Saved. Cash and upcoming commitments have been recalculated.
+    - button "Record money"
+    - button "Add upcoming money"
+    - button "Add cash account"
+    - text: ONE DAY AT A TIME
+    - heading "Money calendar" [level=2]
+    - text: Selected date
+    - textbox "Selected date": 2026-10-16
+    - paragraph: Dates show when cash is expected to move. Contractual due dates remain in the source details.
+    - button "10-02 THB 47,000.00 No movement":
+      - generic: 10-02
+      - strong: THB 47,000.00
+      - generic: No movement
+    - button "10-03 THB 47,000.00 No movement":
+      - generic: 10-03
+      - strong: THB 47,000.00
+      - generic: No movement
+    - button "10-04 THB 47,000.00 No movement":
+      - generic: 10-04
+      - strong: THB 47,000.00
+      - generic: No movement
+    - button "10-05 THB 47,000.00 No movement":
+      - generic: 10-05
+      - strong: THB 47,000.00
+      - generic: No movement
+    - button "10-06 THB 47,000.00 No movement":
+      - generic: 10-06
+      - strong: THB 47,000.00
+      - generic: No movement
+    - button "10-07 THB 47,000.00 No movement":
+      - generic: 10-07
+      - strong: THB 47,000.00
+      - generic: No movement
+    - button "10-08 THB 47,000.00 No movement":
+      - generic: 10-08
+      - strong: THB 47,000.00
+      - generic: No movement
+    - button "10-09 THB 47,000.00 No movement":
+      - generic: 10-09
+      - strong: THB 47,000.00
+      - generic: No movement
+    - button "10-10 THB 47,000.00 No movement":
+      - generic: 10-10
+      - strong: THB 47,000.00
+      - generic: No movement
+    - button "10-11 THB 47,000.00 No movement":
+      - generic: 10-11
+      - strong: THB 47,000.00
+      - generic: No movement
+    - button "10-12 THB 47,000.00 No movement":
+      - generic: 10-12
+      - strong: THB 47,000.00
+      - generic: No movement
+    - button "10-13 THB 47,000.00 No movement":
+      - generic: 10-13
+      - strong: THB 47,000.00
+      - generic: No movement
+    - button "10-14 THB 47,000.00 No movement":
+      - generic: 10-14
+      - strong: THB 47,000.00
+      - generic: No movement
+    - button "10-15 THB 47,000.00 No movement":
+      - generic: 10-15
+      - strong: THB 47,000.00
+      - generic: No movement
+    - button "10-16 THB 44,500.00 1 planned item(s)" [active] [pressed]:
+      - generic: 10-16
+      - strong: THB 44,500.00
+      - generic: 1 planned item(s)
+    - button "10-17 THB 44,500.00 No movement":
+      - generic: 10-17
+      - strong: THB 44,500.00
+      - generic: No movement
+    - button "10-18 THB 52,500.00 1 planned item(s)":
+      - generic: 10-18
+      - strong: THB 52,500.00
+      - generic: 1 planned item(s)
+    - button "10-19 THB 52,500.00 No movement":
+      - generic: 10-19
+      - strong: THB 52,500.00
+      - generic: No movement
+    - button "10-20 THB 51,300.00 1 planned item(s)":
+      - generic: 10-20
+      - strong: THB 51,300.00
+      - generic: 1 planned item(s)
+    - button "10-21 THB 51,300.00 No movement":
+      - generic: 10-21
+      - strong: THB 51,300.00
+      - generic: No movement
+    - button "10-22 THB 51,300.00 No movement":
+      - generic: 10-22
+      - strong: THB 51,300.00
+      - generic: No movement
+    - button "10-23 THB 49,500.00 1 planned item(s)":
+      - generic: 10-23
+      - strong: THB 49,500.00
+      - generic: 1 planned item(s)
+    - button "10-24 THB 49,500.00 No movement":
+      - generic: 10-24
+      - strong: THB 49,500.00
+      - generic: No movement
+    - button "10-25 THB 49,500.00 No movement":
+      - generic: 10-25
+      - strong: THB 49,500.00
+      - generic: No movement
+    - button "10-26 THB 48,900.00 1 planned item(s)":
+      - generic: 10-26
+      - strong: THB 48,900.00
+      - generic: 1 planned item(s)
+    - button "10-27 THB 48,900.00 No movement":
+      - generic: 10-27
+      - strong: THB 48,900.00
+      - generic: No movement
+    - button "10-28 THB 48,900.00 No movement":
+      - generic: 10-28
+      - strong: THB 48,900.00
+      - generic: No movement
+    - button "10-29 THB 48,900.00 No movement":
+      - generic: 10-29
+      - strong: THB 48,900.00
+      - generic: No movement
+    - button "10-30 THB 48,900.00 No movement":
+      - generic: 10-30
+      - strong: THB 48,900.00
+      - generic: No movement
+    - button "10-31 THB 48,900.00 No movement":
+      - generic: 10-31
+      - strong: THB 48,900.00
+      - generic: No movement
+    - heading "2026-10-16 · end-of-day cash THB 44,500.00" [level=3]
+    - article:
+      - strong: Groceries
+      - paragraph: Remaining cost · THB 2,500.00 · due 2026-10-16
+      - generic: Planned
+    - heading "Upcoming commitments" [level=2]
+    - article:
+      - strong: Freelance payment
+      - paragraph: Expected receipt THB 8,000.00 · expected 2026-10-18 · due 2026-10-18
+      - button "Change date"
+      - button "Cancel remaining"
+    - article:
+      - strong: Utilities
+      - paragraph: Remaining cost THB 1,200.00 · expected 2026-10-20 · due 2026-10-20
+      - button "Change date"
+      - button "Cancel remaining"
+    - article:
+      - strong: Subscriptions
+      - paragraph: Remaining cost THB 600.00 · expected 2026-10-26 · due 2026-10-26
+      - button "Change date"
+      - button "Cancel remaining"
+    - article:
+      - strong: Groceries
+      - paragraph: Remaining cost THB 2,500.00 · expected 2026-10-16 · due 2026-10-16
+      - button "Change date"
+      - button "Cancel remaining"
+    - article:
+      - strong: Transport
+      - paragraph: Remaining cost THB 1,800.00 · expected 2026-10-23 · due 2026-10-23
+      - button "Change date"
+      - button "Cancel remaining"
+    - paragraph:
+      - text: Cash accounts are an entered record of money, not a bank connection. Completing a task does not record a payment.
+      - link "Read the Aegis guides":
+        - /url: /docs
+- button "Open Next.js Dev Tools":
+- alert
+- generic: "-THB 20,000"

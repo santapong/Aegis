@@ -1,0 +1,26 @@
+[
+  {
+    "route": "/demo",
+    "status": 200,
+    "headings": 1,
+    "aria_label_targets": "valid"
+  },
+  {
+    "route": "/landing",
+    "status": 200,
+    "headings": 1,
+    "aria_label_targets": "valid"
+  },
+  {
+    "route": "/docs",
+    "status": 200,
+    "headings": 1,
+    "aria_label_targets": "valid"
+  },
+  {
+    "route": "/login",
+    "status": 200,
+    "headings": 1,
+    "aria_label_targets": "valid"
+  }
+]

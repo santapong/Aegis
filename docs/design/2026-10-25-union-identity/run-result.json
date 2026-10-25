@@ -1,0 +1,17 @@
+{
+  "run": "aegis-union-20261025",
+  "started": 1792916352.4309998,
+  "state": "released",
+  "temperature": 64.45,
+  "available": 12895567872,
+  "busy": [],
+  "admitted": 1792916372.5693214,
+  "build_started": 1792916373.1793728,
+  "build_exit": 0,
+  "build_ended": 1792916632.0432596,
+  "watchdog_reason": "",
+  "artifact_bytes": 12093440,
+  "ended": 1792916637.6342435,
+  "cleanup": "verified",
+  "peak_rss": 977485824
+}

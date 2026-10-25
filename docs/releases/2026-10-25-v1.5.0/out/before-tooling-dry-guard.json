@@ -1,0 +1,37 @@
+{
+  "samples": 135,
+  "peak_rss_bytes": 603078656,
+  "available_bytes": 12457852928,
+  "temperature_c": 65.0,
+  "controls": {
+    "aegis-release-v150-20261025-api": {
+      "cpu.max": "35000 100000",
+      "pids.max": "64"
+    },
+    "aegis-release-v150-20261025-db": {
+      "cpu.max": "15000 100000",
+      "pids.max": "64"
+    },
+    "aegis-release-v150-20261025-cash-contention-rerun": {
+      "cpu.max": "70000 100000",
+      "pids.max": "128"
+    },
+    "aegis-release-v150-20261025-robot-schema": {
+      "cpu.max": "35000 100000",
+      "pids.max": "128"
+    },
+    "aegis-release-v150-20261025-robot-acceptance": {
+      "cpu.max": "15000 100000",
+      "pids.max": "128"
+    },
+    "aegis-release-v150-20261025-frontend": {
+      "cpu.max": "25000 100000",
+      "pids.max": "64"
+    },
+    "aegis-release-v150-20261025-proxy-acceptance": {
+      "cpu.max": "15000 100000",
+      "pids.max": "64"
+    }
+  },
+  "events": []
+}

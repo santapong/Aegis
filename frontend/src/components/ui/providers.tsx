@@ -1,10 +1,11 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAppStore, COSMIC_THEMES, type CosmicTheme } from "@/stores/app-store";
 import { ToastContainer } from "./toast";
 import { TooltipProvider } from "./tooltip";
+import { useAuthStore } from "@/stores/auth-store";
 import { GlobalShortcuts } from "@/components/global-shortcuts";
 import { OnboardingTour } from "@/components/onboarding-tour";
 
@@ -50,6 +51,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
         },
       })
   );
+
+  const userId = useAuthStore((s) => s.user?.id);
+  const priorUser = useRef(userId);
+  useEffect(() => {
+    if (priorUser.current !== userId) queryClient.clear();
+    priorUser.current = userId;
+  }, [userId, queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>

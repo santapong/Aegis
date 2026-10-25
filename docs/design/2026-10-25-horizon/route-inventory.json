@@ -1,0 +1,41 @@
+{
+  "public_and_access": [
+    "landing",
+    "login",
+    "register",
+    "welcome",
+    "docs",
+    "demo",
+    "changelog"
+  ],
+  "routes": [
+    "review",
+    "investments",
+    "budgets",
+    "payments",
+    "demo",
+    "gantt",
+    "welcome",
+    "calendar",
+    "savings",
+    "landing",
+    "login",
+    "changelog",
+    "accounts",
+    "debts",
+    "docs",
+    "(dashboard)",
+    "register",
+    "plans",
+    "trips",
+    "cashflow",
+    "transactions",
+    "reports",
+    "settings",
+    "trips/[id]",
+    "docs/[...slug]"
+  ],
+  "shared_appearance": "horizon.css",
+  "cash_specific": "components/cashflow/workspace.module.css",
+  "ledger_specific": "components/finance/finance.module.css"
+}

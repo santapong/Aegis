@@ -1,0 +1,56 @@
+{
+  "aegis-cash-releasecheck-db-20261002": {
+    "id": "65c50def817e3db77a36ee38eb27013c072189e9e294580047d3694201b3dd06",
+    "image_id": "sha256:108b27c919e6e7bc124350fb265deea9adac58e118eade428c6d1ad44b90debe",
+    "state": "running",
+    "health": null,
+    "published_ports": {
+      "5432/tcp": null
+    },
+    "networks": [
+      "aegis-cash-releasecheck-20261002"
+    ]
+  },
+  "aegis-cash-releasecheck-redis-20261002": {
+    "id": "65ba18d737cda4f392c0d6714903a2b74593b8f4af037fc67a4af9ae8f4a7b8b",
+    "image_id": "sha256:aa189b5a1954929c393585e6dc5717a75b18f75a931df8bdcc00a3d3bd546be6",
+    "state": "running",
+    "health": null,
+    "published_ports": {
+      "6379/tcp": null
+    },
+    "networks": [
+      "aegis-cash-releasecheck-20261002"
+    ]
+  },
+  "aegis-cash-releasecheck-api-20261002": {
+    "id": "29e009bb5597c6c0c752545cac1920544d4851a2bf78c655bf6152ca385c600e",
+    "image_id": "sha256:25a6294af2e7bea62c16fbf3f0fbe71c5c27a46657aab5dcbd3e275907d50e4e",
+    "state": "running",
+    "health": "healthy",
+    "published_ports": {
+      "8000/tcp": null
+    },
+    "networks": [
+      "aegis-cash-releasecheck-20261002"
+    ]
+  },
+  "aegis-cash-releasecheck-web-20261002": {
+    "id": "a87636a3aaab9edb6d8ec5b9b46f9e3a6d8ce12f771424124e465a368f5294a4",
+    "image_id": "sha256:d2bc2f72cea9b4e2a549884e93a832cdacacab804cf405bf075b68ce5960e10a",
+    "state": "running",
+    "health": null,
+    "published_ports": {
+      "3000/tcp": [
+        {
+          "HostIp": "127.0.0.1",
+          "HostPort": "3110"
+        }
+      ]
+    },
+    "networks": [
+      "aegis-cash-releasecheck-20261002",
+      "aegis-cash-releasecheck-host-20261002"
+    ]
+  }
+}

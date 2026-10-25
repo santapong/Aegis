@@ -2,10 +2,13 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "services": {
     "frontend": {
-      "root": "frontend"
+      "root": "frontend",
+      "framework": "nextjs"
     },
     "backend": {
       "root": "backend",
+      "framework": "fastapi",
+      "buildCommand": "python scripts/release_schema.py",
       "entrypoint": "main.py"
     }
   },

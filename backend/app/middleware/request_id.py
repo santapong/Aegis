@@ -17,6 +17,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next) -> Response:
         rid = request.headers.get("x-request-id") or uuid.uuid4().hex
+        request.state.request_id = rid
         with logger.contextualize(request_id=rid):
             response = await call_next(request)
         response.headers["X-Request-ID"] = rid

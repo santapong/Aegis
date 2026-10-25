@@ -1,0 +1,29 @@
+{
+  "samples": 92,
+  "peak_rss_bytes": 911622144,
+  "available_bytes": 12404342784,
+  "temperature_c": 65.55,
+  "controls": {
+    "aegis-release-v150-20261025-python-deps-release": {
+      "cpu.max": "50000 100000",
+      "pids.max": "128"
+    },
+    "aegis-release-v150-20261025-candidate-build-network": {
+      "cpu.max": "50000 100000",
+      "pids.max": "128"
+    },
+    "aegis-release-v150-20261025-api": {
+      "cpu.max": "5000 100000",
+      "pids.max": "64"
+    },
+    "aegis-release-v150-20261025-db": {
+      "cpu.max": "25000 100000",
+      "pids.max": "64"
+    },
+    "aegis-release-v150-20261025-cash-contention": {
+      "cpu.max": "70000 100000",
+      "pids.max": "128"
+    }
+  },
+  "events": []
+}

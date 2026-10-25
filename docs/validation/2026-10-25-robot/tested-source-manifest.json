@@ -1,0 +1,36 @@
+{
+  "files": {
+    "backend/tests/robot/AegisApi.py": "91141273bc08cbad3b1f35e6899b7e017f878cc94c8bd3f7c484f426e341a0fb",
+    "backend/tests/robot/robot_server.py": "16c0471ba7480815879717c1c1181d1b00f47821980ff982d39ca3ee38a0bd9e",
+    "backend/tests/robot/line_budgets.robot": "d708bdd2651be922142b2f559c53ae81e6e71d9e6927ecc420ec686f38e07ab1",
+    "backend/tests/test_budget_currency_postgres.py": "df3ee2aabb51a4bb53fdb9ea5d539fac98e1657b3266b6bd9ccb4e87d0284b77",
+    "backend/app/services/finance_integration.py": "6910fa58b1e7bf8fb6b86db10dc63ac2cc04f052671f2e9207d6529901097b56",
+    "backend/app/services/finance_reads.py": "c483b2a63eeda1245a76af600213ecce102198249744afd5b18d2c4c75699b4f",
+    "backend/app/routers/finance_reconciliation.py": "1c172c8be4db536bc6d4094e69b545d409528aa53af534e48dac39becb4533a7",
+    "frontend/src/components/finance/line-connection.tsx": "37ee1e6b56b8ef8012e223a4715a1c4b3279c9b8a7053115ef3a70a55db2dcdc",
+    "frontend/src/components/finance/budget-currency-review.tsx": "f7d50df8e173ce43ec2ddcad0fd6ef6284a419b86c883db0d3fbcc73529716b7",
+    "frontend/src/lib/finance-api.ts": "be34549042c38a171ed484cb3e6a17f8ecc0111767b44a57daf32364134084f5",
+    "frontend/src/app/budgets/page.tsx": "9f70dc5dee0a98d12dbab3a2e0a0bfcaa8bf4abfbe5375fa650b7801e366101f",
+    "frontend/next.config.ts": "6b095c4cc689154cb3da90b9deea6753922ef6ff0976e9eaf526fbea3b9f3df3"
+  },
+  "build_id": "lBiOvueSwKTFIWzIxF1ol",
+  "working_copy_hashes": {
+    "backend/tests/robot/AegisApi.py": "eeae7fe2358d61211b870c18852951e9db87639381e4de7e8e1c0f2d4a03068c",
+    "backend/tests/robot/robot_server.py": "7c1a48ffbbd9e5035d831fc0b89ff67109e800636e558a6c1f5e891247734f1f",
+    "backend/tests/robot/line_budgets.robot": "d708bdd2651be922142b2f559c53ae81e6e71d9e6927ecc420ec686f38e07ab1",
+    "backend/tests/test_budget_currency_postgres.py": "df3ee2aabb51a4bb53fdb9ea5d539fac98e1657b3266b6bd9ccb4e87d0284b77",
+    "backend/app/services/finance_integration.py": "6910fa58b1e7bf8fb6b86db10dc63ac2cc04f052671f2e9207d6529901097b56",
+    "backend/app/services/finance_reads.py": "c483b2a63eeda1245a76af600213ecce102198249744afd5b18d2c4c75699b4f",
+    "backend/app/routers/finance_reconciliation.py": "1c172c8be4db536bc6d4094e69b545d409528aa53af534e48dac39becb4533a7",
+    "frontend/src/components/finance/line-connection.tsx": "37ee1e6b56b8ef8012e223a4715a1c4b3279c9b8a7053115ef3a70a55db2dcdc",
+    "frontend/src/components/finance/budget-currency-review.tsx": "f7d50df8e173ce43ec2ddcad0fd6ef6284a419b86c883db0d3fbcc73529716b7",
+    "frontend/src/lib/finance-api.ts": "be34549042c38a171ed484cb3e6a17f8ecc0111767b44a57daf32364134084f5",
+    "frontend/src/app/budgets/page.tsx": "9f70dc5dee0a98d12dbab3a2e0a0bfcaa8bf4abfbe5375fa650b7801e366101f",
+    "frontend/next.config.ts": "a891ca81d38781bec0c56ed44e153ef8f93f9ea69667bfbb6b02ce7baac478eb"
+  },
+  "known_post_run_deltas": [
+    "AegisApi adds unexecuted frontend-proxy keyword/urljoin import",
+    "robot_server adds explanatory E402 lint comment",
+    "frontend/next.config.ts is Horizon input; build env wired private backend at build time"
+  ]
+}

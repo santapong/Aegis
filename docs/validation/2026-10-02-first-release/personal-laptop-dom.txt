@@ -1,0 +1,120 @@
+- complementary:
+  - button "Expand sidebar":
+  - navigation:
+    - link "Cash planning":
+      - /url: /cashflow
+    - link "Dashboard":
+      - /url: /
+    - link "Unassigned records":
+      - /url: /transactions
+    - link "Reports":
+      - /url: /reports
+    - link "Budgets":
+      - /url: /budgets
+    - link "Savings":
+      - /url: /savings
+    - link "Investments":
+      - /url: /investments
+    - link "Debts":
+      - /url: /debts
+    - link "Calendar":
+      - /url: /calendar
+    - link "Gantt":
+      - /url: /gantt
+    - link "Trips":
+      - /url: /trips
+    - link "Scenarios":
+      - /url: /plans
+    - link "Docs":
+      - /url: /docs
+    - link "Settings":
+      - /url: /settings
+    - link "Onboarding":
+      - /url: /welcome
+  - button "AI advisor":
+  - generic: A
+  - button "Sign out":
+- main:
+  - region "Cash planning":
+    - text: AEGIS / CASH PLANNING
+    - heading "See the dates behind your money." [level=1]
+    - button "New workspace"
+    - paragraph: Record what moved. Plan what comes next. See whether the dates and amounts fit.
+    - region "Forecast scope":
+      - text: Workspace
+      - combobox "Workspace":
+        - option "Business X · fictional example · business · THB"
+        - option "Mina · fictional example · personal · THB" [selected]
+        - option "Setup check · fictional · business · THB"
+      - text: Cash as of
+      - textbox "Cash as of": 2026-10-02
+      - text: Plan through
+      - textbox "Plan through": 2026-10-31
+      - text: Comparison
+      - combobox "Comparison":
+        - option "Base plan"
+        - option "Laptop · fictional purchase" [selected]
+    - text: THB · Asia/Bangkok · All active cash accounts
+    - generic "Choose included accounts"
+    - navigation "Cash workspace views":
+      - button "Overview" [pressed]
+      - button "Money calendar"
+      - button "Scenarios"
+      - button "Review & match"
+      - button "Accounts"
+    - status: Comparison refreshed using the current base.
+    - button "Record money"
+    - button "Add upcoming money"
+    - button "Add cash account"
+    - region "Cash summary":
+      - article:
+        - generic: Cash as of 2026-10-02 · THB
+        - strong: 47,000.00
+      - article:
+        - generic: Closing cash · 2026-10-31 · THB
+        - strong: 3,900.00
+      - article:
+        - generic: Lowest cash · 2026-10-16 · THB
+        - strong: "-500.00"
+      - article:
+        - generic: Closing above buffer · THB
+        - strong: "-1,100.00"
+    - text: BASE / SCENARIO
+    - heading "Laptop · fictional purchase" [level=2]
+    - button "Compare a change"
+    - paragraph: Cash is expected to go below zero on 2026-10-16. Expected cash first falls below your buffer on 2026-10-12.
+    - list:
+      - text: Recorded cash
+      - text: Base plan · end of day
+      - text: Scenario · end of day
+    - paragraph:
+      - text: Expected receipts THB 8,000.00 · remaining costs THB 51,100.00 · buffer THB 5,000.00
+      - button "Edit buffer"
+    - paragraph: End-of-day amounts; same-day income may arrive after same-day bills. Expected receipts are assumptions, not cash held.
+    - generic "Inspect daily values and their sources"
+    - heading "Upcoming commitments" [level=2]
+    - article:
+      - strong: Freelance payment
+      - paragraph: Expected receipt THB 8,000.00 · expected 2026-10-18 · due 2026-10-18
+    - article:
+      - strong: Utilities
+      - paragraph: Remaining cost THB 1,200.00 · expected 2026-10-20 · due 2026-10-20
+    - article:
+      - strong: Subscriptions
+      - paragraph: Remaining cost THB 600.00 · expected 2026-10-26 · due 2026-10-26
+    - article:
+      - strong: Groceries
+      - paragraph: Remaining cost THB 2,500.00 · expected 2026-10-16 · due 2026-10-16
+    - article:
+      - strong: Transport
+      - paragraph: Remaining cost THB 1,800.00 · expected 2026-10-23 · due 2026-10-23
+    - article:
+      - strong: Laptop
+      - paragraph: Remaining cost THB 45,000.00 · expected 2026-10-12 · due Not entered
+    - paragraph:
+      - text: Cash accounts are an entered record of money, not a bank connection. Completing a task does not record a payment.
+      - link "Read the Aegis guides":
+        - /url: /docs
+- button "Open Next.js Dev Tools":
+- alert
+- generic: "-THB 20,000"

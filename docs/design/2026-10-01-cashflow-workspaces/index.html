@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><link rel="icon" href="assets/aegis-icon.png"><link rel="stylesheet" href="styles.css"><title>Aegis · Cash-flow workspace design</title></head>
+<body>
+<a class="skip" href="#content">Skip to workspace</a>
+<div class="design-notice"><span><i></i> Aegis feature prototype</span><span>Fictional data · changes reset on reload</span><a href="proposal.md">Design brief ↗</a></div>
+<div class="shell">
+<aside class="sidebar">
+  <a class="brand" href="https://draveniq-aegis-landing.vercel.app/" target="_blank" rel="noopener"><img src="assets/aegis-icon.png" alt=""><span>AEGIS</span></a>
+  <label class="workspace-label" for="workspace">Your workspace</label>
+  <select id="workspace"><option value="personal">Mina · Personal</option><option value="business">Business X · Studio</option></select>
+  <p class="workspace-note" id="workspace-note">Personal cash planning</p>
+  <nav aria-label="Workspace views">
+    <button data-view="overview" aria-current="page"><span aria-hidden="true">◈</span> Overview</button>
+    <button data-view="calendar"><span aria-hidden="true">▦</span> Money calendar</button>
+    <button data-view="scenarios"><span aria-hidden="true">⇄</span> Scenarios</button>
+    <button data-view="review"><span aria-hidden="true">✓</span> Review & match</button>
+    <button data-view="roadmap"><span aria-hidden="true">↗</span> Feature plan</button>
+  </nav>
+  <div class="sidebar-bottom"><div class="orbital" aria-hidden="true">◎</div><p>Know what’s coming.<br>Plan what matters.</p><a href="references.md">Research & references ↗</a></div>
+</aside>
+<main id="content" tabindex="-1">
+  <header class="page-header"><div><p class="eyebrow" id="eyebrow">YOUR MONTH, CONNECTED</p><h1 id="heading">A calmer month, by the day.</h1><p id="question">Can my next plans fit before more money arrives?</p></div><div class="asof"><span class="status-dot"></span> Sample as of 10 Oct 2026<br><small>THB · October 2026</small></div></header>
+  <div id="page"></div>
+  <footer>Design proposal · Manual example records, no bank connection or payments. Forecasts depend on the listed assumptions.</footer>
+</main>
+</div>
+<dialog id="details-dialog" aria-labelledby="details-heading"><div class="dialog-top"><p class="eyebrow" id="dialog-eyebrow">BEHIND THE NUMBER</p><button id="close-dialog" aria-label="Close details">✕</button></div><h2 id="details-heading"></h2><div id="details-body"></div><div id="details-actions" class="dialog-actions"></div></dialog>
+<div class="sr-only" id="announcement" role="status" aria-live="polite"></div>
+<script type="module" src="app.mjs"></script>
+</body></html>

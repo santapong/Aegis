@@ -155,6 +155,13 @@ export interface MarketStatus {
 
 export interface KPISummary {
   total_balance: number;
+  balance_basis?: string;
+  asset_balance_minor?: string | null;
+  liability_balance_minor?: string | null;
+  net_position_minor?: string | null;
+  monthly_income_minor?: string | null;
+  monthly_expenses_minor?: string | null;
+  unverified_legacy_count?: number;
   monthly_income: number;
   monthly_expenses: number;
   savings_rate: number;
@@ -287,6 +294,8 @@ export interface CashFlowPoint {
 }
 
 export interface CashFlowForecastResponse {
+  balance_basis?: string;
+  assumptions?: string | null;
   current_balance: number;
   forecast: CashFlowPoint[];
 }

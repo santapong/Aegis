@@ -1,0 +1,12 @@
+{
+  "asset": "01-combined-initial.png",
+  "source": "/home/santapong/.codex/generated_images/01a171a1-b628-7222-accb-6c6d8f8a83bd/exec-46371a7b-a3e5-427f-84a0-29afbaca23e6.png",
+  "sha256": "40ec2a6148c6c705888315e188f2a07ea8ed746f193b1cc8193c51f758412e5c",
+  "format": "PNG",
+  "width": 1536,
+  "height": 1024,
+  "status": "FAIL application identity consistency",
+  "observation": "Main J/K/L marks differ, but K and L header/reverse strips repeat J. This board is retained as an initial exploration, not the final application reference.",
+  "next_check": "Focus revision on one J / Union mark; verify all repeated examples use it.",
+  "revision_budget_remaining": 1
+}

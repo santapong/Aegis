@@ -1,0 +1,43 @@
+UNDERSTAND THE CASH GAP
+Cash alerts
+Refresh alert review
+
+Alerts explain the base plan for these dates and included accounts. Comparisons remain separate. This review stays inside Aegis.
+
+Alert marked as reviewed. Its condition stays visible until resolved.
+
+Your buffer and reservations do not fit · 2026-10-20
+Mark reviewed
+Why this alert appeared
+Expected cash below your buffer · 2026-10-20
+Mark reviewed
+Why this alert appeared
+Expected cash below zero · 2026-10-20
+Reviewed
+Why this alert appeared
+
+Base plan · 2026-10-02 to 2026-10-31 · Everyday checking · fictional
+
+Expected cash -THB 962.50 · buffer THB 500.00 · reservations THB 1,000.00. Cash includes entered actuals; future amounts are still plans.
+
+2026-10-05 · Utilities · entered bill · expense · remaining THB 34.75
+
+2026-10-11 · Membership exception · fictional · expense · remaining THB 12.50
+
+2026-10-15 · Device installments · fictional · installment 1 · expense · remaining THB 100.00
+
+2026-10-15 · Split income · fictional · income · remaining THB 250.00
+
+2026-10-20 · Laptop cash-gap example · fictional · expense · remaining THB 6,000.00
+
+Opening cash: 2026-10-01 · THB 5,000.00 · Fictional M2 acceptance opening
+
+Recorded movements behind cash (1)
+
+Reserved purpose: Emergency reserve · fictional · THB 1,000.00. This money stays in its account.
+
+End-of-day amounts; same-day income may arrive after same-day bills. Expected receipts are assumptions, not cash held.
+
+Evaluated from base revision 15. Acknowledging keeps the condition visible until reviewed changes resolve it.
+
+Resolved alert history (4)

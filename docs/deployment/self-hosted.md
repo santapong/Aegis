@@ -1,6 +1,6 @@
 # Deploy: Self-hosted (Docker Compose)
 
-Run all three services (frontend + backend + Postgres) on a single VPS, fronted by Caddy for automatic HTTPS. **~$5–20 / month** on a $5–10 DigitalOcean droplet or equivalent Hetzner / Linode / Vultr / OVH instance.
+Run the frontend, backend, Postgres, Redis, ARQ worker and Caddy on a single VPS, fronted by Caddy for automatic HTTPS. **~$5–20 / month** on a $5–10 DigitalOcean droplet or equivalent Hetzner / Linode / Vultr / OVH instance.
 
 ![Deploy: Self-hosted (Docker Compose)](../diagrams/deployment-self-hosted-deploy-self-hosted-docker-compose.svg)
 
@@ -82,6 +82,8 @@ Replace `aegis.example.com` with your domain. Caddy will auto-provision a Let's 
 
 ## Step 4 — Start
 
+Build the frontend from the repository root; its Dockerfile consumes both `frontend/` and the canonical root `CHANGELOG.md`. `make image-frontend` and the Compose files supply that context. The backend exports `uv.lock` and installs pinned hash-checked dependencies. The [October 2 image rehearsal](../validation/2026-10-02-all-m/container-rehearsal/README.md) verified the images and fresh migrations. A later [actual Compose/local HTTPS rehearsal](../validation/2026-10-02-all-m/compose-local-tls/README.md) used disposable volumes, dummy configuration and loopback-only Caddy access, and verified TLS/cookies/cash behavior. The worker waits for backend health so their first-boot migrations do not race in this single-stack deployment. Public-domain certificate issuance and customer rollout were not performed. Cash workspaces remain opt-in through `CASHFLOW_WORKSPACES_ENABLED=true` in the root Compose `.env`, after installation checks and migration/backup review.
+
 ```bash
 make up-prod
 ```
@@ -92,8 +94,8 @@ This runs `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 2. Builds the frontend image (standalone Next.js).
 3. Starts Postgres with the `pgdata` named volume.
 4. Waits for the DB to be healthy, then starts the backend (which runs `alembic upgrade head` via `docker-entrypoint.sh`).
-5. Starts the frontend.
-6. Starts Caddy, which provisions TLS for your domain.
+5. Starts the frontend and ARQ worker after the backend is healthy; Redis is also required by the backend/worker.
+6. Starts Caddy, which provisions TLS for your configured domain.
 
 First boot takes ~3–5 minutes (cert issuance + migrations).
 

@@ -1,0 +1,80 @@
+{
+  "check_date": "2026-10-23",
+  "timezone": "Asia/Bangkok",
+  "source_worktree": "/home/santapong/worktrees/aegis-line-ledger-20261022",
+  "user_correction": "Kali CPU saturation/hanging; requested tests on Raspberry Pi",
+  "observed_kali": {
+    "logical_cpus": 4,
+    "recent_reboot_observed": true,
+    "aegis_test_build_processes_at_check": 0,
+    "historical_hang_cause": "unproven; earlier concurrent local verification was too aggressive",
+    "final_owned_Aegis_processes": 0,
+    "final_local_docker_containers": 0,
+    "other_desktop_browser_and_io_load_remained": true
+  },
+  "rpi": {
+    "architecture": "aarch64",
+    "cgroup_version": 2,
+    "controllers": [
+      "cpuset",
+      "cpu",
+      "io",
+      "pids"
+    ],
+    "docker_memory_limit_supported": false,
+    "initial_requested_memory_cap_bytes": 2147483648,
+    "initial_memory_limit_discarded": true,
+    "initial_container_stopped_before_tests": true,
+    "kernel_or_boot_changed": false,
+    "hard_aggregate_memory_cap_claimed": false,
+    "fallback": "verified CPU quota, one test job at a time, process address-space limit for Python and host memory/temperature watchdog",
+    "single_job_cpu_max": "100000 100000",
+    "postgres_stack_cpu_max": [
+      "75000 100000",
+      "25000 100000"
+    ],
+    "python_address_space_limit_bytes": 1073741824,
+    "watchdog_aggregate_rss_stop_bytes": 1610612736,
+    "watchdog_host_available_ram_floor_bytes": 8589934592,
+    "watchdog_temperature_stop_c": 70,
+    "test_networks": "backend disconnected from bridge; PostgreSQL shares its isolated loopback namespace; no host ports"
+  },
+  "results": {
+    "sqlite": {
+      "passed": 260,
+      "skipped": 18,
+      "seconds": 152.05
+    },
+    "postgres_selected": {
+      "passed": 56,
+      "seconds": 49.9
+    },
+    "watchdog_alerts_to_this_point": 0,
+    "sampled_peak_summed_rss_bytes": 1033568256,
+    "watchdog_alerts": 0,
+    "frontend": {
+      "production_build": "passed",
+      "generated_static_pages": 43,
+      "typescript": "passed",
+      "client_checks": "passed",
+      "node_version": "22.23.4",
+      "page_workers": 1,
+      "bun_version": "1.4.4"
+    },
+    "n8n": {
+      "native_arm64_version": "2.33.3",
+      "fixtures_passed": 3,
+      "http_nodes_executed": 0,
+      "network": "none"
+    }
+  },
+  "limits": "Summed RSS is a conservative watchdog measurement, not a kernel-enforced memory cap. Passing tests do not establish a causal learning benefit.",
+  "cleanup": {
+    "task_containers_remaining": 0,
+    "watchdog_stop_requested": true,
+    "production_n8n_readiness_http": 200,
+    "production_n8n_started_at_unchanged": "2026-10-18T03:53:26.295183587Z",
+    "kernel_changed": false,
+    "production_data_or_workflows_changed": false
+  }
+}

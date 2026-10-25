@@ -1,0 +1,37 @@
+{
+  "status": "design proposal, pending owner selection",
+  "date": "2026-09-30",
+  "method": "built-in image_gen.imagegen",
+  "prompt_file": "prompt.txt",
+  "prompt": "Use case: ui-mockup. Asset type: high-fidelity Aegis theme design review image, landscape paired desktop browser mockups. Primary request: show the SAME existing Aegis Meridian landing page in complementary light and dark modes side by side. Input image 1 (desktop-final.png) is a historical desktop composition reference only; input image 2 (landing-current.png) is the current copy/type reference, in a narrow viewport. Build two full desktop browser frames, left LIGHT / WARM IVORY, right DARK / MERIDIAN. Both frames must use exactly the same layout, typography, spacing, content, and sample calendar; only semantic colors change. Composition: large asymmetric heading on the left of each browser, bounded sample-month calendar on the right, three compact Record / Arrange / Review rows below. Preserve AEGIS text brand and Syne-like bold geometric display lettering plus Inter-like readable body type. Show text 'Know what’s coming. Plan what matters.' and the short definition 'Track spending. Plan upcoming costs. Keep goals in view.' Calendar label 'September 2026', sample entries 'Payday +฿65,000', 'Rent ฿18,000', 'Emergency fund ฿3,000'. CTA 'Create an account'. Small links 'Try demo' and 'Documentation'. Light palette: warm ivory #F6F4EE canvas, crisp white #FFFFFF cards, charcoal green #1C2625 text, muted #586461, amber #E8913C primary button with dark text, darker amber #995012 for headline accent and labels, teal #245B61 for readable detail with pale teal #E4EEEA fills. Dark palette: #0A0C0E canvas, #101317 surfaces, #14181D cards, #EDE7DC text, #B5BBB9 secondary text, amber #E8913C, teal #2E6B72 surfaces and #8EB9AA readable accents. Thin purposeful borders, subtle shadows only in light. Quiet and precise financial planning feel. Maintain exact duplicated geometry, not two different designs. Add an outer neutral margin and top labels 'LIGHT · WARM IVORY' and 'DARK · MERIDIAN'. Avoid invented logo: use AEGIS word text only in this concept image; original icon is preserved in the interactive HTML preview. Avoid galaxies, stars, 3D, stock imagery, bank claims, customer statistics, pricing, or social login. UI concept only, not a product capability claim.",
+  "inputs": [
+    {
+      "path": "/mnt/data/company/apps/Aegis/docs/validation/2026-09-28-meridian-landing/desktop-final.png",
+      "role": "historical desktop composition only; copy is superseded",
+      "sha256": "88713b9bbb207e4b9789a81448807ee2f153901dcacb84c5223f60a8e042792b"
+    },
+    {
+      "path": "/mnt/data/company/apps/Aegis/docs/design/2026-09-30-theme-exploration/references/landing-current.png",
+      "role": "current copy and narrow layout reference",
+      "sha256": "edce786a721fedc5bc45ba71bbc48c698d558d06e06c2b87fe56364fce1a9767"
+    }
+  ],
+  "generated_source": "/home/santapong/.codex/generated_images/01a0e5bb-7b11-7371-9f7b-3734e7830a7d/exec-f1db19c2-83c7-4c2b-ba7e-4f3985ab0d50.png",
+  "outputs": [
+    {
+      "path": "/mnt/data/company/apps/Aegis/docs/design/2026-09-30-theme-exploration/assets/paired-direction.png",
+      "role": "conceptual light/dark paired mockup; HTML previews are authoritative for colors and states",
+      "sha256": "578a4ee387c0dbfc73589e3f0c2ef297dd0e78a079e78684600c967912f0b7d4"
+    },
+    {
+      "path": "/mnt/data/company/apps/Aegis/docs/design/2026-09-30-theme-exploration/assets/aegis-icon.png",
+      "role": "unchanged production icon, native HTML previews only",
+      "sha256": "7404cc42490179a6b300fbfa1b750b436850f0aa92b188f90e3d61dcd3fa6849"
+    }
+  ],
+  "limitations": [
+    "Image lettering and colors may approximate the prompt.",
+    "The generated browser address and header links are illustrative, not deployment or route evidence.",
+    "The image uses a wordmark only. The native preview retains the original icon."
+  ]
+}

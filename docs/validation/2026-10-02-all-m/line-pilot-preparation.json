@@ -1,0 +1,186 @@
+{
+  "status": "channel setup verified; phone linking pending",
+  "checks": [
+    {
+      "method": "GET",
+      "target": "local UI",
+      "path": "/api/health",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "method": "GET",
+      "target": "local UI",
+      "path": "/login",
+      "status": 200,
+      "expected": 200
+    },
+    {
+      "method": "GET",
+      "target": "local UI",
+      "path": "/api/auth/me",
+      "status": 401,
+      "expected": 401
+    },
+    {
+      "method": "GET",
+      "target": "webhook-only gateway",
+      "path": "/",
+      "status": 404,
+      "expected": 404
+    },
+    {
+      "method": "GET",
+      "target": "webhook-only gateway",
+      "path": "/api/health",
+      "status": 404,
+      "expected": 404
+    },
+    {
+      "method": "GET",
+      "target": "webhook-only gateway",
+      "path": "/api/line-finance/webhook",
+      "status": 404,
+      "expected": 404
+    },
+    {
+      "method": "POST",
+      "target": "webhook-only gateway",
+      "path": "/api/auth/login",
+      "status": 404,
+      "expected": 404
+    },
+    {
+      "method": "POST",
+      "target": "webhook-only gateway",
+      "path": "/api/line-finance/webhook/",
+      "status": 404,
+      "expected": 404
+    },
+    {
+      "method": "POST",
+      "target": "webhook-only gateway",
+      "path": "/api/line-finance/webhook",
+      "status": 503,
+      "expected": 503
+    }
+  ],
+  "services": [
+    {
+      "name": "backend",
+      "state": "running",
+      "health": "healthy",
+      "restart_count": 0
+    },
+    {
+      "name": "db",
+      "state": "running",
+      "health": "healthy",
+      "restart_count": 0
+    },
+    {
+      "name": "frontend",
+      "state": "running",
+      "health": "",
+      "restart_count": 0
+    },
+    {
+      "name": "redis",
+      "state": "running",
+      "health": "healthy",
+      "restart_count": 0
+    },
+    {
+      "name": "webhook-gateway",
+      "state": "running",
+      "health": "",
+      "restart_count": 0
+    },
+    {
+      "name": "worker",
+      "state": "running",
+      "health": "healthy",
+      "restart_count": 0
+    }
+  ],
+  "private_directory_mode": "0o700",
+  "private_file_modes": {
+    "runtime.env": "0o600",
+    "database.env": "0o600",
+    "local-login.txt": "0o600",
+    "line-secrets.env": "0o600"
+  },
+  "public_tunnel": "bounded temporary user service active; old exec tunnel terminal",
+  "real_line_delivery": "not started; generic worker disabled; own-account scoped helper read-only check only",
+  "scope": "local fictional pilot; no owner LINE secrets read or issued",
+  "recoveries": [
+    "Added required start_period when using Docker start_interval; first attempt did not start application containers",
+    "Mounted filesystem retained file755 after chmod600; moved all private files to home filesystem and verified directory700/file600 before owner entry"
+  ],
+  "owner_browser_sign_in": "not performed; handoff pending",
+  "fictional_workspaces": [
+    {
+      "kind": "personal",
+      "opening": "THB 1000",
+      "planned_expense": "THB 1"
+    },
+    {
+      "kind": "business",
+      "opening": "THB 5000",
+      "planned_expense": "THB 1"
+    }
+  ],
+  "checked_at": "2026-10-04T17:59:34.309638+00:00",
+  "artifact_scope": "New local operational preparation outside Git; original reviewed application images unchanged. No new independent operational-config review claimed.",
+  "nonsecret_artifact_hashes": {
+    "compose.yml": "604cbd31645b7f398e0320f828b9b60f48a522507a875a0ea12eccf1d5349417",
+    "Webhook.Caddyfile": "f9fe8b9ecad34cf6c4afb6d21f528762ce981319e8eff3c84113de6420d0cd72",
+    "start-local.sh": "bae48bf1e6c3a492d923c62226465f480c431d69d8478fb59292b10babd6ac5c",
+    "stop-local.sh": "6344feb84b00f66a8ed1d4387f3d14db1bbb2e4c51d6dd932a81bbdc7de11c5f",
+    "expose-webhook.sh": "6968d48c6f07c6644c337d0fc4a0272728344d4dda27fee5c9b87be4ec4d82c8",
+    "seed-fictional.py": "62d95d21ac22d2b1be8b530c246f55321b534576bcd70fb8926f30f6b3bb1c49",
+    "START_HERE.md": "a6bd934d3b651fc956f2cc98faac1198ce3a080c893642207d39abcf503e1617"
+  },
+  "nonsecret_artifact_hash_scope": "Updated after owner approval and setup-note change; gateway/Compose source unchanged since executed route probes",
+  "public_setup_historical": {
+    "checked_at": "2026-10-04T17:12:49.256234+00:00",
+    "authorization": "owner explicitly approved temporary Cloudflare webhook and own-LINE-account fictional THB1 expense/confirmation/undo pilot",
+    "tunnel": "running; session38119; preserve handle rather than relaunch",
+    "certificate_verification": "default trusted CA verification enabled",
+    "route_checks": [
+      {
+        "method": "GET",
+        "path": "/",
+        "status": 404,
+        "expected": 404
+      },
+      {
+        "method": "GET",
+        "path": "/api/health",
+        "status": 404,
+        "expected": 404
+      },
+      {
+        "method": "POST",
+        "path": "/api/auth/login",
+        "status": 404,
+        "expected": 404
+      },
+      {
+        "method": "POST",
+        "path": "/api/line-finance/webhook",
+        "status": 503,
+        "expected": 503
+      }
+    ],
+    "line_webhook_url": "saved and visibly verified in channel settings; exact temporary URL stays in outside-Git receipt/screenshot",
+    "use_webhook": "off; visible screenshot",
+    "credentials": "not loaded into runtime; actual webhook responds503 unconfigured",
+    "finance_worker": "not started",
+    "real_message": "not sent by agent",
+    "evidence": "/mnt/data/aegis-line-pilot-2026-10-04/prepared/public-route-readiness.json",
+    "screenshot": "/mnt/data/aegis-line-pilot-2026-10-04/prepared/line-webhook-prepared.jpg"
+  },
+  "original_local_checks_at": "2026-10-04T17:03:58.754117+00:00",
+  "channel_setup": "line-channel-readiness.json"
+}

@@ -1,0 +1,541 @@
+{
+  "framework": {
+    "name": "Other",
+    "slug": null
+  },
+  "basePath": "/mnt/data/aegis-landing-release-2026-10-01/deploy",
+  "fileCount": 76,
+  "totalSize": 2038252,
+  "ignoredCount": 3,
+  "ignored": [
+    ".vercel/project.json",
+    "artifact-manifest.json",
+    "vercel.json"
+  ],
+  "directories": [
+    {
+      "path": ".vercel",
+      "fileCount": 76,
+      "size": 2038252
+    }
+  ],
+  "largestFiles": [
+    {
+      "path": ".vercel/output/static/_next/static/chunks/framework-99a0fddcb3a319d6.js",
+      "size": 189757,
+      "mode": 33261,
+      "sha": "05ad7dcbf454cabab9d80eb1ac42e44cc6ef7a86"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/6884c801-88b92224be703998.js",
+      "size": 173017,
+      "mode": 33261,
+      "sha": "40dff9f4d87bcf28c7ebaf49367388f6dd94d35c"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/152-c812a1489dcd509d.js",
+      "size": 172768,
+      "mode": 33261,
+      "sha": "255c847911a3ef9ae7ddef550d1555b209ad06e7"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/main-a7b0c32759926de1.js",
+      "size": 127635,
+      "mode": 33261,
+      "sha": "f601f4e88ca27fece00d1c320bc1bbf2066f924e"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/polyfills-42372ed130431b0a.js",
+      "size": 112594,
+      "mode": 33261,
+      "sha": "3f4899d0f1d29d89df1ae015f694c8714284cfb0"
+    },
+    {
+      "path": ".vercel/output/static/landing/index.html",
+      "size": 73609,
+      "mode": 33261,
+      "sha": "125a429bc642eaf6f3eb160cba2e8e072511c9c4"
+    },
+    {
+      "path": ".vercel/output/static/index.html",
+      "size": 73123,
+      "mode": 33261,
+      "sha": "d9d678584cbca441f530d9f89dc594638c253574"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+      "size": 48432,
+      "mode": 33261,
+      "sha": "1dc044f4824fd5af6bfed67fee48be70fa069f3f"
+    },
+    {
+      "path": ".vercel/output/static/docs/developers/api/index.html",
+      "size": 46644,
+      "mode": 33261,
+      "sha": "4cd323fa4be2d74654ee3c4c24dcc4430207c777"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/css/bb1039c328a406cb.css",
+      "size": 41327,
+      "mode": 33261,
+      "sha": "2968edaf85d83752893b34bf4cdb2c677554aff0"
+    }
+  ],
+  "files": [
+    {
+      "path": ".vercel/output/config.json",
+      "size": 2039,
+      "mode": 33261,
+      "sha": "a2a163963a8e9eed4d7349dd79bef2985661afd7"
+    },
+    {
+      "path": ".vercel/output/static/_next/oTQOwOeIsEF4BZDSXoJM1",
+      "size": 0,
+      "mode": 16877
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/152-c812a1489dcd509d.js",
+      "size": 172768,
+      "mode": 33261,
+      "sha": "255c847911a3ef9ae7ddef550d1555b209ad06e7"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/25-ccc840746c9504f9.js",
+      "size": 16434,
+      "mode": 33261,
+      "sha": "af5d727e8506797eb28350e5b768410d87b7f2d9"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/385-e332e5eba35fac8d.js",
+      "size": 11181,
+      "mode": 33261,
+      "sha": "d0dfad06dacc2d81ca37938c0c702debc9d284b5"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/6884c801-88b92224be703998.js",
+      "size": 173017,
+      "mode": 33261,
+      "sha": "40dff9f4d87bcf28c7ebaf49367388f6dd94d35c"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/711-2511ce91c2c8ff8c.js",
+      "size": 15828,
+      "mode": 33261,
+      "sha": "b72cf9a1e1e14bd9ba6cb7e9a5df4c351d326d55"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/814-d937ff48371e8b85.js",
+      "size": 8530,
+      "mode": 33261,
+      "sha": "534e8b1e7c3d522b30d910f627930d83dde67527"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/app/_not-found/page-d6f167b4c6a651d8.js",
+      "size": 139,
+      "mode": 33261,
+      "sha": "eb9fab8ac2399817fb2dbd46c831d18d08227914"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/app/demo/page-7a79678654aa52ea.js",
+      "size": 24365,
+      "mode": 33261,
+      "sha": "55e29e7394ba94932a65d281cddc42a9040aad92"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/app/docs/[...slug]/page-b8ec0c66bb7b205c.js",
+      "size": 1525,
+      "mode": 33261,
+      "sha": "011014ae9efe71535dc2ea00126d5d646fbd40ba"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/app/docs/error-eb8072ceef2545fd.js",
+      "size": 893,
+      "mode": 33261,
+      "sha": "755eda5d208cb819e76eef786c5f6cf948037716"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/app/docs/layout-420c90bc0e98377a.js",
+      "size": 3619,
+      "mode": 33261,
+      "sha": "bcc2518707d3bf62b8a96827a28054477ae87730"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/app/docs/page-5c7ff14463952448.js",
+      "size": 1524,
+      "mode": 33261,
+      "sha": "bd6579ec69909ec7bf23dfe15dacdb782cd83fd4"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/app/landing/page-3fdbf9d56d854069.js",
+      "size": 132,
+      "mode": 33261,
+      "sha": "f02fe322bd2d67f6ce17d14ac72478312b7df3ad"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/app/layout-fde46e751e9d1827.js",
+      "size": 720,
+      "mode": 33261,
+      "sha": "249a820b69d838e496ae032b24c2a6b176612eb2"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/app/not-found-dd8cc098fee3db7a.js",
+      "size": 183,
+      "mode": 33261,
+      "sha": "d5d30de293efe0efdbc13ea1274842c93a458a79"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/app/page-97b476e7dcd9c59b.js",
+      "size": 133,
+      "mode": 33261,
+      "sha": "41906323db180f399e5c67efae5be219883b9395"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/app/robots.txt/route-d6f167b4c6a651d8.js",
+      "size": 139,
+      "mode": 33261,
+      "sha": "eb9fab8ac2399817fb2dbd46c831d18d08227914"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/app/sitemap.xml/route-d6f167b4c6a651d8.js",
+      "size": 139,
+      "mode": 33261,
+      "sha": "eb9fab8ac2399817fb2dbd46c831d18d08227914"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/framework-99a0fddcb3a319d6.js",
+      "size": 189757,
+      "mode": 33261,
+      "sha": "05ad7dcbf454cabab9d80eb1ac42e44cc6ef7a86"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/main-a7b0c32759926de1.js",
+      "size": 127635,
+      "mode": 33261,
+      "sha": "f601f4e88ca27fece00d1c320bc1bbf2066f924e"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/main-app-c44df27168976b2e.js",
+      "size": 557,
+      "mode": 33261,
+      "sha": "619a6336b66c3e03400d4acd594ea9e0e0a77590"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/pages/_app-f5c56d75383afeab.js",
+      "size": 236,
+      "mode": 33261,
+      "sha": "45f0dead98c472d585c843b62289caa3f41b8d1a"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/pages/_error-c49208df540dff32.js",
+      "size": 218,
+      "mode": 33261,
+      "sha": "d33dd521f548b130cfb86bb181921e762f5239e6"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/polyfills-42372ed130431b0a.js",
+      "size": 112594,
+      "mode": 33261,
+      "sha": "3f4899d0f1d29d89df1ae015f694c8714284cfb0"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/chunks/webpack-ab30b6f2fb2d59ef.js",
+      "size": 3434,
+      "mode": 33261,
+      "sha": "c7c05aa75722ddbebfb4fb53b5422bd688047093"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/css/1bcc18bca2b1d8ef.css",
+      "size": 35339,
+      "mode": 33261,
+      "sha": "2a45ca355aaec9737d3fa7a7dfc23823ad778bbc"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/css/2e8685e3c19480cd.css",
+      "size": 19077,
+      "mode": 33261,
+      "sha": "993ece3f2f0e3460a9ad06e7ebeafb74ca85d50f"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/css/4c029f3ad4041c54.css",
+      "size": 18694,
+      "mode": 33261,
+      "sha": "1375b10f121f18e5761c04d2b7e38416a32f6078"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/css/bb1039c328a406cb.css",
+      "size": 41327,
+      "mode": 33261,
+      "sha": "2968edaf85d83752893b34bf4cdb2c677554aff0"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/media/8a1d8947e5852e30-s.p.woff2",
+      "size": 34560,
+      "mode": 33261,
+      "sha": "5be571f920cca3fd98c32d7f652539701c4259ec"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/media/bb3ef058b751a6ad.p.woff2",
+      "size": 40480,
+      "mode": 33261,
+      "sha": "c18da6cb430f645ecca85d567c76364f73ca2013"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+      "size": 48432,
+      "mode": 33261,
+      "sha": "1dc044f4824fd5af6bfed67fee48be70fa069f3f"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/media/icon.92b82db1.png",
+      "size": 37942,
+      "mode": 33261,
+      "sha": "7284ce5fbcc3200484444323d1eb64478d713374"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/oTQOwOeIsEF4BZDSXoJM1/_buildManifest.js",
+      "size": 780,
+      "mode": 33261,
+      "sha": "6c89a6472eeae52bb99e954d5dd53d54b9a1283e"
+    },
+    {
+      "path": ".vercel/output/static/_next/static/oTQOwOeIsEF4BZDSXoJM1/_ssgManifest.js",
+      "size": 107,
+      "mode": 33261,
+      "sha": "e1405fd49bddad31fd5da9efb072f369c4612aa8"
+    },
+    {
+      "path": ".vercel/output/static/404.html",
+      "size": 7090,
+      "mode": 33261,
+      "sha": "73f41b51ae9613814c27ba682d78a42442fc762c"
+    },
+    {
+      "path": ".vercel/output/static/404/index.html",
+      "size": 7090,
+      "mode": 33261,
+      "sha": "73f41b51ae9613814c27ba682d78a42442fc762c"
+    },
+    {
+      "path": ".vercel/output/static/demo/index.html",
+      "size": 34078,
+      "mode": 33261,
+      "sha": "8cc8640692eb342e847bb79070929ac282d8d045"
+    },
+    {
+      "path": ".vercel/output/static/demo/index.txt",
+      "size": 8967,
+      "mode": 33261,
+      "sha": "855eee322a61f98a4a00616fd92965ec8eea9f4b"
+    },
+    {
+      "path": ".vercel/output/static/docs/developers/api/index.html",
+      "size": 46644,
+      "mode": 33261,
+      "sha": "4cd323fa4be2d74654ee3c4c24dcc4430207c777"
+    },
+    {
+      "path": ".vercel/output/static/docs/developers/api/index.txt",
+      "size": 21605,
+      "mode": 33261,
+      "sha": "ced28e7cc8603a1962522096286ac8dbd5d8dae4"
+    },
+    {
+      "path": ".vercel/output/static/docs/developers/architecture/index.html",
+      "size": 32687,
+      "mode": 33261,
+      "sha": "20610859cbc9ed78806cf8ff7a0031a183444cb8"
+    },
+    {
+      "path": ".vercel/output/static/docs/developers/architecture/index.txt",
+      "size": 16408,
+      "mode": 33261,
+      "sha": "95bfaeb8a1c52e75d688f2d9f0a8d73018c5a496"
+    },
+    {
+      "path": ".vercel/output/static/docs/developers/index.html",
+      "size": 19168,
+      "mode": 33261,
+      "sha": "99afe1686c32cabd13b833b40de6838d10ad4f6b"
+    },
+    {
+      "path": ".vercel/output/static/docs/developers/index.txt",
+      "size": 8921,
+      "mode": 33261,
+      "sha": "859e253f96341b35c32687d30ef77facc78152f4"
+    },
+    {
+      "path": ".vercel/output/static/docs/developers/local-setup/index.html",
+      "size": 39274,
+      "mode": 33261,
+      "sha": "bba5bb4fab4bf896141aaa5296eff04f25888bf2"
+    },
+    {
+      "path": ".vercel/output/static/docs/developers/local-setup/index.txt",
+      "size": 18813,
+      "mode": 33261,
+      "sha": "abfb1198450155c5044b5dde3a0ab0845930527c"
+    },
+    {
+      "path": ".vercel/output/static/docs/example-transactions.csv",
+      "size": 114,
+      "mode": 33261,
+      "sha": "b182cf7d4ac4e3fad19fa3120719b304faef435d"
+    },
+    {
+      "path": ".vercel/output/static/docs/guides/ai/index.html",
+      "size": 28525,
+      "mode": 33261,
+      "sha": "cec66f16894ab973e27d99c37c351913801a5071"
+    },
+    {
+      "path": ".vercel/output/static/docs/guides/ai/index.txt",
+      "size": 13959,
+      "mode": 33261,
+      "sha": "47099f954f8b813e46068dfa689892806aba9cb5"
+    },
+    {
+      "path": ".vercel/output/static/docs/guides/budgets/index.html",
+      "size": 33721,
+      "mode": 33261,
+      "sha": "c96f3d80b0a26e1c0331b4367a96847c8ac31604"
+    },
+    {
+      "path": ".vercel/output/static/docs/guides/budgets/index.txt",
+      "size": 16900,
+      "mode": 33261,
+      "sha": "153a852694022d6345e42511accef6400d8f7d72"
+    },
+    {
+      "path": ".vercel/output/static/docs/guides/exports/index.html",
+      "size": 27716,
+      "mode": 33261,
+      "sha": "bc004f4de3150ddc80fba03cbaf268485cac5484"
+    },
+    {
+      "path": ".vercel/output/static/docs/guides/exports/index.txt",
+      "size": 13663,
+      "mode": 33261,
+      "sha": "94a54891ea3a8a2401e2a7ce72d0f4e866b7b503"
+    },
+    {
+      "path": ".vercel/output/static/docs/guides/first-steps/index.html",
+      "size": 32900,
+      "mode": 33261,
+      "sha": "ff60b625ad2722f4dfa7de75ffaa60d15c0c2fef"
+    },
+    {
+      "path": ".vercel/output/static/docs/guides/first-steps/index.txt",
+      "size": 16448,
+      "mode": 33261,
+      "sha": "4473558e2ca02563a74214929c205450ceb408f6"
+    },
+    {
+      "path": ".vercel/output/static/docs/guides/index.html",
+      "size": 23862,
+      "mode": 33261,
+      "sha": "1ea6ee2a3dbc3da377202ff82482348fe2a4ab08"
+    },
+    {
+      "path": ".vercel/output/static/docs/guides/index.txt",
+      "size": 11402,
+      "mode": 33261,
+      "sha": "9062ed0ec85f9e5d6103557838a21f11aac8784d"
+    },
+    {
+      "path": ".vercel/output/static/docs/guides/plans/index.html",
+      "size": 32007,
+      "mode": 33261,
+      "sha": "224a23668a7af2d88e135c91de5ec6920b4111e3"
+    },
+    {
+      "path": ".vercel/output/static/docs/guides/plans/index.txt",
+      "size": 15971,
+      "mode": 33261,
+      "sha": "6f1c6efba56d480f28c8807e624547596e7c7159"
+    },
+    {
+      "path": ".vercel/output/static/docs/guides/transactions/index.html",
+      "size": 33012,
+      "mode": 33261,
+      "sha": "1c4d8f33757fba816b068e171d92570fce95dae4"
+    },
+    {
+      "path": ".vercel/output/static/docs/guides/transactions/index.txt",
+      "size": 16128,
+      "mode": 33261,
+      "sha": "b9f521097233f863061247a64e11a5d9a7fada23"
+    },
+    {
+      "path": ".vercel/output/static/docs/index.html",
+      "size": 33024,
+      "mode": 33261,
+      "sha": "951464b32b03a61ed2074f7912170d27dff7b57a"
+    },
+    {
+      "path": ".vercel/output/static/docs/index.txt",
+      "size": 15774,
+      "mode": 33261,
+      "sha": "7067f469fabc3ea3fb29d3dcf9ce746fcd6ac182"
+    },
+    {
+      "path": ".vercel/output/static/icon.png",
+      "size": 37942,
+      "mode": 33261,
+      "sha": "7284ce5fbcc3200484444323d1eb64478d713374"
+    },
+    {
+      "path": ".vercel/output/static/index.html",
+      "size": 73123,
+      "mode": 33261,
+      "sha": "d9d678584cbca441f530d9f89dc594638c253574"
+    },
+    {
+      "path": ".vercel/output/static/index.txt",
+      "size": 33749,
+      "mode": 33261,
+      "sha": "fa8d65fc3df02fd1fa96cdde54029a98a7d3178e"
+    },
+    {
+      "path": ".vercel/output/static/landing/index.html",
+      "size": 73609,
+      "mode": 33261,
+      "sha": "125a429bc642eaf6f3eb160cba2e8e072511c9c4"
+    },
+    {
+      "path": ".vercel/output/static/landing/index.txt",
+      "size": 34135,
+      "mode": 33261,
+      "sha": "17da4d8c623e810bb3c8fa1c911e3b3a516e91f6"
+    },
+    {
+      "path": ".vercel/output/static/licenses/Inter-OFL.txt",
+      "size": 4377,
+      "mode": 33261,
+      "sha": "cdd01b7e68db81d663f1c3820b6f7c40028900dd"
+    },
+    {
+      "path": ".vercel/output/static/licenses/JetBrains-Mono-OFL.txt",
+      "size": 4399,
+      "mode": 33261,
+      "sha": "ac0b4e9eac2171ebe70fab9abbc2294e0cd46944"
+    },
+    {
+      "path": ".vercel/output/static/licenses/Syne-OFL.txt",
+      "size": 4402,
+      "mode": 33261,
+      "sha": "97faf674d365150af7c940d973be0b79e48b1e91"
+    },
+    {
+      "path": ".vercel/output/static/robots.txt",
+      "size": 87,
+      "mode": 33261,
+      "sha": "fe7fc90b4d2587645777b23ae2f4d8602743b09d"
+    },
+    {
+      "path": ".vercel/output/static/sitemap.xml",
+      "size": 2081,
+      "mode": 33261,
+      "sha": "2abb03fd79036391ecb41fd5340e99afa19c9118"
+    }
+  ]
+}

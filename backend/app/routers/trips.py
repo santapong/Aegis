@@ -3,6 +3,7 @@ from sqlalchemy import func as sa_func
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user
+from ..services.finance_reads import cutover_active, report, currency_confirmed
 from ..database import get_db
 from ..models.budget import Budget
 from ..models.transaction import Transaction, TransactionType
@@ -89,6 +90,10 @@ def delete_trip(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    from ..services.finance_reads import lock_legacy_owner
+    from ..models.finance_ledger import FinancialTransactionProjection
+
+    lock_legacy_owner(db, current_user.id)
     trip = (
         db.query(Trip)
         .filter(Trip.id == trip_id, Trip.user_id == current_user.id)
@@ -96,6 +101,15 @@ def delete_trip(
     )
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
+    if (
+        db.query(FinancialTransactionProjection.id)
+        .filter_by(owner_id=current_user.id, trip_id=trip_id)
+        .first()
+    ):
+        raise HTTPException(
+            409,
+            "This trip has immutable ledger history. Retain the trip, or review an audited classification change before deletion.",
+        )
     db.delete(trip)
     db.commit()
 
@@ -113,6 +127,40 @@ def trip_summary(
     )
     if not trip:
         raise HTTPException(status_code=404, detail="Trip not found")
+
+    if cutover_active(db, current_user.id):
+        exact = report(db, current_user.id, trip_id=trip_id)
+        budgets = (
+            db.query(Budget).filter_by(trip_id=trip_id, user_id=current_user.id).all()
+        )
+        if any(
+            not currency_confirmed(db, current_user.id, "budget", b) for b in budgets
+        ) or (
+            trip.total_budget is not None
+            and not currency_confirmed(db, current_user.id, "trip", trip)
+        ):
+            raise HTTPException(
+                409,
+                "Review historical trip and budget cap currencies using /api/finance/trips/{trip_id} before comparing THB spending",
+            )
+        budgeted = {}
+        for b in budgets:
+            budgeted[b.category] = budgeted.get(b.category, 0) + float(b.amount)
+        spent = {k: int(v) / 100 for k, v in exact["expense_by_category_minor"].items()}
+        return TripSummary(
+            trip=TripResponse.model_validate(trip),
+            total_budgeted=sum(budgeted.values()),
+            total_spent=int(exact["expense_minor"]) / 100,
+            by_category=[
+                TripCategoryRollup(
+                    category=c, budgeted=budgeted.get(c, 0), spent=spent.get(c, 0)
+                )
+                for c in sorted(set(budgeted) | set(spent))
+            ],
+            transaction_count=sum(
+                int(r["expense_effect_minor"]) != 0 for r in exact["transactions"]
+            ),
+        )
 
     # Aggregate per category in SQL (same rewrite as budgets.budget_comparison)
     # instead of loading every budget and expense row into Python. Rows
@@ -136,7 +184,8 @@ def trip_summary(
         )
         .filter(
             Transaction.trip_id == trip_id,
-            Transaction.user_id == current_user.id,
+            (Transaction.user_id == current_user.id)
+            & Transaction.workspace_id.is_(None),
             Transaction.type == TransactionType.expense,
         )
         .group_by(Transaction.category)

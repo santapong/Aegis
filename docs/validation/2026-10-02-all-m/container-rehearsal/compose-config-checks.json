@@ -1,0 +1,44 @@
+{
+  "env_resolution": "disabled; explicit /dev/null env file; no secrets read",
+  "checks": {
+    "default": {
+      "frontend_build": {
+        "args": {
+          "BACKEND_INTERNAL_URL": "http://backend:8000"
+        },
+        "context": "/mnt/data/company/apps/Aegis",
+        "dockerfile": "frontend/Dockerfile"
+      },
+      "changelog_mount": null
+    },
+    "dev": {
+      "frontend_build": {
+        "args": {
+          "BACKEND_INTERNAL_URL": "http://backend:8000"
+        },
+        "context": "/mnt/data/company/apps/Aegis",
+        "dockerfile": "frontend/Dockerfile"
+      },
+      "changelog_mount": {
+        "bind": {
+          "create_host_path": true
+        },
+        "read_only": true,
+        "source": "/mnt/data/company/apps/Aegis/CHANGELOG.md",
+        "target": "/CHANGELOG.md",
+        "type": "bind"
+      }
+    },
+    "prod": {
+      "frontend_build": {
+        "args": [
+          "BACKEND_INTERNAL_URL=http://backend:8000",
+          "NEXT_PUBLIC_API_URL=https://localhost"
+        ],
+        "context": "/mnt/data/company/apps/Aegis",
+        "dockerfile": "frontend/Dockerfile"
+      },
+      "changelog_mount": null
+    }
+  }
+}

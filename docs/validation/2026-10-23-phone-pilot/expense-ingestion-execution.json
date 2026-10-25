@@ -1,0 +1,64 @@
+{
+  "execution_id": "17269",
+  "status": "success",
+  "finished": true,
+  "started_at": "2026-10-22T18:30:45.041Z",
+  "nodes": [
+    {
+      "name": "Every 5 seconds \u2014 fictional pilot",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Settings",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Fixture ingestion?",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Claim job",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Job available?",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Validate job",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Fixture processor?",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Process source job",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Normalize process outcome",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Processing failed?",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Pending review result",
+      "runs": 1,
+      "error_types": []
+    }
+  ],
+  "has_error": false
+}

@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.5 (Python 3.11.17 on linux)" generated="2026-10-25T07:16:44.196452" rpa="false" schemaversion="5">
+<suite id="s1" name="Aegis LINE and Budgets" source="/candidate/backend/tests/robot/line_budgets.robot">
+<test id="s1-t1" name="The Acceptance Target Uses Real PostgreSQL" line="12">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:16:51.301404" elapsed="1.907682"/>
+</kw>
+<kw name="Verify Real Postgresql Target" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:16:53.209375" elapsed="0.005458"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:16:53.215304" elapsed="0.000351"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:16:51.300253" elapsed="1.915482"/>
+</test>
+<test id="s1-t2" name="Anonymous Requests Cannot Read Financial Data" line="15">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:16:53.216514" elapsed="2.104191"/>
+</kw>
+<kw name="Protected Routes Require Authentication" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:16:55.320944" elapsed="0.012831"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:16:55.334127" elapsed="0.000275"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:16:53.216155" elapsed="2.118307"/>
+</test>
+<test id="s1-t3" name="The Browser Session Cookie Lasts Twenty Four Hours" line="18">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:16:55.335193" elapsed="1.686209"/>
+</kw>
+<kw name="Web Session Cookie Lasts A Day" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:16:57.021662" elapsed="0.874854"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:16:57.896834" elapsed="0.000246"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:16:55.334803" elapsed="2.562331"/>
+</test>
+<test id="s1-t4" name="Setup QR Is Local Private And Valid For A Day" line="21">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:16:57.897765" elapsed="1.622841"/>
+</kw>
+<kw name="Setup Is Private Local Qr And Twenty Four Hours" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:16:59.520815" elapsed="0.582727"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:17:00.103883" elapsed="0.000273"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:16:57.897467" elapsed="2.206750"/>
+</test>
+<test id="s1-t5" name="An Owner Can Finish Setup After Twenty Hours" line="24">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:17:00.104886" elapsed="1.891512"/>
+</kw>
+<kw name="Setup Still Links After Twenty Hours" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:17:01.996638" elapsed="0.131318"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:17:02.128261" elapsed="0.000243"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:17:00.104573" elapsed="2.023985"/>
+</test>
+<test id="s1-t6" name="An Unused Setup Code Expires At Twenty Four Hours" line="27">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:17:02.129227" elapsed="1.686889"/>
+</kw>
+<kw name="Setup Expires At Twenty Four Hours" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:17:03.816336" elapsed="0.109582"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:17:03.926231" elapsed="0.000261"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:17:02.128910" elapsed="1.797639"/>
+</test>
+<test id="s1-t7" name="Renewal Replaces An Unexpired Setup Code" line="30">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:17:03.927235" elapsed="1.682171"/>
+</kw>
+<kw name="Renewal Rejects The Previous Setup Code" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:17:05.609620" elapsed="0.220037"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:17:05.829952" elapsed="0.000233"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:17:03.926891" elapsed="1.903347"/>
+</test>
+<test id="s1-t8" name="A Consumed Code Cannot Connect Another Actor" line="33">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:17:05.830865" elapsed="2.092538"/>
+</kw>
+<kw name="Consumed Setup Cannot Bind Another Actor" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:17:07.923647" elapsed="0.191151"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:17:08.115195" elapsed="0.000282"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:17:05.830571" elapsed="2.284975"/>
+</test>
+<test id="s1-t9" name="An Established LINE Link Survives A Week" line="36">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:17:08.116294" elapsed="2.101572"/>
+</kw>
+<kw name="Line Identity Survives Seven Days" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:17:10.218078" elapsed="0.198102"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:17:10.416496" elapsed="0.000238"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:17:08.115940" elapsed="2.300844"/>
+</test>
+<test id="s1-t10" name="Bad Signatures And Group Chats Cannot Link" line="39">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:17:10.417380" elapsed="1.682840"/>
+</kw>
+<kw name="Invalid Signatures And Group Chat Cannot Link" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:17:12.100429" elapsed="0.103739"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:17:12.204466" elapsed="0.000231"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:17:10.417091" elapsed="1.787657"/>
+</test>
+<test id="s1-t11" name="A Text Preview Leaves The Balance Unchanged" line="42">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:17:12.205317" elapsed="1.623169"/>
+</kw>
+<kw name="Preview Does Not Post Money" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:17:13.828699" elapsed="1.000354"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:17:14.829381" elapsed="0.000270"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:17:12.205033" elapsed="2.624683"/>
+</test>
+<test id="s1-t12" name="Repeated Confirmation Records Exactly One Expense" line="45">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:17:14.830514" elapsed="1.765923"/>
+</kw>
+<kw name="Duplicate Confirmation Has One Financial Effect" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:17:16.596646" elapsed="0.425887"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:17:17.022868" elapsed="0.000289"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:17:14.830121" elapsed="2.193097"/>
+</test>
+<test id="s1-t13" name="Budget Spending Remaining And Refunds Use Exact Satang" line="48">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:17:17.023824" elapsed="1.680028"/>
+</kw>
+<kw name="Budget And Refund Arithmetic Is Exact" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:17:18.704060" elapsed="0.806316"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:17:19.510685" elapsed="0.000233"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:17:17.023529" elapsed="2.487457"/>
+</test>
+<test id="s1-t14" name="Unknown Currency Cannot Produce A Remaining Limit" line="51">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:17:19.511591" elapsed="1.701735"/>
+</kw>
+<kw name="Unreviewed Currency Has No Remaining Cap" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:17:21.213534" elapsed="0.296949"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:17:21.510789" elapsed="0.000269"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:17:19.511305" elapsed="1.999805"/>
+</test>
+<test id="s1-t15" name="Changing A Budget Invalidates An Old Review" line="54">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:17:21.511693" elapsed="1.684795"/>
+</kw>
+<kw name="Stale Budget Review Is Rejected" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:17:23.196700" elapsed="0.204505"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:17:23.401513" elapsed="0.000240"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:17:21.511407" elapsed="1.890395"/>
+</test>
+<test id="s1-t16" name="English Thai And Rich Menu Shortcuts Are Read Only" line="57">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:17:23.402379" elapsed="1.619259"/>
+</kw>
+<kw name="Shortcuts Do Not Create Jobs Or Journals" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:17:25.021847" elapsed="0.687940"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:17:25.710156" elapsed="0.000305"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:17:23.402096" elapsed="2.308428"/>
+</test>
+<test id="s1-t17" name="Disconnecting Retires Existing Confirmation Buttons" line="60">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:17:25.711270" elapsed="1.694685"/>
+</kw>
+<kw name="Disconnect Retires Pending Confirmation" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:17:27.406168" elapsed="0.389004"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:17:27.795503" elapsed="0.000253"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:17:25.710882" elapsed="2.084926"/>
+</test>
+<test id="s1-t18" name="Web Logout Preserves The LINE Identity Link" line="63">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:17:27.796385" elapsed="1.624794"/>
+</kw>
+<kw name="Web Logout Does Not Disconnect Line" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:17:29.421393" elapsed="0.998225"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:17:30.419914" elapsed="0.000234"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:17:27.796100" elapsed="2.624098"/>
+</test>
+<test id="s1-t19" name="Owners Cannot Review Each Others Limits" line="66">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:17:30.420763" elapsed="2.089284"/>
+</kw>
+<kw name="One Owner Cannot Review Another Owners Budget" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:17:32.510297" elapsed="2.410505"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:17:34.921161" elapsed="0.000317"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:17:30.420480" elapsed="4.501079"/>
+</test>
+<test id="s1-t20" name="Prepare A Disposable Account For Visible Browser Acceptance" line="69">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T07:17:34.922322" elapsed="2.184711"/>
+</kw>
+<kw name="Keep Fictional Browser Fixture" owner="AegisApi">
+<status status="PASS" start="2026-10-25T07:17:37.107245" elapsed="1.799928"/>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T07:17:38.907471" elapsed="0.000237"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-25T07:17:34.921943" elapsed="3.985817"/>
+</test>
+<doc>Real HTTP/PostgreSQL acceptance. All identities and amounts are fictional.</doc>
+<status status="PASS" start="2026-10-25T07:16:44.197701" elapsed="54.710552"/>
+</suite>
+<statistics>
+<total>
+<stat pass="20" fail="0" skip="0">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat name="Aegis LINE and Budgets" id="s1" pass="20" fail="0" skip="0">Aegis LINE and Budgets</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>

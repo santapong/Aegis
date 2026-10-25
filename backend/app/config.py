@@ -1,7 +1,7 @@
 from functools import lru_cache
 
 from loguru import logger
-from pydantic import model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings
 
 PLACEHOLDER_JWT_SECRET = "CHANGE-ME-IN-PRODUCTION"
@@ -11,6 +11,19 @@ MIN_JWT_SECRET_LEN = 32
 class Settings(BaseSettings):
     app_name: str = "Money Management API"
     debug: bool = False
+    cashflow_workspaces_enabled: bool = False
+    finance_ledger_enabled: bool = False
+    finance_trusted_reference_schemes: list[str] = []
+    line_finance_destination: str = ""
+    finance_integration_service_token: str = ""
+    finance_integration_delivery_token: str = ""
+    finance_integration_delivery_enabled: bool = False
+    finance_integration_evidence_dir: str = ""
+    finance_integration_ocr_provider: str = ""
+    finance_integration_ocr_key: str = ""
+    finance_integration_ocr_model: str = ""
+    finance_integration_daily_push_budget: int = 20
+    finance_integration_link_ttl_hours: int = Field(default=24, ge=1, le=168)
 
     # Database — see docs/databases.md for the full compatibility matrix.
     # Tested: SQLite (dev), PostgreSQL 13+ (incl. RDS / Aurora / Cloud SQL
@@ -31,6 +44,16 @@ class Settings(BaseSettings):
     db_max_overflow: int = 20
     db_pool_timeout: int = 10  # seconds to wait for a free connection
     db_pool_recycle: int = 1800  # seconds before recycling — beat the LB idle timeout
+
+    # Separate personal finance LINE channel; disabled until configured.
+    line_finance_channel_id: str = "finance"
+    # Public @basic/premium ID, not a channel or webhook destination ID.
+    line_finance_bot_basic_id: str = Field(
+        default="", pattern=r"^(?:@[A-Za-z0-9_.-]{1,63})?$"
+    )
+    line_finance_channel_secret: str = ""
+    line_finance_access_token: str = ""
+    line_finance_delivery_secret: str = ""
 
     # JWT Authentication
     jwt_secret_key: str = PLACEHOLDER_JWT_SECRET

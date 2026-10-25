@@ -41,7 +41,7 @@ jobs:
             context: ./backend
             dockerfile: ./backend/Dockerfile
           - image: aegis-frontend
-            context: ./frontend
+            context: .
             dockerfile: ./frontend/Dockerfile
     steps:
       - name: Checkout

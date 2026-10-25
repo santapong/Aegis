@@ -30,40 +30,10 @@ import {
   ChevronDown,
   type LucideIcon,
 } from "lucide-react";
-import { Sparkline } from "@/components/shell/sparkline";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { AegisBrand, AegisMark } from "@/components/brand";
 
-/**
- * BrandMark — galaxy nebula disc. White glint top-left, accent radial fill,
- * dashed orbit ring. Replaces the previous AegisShield monogram so the brand
- * picks up the active theme's accent automatically.
- */
-function BrandMark({ size = 22 }: { size?: number }) {
-  return (
-    <span
-      aria-hidden
-      style={{
-        width: size,
-        height: size,
-        borderRadius: "50%",
-        position: "relative",
-        display: "inline-block",
-        background:
-          "radial-gradient(circle at 30% 30%, #fff 0%, transparent 25%), radial-gradient(circle at 60% 60%, var(--accent) 0%, var(--accent-2) 60%, transparent 100%)",
-        boxShadow: "0 0 0 1px var(--pane-edge-2) inset, var(--hero-glow)",
-        flexShrink: 0,
-      }}
-    >
-      <span
-        style={{
-          position: "absolute",
-          inset: -4,
-          borderRadius: "50%",
-          border: "1px dashed var(--pane-edge)",
-        }}
-      />
-    </span>
-  );
-}
+function BrandMark({ size = 28 }: { size?: number }) { return <AegisMark size={size} />; }
 
 interface NavItem {
   href: string;
@@ -90,8 +60,11 @@ const clusters: NavCluster[] = [
     index: "01",
     label: "Overview",
     items: [
+      { href: "/cashflow", label: "Cash planning", code: "CSH", icon: Wallet, k: "" },
+      { href: "/accounts", label: "Tracked accounts", code: "ACC", icon: Wallet, k: "" },
+      { href: "/review", label: "Review & activity", code: "REV", icon: ArrowLeftRight, k: "" },
       { href: "/", label: "Dashboard", code: "DSH", icon: LayoutDashboard, k: "⌘⇧1", tourId: "sidebar-dashboard" },
-      { href: "/transactions", label: "Transactions", code: "TXN", icon: ArrowLeftRight, k: "⌘⇧2", tourId: "sidebar-transactions" },
+      { href: "/transactions", label: "Unassigned records", code: "TXN", icon: ArrowLeftRight, k: "⌘⇧2", tourId: "sidebar-transactions" },
       { href: "/reports", label: "Reports", code: "RPT", icon: BarChart3, k: "⌘⇧3" },
     ],
   },
@@ -144,9 +117,6 @@ export function Sidebar() {
     }
   }, [pathname]);
 
-  const sparkA = [3, 4, 3, 5, 4, 6, 5, 7, 6, 8, 7, 9, 8];
-  const sparkB = [9, 8, 9, 7, 8, 6, 7, 5, 6, 4, 5, 3, 4];
-
   return (
     <>
       {/* Mobile header */}
@@ -167,11 +137,9 @@ export function Sidebar() {
           <Menu size={20} />
         </button>
         <div className="flex items-center gap-2">
-          <BrandMark size={18} />
-          <span className="font-mono text-sm tracking-[0.2em]" style={{ color: "var(--fg)" }}>
-            AEGIS
-          </span>
+          <AegisBrand />
         </div>
+        <div className="flex items-center gap-1"><ThemeToggle />
         <button
           onClick={toggleAIPanel}
           data-tour-id="ai-advisor"
@@ -181,6 +149,7 @@ export function Sidebar() {
         >
           <Bot size={20} />
         </button>
+        </div>
       </div>
 
       <AnimatePresence>
@@ -197,7 +166,7 @@ export function Sidebar() {
 
       <aside
         className={cn(
-          "h-screen flex flex-col transition-all duration-300 z-50",
+          "aegis-sidebar h-screen flex flex-col transition-all duration-300 z-50",
           "fixed lg:relative",
           sidebarOpen ? "w-[260px] translate-x-0" : "w-[68px] -translate-x-full lg:translate-x-0"
         )}
@@ -212,11 +181,10 @@ export function Sidebar() {
         {/* Brand block */}
         <div
           className="flex items-center justify-between px-4 pt-4 pb-3.5"
-          style={{ borderBottom: "1px dashed var(--pane-edge)" }}
+          style={{ borderBottom: "1px solid var(--pane-edge)" }}
         >
           {sidebarOpen ? (
             <div className="flex items-center gap-2.5">
-              <BrandMark size={22} />
               <div className="leading-tight">
                 <div
                   className="text-[14px] font-medium tracking-[0.02em]"
@@ -226,13 +194,13 @@ export function Sidebar() {
                     color: "var(--fg)",
                   }}
                 >
-                  AEG<span style={{ color: "var(--accent)" }}>IS</span>
+                  <AegisBrand />
                 </div>
                 <div
                   className="font-mono text-[10px] tracking-[1.4px] uppercase"
                   style={{ color: "var(--dim)" }}
                 >
-                  money / console
+                  Room to look ahead
                 </div>
               </div>
             </div>
@@ -301,6 +269,7 @@ export function Sidebar() {
                     <Link
                       key={item.href}
                       href={item.href}
+                      aria-current={isActive ? "page" : undefined}
                       data-tour-id={item.tourId}
                       title={!sidebarOpen ? item.label : undefined}
                       className={cn(
@@ -351,40 +320,16 @@ export function Sidebar() {
             );
           })}
 
-          {sidebarOpen && (
-            <div className="flex flex-col gap-1 mt-2">
-              <p
-                className="px-2 pb-1.5 font-mono uppercase"
-                style={{
-                  fontSize: "10px",
-                  letterSpacing: "1.8px",
-                  color: "var(--dim-2)",
-                }}
-              >
-                Pulse · 30d
-              </p>
-              <div className="px-2 grid grid-cols-[1fr_auto_auto] items-center gap-2 py-1.5 font-mono text-[11px]">
-                <span style={{ color: "var(--dim)" }}>Net worth</span>
-                <span style={{ color: "var(--ok)" }}>
-                  <Sparkline data={sparkA} stroke="currentColor" width={70} height={18} />
-                </span>
-                <span className="tabular-nums" style={{ color: "var(--ok)" }}>+8.4%</span>
-              </div>
-              <div className="px-2 grid grid-cols-[1fr_auto_auto] items-center gap-2 py-1.5 font-mono text-[11px]">
-                <span style={{ color: "var(--dim)" }}>Burn rate</span>
-                <span style={{ color: "var(--warn)" }}>
-                  <Sparkline data={sparkB} stroke="currentColor" width={70} height={18} />
-                </span>
-                <span className="tabular-nums" style={{ color: "var(--warn)" }}>−4.2%</span>
-              </div>
-            </div>
-          )}
         </nav>
 
         <div
           className="p-2 space-y-0.5"
           style={{ borderTop: "1px dashed var(--pane-edge)" }}
         >
+          <div className="flex items-center justify-between gap-2 px-2 py-1.5">
+            {sidebarOpen && <span className="text-xs" style={{color:"var(--dim)"}}>Appearance</span>}
+            <ThemeToggle />
+          </div>
           <button
             onClick={toggleAIPanel}
             data-tour-id="ai-advisor"

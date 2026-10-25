@@ -1,0 +1,61 @@
+{
+  "samples": 359,
+  "peak_rss_bytes": 1033682944,
+  "available_bytes": 11887427584,
+  "temperature_c": 65.55,
+  "controls": {
+    "aegis-robot-20261025-prepare": {
+      "cpu.max": "50000 100000",
+      "pids.max": "128"
+    },
+    "aegis-robot-20261025-backend-sqlite": {
+      "cpu.max": "75000 100000",
+      "pids.max": "128"
+    },
+    "aegis-robot-20261025-candidate-build": {
+      "cpu.max": "50000 100000",
+      "pids.max": "128"
+    },
+    "aegis-robot-20261025-candidate-build-network": {
+      "cpu.max": "50000 100000",
+      "pids.max": "128"
+    },
+    "aegis-robot-20261025-api": {
+      "cpu.max": "35000 100000",
+      "pids.max": "64"
+    },
+    "aegis-robot-20261025-db": {
+      "cpu.max": "15000 100000",
+      "pids.max": "64"
+    },
+    "aegis-robot-20261025-backend-postgres": {
+      "cpu.max": "70000 100000",
+      "pids.max": "128"
+    },
+    "aegis-robot-20261025-backend-postgres-rerun": {
+      "cpu.max": "70000 100000",
+      "pids.max": "128"
+    },
+    "aegis-robot-20261025-robot-schema": {
+      "cpu.max": "35000 100000",
+      "pids.max": "128"
+    },
+    "aegis-robot-20261025-robot-acceptance": {
+      "cpu.max": "15000 100000",
+      "pids.max": "128"
+    },
+    "aegis-robot-20261025-robot-schema-rerun": {
+      "cpu.max": "35000 100000",
+      "pids.max": "128"
+    },
+    "aegis-robot-20261025-robot-acceptance-rerun": {
+      "cpu.max": "15000 100000",
+      "pids.max": "128"
+    },
+    "aegis-robot-20261025-frontend": {
+      "cpu.max": "25000 100000",
+      "pids.max": "64"
+    }
+  },
+  "events": []
+}

@@ -1,0 +1,584 @@
+{
+  "name": "Aegis \u2014 ingestion processing (inactive)",
+  "active": false,
+  "nodes": [
+    {
+      "id": "cdb45fc3-49e8-5c1d-b913-d49d40b67060",
+      "name": "Manual start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "c409e3ce-cc47-5756-ae7a-a2d51d07dc37",
+      "name": "Settings",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{fixture_mode:true,api_base:'https://aegis.example.invalid'}}];"
+      }
+    },
+    {
+      "id": "e9355dd5-9fc4-5f40-9439-297eae0b37f3",
+      "name": "Operator setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        100,
+        -330
+      ],
+      "parameters": {
+        "content": "## INACTIVE \u2014 fictional fixture by default\nTarget: n8n 2.33.3. Manual trigger only. Set Settings.fixture_mode=false only after G1/G2 review. Select separate Header Auth credentials for ingestion claim, delivery claim and LINE push. Lease headers are server issued. Never add direct ledger/database writes. Save execution data: none. Do not pin real financial data.",
+        "height": 250,
+        "width": 650
+      }
+    },
+    {
+      "id": "4a2453e9-c3eb-510e-8b15-9bdc1bc46cd4",
+      "name": "Fixture ingestion?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "eecf9a5b-13b0-5610-802d-1b91731e8e07",
+              "leftValue": "={{ $json.fixture_mode === true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "f317282a-2948-5786-bb98-09dd5086c134",
+      "name": "Fixture claim",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        -150
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{job:{id:'fixture-text-job',kind:'text',generation:1,lease_token:'fixture-only-capability',source:{text:'expense 150.25 food account:main'}},fixture_mode:true}}];"
+      }
+    },
+    {
+      "id": "ba45882c-e94c-5277-a794-671f472a902d",
+      "name": "Claim job",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        660,
+        150
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Settings').first().json.api_base + '/api/integrations/jobs/claim' }}",
+        "options": {
+          "timeout": 45000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\"kinds\":[\"text\",\"extract\"]}"
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "edd20d00-b2e4-5c4c-9371-ede131ea82ba",
+      "name": "Job available?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        880,
+        150
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "65f5adb5-7542-5eaf-8b47-5932d18bd8d2",
+              "leftValue": "={{ !!$json.job && !$json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "4d400b9a-9d7d-5a67-ad7d-dc383deda69b",
+      "name": "No job or claim failure",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        350
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{state:$json.error?'claim_failed':'idle',no_money_posted:true,action:'Inspect safe operations state; never repost a financial command'}}];"
+      }
+    },
+    {
+      "id": "b3c0d8bb-753d-51b3-a332-edb4fa55dff4",
+      "name": "Validate job",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const j=$json.job;if(!j || !['text','extract'].includes(j.kind) || !Number.isInteger(j.generation) || j.generation<1 || typeof j.lease_token!=='string')throw new Error('Invalid source-bound job');return [{json:{job:j,fixture_mode:$('Settings').first().json.fixture_mode}}];"
+      }
+    },
+    {
+      "id": "b0b16fd0-86ae-56af-b80a-09bcf7d1c525",
+      "name": "Fixture processor?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1320,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f102cb10-88a3-509c-a1a4-fe1267e8991e",
+              "leftValue": "={{ $json.fixture_mode === true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "8ddb8e48-2208-59d5-b00f-d7b6e6d0bc7a",
+      "name": "Fixture draft response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        -150
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{draft_id:'fixture-pending-draft',version:1,no_money_posted:true,mode:'fictional_fixture'}}];"
+      }
+    },
+    {
+      "id": "cad93d5e-188c-584a-82b9-42a5734c54ac",
+      "name": "Process source job",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1540,
+        150
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Settings').first().json.api_base + '/api/integrations/jobs/' + $('Validate job').first().json.job.id + '/process' }}",
+        "options": {
+          "timeout": 70000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('Claim job').first().json.job.lease_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({generation:$('Validate job').first().json.job.generation}) }}"
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "03f6aa44-8f98-57e9-9199-15a50a54396a",
+      "name": "Processing failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1760,
+        150
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0ba01203-76b1-5137-b47c-f179dffbe303",
+              "leftValue": "={{ $json.process_error === true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "fc8befe0-0300-5942-9809-5d38e4ef77c1",
+      "name": "Fail same job",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1980,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Settings').first().json.api_base + '/api/integrations/jobs/' + $('Validate job').first().json.job.id + '/fail' }}",
+        "options": {
+          "timeout": 45000
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $('Claim job').first().json.job.lease_token }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({generation:$('Validate job').first().json.job.generation,retryable:$json.retryable,code:$json.code}) }}"
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "e93e2bc7-0b7e-57b7-be25-58de3efb7ebd",
+      "name": "Pending review result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1980,
+        -80
+      ],
+      "parameters": {
+        "jsCode": "if(!$json.draft_id)throw new Error('Missing durable draft result');return [{json:{state:'awaiting_owner_review',draft_id:$json.draft_id,version:$json.version,no_money_posted:true}}];"
+      }
+    },
+    {
+      "id": "dcc46320-42c5-5d39-a512-4386eb98537c",
+      "name": "Normalize process response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        150
+      ],
+      "parameters": {
+        "jsCode": "const r=$json;if(r.error)return [{json:{process_error:true,stop:false,retryable:true,code:'PROVIDER_UNAVAILABLE'}}];const status=r.statusCode||200;const body=r.body||{};if(status>=200&&status<300)return [{json:{...body,process_error:false}}];const d=body.detail||{};const allowed=['EXTRACTION_FAILED','CAPTURE_FAILED','INVALID_MEDIA','PROVIDER_UNAVAILABLE','INVALID_TEXT'];return [{json:{process_error:true,stop:[401,403,409].includes(status),retryable:typeof d.retryable==='boolean'?d.retryable:status>=500,code:allowed.includes(d.code)?d.code:'EXTRACTION_FAILED'}}];"
+      }
+    },
+    {
+      "id": "8e0f27ab-fcd1-540b-9684-f4e0364f3561",
+      "name": "Can finish lease?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1980,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "7a84b2d0-ab17-516a-a993-e10c553a24aa",
+              "leftValue": "={{ $json.stop !== true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "32a8f0a9-db47-5808-b5c8-ad3c1136f98e",
+      "name": "Stale capability stopped",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2200,
+        450
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{state:'stale_capability_stopped',no_money_posted:true,note:'Read current review state; never overwrite a newer worker'}}];"
+      }
+    }
+  ],
+  "connections": {
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Fixture ingestion?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixture ingestion?": {
+      "main": [
+        [
+          {
+            "node": "Fixture claim",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Claim job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim job": {
+      "main": [
+        [
+          {
+            "node": "Job available?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Job available?": {
+      "main": [
+        [
+          {
+            "node": "Validate job",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No job or claim failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixture claim": {
+      "main": [
+        [
+          {
+            "node": "Validate job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate job": {
+      "main": [
+        [
+          {
+            "node": "Fixture processor?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixture processor?": {
+      "main": [
+        [
+          {
+            "node": "Fixture draft response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Process source job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixture draft response": {
+      "main": [
+        [
+          {
+            "node": "Pending review result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process source job": {
+      "main": [
+        [
+          {
+            "node": "Normalize process response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize process response": {
+      "main": [
+        [
+          {
+            "node": "Processing failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Processing failed?": {
+      "main": [
+        [
+          {
+            "node": "Can finish lease?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Pending review result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Can finish lease?": {
+      "main": [
+        [
+          {
+            "node": "Fail same job",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stale capability stopped",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual start": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Asia/Bangkok",
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "saveExecutionProgress": false
+  },
+  "pinData": {}
+}

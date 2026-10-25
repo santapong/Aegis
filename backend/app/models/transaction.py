@@ -2,7 +2,7 @@ import uuid
 import enum
 from datetime import date, datetime
 
-from sqlalchemy import String, Text, Numeric, Date, DateTime, Enum, ForeignKey, Boolean, JSON
+from sqlalchemy import String, Text, Numeric, Date, DateTime, Enum, ForeignKey, ForeignKeyConstraint, Boolean, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..database import Base
@@ -34,9 +34,19 @@ class WeekendRule(str, enum.Enum):
 
 class Transaction(Base):
     __tablename__ = "transactions"
+    __table_args__ = (ForeignKeyConstraint(["user_id", "migrated_journal_id"], ["journal_entries.owner_id", "journal_entries.id"], name="fk_legacy_migrated_journal_owner"),)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     user_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=True, index=True)
+    workspace_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("cash_workspaces.id"), nullable=True, index=True)
+    account_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("cash_accounts.id"), nullable=True, index=True)
+    cash_reversal_of_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("transactions.id"), nullable=True, unique=True)
+    currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
+    # Historical values are never implicitly assigned the display currency.
+    origin: Mapped[str] = mapped_column(String(32), default="legacy", server_default="legacy")
+    nonposting_history: Mapped[bool] = mapped_column(Boolean, default=True, server_default="1")
+    migration_currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
+    migrated_journal_id: Mapped[str | None] = mapped_column(String(36), nullable=True, unique=True)
     plan_id: Mapped[str | None] = mapped_column(String(36), ForeignKey("plans.id"), nullable=True)
     trip_id: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("trips.id", ondelete="SET NULL"), nullable=True, index=True

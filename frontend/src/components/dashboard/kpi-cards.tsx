@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { formatCurrency } from "@/lib/utils";
+import { formatTHB } from "@/lib/finance-api";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 import type { KPISummary } from "@/types";
 
@@ -47,8 +48,20 @@ function Spark({
     .join(" ");
   const last = points[points.length - 1];
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ display: "block", overflow: "visible", color }}>
-      <path d={d} fill="none" stroke="currentColor" strokeWidth={1.25} strokeLinecap="round" strokeLinejoin="round" />
+    <svg
+      width={w}
+      height={h}
+      viewBox={`0 0 ${w} ${h}`}
+      style={{ display: "block", overflow: "visible", color }}
+    >
+      <path
+        d={d}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={1.25}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       <circle cx={last[0]} cy={last[1]} r={1.8} fill="currentColor" />
     </svg>
   );
@@ -78,13 +91,18 @@ function Delta({
 }
 
 export function KPICards({ data }: KPICardsProps) {
-  // Deltas are not yet on KPISummary; render the design's signature placeholders.
-  // When the API exposes them, swap the literal numbers below.
+  const ledgerMode = typeof data.net_position_minor === "string";
+  const exact = (value: string | null | undefined) =>
+    typeof value === "string" ? formatTHB(value) : "Unavailable";
+  // Preserve the existing legacy presentation; ledger cards use canonical
+  // exact money and omit decorative trends that are not backed by records.
   const items: KpiSpec[] = [
     {
-      code: "BAL",
-      label: "Total balance",
-      value: formatCurrency(data.total_balance),
+      code: ledgerMode ? "NET" : "BAL",
+      label: ledgerMode ? "Net position" : "Total balance",
+      value: ledgerMode
+        ? exact(data.net_position_minor)
+        : formatCurrency(data.total_balance),
       delta: 3.4,
       spark: [4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10],
       sparkColor: "var(--aegis-ok)",
@@ -92,7 +110,9 @@ export function KPICards({ data }: KPICardsProps) {
     {
       code: "INC",
       label: "Monthly income",
-      value: formatCurrency(data.monthly_income),
+      value: ledgerMode
+        ? exact(data.monthly_income_minor)
+        : formatCurrency(data.monthly_income),
       delta: 12.1,
       spark: [3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 9],
       sparkColor: "var(--aegis-ok)",
@@ -100,7 +120,9 @@ export function KPICards({ data }: KPICardsProps) {
     {
       code: "EXP",
       label: "Monthly expenses",
-      value: formatCurrency(data.monthly_expenses),
+      value: ledgerMode
+        ? exact(data.monthly_expenses_minor)
+        : formatCurrency(data.monthly_expenses),
       delta: -4.2,
       positiveBad: true,
       spark: [7, 8, 8, 7, 7, 6, 6, 7, 6, 6, 5, 5],
@@ -143,17 +165,30 @@ export function KPICards({ data }: KPICardsProps) {
             >
               {it.code}
             </span>
-            <Spark data={it.spark} color={it.sparkColor} />
+            {!ledgerMode && <Spark data={it.spark} color={it.sparkColor} />}
           </div>
           <div
-            className="aegis-display whitespace-nowrap text-foreground mb-2"
-            style={{ fontSize: "clamp(24px, 2.4vw, 36px)", lineHeight: 1.1 }}
+            className={`aegis-display ${ledgerMode ? "" : "whitespace-nowrap"} text-foreground mb-2`}
+            style={{
+              fontSize: "clamp(24px, 2.4vw, 36px)",
+              lineHeight: 1.1,
+              overflowWrap: ledgerMode ? "anywhere" : undefined,
+            }}
           >
             {it.value}
           </div>
-          <div className="flex items-center justify-between gap-2 font-mono text-[11px]" style={{ color: "var(--aegis-dim)" }}>
+          <div
+            className="flex items-center justify-between gap-2 font-mono text-[11px]"
+            style={{ color: "var(--aegis-dim)" }}
+          >
             <span>{it.label}</span>
-            <Delta value={it.delta} suffix={it.deltaSuffix} positiveIsGood={!it.positiveBad} />
+            {!ledgerMode && (
+              <Delta
+                value={it.delta}
+                suffix={it.deltaSuffix}
+                positiveIsGood={!it.positiveBad}
+              />
+            )}
           </div>
         </motion.div>
       ))}

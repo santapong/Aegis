@@ -1,0 +1,132 @@
+{
+  "started_at": "2026-10-02T08:21:31.995231+00:00",
+  "source_hash": "a3553db24e2d9471cb6e93855c34900ca9b154d40201b44d4380064620b002f6",
+  "stages": [
+    {
+      "stage": "cash_sqlite",
+      "command": [
+        ".venv/bin/pytest",
+        "-q",
+        "tests/test_cashflow.py",
+        "tests/test_cashflow_m2.py",
+        "tests/test_cashflow_m3.py",
+        "tests/test_cashflow_m4.py"
+      ],
+      "started_at": "2026-10-02T08:21:37.049283+00:00",
+      "pid": 2758737,
+      "exit_code": 0,
+      "finished_at": "2026-10-02T08:24:08.813023+00:00",
+      "source_unchanged": true
+    },
+    {
+      "stage": "cash_postgres",
+      "command": [
+        ".venv/bin/pytest",
+        "-q",
+        "tests/test_cashflow.py",
+        "tests/test_cashflow_m2.py",
+        "tests/test_cashflow_m3.py",
+        "tests/test_cashflow_m4.py"
+      ],
+      "started_at": "2026-10-02T08:24:27.032537+00:00",
+      "pid": 2765919,
+      "exit_code": 0,
+      "finished_at": "2026-10-02T08:27:00.356624+00:00",
+      "source_unchanged": true
+    },
+    {
+      "stage": "backend",
+      "command": [
+        ".venv/bin/pytest",
+        "-q"
+      ],
+      "started_at": "2026-10-02T08:27:04.738172+00:00",
+      "pid": 2769619,
+      "exit_code": 0,
+      "finished_at": "2026-10-02T08:29:13.312441+00:00",
+      "source_unchanged": true
+    },
+    {
+      "stage": "cash_lint",
+      "command": [
+        "ruff",
+        "check",
+        "app/services/cashflow",
+        "app/routers/cashflow.py",
+        "app/models/cashflow.py",
+        "app/schemas/cashflow.py",
+        "tests/test_cashflow.py",
+        "tests/test_cashflow_m2.py",
+        "tests/test_cashflow_m3.py",
+        "tests/test_cashflow_m4.py"
+      ],
+      "started_at": "2026-10-02T08:29:13.709841+00:00",
+      "pid": 2777072,
+      "exit_code": 0,
+      "finished_at": "2026-10-02T08:29:13.819532+00:00",
+      "source_unchanged": true
+    },
+    {
+      "stage": "line_lint",
+      "command": [
+        "ruff",
+        "check",
+        "app/routers/line_finance.py",
+        "app/services/line_finance.py",
+        "app/services/line_finance_worker.py",
+        "app/models/line_finance.py",
+        "app/schemas/line_finance.py",
+        "tests/test_line_finance.py",
+        "tests/test_cashflow_m4.py"
+      ],
+      "started_at": "2026-10-02T08:29:14.243307+00:00",
+      "pid": 2777093,
+      "exit_code": 0,
+      "finished_at": "2026-10-02T08:29:14.282982+00:00",
+      "source_unchanged": true
+    },
+    {
+      "stage": "frontend_types",
+      "command": [
+        "node_modules/.bin/tsc",
+        "--noEmit"
+      ],
+      "started_at": "2026-10-02T08:29:14.634268+00:00",
+      "pid": 2777107,
+      "exit_code": 0,
+      "finished_at": "2026-10-02T08:30:13.473462+00:00",
+      "source_unchanged": true
+    },
+    {
+      "stage": "frontend_session",
+      "command": [
+        "node",
+        "../scripts/verify-cash-client-session.mjs"
+      ],
+      "started_at": "2026-10-02T08:30:13.941269+00:00",
+      "pid": 2778068,
+      "exit_code": 0,
+      "finished_at": "2026-10-02T08:30:14.579676+00:00",
+      "source_unchanged": true
+    },
+    {
+      "stage": "frontend_build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "started_at": "2026-10-02T08:30:15.060138+00:00",
+      "pid": 2778106,
+      "exit_code": 0,
+      "finished_at": "2026-10-02T08:34:01.127717+00:00",
+      "source_unchanged": true
+    }
+  ],
+  "independent_review": "pending",
+  "real_line_pilot": "pending",
+  "remote_ci": "pending",
+  "release": "pending",
+  "finished_at": "2026-10-02T08:34:10.915005+00:00",
+  "selected_stages_passed": true
+}

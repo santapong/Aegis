@@ -1,0 +1,8 @@
+{
+  "started_at": "2026-10-02T10:06:05.977990+00:00",
+  "scope": "fresh local container installation; fictional users only; provider delivery disabled",
+  "checks": {},
+  "status": "failed",
+  "error": "[Errno 111] Connection refused",
+  "finished_at": "2026-10-02T10:06:10.786254+00:00"
+}

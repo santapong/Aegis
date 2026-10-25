@@ -1,0 +1,171 @@
+[
+  {
+    "path": "/_next/static/media/8a1d8947e5852e30-s.p.woff2",
+    "status": 200,
+    "type": "font/woff2",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/_next/static/media/8a1d8947e5852e30-s.p.woff2"
+  },
+  {
+    "path": "/_next/static/media/bb3ef058b751a6ad.p.woff2",
+    "status": 200,
+    "type": "font/woff2",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/_next/static/media/bb3ef058b751a6ad.p.woff2"
+  },
+  {
+    "path": "/_next/static/media/e4af272ccee01ff0-s.p.woff2",
+    "status": 200,
+    "type": "font/woff2",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/_next/static/media/e4af272ccee01ff0-s.p.woff2"
+  },
+  {
+    "path": "/demo/",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/demo/"
+  },
+  {
+    "path": "/docs/developers/api/",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/docs/developers/api/"
+  },
+  {
+    "path": "/docs/developers/architecture/",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/docs/developers/architecture/"
+  },
+  {
+    "path": "/docs/developers/",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/docs/developers/"
+  },
+  {
+    "path": "/docs/developers/local-setup/",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/docs/developers/local-setup/"
+  },
+  {
+    "path": "/docs/example-transactions.csv",
+    "status": 200,
+    "type": "text/csv; charset=utf-8",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/docs/example-transactions.csv"
+  },
+  {
+    "path": "/docs/guides/ai/",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/docs/guides/ai/"
+  },
+  {
+    "path": "/docs/guides/budgets/",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/docs/guides/budgets/"
+  },
+  {
+    "path": "/docs/guides/exports/",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/docs/guides/exports/"
+  },
+  {
+    "path": "/docs/guides/first-steps/",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/docs/guides/first-steps/"
+  },
+  {
+    "path": "/docs/guides/",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/docs/guides/"
+  },
+  {
+    "path": "/docs/guides/plans/",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/docs/guides/plans/"
+  },
+  {
+    "path": "/docs/guides/transactions/",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/docs/guides/transactions/"
+  },
+  {
+    "path": "/docs/",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/docs/"
+  },
+  {
+    "path": "/icon.png",
+    "status": 200,
+    "type": "image/png",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/icon.png"
+  },
+  {
+    "path": "/",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/"
+  },
+  {
+    "path": "/landing/",
+    "status": 200,
+    "type": "text/html; charset=utf-8",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/landing/"
+  },
+  {
+    "path": "/robots.txt",
+    "status": 200,
+    "type": "text/plain; charset=utf-8",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/robots.txt"
+  },
+  {
+    "path": "/sitemap.xml",
+    "status": 200,
+    "type": "application/xml",
+    "matchesFrozenArtifact": true,
+    "url": "https://draveniq-aegis-landing.vercel.app/sitemap.xml"
+  },
+  {
+    "path": "/docs/not-a-guide",
+    "status": 404,
+    "expectedStatus": 404
+  },
+  {
+    "path": "/api/health",
+    "status": 404,
+    "expectedStatus": 404
+  },
+  {
+    "path": "/login",
+    "status": 404,
+    "expectedStatus": 404
+  }
+]

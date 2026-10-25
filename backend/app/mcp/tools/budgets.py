@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from ...models.budget import Budget
 from ...models.transaction import Transaction, TransactionType
 from ...models.trip import Trip
+from ...services.finance_reads import cutover_active, budget_report
 from ...schemas.budget import BudgetCreate, BudgetResponse, BudgetUpdate
 from ..schemas import pydantic_to_mcp_schema
 from ..session import resolve_user_id, session_scope
@@ -42,6 +43,8 @@ async def get_budgets(args: dict[str, Any]) -> str:
             today = date.today()
             q = q.filter(Budget.period_start <= today, Budget.period_end >= today)
         rows = q.order_by(Budget.period_start.desc()).all()
+        if cutover_active(db, user_id):
+            return json.dumps([budget_report(db, user_id, b) for b in rows], default=str)
         return json.dumps([_serialize(b) for b in rows], default=str)
 
 
@@ -99,10 +102,13 @@ async def get_budget_comparison(args: dict[str, Any]) -> str:
             )
             .all()
         )
+        if cutover_active(db, user_id):
+            return json.dumps({"currency": "THB", "period_start": str(period_start), "period_end": str(period_end),
+                               "comparisons": [budget_report(db, user_id, b) for b in budgets]}, default=str)
         expenses = (
             db.query(Transaction)
             .filter(
-                Transaction.user_id == user_id,
+                (Transaction.user_id == user_id) & Transaction.workspace_id.is_(None),
                 Transaction.type == TransactionType.expense,
                 Transaction.date >= period_start,
                 Transaction.date <= period_end,

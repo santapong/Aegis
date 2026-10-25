@@ -1,0 +1,14 @@
+{
+  "checked_at": "2026-10-02T13:40:53.557034+00:00",
+  "current_resumed_count": 3,
+  "previous_turn": "no progress",
+  "current_turn": "no progress",
+  "source_manifest_entries_match": 334,
+  "confirmed_live_process": false,
+  "same_external_blocker": "separate finance LINE channel, HTTPS test target/private participant and owner understanding feedback absent; real pilot/use and release gates unexecuted",
+  "blocked_audit_satisfied": true,
+  "status_transition": "ready for update_goal blocked",
+  "original_m4_criteria_waived": false,
+  "original_scope_redefined": false,
+  "unchanged_suites_rerun": false
+}

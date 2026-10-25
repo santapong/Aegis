@@ -1,0 +1,11 @@
+{
+  "started_at": "2026-10-02T13:22:41.784912+00:00",
+  "scope": "fresh empty-database repeat with actual repaired Compose startup order; reviewed image source unchanged",
+  "source_hashes": {
+    "docker-compose.yml": "e602fc50d1f2d077c86606993cdd55741d7051370926fa0a5f45aabf07e8d43a",
+    "docker-compose.prod.yml": "69fee93ce11b936912b651317d047527b235e2124b09a432972b8a7e9359a886",
+    "Caddyfile": "eed584317c054c8f80e18cfc6aae58bed37e97b09e13d12e3118dcec457e0661"
+  },
+  "exit_code": 0,
+  "finished_at": "2026-10-02T13:23:42.730743+00:00"
+}

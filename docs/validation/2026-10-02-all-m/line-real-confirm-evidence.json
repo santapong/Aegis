@@ -1,0 +1,35 @@
+{
+  "checked_at": "2026-10-05T03:18:49.850908+00:00",
+  "destination": {
+    "workspace": "LINE personal pilot · fictional",
+    "account": "Personal test cash",
+    "currency": "THB"
+  },
+  "draft_reference_hash": "1a096a4e4f5e2d1fb6cb03e2d6236ad063858512f289a64a8c0cd7cb1be11764",
+  "human_action": "Owner reported confirm sent; actual confirmed draft, cash movement and audit were then checked.",
+  "cash_and_audit": {
+    "checked_at": "2026-10-05T03:16:26.143907+00:00",
+    "confirmed": true,
+    "cash_today": "999.00",
+    "movement_count": 1,
+    "confirmation_audit_count": 1,
+    "audit_operation": "line_confirm",
+    "audit_matches_draft_and_actual": true,
+    "owner_and_destination_match": true,
+    "revision": 4,
+    "expense_date": "2026-10-05"
+  },
+  "confirmation_receipt": {
+    "checked_at": "2026-10-05T03:16:29.570573+00:00",
+    "provider_status_codes": [
+      200
+    ],
+    "total_reply_counts": {
+      "delivered": 4
+    },
+    "handset_receipt": "awaiting explicit owner report"
+  },
+  "repeat_confirmation": "Owner asked to repeat the same command on LINE; actual repeated event and unchanged cash/audit not yet checked.",
+  "next_action": "Inspect repeated confirmation without duplicating cash; send only this participant reply, then continue app match/unmatch and actual phone undo.",
+  "limits": "One real phone confirmation proven. Provider acceptance is separate from handset receipt. Duplicate webhook, interrupted delivery, corrections, disconnect/reconnect, owner comprehension and release gates remain open. No application-source/image/schema edit or regression rerun in this operational step."
+}

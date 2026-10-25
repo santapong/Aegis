@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse, Response
 from sqlalchemy import func as sa_func
 from sqlalchemy.orm import Session
-from datetime import date, timedelta
+from datetime import date
 
 from ..database import get_db
 from ..models.transaction import Transaction, TransactionType
@@ -17,6 +17,8 @@ from ..auth import get_current_user
 # category-comparison) don't need WeasyPrint and stay functional.
 
 
+from ..services.finance_reads import financial_today, cutover_active, report
+
 router = APIRouter(prefix="/api/reports", tags=["reports"])
 
 
@@ -26,12 +28,46 @@ def category_comparison(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    today = date.today()
+    today = financial_today(db, current_user.id)
 
     # Lower bound for the SQL window — the earliest month we'll render.
     earliest_month = (today.month - (months - 1) - 1) % 12 + 1
     earliest_year = today.year - (1 if today.month - (months - 1) <= 0 else 0)
     window_start = date(earliest_year, earliest_month, 1)
+
+    if cutover_active(db, current_user.id):
+        rows = report(db, current_user.id, window_start, today)["transactions"]
+        result = []
+        for i in range(months - 1, -1, -1):
+            m = (today.month - i - 1) % 12 + 1
+            y = today.year - (1 if today.month - i <= 0 else 0)
+            categories = {}
+            for row in rows:
+                if row["occurred_on"][:7] == f"{y:04}-{m:02}":
+                    categories[row["category"]] = categories.get(
+                        row["category"], 0
+                    ) + int(row["expense_effect_minor"])
+            result.append(
+                {
+                    "month": date(y, m, 1).strftime("%b %Y"),
+                    "categories": {k: v / 100 for k, v in categories.items()},
+                    "changes": {},
+                }
+            )
+        for previous, current in zip(result, result[1:]):
+            for category in set(previous["categories"]) | set(current["categories"]):
+                before, after = (
+                    previous["categories"].get(category, 0),
+                    current["categories"].get(category, 0),
+                )
+                current["changes"][category] = (
+                    round((after - before) / before * 100, 1)
+                    if before > 0
+                    else None
+                    if after > 0
+                    else 0
+                )
+        return result
 
     # One GROUP BY query across the full N-month window, replacing
     # `months` separate full-month .all() calls. We re-bucket in
@@ -45,7 +81,8 @@ def category_comparison(
             sa_func.coalesce(sa_func.sum(Transaction.amount), 0).label("total"),
         )
         .filter(
-            Transaction.user_id == current_user.id,
+            (Transaction.user_id == current_user.id)
+            & Transaction.workspace_id.is_(None),
             Transaction.type == TransactionType.expense,
             Transaction.date >= window_start,
             Transaction.date <= today,
@@ -62,14 +99,19 @@ def category_comparison(
         m = (today.month - i - 1) % 12 + 1
         y = today.year - (1 if today.month - i <= 0 else 0)
         month_start = date(y, m, 1)
-        result.append({
-            "month": month_start.strftime("%b %Y"),
-            "categories": bucket.get((y, m), {}),
-        })
+        result.append(
+            {
+                "month": month_start.strftime("%b %Y"),
+                "categories": bucket.get((y, m), {}),
+            }
+        )
 
     for i in range(1, len(result)):
         changes: dict[str, float | None] = {}
-        for cat in set(list(result[i]["categories"].keys()) + list(result[i - 1]["categories"].keys())):
+        for cat in set(
+            list(result[i]["categories"].keys())
+            + list(result[i - 1]["categories"].keys())
+        ):
             prev = result[i - 1]["categories"].get(cat, 0)
             curr = result[i]["categories"].get(cat, 0)
             if prev > 0:
@@ -93,12 +135,18 @@ def export_csv(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if cutover_active(db, current_user.id):
+        from .finance_reconciliation import export_csv as canonical_export
+
+        return canonical_export(start_date, end_date, db, current_user)
     # Hard upper bound on rows materialized. A user with > 100k
     # transactions hitting this endpoint without pagination would
     # otherwise pull the entire history into Python at once. For most
     # users the default 50k is well above what they have; power users
     # who need more can paginate via `?start_date=&end_date=`.
-    query = db.query(Transaction).filter(Transaction.user_id == current_user.id)
+    query = db.query(Transaction).filter(
+        (Transaction.user_id == current_user.id) & Transaction.workspace_id.is_(None)
+    )
     if start_date:
         query = query.filter(Transaction.date >= start_date)
     if end_date:
@@ -110,13 +158,15 @@ def export_csv(
     writer = csv.writer(output)
     writer.writerow(["Date", "Type", "Category", "Amount", "Description"])
     for t in transactions:
-        writer.writerow([
-            t.date.isoformat(),
-            t.type.value,
-            t.category,
-            float(t.amount),
-            t.description or "",
-        ])
+        writer.writerow(
+            [
+                t.date.isoformat(),
+                t.type.value,
+                t.category,
+                float(t.amount),
+                t.description or "",
+            ]
+        )
 
     output.seek(0)
     return StreamingResponse(
@@ -158,7 +208,7 @@ def export_pdf(
         try:
             from ..jobs import JobQueueUnavailable, enqueue
 
-            today_ = date.today()
+            today_ = financial_today(db, current_user.id)
             start_iso = (start_date or today_.replace(day=1)).isoformat()
             end_iso = (end_date or today_).isoformat()
             job_id = enqueue(
@@ -179,7 +229,7 @@ def export_pdf(
             # the startup log; users keep getting their PDFs.
             pass
 
-    today = date.today()
+    today = financial_today(db, current_user.id)
     start = start_date or today.replace(day=1)
     end = end_date or today
 
@@ -188,20 +238,34 @@ def export_pdf(
     # isn't a useful artifact anyway; use the CSV export with a
     # tighter date range.
     query = db.query(Transaction).filter(
-        Transaction.user_id == current_user.id,
+        (Transaction.user_id == current_user.id) & Transaction.workspace_id.is_(None),
         Transaction.date >= start,
         Transaction.date <= end,
     )
     transactions = query.order_by(Transaction.date.desc()).limit(5000).all()
 
-    total_income = sum(float(t.amount) for t in transactions if t.type == TransactionType.income)
-    total_expenses = sum(float(t.amount) for t in transactions if t.type == TransactionType.expense)
+    total_income = sum(
+        float(t.amount) for t in transactions if t.type == TransactionType.income
+    )
+    total_expenses = sum(
+        float(t.amount) for t in transactions if t.type == TransactionType.expense
+    )
 
     by_category: dict[str, float] = {}
     for t in transactions:
         if t.type == TransactionType.expense:
             by_category[t.category] = by_category.get(t.category, 0) + float(t.amount)
     by_category = dict(sorted(by_category.items(), key=lambda kv: kv[1], reverse=True))
+
+    if cutover_active(db, current_user.id):
+        exact = report(db, current_user.id, start, end)
+        total_income, total_expenses = (
+            int(exact["income_minor"]) / 100,
+            int(exact["expense_minor"]) / 100,
+        )
+        by_category = {
+            k: int(v) / 100 for k, v in exact["expense_by_category_minor"].items()
+        }
 
     # Lazy import — WeasyPrint and matplotlib are excluded from the
     # slim Vercel deploy (see backend/requirements.txt). On full
@@ -210,6 +274,7 @@ def export_pdf(
         from ..services.pdf_renderer import render_report_pdf
     except ImportError as exc:
         from fastapi import HTTPException
+
         raise HTTPException(
             status_code=503,
             detail=(

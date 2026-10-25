@@ -21,7 +21,7 @@ interface PageHeaderProps {
 export function PageHeader({ code, eyebrow, title, subtitle, action }: PageHeaderProps) {
   const eyebrowText = eyebrow ?? code;
   return (
-    <div className="flex items-end justify-between gap-4 pb-3.5 mb-1" style={{ borderBottom: "1px dashed var(--pane-edge)" }}>
+    <div className="aegis-page-heading flex flex-wrap items-end justify-between gap-4 pb-5 mb-3" style={{ borderBottom: "1px solid var(--pane-edge)" }}>
       <div className="min-w-0">
         {eyebrowText && (
           <div className="aegis-opener-eyebrow flex items-center gap-2">

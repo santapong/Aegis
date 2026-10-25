@@ -1,0 +1,30 @@
+{
+  "login": "PASS fictional identity",
+  "budget_collection": "PASS after repaired rewrite",
+  "currency_review_keyboard": "PASS Enter on native button",
+  "reload_persistence": "PASS final confirmed cap returned after refresh",
+  "display": {
+    "currency": "THB",
+    "budget": "5000",
+    "spent": "0",
+    "remaining": "5000"
+  },
+  "desktop": {
+    "client_width": 1280,
+    "scroll_width": 1280
+  },
+  "mobile": {
+    "client_width": 320,
+    "scroll_width": 320,
+    "navigation": "closed before checking main content"
+  },
+  "cleanup": {
+    "signed_out": true,
+    "tab_closed": true,
+    "viewport_reset": true
+  },
+  "additional_independent_balance_read": {
+    "status": "INCOMPLETE",
+    "error": "Harness used /api/finance/balances rather than actual /api/accounts/balances; KeyError after reading JSON. Stack removed; this optional extra was not rerun. No balance assertion is claimed."
+  }
+}

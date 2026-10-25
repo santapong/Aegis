@@ -1,0 +1,91 @@
+{
+  "results": [
+    {
+      "path": "/",
+      "status": 200,
+      "errorsSoFar": 0
+    },
+    {
+      "path": "/cashflow",
+      "status": 200,
+      "errorsSoFar": 0
+    },
+    {
+      "path": "/accounts",
+      "status": 200,
+      "errorsSoFar": 0
+    },
+    {
+      "path": "/review",
+      "status": 200,
+      "errorsSoFar": 0
+    },
+    {
+      "path": "/transactions",
+      "status": 200,
+      "errorsSoFar": 0
+    },
+    {
+      "path": "/reports",
+      "status": 200,
+      "errorsSoFar": 0
+    },
+    {
+      "path": "/budgets",
+      "status": 200,
+      "errorsSoFar": 0
+    },
+    {
+      "path": "/savings",
+      "status": 200,
+      "errorsSoFar": 0
+    },
+    {
+      "path": "/investments",
+      "status": 200,
+      "errorsSoFar": 0
+    },
+    {
+      "path": "/debts",
+      "status": 200,
+      "errorsSoFar": 0
+    },
+    {
+      "path": "/calendar",
+      "status": 200,
+      "errorsSoFar": 0
+    },
+    {
+      "path": "/gantt",
+      "status": 200,
+      "errorsSoFar": 0
+    },
+    {
+      "path": "/trips",
+      "status": 200,
+      "errorsSoFar": 0
+    },
+    {
+      "path": "/plans",
+      "status": 200,
+      "errorsSoFar": 0
+    },
+    {
+      "path": "/settings",
+      "status": 200,
+      "errorsSoFar": 0
+    },
+    {
+      "path": "/payments",
+      "status": 200,
+      "errorsSoFar": 0
+    },
+    {
+      "path": "/trips/preview-fixture",
+      "status": 200,
+      "errorsSoFar": 0
+    }
+  ],
+  "errors": [],
+  "scope": "Fresh disposable browser context; synthetic authentication; every API request fulfilled with 503; no backend writes."
+}

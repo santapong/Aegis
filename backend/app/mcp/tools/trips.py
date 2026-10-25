@@ -9,6 +9,7 @@ from mcp import types
 from ...models.budget import Budget
 from ...models.transaction import Transaction, TransactionType
 from ...models.trip import Trip, TripStatus
+from ...services.finance_reads import cutover_active, report
 from ...schemas.trip import (
     TripCategoryRollup,
     TripCreate,
@@ -79,6 +80,8 @@ async def get_trip_summary(args: dict[str, Any]) -> str:
         )
         if not trip:
             raise ValueError(f"Trip {trip_id} not found")
+        if cutover_active(db, user_id):
+            return json.dumps({"trip_id": trip_id, **report(db, user_id, trip_id=trip_id)}, default=str)
         budgets = (
             db.query(Budget)
             .filter(Budget.trip_id == trip_id, Budget.user_id == user_id)
@@ -88,7 +91,7 @@ async def get_trip_summary(args: dict[str, Any]) -> str:
             db.query(Transaction)
             .filter(
                 Transaction.trip_id == trip_id,
-                Transaction.user_id == user_id,
+                (Transaction.user_id == user_id) & Transaction.workspace_id.is_(None),
                 Transaction.type == TransactionType.expense,
             )
             .all()

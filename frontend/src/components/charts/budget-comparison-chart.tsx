@@ -28,14 +28,14 @@ const glassTooltipStyle = {
   padding: "8px 12px",
 };
 
-export function BudgetComparisonChart({ data }: { data: BudgetComparisonDatum[] }) {
+export function BudgetComparisonChart({ data, currency }: { data: BudgetComparisonDatum[]; currency?: string }) {
   return (
     <ResponsiveContainer width="100%" height={350}>
       <BarChart data={data} barGap={4}>
         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
         <XAxis dataKey="category" tick={{ fontSize: 12 }} />
         <YAxis tick={{ fontSize: 12 }} />
-        <Tooltip formatter={(value: number) => formatCurrency(value)} contentStyle={glassTooltipStyle} />
+        <Tooltip formatter={(value: number) => formatCurrency(value, currency)} contentStyle={glassTooltipStyle} />
         <Legend />
         <Bar dataKey="Budget" fill="var(--accent-2)" radius={[4, 4, 0, 0]} isAnimationActive={false} />
         <Bar dataKey="Actual" radius={[4, 4, 0, 0]} isAnimationActive={false}>

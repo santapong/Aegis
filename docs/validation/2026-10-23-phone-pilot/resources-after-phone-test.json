@@ -1,0 +1,16 @@
+{
+  "checked_at": "2026-10-22T18:34:36.655874+00:00",
+  "memory_method": "summed RSS watchdog; not a kernel aggregate RAM cap",
+  "peak_summed_rss_bytes": 1275396096,
+  "last_summed_rss_bytes": 481214464,
+  "mem_available_bytes": 13084655616,
+  "temperature_c": 56.2,
+  "containers": [
+    "aegis-phone-db",
+    "aegis-phone-api",
+    "aegis-phone-frontend",
+    "aegis-phone-gateway",
+    "aegis-phone-tunnel"
+  ],
+  "events": []
+}

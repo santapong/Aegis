@@ -21,6 +21,14 @@ from ..schemas.dashboard import (
     DashboardBundleResponse,
 )
 from ..auth import get_current_user
+from ..services.finance_reads import (
+    financial_today,
+    cutover_active,
+    report,
+    account_totals,
+    monthly_series,
+    budget_report,
+)
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 _settings = get_settings()
@@ -40,7 +48,36 @@ CATEGORY_COLORS = {
 
 
 @router.get("/summary", response_model=KPISummary)
-def get_summary(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_summary(
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+):
+    if cutover_active(db, current_user.id):
+        today = financial_today(db, current_user.id)
+        exact = report(db, current_user.id, today.replace(day=1), today)
+        totals = account_totals(db, current_user.id)
+        income, expense = int(exact["income_minor"]), int(exact["expense_minor"])
+        return KPISummary(
+            total_balance=int(totals["net_position_minor"]) / 100,
+            balance_basis="net_position",
+            **totals,
+            monthly_income=income / 100,
+            monthly_expenses=expense / 100,
+            monthly_income_minor=str(income),
+            monthly_expenses_minor=str(expense),
+            savings_rate=round((income - expense) / income * 100, 1)
+            if income > 0
+            else 0,
+            active_plans=db.query(Plan)
+            .filter(
+                Plan.user_id == current_user.id,
+                Plan.status.in_([PlanStatus.planned, PlanStatus.in_progress]),
+            )
+            .count(),
+            completed_plans=db.query(Plan)
+            .filter_by(user_id=current_user.id, status=PlanStatus.completed)
+            .count(),
+            unverified_legacy_count=exact["unverified_legacy_count"],
+        )
     # Cached for the configured default TTL (60 s by default). Reads
     # the same exact data on every dashboard render — without this,
     # a single page load fires 4 queries that scan the user's full
@@ -52,7 +89,7 @@ def get_summary(db: Session = Depends(get_db), current_user: User = Depends(get_
     if cached is not None:
         return KPISummary(**cached)
 
-    today = date.today()
+    today = financial_today(db, current_user.id)
     month_start = today.replace(day=1)
 
     # SQL aggregation — replaces a current-month .all() + all-time
@@ -62,13 +99,19 @@ def get_summary(db: Session = Depends(get_db), current_user: User = Depends(get_
     # (user_id, type, date) composite indexes from v0.9.7.
     income_sum = sa_func.coalesce(
         sa_func.sum(
-            case((Transaction.type == TransactionType.income, Transaction.amount), else_=0)
+            case(
+                (Transaction.type == TransactionType.income, Transaction.amount),
+                else_=0,
+            )
         ),
         0,
     )
     expense_sum = sa_func.coalesce(
         sa_func.sum(
-            case((Transaction.type == TransactionType.expense, Transaction.amount), else_=0)
+            case(
+                (Transaction.type == TransactionType.expense, Transaction.amount),
+                else_=0,
+            )
         ),
         0,
     )
@@ -76,7 +119,8 @@ def get_summary(db: Session = Depends(get_db), current_user: User = Depends(get_
     monthly_row = (
         db.query(income_sum.label("income"), expense_sum.label("expense"))
         .filter(
-            Transaction.user_id == current_user.id,
+            (Transaction.user_id == current_user.id)
+            & Transaction.workspace_id.is_(None),
             Transaction.date >= month_start,
             Transaction.date <= today,
         )
@@ -92,7 +136,10 @@ def get_summary(db: Session = Depends(get_db), current_user: User = Depends(get_
 
     balance_row = (
         db.query((income_sum - expense_sum).label("balance"))
-        .filter(Transaction.user_id == current_user.id)
+        .filter(
+            (Transaction.user_id == current_user.id)
+            & Transaction.workspace_id.is_(None)
+        )
         .one()
     )
     total_balance = float(balance_row.balance or 0)
@@ -126,14 +173,46 @@ def get_summary(db: Session = Depends(get_db), current_user: User = Depends(get_
 
 
 @router.get("/charts", response_model=DashboardCharts)
-def get_charts(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_charts(
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+):
+    if cutover_active(db, current_user.id):
+        today = financial_today(db, current_user.id)
+        exact = report(db, current_user.id, today - timedelta(days=30), today)
+        all_rows = monthly_series(
+            report(db, current_user.id, today - timedelta(days=190), today)
+        )
+        trend = []
+        for i in range(5, -1, -1):
+            m = (today.month - i - 1) % 12 + 1
+            y = today.year - (1 if today.month - i <= 0 else 0)
+            income, expense = all_rows.get(f"{y:04}-{m:02}", (0, 0))
+            trend.append(
+                {
+                    "month": date(y, m, 1).strftime("%b %Y"),
+                    "income": income / 100,
+                    "expenses": expense / 100,
+                }
+            )
+        return DashboardCharts(
+            spending_by_category=[
+                ChartDataPoint(
+                    label=k,
+                    value=int(v) / 100,
+                    color=CATEGORY_COLORS.get((k or "").lower(), "#6B7280"),
+                )
+                for k, v in exact["expense_by_category_minor"].items()
+            ],
+            monthly_trend=trend,
+            budget_progress=[],
+        )
     cache = get_cache()
     key = user_scope("dashboard:charts", current_user.id)
     cached = cache.get(key)
     if cached is not None:
         return DashboardCharts(**cached)
 
-    today = date.today()
+    today = financial_today(db, current_user.id)
 
     # Spending by category (last 30 days) — single GROUP BY query,
     # replaces a full 30-day .all() + Python aggregation loop.
@@ -143,7 +222,8 @@ def get_charts(db: Session = Depends(get_db), current_user: User = Depends(get_c
             sa_func.coalesce(sa_func.sum(Transaction.amount), 0).label("total"),
         )
         .filter(
-            Transaction.user_id == current_user.id,
+            (Transaction.user_id == current_user.id)
+            & Transaction.workspace_id.is_(None),
             Transaction.type == TransactionType.expense,
             Transaction.date >= today - timedelta(days=30),
         )
@@ -167,20 +247,26 @@ def get_charts(db: Session = Depends(get_db), current_user: User = Depends(get_c
     # in the output with zero values (the frontend chart expects 6
     # rows).
     six_months_ago = date(today.year, today.month, 1) - timedelta(days=1)
-    six_months_ago = date(
-        six_months_ago.year, six_months_ago.month, 1
-    ) - timedelta(days=150)  # roughly 5 months earlier
+    six_months_ago = date(six_months_ago.year, six_months_ago.month, 1) - timedelta(
+        days=150
+    )  # roughly 5 months earlier
     six_months_ago = date(six_months_ago.year, six_months_ago.month, 1)
 
     income_sum = sa_func.coalesce(
         sa_func.sum(
-            case((Transaction.type == TransactionType.income, Transaction.amount), else_=0)
+            case(
+                (Transaction.type == TransactionType.income, Transaction.amount),
+                else_=0,
+            )
         ),
         0,
     )
     expense_sum = sa_func.coalesce(
         sa_func.sum(
-            case((Transaction.type == TransactionType.expense, Transaction.amount), else_=0)
+            case(
+                (Transaction.type == TransactionType.expense, Transaction.amount),
+                else_=0,
+            )
         ),
         0,
     )
@@ -195,7 +281,8 @@ def get_charts(db: Session = Depends(get_db), current_user: User = Depends(get_c
             expense_sum.label("expense"),
         )
         .filter(
-            Transaction.user_id == current_user.id,
+            (Transaction.user_id == current_user.id)
+            & Transaction.workspace_id.is_(None),
             Transaction.date >= six_months_ago,
             Transaction.date <= today,
         )
@@ -213,11 +300,13 @@ def get_charts(db: Session = Depends(get_db), current_user: User = Depends(get_c
         y = today.year - (1 if today.month - i <= 0 else 0)
         month_start = date(y, m, 1)
         income, expense = bucket.get((y, m), (0.0, 0.0))
-        monthly_trend.append({
-            "month": month_start.strftime("%b %Y"),
-            "income": income,
-            "expenses": expense,
-        })
+        monthly_trend.append(
+            {
+                "month": month_start.strftime("%b %Y"),
+                "income": income,
+                "expenses": expense,
+            }
+        )
 
     result = DashboardCharts(
         spending_by_category=spending_by_category,
@@ -229,26 +318,34 @@ def get_charts(db: Session = Depends(get_db), current_user: User = Depends(get_c
 
 
 @router.get("/health-score", response_model=HealthScoreResponse)
-def get_health_score(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_health_score(
+    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
+):
     cache = get_cache()
     cache_key = user_scope("dashboard:health-score", current_user.id)
     cached = cache.get(cache_key)
     if cached is not None:
         return HealthScoreResponse(**cached)
 
-    today = date.today()
+    today = financial_today(db, current_user.id)
     month_start = today.replace(day=1)
     three_months_ago = today - timedelta(days=90)
 
     income_sum = sa_func.coalesce(
         sa_func.sum(
-            case((Transaction.type == TransactionType.income, Transaction.amount), else_=0)
+            case(
+                (Transaction.type == TransactionType.income, Transaction.amount),
+                else_=0,
+            )
         ),
         0,
     )
     expense_sum = sa_func.coalesce(
         sa_func.sum(
-            case((Transaction.type == TransactionType.expense, Transaction.amount), else_=0)
+            case(
+                (Transaction.type == TransactionType.expense, Transaction.amount),
+                else_=0,
+            )
         ),
         0,
     )
@@ -258,7 +355,8 @@ def get_health_score(db: Session = Depends(get_db), current_user: User = Depends
     monthly_row = (
         db.query(income_sum.label("income"), expense_sum.label("expense"))
         .filter(
-            Transaction.user_id == current_user.id,
+            (Transaction.user_id == current_user.id)
+            & Transaction.workspace_id.is_(None),
             Transaction.date >= month_start,
             Transaction.date <= today,
         )
@@ -266,7 +364,18 @@ def get_health_score(db: Session = Depends(get_db), current_user: User = Depends
     )
     monthly_income = float(monthly_row.income or 0)
     monthly_expenses = float(monthly_row.expense or 0)
-    savings_rate = ((monthly_income - monthly_expenses) / monthly_income * 100) if monthly_income > 0 else 0
+    ledger_mode = cutover_active(db, current_user.id)
+    if ledger_mode:
+        exact = report(db, current_user.id, month_start, today)
+        monthly_income, monthly_expenses = (
+            int(exact["income_minor"]) / 100,
+            int(exact["expense_minor"]) / 100,
+        )
+    savings_rate = (
+        ((monthly_income - monthly_expenses) / monthly_income * 100)
+        if monthly_income > 0
+        else 0
+    )
     savings_score = min(30.0, (savings_rate / 20) * 30) if savings_rate > 0 else 0
 
     # --- Budget Adherence Score (0-25) — one aggregate over the union
@@ -275,7 +384,11 @@ def get_health_score(db: Session = Depends(get_db), current_user: User = Depends
     # and a full month of expenses this drops 10 queries to 2.
     active_budgets = (
         db.query(Budget)
-        .filter(Budget.user_id == current_user.id, Budget.period_start <= today, Budget.period_end >= today)
+        .filter(
+            Budget.user_id == current_user.id,
+            Budget.period_start <= today,
+            Budget.period_end >= today,
+        )
         .all()
     )
     if active_budgets:
@@ -295,7 +408,8 @@ def get_health_score(db: Session = Depends(get_db), current_user: User = Depends
                     Transaction.amount,
                 )
                 .filter(
-                    Transaction.user_id == current_user.id,
+                    (Transaction.user_id == current_user.id)
+                    & Transaction.workspace_id.is_(None),
                     Transaction.type == TransactionType.expense,
                     Transaction.category.in_(categories),
                     Transaction.date >= min_period_start,
@@ -313,8 +427,19 @@ def get_health_score(db: Session = Depends(get_db), current_user: User = Depends
                 )
                 category_spend[b.id] = spent
 
+        if ledger_mode:
+            category_spend = {
+                b.id: int(budget_report(db, current_user.id, b)["spent_minor"]) / 100
+                for b in active_budgets
+            }
+
         adherence_scores = []
         for b in active_budgets:
+            if (
+                ledger_mode
+                and budget_report(db, current_user.id, b)["budget_minor"] is None
+            ):
+                continue
             cap = float(b.amount)
             if cap <= 0:
                 continue
@@ -322,7 +447,9 @@ def get_health_score(db: Session = Depends(get_db), current_user: User = Depends
             ratio = spent / cap
             adherence_scores.append(max(0, 1 - max(0, ratio - 1)))
         budget_score = (
-            (sum(adherence_scores) / len(adherence_scores)) * 25 if adherence_scores else 12.5
+            (sum(adherence_scores) / len(adherence_scores)) * 25
+            if adherence_scores
+            else 12.5
         )
     else:
         budget_score = 12.5
@@ -338,7 +465,8 @@ def get_health_score(db: Session = Depends(get_db), current_user: User = Depends
             expense_sum.label("expense"),
         )
         .filter(
-            Transaction.user_id == current_user.id,
+            (Transaction.user_id == current_user.id)
+            & Transaction.workspace_id.is_(None),
             Transaction.date >= three_months_ago,
             Transaction.date <= today,
         )
@@ -353,6 +481,20 @@ def get_health_score(db: Session = Depends(get_db), current_user: User = Depends
         if float(income or 0) > 0:
             monthly_income_values.append(float(income))
 
+    if ledger_mode:
+        values = monthly_series(
+            report(db, current_user.id, three_months_ago, today)
+        ).values()
+        monthly_expense_values = [
+            expense / 100 for income, expense in values if expense > 0
+        ]
+        values = monthly_series(
+            report(db, current_user.id, three_months_ago, today)
+        ).values()
+        monthly_income_values = [
+            income / 100 for income, expense in values if income > 0
+        ]
+
     def _stability_score(values: list[float], max_points: float) -> float:
         if len(values) < 2:
             return max_points / 2
@@ -360,7 +502,7 @@ def get_health_score(db: Session = Depends(get_db), current_user: User = Depends
         if avg <= 0:
             return 0.0
         variance = sum((v - avg) ** 2 for v in values) / len(values)
-        cv = (variance ** 0.5) / avg
+        cv = (variance**0.5) / avg
         return max(0.0, max_points * (1 - min(cv, 1)))
 
     consistency_score = _stability_score(monthly_expense_values, 25.0)
@@ -380,19 +522,45 @@ def get_health_score(db: Session = Depends(get_db), current_user: User = Depends
         grade = "F"
 
     breakdown = [
-        HealthScoreBreakdown(name="Savings Rate", score=round(savings_score, 1), max_score=30, description="Based on your monthly savings as a percentage of income"),
-        HealthScoreBreakdown(name="Budget Adherence", score=round(budget_score, 1), max_score=25, description="How well you stay within your budget limits"),
-        HealthScoreBreakdown(name="Expense Consistency", score=round(consistency_score, 1), max_score=25, description="Stability of your monthly spending patterns"),
-        HealthScoreBreakdown(name="Income Stability", score=round(income_score, 1), max_score=20, description="Consistency of your income over time"),
+        HealthScoreBreakdown(
+            name="Savings Rate",
+            score=round(savings_score, 1),
+            max_score=30,
+            description="Based on your monthly savings as a percentage of income",
+        ),
+        HealthScoreBreakdown(
+            name="Budget Adherence",
+            score=round(budget_score, 1),
+            max_score=25,
+            description="How well you stay within your budget limits",
+        ),
+        HealthScoreBreakdown(
+            name="Expense Consistency",
+            score=round(consistency_score, 1),
+            max_score=25,
+            description="Stability of your monthly spending patterns",
+        ),
+        HealthScoreBreakdown(
+            name="Income Stability",
+            score=round(income_score, 1),
+            max_score=20,
+            description="Consistency of your income over time",
+        ),
     ]
 
-    result = HealthScoreResponse(overall_score=overall, grade=grade, breakdown=breakdown)
+    result = HealthScoreResponse(
+        overall_score=overall, grade=grade, breakdown=breakdown
+    )
     cache.set(cache_key, result, ttl=_settings.cache_default_ttl)
     return result
 
 
 @router.get("/cashflow-forecast", response_model=CashFlowForecastResponse)
-def get_cashflow_forecast(months: int = 6, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def get_cashflow_forecast(
+    months: int = 6,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     months = min(months, 12)
 
     cache = get_cache()
@@ -401,18 +569,24 @@ def get_cashflow_forecast(months: int = 6, db: Session = Depends(get_db), curren
     if cached is not None:
         return CashFlowForecastResponse(**cached)
 
-    today = date.today()
+    today = financial_today(db, current_user.id)
     three_months_ago = today - timedelta(days=90)
 
     income_sum = sa_func.coalesce(
         sa_func.sum(
-            case((Transaction.type == TransactionType.income, Transaction.amount), else_=0)
+            case(
+                (Transaction.type == TransactionType.income, Transaction.amount),
+                else_=0,
+            )
         ),
         0,
     )
     expense_sum = sa_func.coalesce(
         sa_func.sum(
-            case((Transaction.type == TransactionType.expense, Transaction.amount), else_=0)
+            case(
+                (Transaction.type == TransactionType.expense, Transaction.amount),
+                else_=0,
+            )
         ),
         0,
     )
@@ -421,7 +595,10 @@ def get_cashflow_forecast(months: int = 6, db: Session = Depends(get_db), curren
     # + Python sum, the worst hit on this route at 100k transactions).
     balance_row = (
         db.query((income_sum - expense_sum).label("balance"))
-        .filter(Transaction.user_id == current_user.id)
+        .filter(
+            (Transaction.user_id == current_user.id)
+            & Transaction.workspace_id.is_(None)
+        )
         .one()
     )
     current_balance = float(balance_row.balance or 0)
@@ -436,7 +613,8 @@ def get_cashflow_forecast(months: int = 6, db: Session = Depends(get_db), curren
             expense_sum.label("expense"),
         )
         .filter(
-            Transaction.user_id == current_user.id,
+            (Transaction.user_id == current_user.id)
+            & Transaction.workspace_id.is_(None),
             Transaction.date >= three_months_ago,
         )
         .group_by("y", "m")
@@ -453,6 +631,20 @@ def get_cashflow_forecast(months: int = 6, db: Session = Depends(get_db), curren
         if series_rows
         else 0
     )
+
+    ledger_mode = cutover_active(db, current_user.id)
+    if ledger_mode:
+        current_balance = (
+            int(account_totals(db, current_user.id)["net_position_minor"]) / 100
+        )
+        values = list(
+            monthly_series(
+                report(db, current_user.id, three_months_ago, today)
+            ).values()
+        )
+        count = max(len(values), 1)
+        avg_income = sum(income for income, expense in values) / count / 100
+        avg_expense = sum(expense for income, expense in values) / count / 100
 
     # Factor in recurring plans
     recurring_plans = (
@@ -488,7 +680,12 @@ def get_cashflow_forecast(months: int = 6, db: Session = Depends(get_db), curren
         )
 
     result = CashFlowForecastResponse(
-        current_balance=round(current_balance, 2), forecast=forecast
+        current_balance=round(current_balance, 2),
+        forecast=forecast,
+        balance_basis="net_position" if ledger_mode else "legacy_net_movement",
+        assumptions="Heuristic net-position projection from historical effects and planned amounts; not a bank cash forecast"
+        if ledger_mode
+        else None,
     )
     cache.set(cache_key, result, ttl=_settings.cache_default_ttl)
     return result
@@ -552,7 +749,9 @@ def get_dashboard_bundle(
         if exc.status_code != 503:
             raise
     try:
-        insights = [i.model_dump() for i in get_insights(db=db, current_user=current_user)]
+        insights = [
+            i.model_dump() for i in get_insights(db=db, current_user=current_user)
+        ]
     except HTTPException as exc:
         if exc.status_code != 503:
             raise

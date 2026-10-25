@@ -1,0 +1,89 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "route": "/brand",
+      "width": 1440,
+      "theme": "horizon",
+      "marks": 8,
+      "sameGeometry": true,
+      "overflow": false,
+      "brandColor": "rgb(18, 61, 50)",
+      "expectedColor": "rgb(18, 61, 50)"
+    },
+    {
+      "route": "/brand",
+      "width": 1440,
+      "theme": "horizon-dark",
+      "marks": 8,
+      "sameGeometry": true,
+      "overflow": false,
+      "brandColor": "rgb(220, 233, 175)",
+      "expectedColor": "rgb(220, 233, 175)"
+    },
+    {
+      "route": "/brand",
+      "width": 320,
+      "theme": "horizon",
+      "marks": 8,
+      "sameGeometry": true,
+      "overflow": false,
+      "brandColor": "rgb(18, 61, 50)",
+      "expectedColor": "rgb(18, 61, 50)"
+    },
+    {
+      "route": "/brand",
+      "width": 320,
+      "theme": "horizon-dark",
+      "marks": 8,
+      "sameGeometry": true,
+      "overflow": false,
+      "brandColor": "rgb(220, 233, 175)",
+      "expectedColor": "rgb(220, 233, 175)"
+    },
+    {
+      "route": "/landing",
+      "width": 1440,
+      "theme": "horizon",
+      "marks": 2,
+      "sameGeometry": true,
+      "overflow": false,
+      "brandColor": "rgb(18, 61, 50)",
+      "expectedColor": "rgb(18, 61, 50)"
+    },
+    {
+      "route": "/landing",
+      "width": 1440,
+      "theme": "horizon-dark",
+      "marks": 2,
+      "sameGeometry": true,
+      "overflow": false,
+      "brandColor": "rgb(220, 233, 175)",
+      "expectedColor": "rgb(220, 233, 175)"
+    },
+    {
+      "route": "/landing",
+      "width": 320,
+      "theme": "horizon",
+      "marks": 2,
+      "sameGeometry": true,
+      "overflow": false,
+      "brandColor": "rgb(18, 61, 50)",
+      "expectedColor": "rgb(18, 61, 50)"
+    },
+    {
+      "route": "/landing",
+      "width": 320,
+      "theme": "horizon-dark",
+      "marks": 2,
+      "sameGeometry": true,
+      "overflow": false,
+      "brandColor": "rgb(220, 233, 175)",
+      "expectedColor": "rgb(220, 233, 175)"
+    }
+  ],
+  "requests": 92,
+  "pageErrors": 0,
+  "download": "aegis-union-light.svg",
+  "elapsed": 2142
+}

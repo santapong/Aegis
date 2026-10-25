@@ -1,0 +1,53 @@
+{
+  "checked_at": "2026-10-04T17:59:34.309638+00:00",
+  "status": "real channel verified; owner phone linking pending",
+  "authorization": "existing explicit temporary webhook and own-account fictional THB1 expense/confirmation/undo approval; unchanged scope",
+  "credential_readiness": {
+    "channel_secret_configured": true,
+    "access_token_configured": true,
+    "intended_channel": true,
+    "cash_workspaces_enabled": true
+  },
+  "channel_checks": {
+    "bot_info_status": 200,
+    "intended_bot": true,
+    "expected_name": true,
+    "bad_signature_status": 401,
+    "valid_empty_webhook_status": 200,
+    "trusted_tls": true
+  },
+  "provider_ui": {
+    "verify": "Success directly observed",
+    "use_webhook": true,
+    "webhook_redelivery": true,
+    "default_auto_response": false
+  },
+  "tunnel": {
+    "supervision": "bounded user systemd service; active/running inspected at 17:55 UTC",
+    "duration_limit": "two hours",
+    "old_exec_session": "38119 terminal after graceful SIGTERM; old URL returned530",
+    "shutdown_cause": "unknown",
+    "cross_turn_survival": "active/running after compaction; no later-turn availability claimed"
+  },
+  "private_link": {
+    "created_at": "2026-10-04T18:01:10.987100+00:00",
+    "expires_in_seconds": 600,
+    "owner_phone_message": "pending",
+    "destination": "LINE personal pilot · fictional → Personal test cash (THB)",
+    "expires_at": "2026-10-04T18:11:10Z",
+    "previous_command": "expired; no identity existed; deliberately refreshed same destination"
+  },
+  "own_account_delivery": {
+    "worker": "generic finance worker not started",
+    "helper": "pilot-participant.py default read-only; executed linkedfalse/draftcounts empty at 17:57:57UTC",
+    "helper_sha256": "4a91e45378a8da82421aaa4666183223d78be11fc1897cae053a5729186fd88b",
+    "scope": "bounded existing deliver_batch restricted in query and HTTP recipient guard to the linked fictional personal owner; delivery has not executed",
+    "handset_receipt": "not observed"
+  },
+  "screenshots": {
+    "line-verification-success.jpg": "/mnt/data/aegis-line-pilot-2026-10-04/prepared/line-verification-success.jpg",
+    "line-webhook-enabled.jpg": "/mnt/data/aegis-line-pilot-2026-10-04/prepared/line-webhook-enabled.jpg",
+    "line-response-settings.jpg": "/mnt/data/aegis-line-pilot-2026-10-04/prepared/line-response-settings.jpg"
+  },
+  "limits": "No real message delivered by root, actual cash write, new independent operational review, customer migration, application source change or release. Provider acceptance will remain separate from owner phone receipt."
+}
