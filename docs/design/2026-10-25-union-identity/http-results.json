@@ -1,0 +1,78 @@
+[
+  {
+    "path": "/brand/aegis-union-light.svg",
+    "status": "PASS",
+    "mime": "image/svg+xml",
+    "sha256": "6b1eea83e3fc313a772b7628056179a510b28cad386297ad61834c73472473ea"
+  },
+  {
+    "path": "/brand/aegis-union-dark.svg",
+    "status": "PASS",
+    "mime": "image/svg+xml",
+    "sha256": "5d52a77087816bf1a6d8a8cf014a3fce289ef13a7aaeb209546dc097846f07aa"
+  },
+  {
+    "path": "/brand/aegis-union-icon.svg",
+    "status": "PASS",
+    "mime": "image/svg+xml",
+    "sha256": "436ed3b914512d50302cf6cff7601d07183512e69dee70d29fd398fae679c502"
+  },
+  {
+    "path": "/icon.png",
+    "status": "PASS",
+    "mime": "image/png",
+    "sha256": "31cfc71882bcaa6b5c738e4739a5d348ef6d3af25c3ceafe4b5bab1b78b0e4a3"
+  },
+  {
+    "path": "/apple-icon.png",
+    "status": "PASS",
+    "mime": "image/png",
+    "sha256": "9deb7e3ff08697383fe5e7d766c87c7eee7b15dd8c98f58aa9d80ccb5879667a"
+  },
+  {
+    "path": "/favicon.ico",
+    "status": "PASS",
+    "mime": "image/x-icon",
+    "sha256": "89f8c93ccf0f651a6673e148c4b6f782c426651565fcc18266a230e2aa2f4472"
+  },
+  {
+    "path": "/brand",
+    "status": "PASS",
+    "native_union": true,
+    "icon_metadata": true
+  },
+  {
+    "path": "/landing",
+    "status": "PASS",
+    "native_union": true,
+    "icon_metadata": true
+  },
+  {
+    "path": "/login",
+    "status": "PASS",
+    "native_union": true,
+    "icon_metadata": true
+  },
+  {
+    "path": "/docs",
+    "status": "PASS",
+    "native_union": true,
+    "icon_metadata": true
+  },
+  {
+    "path": "/docs/guides/brand",
+    "status": "PASS",
+    "native_union": true,
+    "icon_metadata": true
+  },
+  {
+    "path": "/docs/guides/brand.md",
+    "status": "PASS",
+    "union_documentation": true
+  },
+  {
+    "path": "/llms-full.txt",
+    "status": "PASS",
+    "union_documentation": true
+  }
+]

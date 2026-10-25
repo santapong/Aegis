@@ -1,0 +1,17 @@
+{
+  "samples": 18,
+  "peak_rss_bytes": 80379904,
+  "available_bytes": 12662030336,
+  "temperature_c": 66.1,
+  "controls": {
+    "aegis-release-v150-20261025-cli-install": {
+      "cpu.max": "50000 100000",
+      "pids.max": "128"
+    },
+    "aegis-release-v150-20261025-cli-archive": {
+      "cpu.max": "50000 100000",
+      "pids.max": "128"
+    }
+  },
+  "events": []
+}

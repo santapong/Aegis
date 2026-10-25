@@ -1,0 +1,9 @@
+{
+  "version": "65.2.0",
+  "target_arch": "linux-x64",
+  "archive_bytes": 182606267,
+  "sha256": "6d4925eaa2d8d23139654951304c2ff826995db7864746ed25abaea3c6ec37df",
+  "scope": "Public npm tool dependencies only; no authentication data copied from the workstation to Pi",
+  "original_archive": "Stopped by soft storage watchdog with owned resources cleaned; task cache and partial archive removed before successful archive-only retry",
+  "original_extract": "Premature extraction while transfer running failedEOF; discarded. Retried only after transfer exit0; complete archive validated and version checked."
+}

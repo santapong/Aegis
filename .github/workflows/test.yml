@@ -110,6 +110,15 @@ jobs:
           PGPASSWORD=test psql -h localhost -U postgres -d aegis_test -c "CREATE DATABASE aegis_ledger_test"
           pytest -q tests/test_money_ledger.py tests/test_finance_integration.py tests/test_finance_reads.py tests/test_finance_reconciliation.py tests/test_line_onboarding_tools.py tests/test_budget_currency_postgres.py
 
+      - name: Rehearse explicit release schema gate
+        if: matrix.db == 'postgres'
+        working-directory: backend
+        env:
+          AEGIS_RELEASE_TEST_DATABASE_URL: postgresql://postgres:test@localhost:5432/aegis_release_test
+        run: |
+          PGPASSWORD=test psql -h localhost -U postgres -d aegis_test -c "CREATE DATABASE aegis_release_test"
+          pytest -q tests/test_release_schema.py
+
       - name: Run pytest
         working-directory: backend
         run: pytest -v --tb=short
@@ -119,6 +128,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
       # The repo ships bun.lock only — `npm ci` (and setup-node's npm
       # cache) require a package-lock.json and fail without one.
       # setup-bun caches ~/.bun/install/cache keyed on bun.lock.
@@ -134,6 +146,9 @@ jobs:
       - name: Verify API session boundaries
         working-directory: frontend
         run: bun ../scripts/verify-cash-client-session.mjs
+      - name: Verify exact ledger client boundaries
+        working-directory: frontend
+        run: bun ../scripts/verify-ledger-client.mjs
       - name: Build
         working-directory: frontend
         env:

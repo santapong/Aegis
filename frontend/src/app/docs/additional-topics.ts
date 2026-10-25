@@ -661,13 +661,13 @@ export const additionalTopics:AdditionalTopic[] = [
   },
   {
     "slug": "brand",
-    "title": "Explore the Horizon identity",
-    "description": "Understand the visual direction and compare the logo drafts.",
+    "title": "Use the Aegis identity",
+    "description": "Explore Union, the selected Aegis mark, and download its light and dark artwork.",
     "audience": "guides",
     "category": "start",
     "kind": "Practical guide",
-    "outcome": "A consistent visual vocabulary and editable logo candidates.",
-    "keywords": "brand logo horizon shelter vector svg identity light dark explore the horizon identity",
+    "outcome": "A consistent visual vocabulary and reusable logo artwork.",
+    "keywords": "brand logo union horizon vector svg identity light dark support guidance momentum",
     "sections": [
       {
         "id": "direction",
@@ -678,9 +678,9 @@ export const additionalTopics:AdditionalTopic[] = [
       },
       {
         "id": "logo",
-        "title": "Three drafts to inspect",
+        "title": "Union, the Aegis mark",
         "paragraphs": [
-          "The Brand studio at /brand compares Shelter, Open horizon, and Steady path. Each includes transparent vector SVG downloads for light and dark backgrounds. The current mark remains in the app while the alternatives are reviewed."
+          "Union brings supportive interlocking curves, a rising A, and a continuous folded path into one mark. The Brand page at /brand provides transparent SVG marks for light and dark backgrounds, plus SVG and PNG app icons. Keep the upright lowercase aegis. wordmark beside the symbol."
         ]
       },
       {

@@ -1,0 +1,7 @@
+{
+  "case": "Brand page 1440px horizon-dark",
+  "status": "FAIL initial color assertion",
+  "observed": "Body class was horizon-dark, geometry matched and no overflow, but immediate computed color still rgb(18,61,50). Expected chartreuse rgb(220,233,175).",
+  "diagnosis": "Check settled paint before altering UI; a theme-class update does not prove color transition completion.",
+  "source": "Actual Playwright result in this chat"
+}

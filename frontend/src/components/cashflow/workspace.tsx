@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { AegisMark } from "@/components/brand";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/auth-store";
 import { APIError } from "@/lib/api";
@@ -609,7 +610,7 @@ function OwnerCashWorkspace() {
     <section className={styles.root} aria-label="Cash planning">
       <header className={styles.header}>
         <div className={styles.identity}>
-          <img src="/icon.png" alt="" width="38" height="38" />
+          <AegisMark size={38} className={styles.identityMark} />
           <div>
             <span className={styles.eyebrow}>AEGIS / CASH PLANNING</span>
             <h1>See the dates behind your money.</h1>

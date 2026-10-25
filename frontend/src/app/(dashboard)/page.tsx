@@ -14,7 +14,8 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 import { useAppStore, type DashboardWidgetId } from "@/stores/app-store";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency as formatPreferredCurrency } from "@/lib/utils";
+import { formatTHB } from "@/lib/finance-api";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
 // Recharts (~95 kB gz) + the two chart wrappers + the AI panel are all
@@ -159,6 +160,9 @@ export default function DashboardPage() {
   const cashflow = bundle?.cashflow_forecast;
   const anomalies = bundle?.anomalies;
   const insights = bundle?.insights;
+  const ledgerMode = typeof summary?.net_position_minor === "string";
+  const currency = ledgerMode ? "THB" : undefined;
+  const formatCurrency = (amount: number) => formatPreferredCurrency(amount, currency);
 
   const gradeColor = (grade: string) => {
     switch (grade) {
@@ -346,7 +350,7 @@ export default function DashboardPage() {
         ) : bundleLoading ? (
           <Skeleton height={300} />
         ) : (
-          <SpendingChart data={charts?.spending_by_category ?? []} />
+          <SpendingChart data={charts?.spending_by_category ?? []} currency={currency} />
         )}
       </CardContent>
     </Card>
@@ -364,7 +368,7 @@ export default function DashboardPage() {
         ) : bundleLoading ? (
           <Skeleton height={300} />
         ) : (
-          <TrendChart data={charts?.monthly_trend ?? []} />
+          <TrendChart data={charts?.monthly_trend ?? []} currency={currency} />
         )}
       </CardContent>
     </Card>
@@ -437,7 +441,7 @@ export default function DashboardPage() {
       return (
         <Card>
           <CardContent className="p-6">
-            <CardHead code="CFL" title="Historical trend · unassigned records" />
+            <CardHead code="CFL" title="Projection from recorded activity" />
             <QueryErrorCard
               message={bundleError.message || "Failed to load cash flow forecast."}
               onRetry={() => refetchBundle()}
@@ -452,17 +456,18 @@ export default function DashboardPage() {
         <CardContent className="p-6">
           <CardHead
             code="CFL"
-            title="Historical trend · unassigned records"
+            title={ledgerMode ? "Net-position projection" : "Projection from recorded activity"}
             action={
               <>
-                recorded net movement ·{" "}
+                {ledgerMode ? "Starting net position" : "Starting recorded net"} ·{" "}
                 <span style={{ color: "var(--foreground)" }} className="tabular-nums">
                   {formatCurrency(cashflow.current_balance)}
                 </span>
               </>
             }
           />
-          <CashflowChart data={cashflow.forecast} />
+          {cashflow.assumptions && <p className="mb-4 text-sm text-muted-foreground">{cashflow.assumptions}</p>}
+          <CashflowChart data={cashflow.forecast} currency={currency} />
         </CardContent>
       </Card>
     );
@@ -493,9 +498,11 @@ export default function DashboardPage() {
           subtitle={
             summary ? (
               <>
-                Unassigned recorded net <b>{formatCurrency(summary.total_balance)}</b> · monthly net{" "}
+                {ledgerMode ? "Tracked net position" : "Unassigned recorded net"} <b>{ledgerMode ? formatTHB(summary.net_position_minor!) : formatCurrency(summary.total_balance)}</b> · monthly net{" "}
                 <b style={{ color: "var(--aegis-ok)" }}>
-                  {formatCurrency(summary.monthly_income - summary.monthly_expenses)}
+                  {ledgerMode && typeof summary.monthly_income_minor === "string" && typeof summary.monthly_expenses_minor === "string"
+                    ? formatTHB((BigInt(summary.monthly_income_minor) - BigInt(summary.monthly_expenses_minor)).toString())
+                    : formatCurrency(summary.monthly_income - summary.monthly_expenses)}
                 </b>{" "}
                 · workspace cash is shown in Cash planning.
               </>

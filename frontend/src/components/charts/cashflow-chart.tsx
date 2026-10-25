@@ -34,7 +34,7 @@ interface ForecastPoint {
  * Recharts out of the static client bundle until the user actually
  * scrolls the chart into view (or near it).
  */
-export function CashflowChart({ data }: { data: ForecastPoint[] }) {
+export function CashflowChart({ data, currency }: { data: ForecastPoint[]; currency?: string }) {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>
@@ -53,7 +53,7 @@ export function CashflowChart({ data }: { data: ForecastPoint[] }) {
           axisLine={false}
         />
         <Tooltip
-          formatter={(value: number) => formatCurrency(value)}
+          formatter={(value: number) => formatCurrency(value, currency)}
           contentStyle={glassTooltipStyle}
           cursor={{ stroke: "var(--aegis-line-2)", strokeDasharray: "2 4" }}
         />

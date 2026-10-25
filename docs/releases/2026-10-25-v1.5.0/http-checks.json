@@ -1,0 +1,36 @@
+[
+  {
+    "path": "/brand/aegis-union-icon.svg",
+    "status": 200,
+    "source_hash_matches": true,
+    "content_type": "image/svg+xml"
+  },
+  {
+    "path": "/icon.png",
+    "status": 200,
+    "source_hash_matches": true,
+    "content_type": "image/png"
+  },
+  {
+    "path": "/favicon.ico",
+    "status": 200,
+    "source_hash_matches": true,
+    "content_type": "image/x-icon"
+  },
+  {
+    "path": "/_next/image?url=%2Ficon.png&w=64&q=75",
+    "status": 200,
+    "content_type": "image/png"
+  },
+  {
+    "path": "/_next/image?url=%2Fbrand%2Faegis-union-icon.svg&w=64&q=75",
+    "status": 400
+  },
+  {
+    "health": {
+      "version": "1.5.0",
+      "status": "ok",
+      "db": "ok"
+    }
+  }
+]

@@ -1,0 +1,41 @@
+{
+  "environment": "isolated fake PostgreSQL/API and release Next build, dedicated localhost hostname",
+  "identity": {
+    "name": "Union",
+    "brand_page": "PASS light/dark",
+    "svg_favicon": "/brand/aegis-union-icon.svg",
+    "marks_on_brand_page": 8,
+    "brand_mobile": {
+      "client": 314,
+      "scroll": 314
+    }
+  },
+  "dashboard": {
+    "tracked_net_label": true,
+    "usd_symbols": false,
+    "projection_label": "Net-position projection",
+    "actual_balance": "THB10000",
+    "desktop": {
+      "client": 1280,
+      "scroll": 1280
+    }
+  },
+  "budgets": {
+    "keyboard_confirmation": "PASS",
+    "persisted_after_reload": true,
+    "currency": "THB",
+    "cap": "5000",
+    "spent": "0",
+    "remaining": "5000",
+    "mobile": {
+      "client": 320,
+      "scroll": 320
+    }
+  },
+  "browser_cleanup": {
+    "signed_out": true,
+    "tab_closed": true,
+    "viewport_reset": true
+  },
+  "real_phone_or_provider": "NOT RUN"
+}

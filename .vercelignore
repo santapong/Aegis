@@ -1,0 +1,11 @@
+/.claude/
+/.agents/
+/.github/
+/docs/
+/scripts/
+/backend/tests/
+**/node_modules/
+**/.venv/
+**/.next*/
+**/__pycache__/
+**/*.log

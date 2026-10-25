@@ -16,6 +16,7 @@ from sqlalchemy import event, text
 from app.database import get_db
 from app.main import app
 from app.models.cashflow import CashAudit
+from app.models.transaction import Transaction
 from app.models.line_finance import LineFinanceDraft, LineFinanceIdentity
 from app.services.cashflow import digest
 from .test_cashflow import Cash, client as shared_client
@@ -178,20 +179,30 @@ def test_variance_uses_frozen_anchor_when_later_opening_already_exists(client):
 
 
 class Contention:
-    """Hold the first actual row claim; observe the second waiting in PostgreSQL."""
+    """Hold the shared owner boundary; observe the second waiting in PostgreSQL."""
 
     def __init__(self, transaction_ids):
         self.engine = database(lambda db: db.get_bind())
         self.ids = set(transaction_ids)
+        owners = database(
+            lambda db: db.query(Transaction.user_id)
+            .filter(Transaction.id.in_(self.ids)).distinct().all()
+        )
+        assert len(owners) == 1, "Contention fixture must have one financial owner"
+        self.owner = owners[0][0]
         self.held, self.release, self.second = Event(), Event(), Event()
         self.guard = Lock()
         self.leader = self.waiter = None
 
     def relevant(self, statement, params):
         values = params.values() if isinstance(params, dict) else params
-        return statement.startswith(
-            "UPDATE transactions SET id=transactions.id"
-        ) and bool(self.ids.intersection(values))
+        # Legacy edits and assignments now serialize before transaction claims.
+        # Holding a later transaction UPDATE cannot observe this earlier waiter.
+        return (
+            "FROM users" in statement
+            and statement.rstrip().endswith(("FOR UPDATE", "FOR NO KEY UPDATE"))
+            and self.owner in values
+        )
 
     def before(self, conn, cursor, statement, params, context, many):
         if self.relevant(statement, params):
@@ -220,9 +231,9 @@ class Contention:
         return self
 
     def wait_for_lock(self):
-        assert self.second.wait(10), "Competing writer never attempted a claim"
+        assert self.second.wait(10), "Competing writer never attempted the owner lock"
         deadline = time.monotonic() + 5
-        with self.engine.connect() as observer:
+        with self.engine.connect().execution_options(isolation_level="AUTOCOMMIT") as observer:
             while time.monotonic() < deadline:
                 blockers = observer.execute(
                     text("SELECT pg_blocking_pids(:pid)"), {"pid": self.waiter}
@@ -230,7 +241,7 @@ class Contention:
                 if self.leader in blockers:
                     return
                 time.sleep(0.02)
-        raise AssertionError("No actual PostgreSQL row contention observed")
+        raise AssertionError("No actual PostgreSQL owner contention observed")
 
     def __exit__(self, *args):
         self.release.set()
@@ -262,7 +273,7 @@ def test_postgres_concurrent_assignments_have_one_winner_and_no_losing_audit(cli
         json={"name": "Second cash", "revision": 0, "request_key": str(uuid.uuid4())},
     ).json()
     ids = sorted([legacy(c), legacy(c)])
-    # Opposite input orders must still acquire transaction rows in sorted order.
+    # The shared owner boundary serializes assignments with opposite input orders.
     with Contention(ids) as held, ThreadPoolExecutor(2) as pool:
         first = pool.submit(adoption, c, ids=list(reversed(ids)))
         assert held.held.wait(10)

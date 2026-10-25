@@ -1,0 +1,90 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "route": "/login",
+      "width": 1440,
+      "theme": "horizon",
+      "marks": 1,
+      "sameGeometry": true,
+      "overflow": false,
+      "brandColor": "rgb(18, 61, 50)",
+      "expectedColor": "rgb(18, 61, 50)"
+    },
+    {
+      "route": "/login",
+      "width": 1440,
+      "theme": "horizon-dark",
+      "marks": 1,
+      "sameGeometry": true,
+      "overflow": false,
+      "brandColor": "rgb(220, 233, 175)",
+      "expectedColor": "rgb(220, 233, 175)"
+    },
+    {
+      "route": "/login",
+      "width": 320,
+      "theme": "horizon",
+      "marks": 1,
+      "sameGeometry": true,
+      "overflow": false,
+      "brandColor": "rgb(18, 61, 50)",
+      "expectedColor": "rgb(18, 61, 50)"
+    },
+    {
+      "route": "/login",
+      "width": 320,
+      "theme": "horizon-dark",
+      "marks": 1,
+      "sameGeometry": true,
+      "overflow": false,
+      "brandColor": "rgb(220, 233, 175)",
+      "expectedColor": "rgb(220, 233, 175)"
+    },
+    {
+      "route": "/docs/guides/brand",
+      "width": 1440,
+      "theme": "horizon",
+      "marks": 1,
+      "sameGeometry": true,
+      "overflow": false,
+      "brandColor": "rgb(18, 61, 50)",
+      "expectedColor": "rgb(18, 61, 50)"
+    },
+    {
+      "route": "/docs/guides/brand",
+      "width": 1440,
+      "theme": "horizon-dark",
+      "marks": 1,
+      "sameGeometry": true,
+      "overflow": false,
+      "brandColor": "rgb(220, 233, 175)",
+      "expectedColor": "rgb(220, 233, 175)"
+    },
+    {
+      "route": "/docs/guides/brand",
+      "width": 320,
+      "theme": "horizon",
+      "marks": 1,
+      "sameGeometry": true,
+      "overflow": false,
+      "brandColor": "rgb(18, 61, 50)",
+      "expectedColor": "rgb(18, 61, 50)"
+    },
+    {
+      "route": "/docs/guides/brand",
+      "width": 320,
+      "theme": "horizon-dark",
+      "marks": 1,
+      "sameGeometry": true,
+      "overflow": false,
+      "brandColor": "rgb(220, 233, 175)",
+      "expectedColor": "rgb(220, 233, 175)"
+    }
+  ],
+  "requests": 95,
+  "pageErrors": 0,
+  "loginValuePreserved": true,
+  "unionGuideVisible": true,
+  "elapsed": 1185
+}

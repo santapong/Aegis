@@ -36,7 +36,10 @@ export const metadata: Metadata = {
     template: `%s — ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
-  icons: { icon: "/brand/aegis-horizon.svg", apple: "/brand/aegis-horizon.svg" },
+  icons: {
+    icon: [{ url: "/brand/aegis-union-icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
   robots: {
     // App/data routes are login-gated and offer nothing to a crawler;
     // per-page metadata on the public routes (landing, welcome) narrows
