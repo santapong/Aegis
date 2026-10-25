@@ -8,7 +8,7 @@ import { StatusBar } from "@/components/ui/status-bar";
 import { safeAuthReturn } from "@/lib/auth-return";
 
 const AUTH_PAGES = ["/login", "/register"];
-const PUBLIC_PAGES = ["/welcome", "/landing", "/docs", "/demo", "/brand"];
+const PUBLIC_PAGES = ["/welcome", "/landing", "/docs", "/demo"];
 // Changelog content that a signed-out visitor should be able to
 // read without a redirect to /login, but that still belongs inside the app
 // shell (Sidebar/StatusBar) for a signed-in user — unlike PUBLIC_PAGES,
