@@ -6,6 +6,8 @@
     },
     "backend": {
       "root": "backend",
+      "framework": "fastapi",
+      "buildCommand": "python scripts/release_schema.py",
       "entrypoint": "main.py"
     }
   },

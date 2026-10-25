@@ -294,6 +294,8 @@ export interface CashFlowPoint {
 }
 
 export interface CashFlowForecastResponse {
+  balance_basis?: string;
+  assumptions?: string | null;
   current_balance: number;
   forecast: CashFlowPoint[];
 }

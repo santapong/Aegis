@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-25
+
+### Union identity and release hardening
+
+- Adopted the selected Union mark across shared navigation, access screens, the Brand page, SVG downloads and app/favicons.
+- Patched Next.js to15.5.28 and explicitly pinned sharp0.35.5; updated compatible audited runtime dependencies. Retained remaining tooling findings and applicability in the release risk record.
+- Corrected tracked dashboard currency and projection vocabulary. Updated the cash concurrency observer to the earlier shared owner lock, keeping real PostgreSQL blocking and financial outcome assertions.
+
+
 ### Horizon and develop integration — 2026-10-25
 
 - Integrated the Horizon ivory/evergreen frontend, updated public guides, brand assets and tracked-money views with the exact-money LINE backend.

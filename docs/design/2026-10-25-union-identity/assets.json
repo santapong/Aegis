@@ -1,0 +1,62 @@
+{
+  "assets": [
+    {
+      "path": "frontend/public/brand/aegis-union-light.svg",
+      "sha256": "6b1eea83e3fc313a772b7628056179a510b28cad386297ad61834c73472473ea",
+      "path_geometry_matches": true
+    },
+    {
+      "path": "frontend/public/brand/aegis-union-dark.svg",
+      "sha256": "5d52a77087816bf1a6d8a8cf014a3fce289ef13a7aaeb209546dc097846f07aa",
+      "path_geometry_matches": true
+    },
+    {
+      "path": "frontend/public/brand/aegis-union-icon.svg",
+      "sha256": "436ed3b914512d50302cf6cff7601d07183512e69dee70d29fd398fae679c502",
+      "path_geometry_matches": true
+    },
+    {
+      "path": "frontend/src/app/icon.png",
+      "sha256": "31cfc71882bcaa6b5c738e4739a5d348ef6d3af25c3ceafe4b5bab1b78b0e4a3",
+      "format": "PNG",
+      "dimensions": [
+        512,
+        512
+      ]
+    },
+    {
+      "path": "frontend/src/app/apple-icon.png",
+      "sha256": "9deb7e3ff08697383fe5e7d766c87c7eee7b15dd8c98f58aa9d80ccb5879667a",
+      "format": "PNG",
+      "dimensions": [
+        180,
+        180
+      ]
+    },
+    {
+      "path": "frontend/src/app/favicon.ico",
+      "sha256": "89f8c93ccf0f651a6673e148c4b6f782c426651565fcc18266a230e2aa2f4472",
+      "format": "ICO",
+      "dimensions": [
+        48,
+        48
+      ],
+      "sizes": [
+        [
+          16,
+          16
+        ],
+        [
+          32,
+          32
+        ],
+        [
+          48,
+          48
+        ]
+      ]
+    }
+  ],
+  "source": "frontend/src/lib/brand-mark.json",
+  "reference": "../2026-10-25-logo-combined/02-aegis-union-combined.png"
+}

@@ -17,6 +17,7 @@ import { PieChart as PieChartIcon } from "lucide-react";
 
 interface SpendingChartProps {
   data: ChartDataPoint[];
+  currency?: string;
 }
 
 /* Terminal-aesthetic palette — magenta, phosphor green, amber, claret. */
@@ -40,7 +41,7 @@ const glassTooltipStyle = {
   padding: "8px 12px",
 };
 
-const renderActiveShape = (props: any) => {
+const renderActiveShape = (props: any, currency?: string) => {
   const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill, payload, value, percent } = props;
   return (
     <g>
@@ -58,13 +59,13 @@ const renderActiveShape = (props: any) => {
         {payload.label}
       </text>
       <text x={cx} y={cy + 12} textAnchor="middle" fill="var(--muted-foreground)" fontSize={12}>
-        {formatCurrency(value)} ({(percent * 100).toFixed(0)}%)
+        {formatCurrency(value, currency)} ({(percent * 100).toFixed(0)}%)
       </text>
     </g>
   );
 };
 
-export function SpendingChart({ data }: SpendingChartProps) {
+export function SpendingChart({ data, currency }: SpendingChartProps) {
   const [activeIndex, setActiveIndex] = useState<number | undefined>(undefined);
 
   if (data.length === 0) {
@@ -84,7 +85,7 @@ export function SpendingChart({ data }: SpendingChartProps) {
           dataKey="value"
           nameKey="label"
           activeIndex={activeIndex}
-          activeShape={renderActiveShape}
+          activeShape={(props: any) => renderActiveShape(props, currency)}
           onMouseEnter={(_, index) => setActiveIndex(index)}
           onMouseLeave={() => setActiveIndex(undefined)}
           isAnimationActive={false}
@@ -94,7 +95,7 @@ export function SpendingChart({ data }: SpendingChartProps) {
           ))}
         </Pie>
         <Tooltip
-          formatter={(value: number) => formatCurrency(value)}
+          formatter={(value: number) => formatCurrency(value, currency)}
           contentStyle={glassTooltipStyle}
         />
         <Legend />

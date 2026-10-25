@@ -1,8 +1,57 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { MarketingHeader } from "@/components/marketing/marketing-header";
+import { AegisMark } from "@/components/brand";
 import { ArrowDownToLine, ArrowUpRight } from "lucide-react";
 import s from "./studio.module.css";
-export const metadata: Metadata = { title:"Brand studio", description:"Three vector logo drafts for Aegis Horizon, with matching light and dark treatments." };
-const drafts=[{id:"shelter",letter:"A",name:"Shelter",idea:"A clear foundation.",text:"An A held within a quiet protective outline. Familiar, dependable, and closest to the current Horizon mark.",meaning:"Protection · continuity · clarity"},{id:"horizon",letter:"B",name:"Open horizon",idea:"Safety, with a way forward.",text:"An open architectural arch and a rising horizon. A grounded space that leaves room for what comes next.",meaning:"Possibility · openness · confidence"},{id:"path",letter:"C",name:"Steady path",idea:"Progress, at your pace.",text:"A precise A and a firm baseline. A more direct, architectural expression of intention and forward movement.",meaning:"Direction · intention · momentum"}];
-export default function BrandStudio(){return <div className={s.page}><MarketingHeader current="brand" /><main className={s.main}><header className={s.intro}><p>AEGIS / BRAND STUDIO</p><h1>Solid ground.<br /><em>Three ways forward.</em></h1><span>Logo drafts for the next chapter of Aegis. Each works in one colour, at small sizes, and in light or dark mode.</span><small>Draft exploration · The current app mark stays in place while you review.</small></header><div className={s.grid}>{drafts.map(d=><article className={s.card} key={d.id}><div className={s.cardTop}><span>DRAFT {d.letter}</span><b>{d.meaning}</b></div><div className={s.logoPanel}><img className="aegis-logo-light" src={`/brand/logo-drafts/${d.id}-light.svg`} width={100} height={100} alt={`Aegis ${d.name} logo draft`} /><img className="aegis-logo-dark" src={`/brand/logo-drafts/${d.id}-dark.svg`} width={100} height={100} alt="" /><span>aegis<span>.</span></span></div><h2>{d.name}</h2><h3>{d.idea}</h3><p>{d.text}</p><div className={s.downloads}><a href={`/brand/logo-drafts/${d.id}-light.svg`} download><ArrowDownToLine size={14} /> Light SVG</a><a href={`/brand/logo-drafts/${d.id}-dark.svg`} download><ArrowDownToLine size={14} /> Dark SVG</a></div></article>)}</div><section className={s.system}><div><p>ONE IDENTITY. TWO ATMOSPHERES.</p><h2>Same clarity.<br /><em>Different light.</em></h2></div><div><p>Warm ivory and evergreen by day. Deep forest and soft chartreuse after dark. Use the appearance button in the header to compare the same layouts.</p><div className={s.swatches}><span style={{background:'#f6f5ef',border:'1px solid #b6c6b9'}} /><span style={{background:'#123d32'}} /><span style={{background:'#0d1b17'}} /><span style={{background:'#dce9af'}} /></div><Link href="/docs/guides/appearance">Read the appearance guide <ArrowUpRight size={15} /></Link></div></section></main></div>}
+
+export const metadata: Metadata = {
+  title: "Brand",
+  description: "Union, the Aegis identity. Support, guidance and momentum in one mark, with light and dark logo downloads.",
+};
+const principles = [
+  { name: "Support", text: "Interlocking curves create a steady foundation. A clear plan starts with understanding where you stand." },
+  { name: "Guidance", text: "A rising A leaves an open space at its centre. A clear direction, with room for your own decisions." },
+  { name: "Momentum", text: "One flowing path connects the form. Small, deliberate steps toward what comes next." },
+];
+export default function BrandStudio() {
+  return <div className={s.page}>
+    <MarketingHeader current="brand" />
+    <main className={s.main}>
+      <header className={s.intro}>
+        <p>AEGIS / IDENTITY</p>
+        <h1>Stronger together.<br /><em>Open to tomorrow.</em></h1>
+        <span>Meet Union. Supportive curves, a clear direction, and a continuous path forward—brought together in the Aegis mark.</span>
+      </header>
+      <section className={s.identity} aria-labelledby="union-heading">
+        <div className={s.story}>
+          <p className={s.eyebrow}>ONE IDENTITY. ONE WAY FORWARD.</p>
+          <h2 id="union-heading">Union.</h2>
+          <p>A calm foundation for everyday money and the bigger things you are planning.</p>
+          <div className={s.downloads}>
+            <a href="/brand/aegis-union-light.svg" download><ArrowDownToLine size={15} /> Light mark · SVG</a>
+            <a href="/brand/aegis-union-dark.svg" download><ArrowDownToLine size={15} /> Dark mark · SVG</a>
+            <a href="/brand/aegis-union-icon.svg" download><ArrowDownToLine size={15} /> App icon · SVG</a>
+            <a href="/icon.png" download="aegis-union-icon.png"><ArrowDownToLine size={15} /> App icon · PNG</a>
+          </div>
+        </div>
+        <div className={s.signature} role="img" aria-label="Aegis Union logo"><AegisMark size={208} /><span aria-hidden="true">aegis.</span></div>
+      </section>
+      <section className={s.principles} aria-label="The ideas behind Union">
+        {principles.map((principle, index) => <article key={principle.name}><span>0{index + 1}</span><h3>{principle.name}</h3><p>{principle.text}</p></article>)}
+      </section>
+      <section className={s.system} aria-labelledby="appearance-heading">
+        <div className={s.sectionHeading}><p className={s.eyebrow}>ONE IDENTITY. TWO ATMOSPHERES.</p><h2 id="appearance-heading">Same clarity.<br /><em>Different light.</em></h2><p>Evergreen on warm ivory. Soft chartreuse on deep green. The same mark, with room to breathe.</p></div>
+        <div className={s.appearances}>
+          <div className={s.lightPanel}><span>LIGHT</span><div className={s.lockup} role="img" aria-label="Aegis logo in evergreen on ivory"><AegisMark size={72} /><b aria-hidden="true">aegis.</b></div></div>
+          <div className={s.darkPanel}><span>DARK</span><div className={s.lockup} role="img" aria-label="Aegis logo in chartreuse on evergreen"><AegisMark size={72} /><b aria-hidden="true">aegis.</b></div></div>
+        </div>
+        <Link href="/docs/guides/appearance">Read the appearance guide <ArrowUpRight size={15} /></Link>
+      </section>
+      <section className={s.details} aria-label="Using the mark">
+        <div><h2>Give it a little space.</h2><p>Use one colour, keep the proportions, and leave clear space around the mark. Keep the wordmark upright and the symbol still.</p></div>
+        <div className={s.sizes} aria-label="Union mark at 16, 24, 32 and 48 pixels">{[16, 24, 32, 48].map(size => <div key={size}><AegisMark size={size} /><span>{size}px</span></div>)}</div>
+      </section>
+    </main>
+  </div>;
+}

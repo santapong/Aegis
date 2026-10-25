@@ -40,19 +40,25 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
+def migrate_connection(connection) -> None:
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        render_as_batch=True,
+    )
+    with context.begin_transaction():
+        context.run_migrations()
+
+
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode."""
+    """Allow a release operator to own the transaction and resource limits."""
+    supplied = config.attributes.get("connection")
+    if supplied is not None:
+        migrate_connection(supplied)
+        return
     connectable = create_engine(settings.database_url, poolclass=pool.NullPool)
-
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-            render_as_batch=True,  # Required for SQLite ALTER TABLE support
-        )
-
-        with context.begin_transaction():
-            context.run_migrations()
+        migrate_connection(connection)
 
 
 if context.is_offline_mode():

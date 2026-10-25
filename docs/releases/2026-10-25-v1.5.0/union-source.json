@@ -1,0 +1,19 @@
+{
+  "frontend/src/lib/brand-mark.json": "ed88bb70b8d961eec2554d1a21731a06c613eff2af7402a260d7aa2df1e3e5c1",
+  "frontend/src/components/brand.tsx": "af0e722de29755b6f8b28b2b255e8c114d8745d71426d592c813e99a2895a9f0",
+  "frontend/src/app/horizon.css": "92bfbd663769b4e709ff48e630ce3fb047e1a6201b3dcc37f549e0464e53f509",
+  "frontend/src/app/layout.tsx": "45738de33ffbf0e4148981fe2937c1e9e8238006042f05b2124652a77256f3dd",
+  "frontend/src/app/brand/page.tsx": "2b87b0dfe3f0888fef9094078d9f539fd1e3451350d275441dc0a10e8633eb4b",
+  "frontend/src/app/brand/studio.module.css": "ccbb663d85d50b7f121734158ad63d0a560638c88654a8d7fa53e8d2bda93563",
+  "frontend/src/app/icon.png": "31cfc71882bcaa6b5c738e4739a5d348ef6d3af25c3ceafe4b5bab1b78b0e4a3",
+  "frontend/src/app/apple-icon.png": "9deb7e3ff08697383fe5e7d766c87c7eee7b15dd8c98f58aa9d80ccb5879667a",
+  "frontend/src/app/favicon.ico": "89f8c93ccf0f651a6673e148c4b6f782c426651565fcc18266a230e2aa2f4472",
+  "frontend/src/components/cashflow/workspace.tsx": "88822866a1f150540256ea20f4737a40b0060d79ad6891e4b9b168ad23c360b6",
+  "frontend/src/components/cashflow/workspace.module.css": "8b132a6276eb06fd023d5a989b16497bb3033d43a52479a0fa60552c2dd0cb2f",
+  "frontend/src/app/docs/additional-topics.ts": "a746ff116276817046e3b2738a1f5fcbe9ac916168064cf83c2e556ccbe54595",
+  "frontend/src/app/docs/extended-content.tsx": "3ca7238a7198da3f3c4c71b85914af42e2b6d455936908515106517492d21f03",
+  "frontend/scripts/export-brand.mjs": "4cc8cd302ffbfb3593f191dd3819c248ae11a6753f4ef5b0ad3c0db030d68978",
+  "frontend/public/brand/aegis-union-light.svg": "6b1eea83e3fc313a772b7628056179a510b28cad386297ad61834c73472473ea",
+  "frontend/public/brand/aegis-union-dark.svg": "5d52a77087816bf1a6d8a8cf014a3fce289ef13a7aaeb209546dc097846f07aa",
+  "frontend/public/brand/aegis-union-icon.svg": "436ed3b914512d50302cf6cff7601d07183512e69dee70d29fd398fae679c502"
+}

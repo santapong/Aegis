@@ -1,0 +1,13 @@
+{
+  "samples": 2,
+  "peak_rss_bytes": 16596992,
+  "available_bytes": 12910280704,
+  "temperature_c": 64.45,
+  "controls": {
+    "aegis-release-v150-20261025-audit-fix-dry": {
+      "cpu.max": "50000 100000",
+      "pids.max": "128"
+    }
+  },
+  "events": []
+}

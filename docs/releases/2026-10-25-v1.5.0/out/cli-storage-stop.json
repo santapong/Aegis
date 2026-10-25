@@ -1,0 +1,8 @@
+{
+  "reason": "temporary_storage_budget",
+  "observed_root_mib": 2027,
+  "cache_mib": 594,
+  "tool_mib": 576,
+  "partial_archive_mib": 113,
+  "response": "Remove owned cache and partial archive, then retry archive only within unchanged budget"
+}

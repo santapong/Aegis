@@ -77,8 +77,10 @@
   --ring-glow: none;
   --star-opacity: 0;
 }
-.aegis-brand { display: inline-flex; align-items: center; gap: 9px; color: inherit; white-space: nowrap; font: 600 27px/1 var(--font-sans), sans-serif; letter-spacing: -.065em; }
-.aegis-brand-dot { color: var(--h-ink-soft); }
+.aegis-brand { display: inline-flex; align-items: center; gap: 10px; color: inherit; white-space: nowrap; font: 700 27px/1 var(--font-sans), sans-serif; letter-spacing: -.065em; }
+.aegis-brand > svg { flex-shrink: 0; }
+:is(.theme-horizon, .theme-horizon-dark) .aegis-brand,
+:is(.theme-horizon, .theme-horizon-dark) .aegis-sidebar [data-aegis-mark="union"] { color: var(--h-action); }
 :is(.theme-horizon, .theme-horizon-dark) .backdrop { background: var(--void); }
 :is(.theme-horizon, .theme-horizon-dark) .bd-base { background: var(--void); }
 :is(.theme-horizon, .theme-horizon-dark) .btn-galaxy { min-height: 44px; border-radius: 9px; font-family: var(--font-sans), sans-serif; font-size: 13px; letter-spacing: 0; text-transform: none; }

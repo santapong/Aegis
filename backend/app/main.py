@@ -50,7 +50,7 @@ from .routers import (
 settings = get_settings()
 configure_logging(settings.log_format, settings.debug)
 
-APP_VERSION = "1.0.0"
+APP_VERSION = "1.5.0"
 
 
 @asynccontextmanager

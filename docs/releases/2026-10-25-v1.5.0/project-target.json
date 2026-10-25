@@ -1,0 +1,13 @@
+{
+  "project_id": "prj_AZS5jNpi2EN4DMuwmXhfpWJeYjcv",
+  "team_id": "team_4xUt8aSlfT696WCBgbsjtJTV",
+  "project": "aegis",
+  "framework": "services",
+  "root": ".",
+  "node": "24.x",
+  "repository": "santapong/Aegis",
+  "production_branch": "main",
+  "prior_production_commit": "9071ddf0f75f4cf903a6739c41a7ff7e0c6af22c",
+  "production_alias": "aegis-eight-azure.vercel.app",
+  "access": "Existing CLI authentication; protected settings not exported"
+}

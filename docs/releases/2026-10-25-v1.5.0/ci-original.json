@@ -1,0 +1,19 @@
+{
+  "run": 40176387143,
+  "source": "8e6c5aa",
+  "postgres_python312_job": 121117925997,
+  "postgres_python311_job": 121117926024,
+  "cash_suite": {
+    "passed": 75,
+    "failed": 9,
+    "seconds": 281.25
+  },
+  "failure": "Cash contention observer waited for a later transaction-row claim; competing requests block at an earlier owner SELECT FOR UPDATE",
+  "other_jobs": [
+    "SQLite3.11PASS",
+    "SQLite3.12PASS",
+    "frontendPASS",
+    "Trivy job completed; not absence of vulnerabilities"
+  ],
+  "repair": "Observe actual owner lock, pg_blocking_pids and unchanged final money/ownership/audit assertions; rerun pending"
+}
