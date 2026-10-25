@@ -72,7 +72,7 @@ See [cleanup](cleanup.json) and [guard](guard.json).
 checks do not certify security; a pre-existing Next/sharp advisory requires
 release follow-up. No comprehensive current dependency/container scan was run.
 The normal independent-review/draft-PR path is not claimed complete; the owner
-selected direct develop integration. Remote CI is separate and currently pending.
+selected direct develop integration. Remote CI started for mergeaff15e6: [push run](https://github.com/santapong/Aegis/actions/runs/40176266784); it was in progress when this receipt was saved. A later documentation-only receipt commit can start its own run.
 
 
 Final build ID: `dJIgBtRiRnAaPdOYUkwcM`. All423 transferred source files match
@@ -82,3 +82,14 @@ integration/CI evidence received documentation-only updates after execution.
 The full raw whitespace check reports historical Markdown/patch/license spaces;
 the selected application/CI source whitespace check passes. No license text or
 historical failure artifact was rewritten to obtain a clean result.
+
+
+## Integration result
+
+Committed source044780d and mergeaff15e6 were pushed to develop using plain git;
+`git ls-remote` verified the exact remote hash. Main remained9071ddf. The original
+Aegis, LINE and Horizon worktrees were preserved. The canonical continuation
+checkout is `/home/santapong/worktrees/aegis-develop-integration-20261025`, branch
+`develop`. No PR, tag, production deployment, credential change or LINE activation
+was performed. The owner's direct integration request is not represented as an
+independent-review, security-exception or public-release decision.

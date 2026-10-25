@@ -1,0 +1,42 @@
+{
+  "status": "merged_and_pushed",
+  "source_commit": "044780d",
+  "merge_commit": "aff15e6020674d28361be2c61028f33145573a46",
+  "remote_develop_verified": "aff15e6020674d28361be2c61028f33145573a46",
+  "remote_main_verified": "9071ddf0f75f4cf903a6739c41a7ff7e0c6af22c",
+  "recorded_at": "2026-10-25T08:22:24.499975+00:00",
+  "verification": {
+    "robot_core": {
+      "pass": 20,
+      "fail": 0
+    },
+    "proxy_original": {
+      "pass": 0,
+      "fail": 1
+    },
+    "proxy_rerun": {
+      "pass": 1,
+      "fail": 0
+    },
+    "build_v3": "PASS97pages+types",
+    "browser": "PASS budget review, reload persistence,1280px and320px",
+    "prior_backend_regressions": "266pass20skip SQLite;64selected including genuine PG; reused with source comparison, not rerun",
+    "optional_additional_balance_read": "INCOMPLETE harness path error; not claimed"
+  },
+  "cleanup": {
+    "task_containers_remaining": 0,
+    "watchdog_present": false,
+    "private_link_file_absent": true,
+    "temporary_bytes_before_cleanup": 418051489,
+    "dependencies_and_build_cache_removed": true,
+    "postgres_data_was_tmpfs_and_is_gone": true,
+    "source_and_built_artifact_retained": true,
+    "guard_lifetime_seconds": 1404.76
+  },
+  "risk": "Development integration only; RISK.md retains pre-existing dependency advisory and unexecuted release/security coverage",
+  "ci": {
+    "merge_run": "https://github.com/santapong/Aegis/actions/runs/40176266784",
+    "status_as_checked": "in_progress"
+  },
+  "no_deployment_or_line_activation": true
+}
