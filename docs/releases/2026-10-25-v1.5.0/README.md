@@ -47,3 +47,5 @@ passed, including data-preservation failure rollback. See schema-gate.md.
 Existing exact-ledger client boundary script passed; it is now included in CI.
 
 Native develop preview dpl_52zUz23FrFQcziR56qpKQZVe35cd rejected ambiguous Next.js/Container detection before building. The frontend Services framework is now pinned to nextjs, matching the existing app. This configuration repair requires its own cloud build; application-test results remain scoped to their recorded source.
+
+Production-target stage dpl_2NSSmbQYXVj2UBX2c1RPnzF1UZeC failed before backend build: the Google font loader could not parse a Syne font URL extension. The login now loads the same Syne variable family locally with its OFL license and source/hash receipt. This is a scoped font-source repair, not a visual redesign. Framework issue reference: https://github.com/vercel/next.js/issues/99114. A new cloud build must qualify this change.

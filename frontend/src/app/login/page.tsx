@@ -3,7 +3,7 @@ import { AegisBrand } from "@/components/brand";
 import Link from "next/link";
 import { AccessStory } from "@/components/access-story";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Syne } from "next/font/google";
+import localFont from "next/font/local";
 import { ArrowLeft, ArrowUpRight, ChevronDown } from "lucide-react";
 import { LoginForm } from "./login-form";
 import s from "./login.module.css";
@@ -13,9 +13,9 @@ export const metadata: Metadata = {
   description:
     "Sign in to your Aegis workspace. Your everyday money and what comes next.",
 };
-const syne = Syne({
-  subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+const syne = localFont({
+  src: "../../fonts/Syne-Variable.ttf",
+  weight: "400 800",
   display: "swap",
   variable: "--font-syne",
 });

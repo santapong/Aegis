@@ -278,7 +278,7 @@
   "frontend/src/app/llms.txt/route.ts": "f504fb3ab239f735d3bfd95f4f35234b71f7ad700671e67ec5cf8cfb383106ad",
   "frontend/src/app/login/login-form.tsx": "a5ff93038b5ca9a365271192f0d3db58f54bb88a23d066162a278edfb09bb168",
   "frontend/src/app/login/login.module.css": "5403733650179f3d66da6f964937d87b9f9c4a06e8d8409e9c2300f2431a51ae",
-  "frontend/src/app/login/page.tsx": "badb9ef69a5e9c04f4ee1d371afe2f429f5bbfe1a00aa75a91c9a7a5a5aa5a60",
+  "frontend/src/app/login/page.tsx": "51cd8b2d63a1718a210d37134000f088531dc5e008a0f8f0cba91fbdf05fefb6",
   "frontend/src/app/mcp-catalog.json/route.ts": "3b5d732db9cd668b82d6f3ddb828255a10e4a3ee04055d4b26c8cff2db4e7477",
   "frontend/src/app/not-found.tsx": "163a54aaf48d01db8409fe24d944ed1293cb286bd1b150a03dd6e8777e5739ab",
   "frontend/src/app/payments/error.tsx": "5b4af9ebc187201b22a9065bfb3771057c87841215fd2507d449a1f4664927ef",
@@ -461,5 +461,7 @@
   "scripts/verify-cashflow-workflow.py": "a06823ac9e476ac1d052902d3771ac2db7584b33f09a43e902eaa26a103c99bb",
   "scripts/verify-ledger-client.mjs": "0e83404f793dcb8190fd91b408559f7ee93c94dca4d9e131e37ee80e8b35927d",
   "scripts/verify-line-workflows.py": "6e498989f9e28eee6b597be1d39f2c0f27b19456a544e56f1a51324b2cb477c2",
-  "vercel.json": "f46173c889d197e16d795ca090caac644c1ef2026607b3e66fdb885f901a1520"
+  "vercel.json": "f46173c889d197e16d795ca090caac644c1ef2026607b3e66fdb885f901a1520",
+  "frontend/src/fonts/Syne-Variable.ttf": "ce5ac77142a65cab2248a1a2ebb740b1d4d9c20b52488877d3ff664d1356104a",
+  "frontend/src/fonts/Syne-OFL.txt": "cc43cdce6f91c57989af8459341c276655e34224e954fa69c2ad700831a742d8"
 }
