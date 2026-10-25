@@ -1,0 +1,6 @@
+{
+  "started_at": "2026-10-02T13:19:47.764090+00:00",
+  "scope": "actual base/prod Compose with fixture-only env, prebuilt reviewed images, internal services and loopback local-CA TLS",
+  "exit_code": 0,
+  "finished_at": "2026-10-02T13:20:51.410829+00:00"
+}

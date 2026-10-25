@@ -6,7 +6,7 @@ import csv
 import io
 
 from ..database import get_db
-from ..models.transaction import Transaction, TransactionType, RecurringInterval
+from ..models.transaction import Transaction, TransactionType
 from ..models.tag import Tag
 from ..models.trip import Trip
 from ..models.user import User
@@ -20,6 +20,8 @@ from ..schemas.transaction import (
 from ..schemas.dashboard import AnomalyItem, AnomaliesResponse
 from ..services.notification_service import evaluate_budget_thresholds
 from ..services.recurrence import expand_occurrences, monthly_equivalent
+from ..services.transaction_scope import claim_transaction
+from ..services.finance_reads import guard_legacy_writer, guard_legacy_transaction_dto, cutover_active, report, lock_legacy_owner
 from ..auth import get_current_user
 from ..cache import invalidate_user_all
 
@@ -50,6 +52,7 @@ def _validate_trip_ownership(db: Session, trip_id: str | None, user_id: str) -> 
 
 @router.post("/", response_model=TransactionResponse, status_code=201)
 def create_transaction(txn: TransactionCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    guard_legacy_writer(db, current_user.id)
     _validate_trip_ownership(db, txn.trip_id, current_user.id)
     tag_ids = txn.tag_ids
     data = txn.model_dump(exclude={"tag_ids"})
@@ -74,11 +77,8 @@ def update_transaction(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    db_txn = (
-        db.query(Transaction)
-        .filter(Transaction.id == txn_id, Transaction.user_id == current_user.id)
-        .first()
-    )
+    lock_legacy_owner(db, current_user.id)
+    db_txn = claim_transaction(db, current_user.id, txn_id, legacy_only=True)
     if not db_txn:
         raise HTTPException(status_code=404, detail="Transaction not found")
 
@@ -114,13 +114,14 @@ def list_transactions(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    guard_legacy_transaction_dto(db, current_user.id)
     # selectinload pre-fetches the many-to-many `tags` collection in one
     # extra query instead of N (one per row at serialize time). At
     # limit=500 this drops up to 500 SQL roundtrips per page load.
     query = (
         db.query(Transaction)
         .options(selectinload(Transaction.tags))
-        .filter(Transaction.user_id == current_user.id)
+        .filter((Transaction.user_id == current_user.id) & Transaction.workspace_id.is_(None))
     )
     if type:
         query = query.filter(Transaction.type == type)
@@ -151,11 +152,16 @@ def transaction_summary(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    if cutover_active(db, current_user.id):
+        result = report(db, current_user.id, start_date, end_date)
+        return TransactionSummary(total_income=int(result["income_minor"]) / 100, total_expenses=int(result["expense_minor"]) / 100,
+                                  net=int(result["net_movement_minor"]) / 100,
+                                  by_category={k: int(v) / 100 for k, v in result["expense_by_category_minor"].items()}, count=len(result["transactions"]))
     # SQL-side aggregation — replaces a full-window .all() + three
     # Python passes (income / expense / by-category). At 100k rows this
     # is the difference between ~80 ms with a heap fetch and ~3 ms with
     # the (user_id, date) composite index.
-    base_filters = [Transaction.user_id == current_user.id]
+    base_filters = [(Transaction.user_id == current_user.id) & Transaction.workspace_id.is_(None)]
     if start_date:
         base_filters.append(Transaction.date >= start_date)
     if end_date:
@@ -202,7 +208,7 @@ def get_recurring_transactions(db: Session = Depends(get_db), current_user: User
     recurring = (
         db.query(Transaction)
         .options(selectinload(Transaction.tags))
-        .filter(Transaction.user_id == current_user.id, Transaction.is_recurring == True)
+        .filter((Transaction.user_id == current_user.id) & Transaction.workspace_id.is_(None), Transaction.is_recurring.is_(True))
         .order_by(Transaction.next_due_date.asc())
         .all()
     )
@@ -234,7 +240,7 @@ def upcoming_occurrences(
     recurring = (
         db.query(Transaction)
         .options(selectinload(Transaction.tags))
-        .filter(Transaction.user_id == current_user.id, Transaction.is_recurring == True)
+        .filter((Transaction.user_id == current_user.id) & Transaction.workspace_id.is_(None), Transaction.is_recurring.is_(True))
         .all()
     )
     today = date.today()
@@ -272,7 +278,7 @@ def detect_anomalies(
     # Previously this loaded every expense in the window (up to 100k
     # for a power user) and computed both passes in Python.
     base_filters = [
-        Transaction.user_id == current_user.id,
+        (Transaction.user_id == current_user.id) & Transaction.workspace_id.is_(None),
         Transaction.type == TransactionType.expense,
         Transaction.date >= start,
     ]
@@ -437,6 +443,7 @@ async def import_preview(
 
 @router.post("/import/confirm", response_model=ImportResultResponse)
 def import_confirm(request: ImportConfirmRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    guard_legacy_writer(db, current_user.id)
     imported = 0
     errors = []
 
@@ -465,7 +472,8 @@ def import_confirm(request: ImportConfirmRequest, db: Session = Depends(get_db),
 
 @router.delete("/{txn_id}", status_code=204)
 def delete_transaction(txn_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    txn = db.query(Transaction).filter(Transaction.id == txn_id, Transaction.user_id == current_user.id).first()
+    lock_legacy_owner(db, current_user.id)
+    txn = claim_transaction(db, current_user.id, txn_id, legacy_only=True)
     if not txn:
         raise HTTPException(status_code=404, detail="Transaction not found")
     db.delete(txn)

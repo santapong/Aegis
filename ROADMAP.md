@@ -7,6 +7,10 @@ Current status: **generally available**.
 
 ---
 
+## Cash-planning extension — October 2, 2026
+
+M0–M3 is implemented and locally verified for a single-owner personal/business pilot, including reviewed CSV intake, recurring payments, reservations/installments, in-app alerts, receivables/bills, partial settlements, thirteen-week cash and immutable saved forecasts. Production rollout, independent review and comprehension feedback remain open. M4.1–M4.2 workspace LINE capture is implemented and locally verified; its real channel pilot and next-connector decision remain open. See the [M3 guide](docs/releases/2026-10-02-m3-business-cash-review.md), [full workflow](docs/plans/2026-10-02-all-m-workflow.md), [implementation plan](docs/plans/2026-10-02-cashflow-implementation.md) and [first-release guide](docs/releases/2026-10-02-first-cashflow-release.md). This extension does not replace the historical v1.4.9 release status above.
+
 ## Release map
 
 ![Release map](docs/diagrams/roadmap-release-map.svg)
@@ -27,6 +31,10 @@ Current status: **generally available**.
 | v1.5.0 | WebGL2 comet hero Phase 6: stabilization and release validation | 🚧 Unreleased |
 
 ---
+
+## Personal and business cash planning — planned October 2, 2026
+
+The [implementation plan](docs/plans/2026-10-02-cashflow-implementation.md) turns the October 1 workspace proposal into five gated milestones: trusted cash inputs, dated planning, everyday review, business operations, then LINE capture. M0–M1 are the proposed first usable release. That initial planning checkpoint is historical. The current local status is recorded above and in the [completion audit](docs/validation/2026-10-02-all-m/completion-audit.md); the public application feature release remains open. This addition does not change the historical release table above.
 
 ## Post-v1.2 direction
 

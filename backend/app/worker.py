@@ -75,7 +75,7 @@ async def render_pdf_report(
             transactions = (
                 db.query(Transaction)
                 .filter(
-                    Transaction.user_id == user_id,
+                    (Transaction.user_id == user_id) & Transaction.workspace_id.is_(None),
                     Transaction.date >= start,
                     Transaction.date <= end,
                 )
@@ -94,6 +94,13 @@ async def render_pdf_report(
             for t in transactions:
                 if t.type == TransactionType.expense:
                     by_category[t.category] = by_category.get(t.category, 0) + float(t.amount)
+
+            from .services.finance_reads import cutover_active, report
+            if cutover_active(db, user_id):
+                exact = report(db, user_id, start, end)
+                total_income = int(exact["income_minor"]) / 100
+                total_expenses = int(exact["expense_minor"]) / 100
+                by_category = {k: int(v) / 100 for k, v in exact["expense_by_category_minor"].items()}
 
             pdf_bytes = render_report_pdf(
                 username=user.username,

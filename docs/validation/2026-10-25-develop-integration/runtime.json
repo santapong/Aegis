@@ -1,0 +1,21 @@
+{
+  "architecture": "ARM64",
+  "frontend": {
+    "node": "22.23.4",
+    "next": "15.5.12",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "sharp": "0.34.5",
+    "image": "sha256:ef1789d0b576ea5c6ab9c04c20eae1951d05aca96fa949421cdf575d4ee0b977"
+  },
+  "backend": {
+    "python": "3.11",
+    "image": "sha256:bb14c424177c9ed9ce82e4df00a2aed1b5e802fb059753d203103b5d8a91a7d1"
+  },
+  "postgres": {
+    "image": "sha256:f40e48eca747184a758d8f04b465186c04f1c9d7c2bee3935cc38cebdaf52326",
+    "major": "16"
+  },
+  "robot": "7.5",
+  "build_id": "dJIgBtRiRnAaPdOYUkwcM"
+}

@@ -1,0 +1,1330 @@
+- link "AEGIS":
+  - /url: /landing
+- link "Docs":
+  - /url: /docs
+- link "Changelog":
+  - /url: /changelog
+- link "Sign in":
+  - /url: /login
+- generic: LOG
+- heading "Changelog" [level=1]
+- paragraph: Every Aegis release, in order
+- heading "v1.4.9" [level=3]
+- generic: 2026-08-12
+- generic: Changed
+- list:
+  - text: Landing hero and auth-page backgrounds now use a comet field (
+  - code: CometGL
+  - text: ) instead of the rising-embers effect — seven comets with fading tails, alternating redshift/blueshift, arcing on looping parabolic paths.
+- heading "v1.4.8" [level=3]
+- generic: 2026-08-12
+- generic: Added
+- list:
+  - listitem: New favicon and app icon (gravitational-lensing ring mark) via Next.js's file-based icon convention.
+- heading "v1.4.7" [level=3]
+- generic: 2026-08-12
+- generic: Added
+- list:
+  - code: /changelog
+  - text: ": public page rendering"
+  - code: CHANGELOG.md
+  - text: (Keep a Changelog format) as release cards.
+- generic: Changed
+- list:
+  - listitem: Landing nav trimmed to Docs + Changelog + Sign in/Get started — the old Product/Pricing links pointed nowhere real.
+  - code: /docs
+  - text: is reachable without login (still gets the full app shell when signed in via a new
+  - code: OPEN_APP_PAGES
+  - text: category in
+  - code: AuthGate
+  - text: ).
+  - text: Landing hero and auth-page backgrounds now share one warm, organic "rising embers" WebGL animation (
+  - code: GrowthGL
+  - text: ) instead of two unrelated concepts (Meridian terrain grid, Pulse orbit rings).
+- heading "v1.4.6" [level=3]
+- generic: 2026-08-12
+- generic: Fixed
+- list:
+  - code: /landing
+  - text: title rendered doubled ("Aegis — ... — Aegis") because the root layout's title template appended onto the page's own title string. Landing now sets an absolute title.
+- heading "v1.4.5" [level=3]
+- generic: 2026-08-12
+- generic: Added
+- list:
+  - text: "SEO/GEO basics for the public landing page:"
+  - code: robots.txt
+  - text: and
+  - code: sitemap.xml
+  - text: route handlers, per-page metadata (title, description, canonical, Open Graph, Twitter card) on
+  - code: /landing
+  - text: ", and"
+  - code: SoftwareApplication
+  - text: JSON-LD for AI answer engines. Root layout metadata now defaults to
+  - code: noindex
+  - text: since
+  - code: /
+  - text: is the login-gated app shell;
+  - code: /landing
+  - text: overrides it back to indexable. Site URL is configurable via
+  - code: NEXT_PUBLIC_SITE_URL
+  - text: .
+- heading "v1.4.4" [level=3]
+- generic: 2026-08-10
+- generic: Fixed
+- list:
+  - text: "Vercel: the"
+  - code: /api/:path*
+  - text: rewrite does not match trailing-slash URLs, so every collection endpoint (
+  - code: /api/transactions/
+  - text: ","
+  - code: /api/budgets/
+  - text: ", ...) fell through to the frontend and returned Next's 404 — data pages silently rendered empty states. An explicit"
+  - code: /api/:path*/
+  - text: rewrite now routes them to the backend.
+- heading "v1.4.3" [level=3]
+- generic: 2026-08-10
+- generic: Changed
+- list:
+  - text: Signed-out visitors to the app root now land on
+  - code: /landing
+  - text: instead of the sign-in page; deep links to specific app pages still redirect to sign-in.
+- heading "v1.4.2" [level=3]
+- generic: 2026-08-10
+- generic: Changed
+- list:
+  - listitem: The landing page's seed-credentials line now renders only in development builds; production no longer advertises the demo login.
+- heading "v1.4.1" [level=3]
+- generic: 2026-08-10
+- generic: Fixed
+- list:
+  - code: backend/uv.lock
+  - text: was stale against
+  - code: pyproject.toml
+  - text: and missing
+  - code: google-auth
+  - text: ", crashing every backend function on Vercel ("
+  - code: "ModuleNotFoundError: No module named 'google'"
+  - text: ) when built from a clean checkout. Re-locked.
+- heading "v1.4.0" [level=3]
+- generic: 2026-08-10
+- generic: Changed — Meridian/Pulse redesign (from the claude.ai/design systems)
+- list:
+  - strong: Landing page rebuilt on the Meridian design system
+  - text: — near-black ground, bone ink, amber/teal accents, Syne display type, a dependency-free WebGL wireframe-terrain hero (scroll-bound, pointer parallax, static under
+  - code: prefers-reduced-motion
+  - text: ), numbered feature folds, a hairline capability table, and once-only intersection reveals.
+  - strong: "`theme-meridian` is the new default app theme"
+  - text: ;
+  - code: theme-pulse
+  - text: "(data console: graphite tiles, one fuchsia chroma) added as an option. Both appear in Settings. Auth pages gained a theme-aware WebGL particle-orbit backdrop."
+  - strong: "Theming bugfix:"
+  - text: the shadcn alias variables were computed once on
+  - code: :root
+  - text: against the Observatory palette, so theme switches silently kept Observatory colors in aliased surfaces; aliases are now re-declared under every theme class.
+  - strong: "Token sweep:"
+  - text: all raw Tailwind green/red classes app-wide became
+  - code: "--ok"
+  - text: /
+  - code: "--bad"
+  - text: /
+  - code: "--accent"
+  - text: tokens; every page shows its sidebar code as the PageHeader eyebrow; chart palettes use a Meridian ladder; Lucide icons render at 1.25px square-capped strokes under Meridian.
+  - strong: "Chart rendering bugfix:"
+  - text: recharts 2.x entrance animations leave Pie sectors and Bar rects unrendered under React 19 — the spending donut and budget-vs-actual bars had never drawn; animations disabled.
+- generic: Fixed — Vercel services deployment
+- list:
+  - code: vercel.json
+  - text: migrated from the removed
+  - code: experimentalServices
+  - text: syntax to
+  - code: services
+  - text: + service-targeted rewrites (including an explicit
+  - code: /
+  - text: rewrite —
+  - code: /:path*
+  - text: does not match the bare root).
+  - text: "Neon pooler support: pooler detection now matches Neon's current"
+  - code: ep-*-pooler.<region-cell>.aws.neon.tech
+  - text: hosts, and the
+  - code: statement_timeout
+  - text: startup option is dropped on pooled connections (PgBouncer rejects it).
+- generic: Added — operator API key storage (design 006, step 4)
+- list:
+  - strong: "`user_secrets` table"
+  - text: (migration
+  - code: d5e9a37b2c81
+  - text: ) — encrypted per-user secrets, keyed by name. Deliberately general rather than an
+  - code: api_key
+  - text: column on
+  - code: users
+  - text: ": the AI provider key is the first consumer and the LINE Messaging token already on the ROADMAP (\"requires user-settings token storage\") is the designed-for second, so it needs one mechanism and one migration rather than two."
+  - strong: "`GET/PUT/DELETE /api/secrets`"
+  - text: — write-only by design. A stored secret can be set, replaced or cleared but never read back;
+  - code: GET
+  - text: returns a mask (
+  - code: gsk_…4f2a
+  - text: ) plus a
+  - code: configured
+  - text: flag. A row that exists but will not decrypt is reported distinctly from an absent one, because the two need different fixes.
+  - strong: Resolution order is stored secret → env.
+  - text: An operator who never opens Settings keeps their
+  - code: .env
+  - text: behaviour untouched, and clearing the stored key falls straight back to it.
+  - strong: Encryption
+  - text: uses
+  - code: SECRETS_ENCRYPTION_KEY
+  - text: when set, otherwise derives a key from
+  - code: JWT_SECRET_KEY
+  - text: via HKDF so existing deploys need no new config. Rotating
+  - code: JWT_SECRET_KEY
+  - text: without setting
+  - code: SECRETS_ENCRYPTION_KEY
+  - text: therefore makes stored secrets undecryptable — survivable, because resolution falls back to
+  - code: .env
+  - text: and the key can be re-entered.
+  - code: cryptography
+  - text: is now a direct dependency rather than relying on
+  - code: python-jose
+  - text: "'s extras."
+  - strong: Settings → Provider API Key card.
+- generic: Fixed — three guardrails around stored credentials
+- list:
+  - strong: Export serializer denylist.
+  - code: _ndjson_stream
+  - text: serializes *every* column of whatever model it is handed, so its safety depended on the current endpoint list rather than on the serializer. It now drops
+  - code: encrypted_value
+  - text: ","
+  - code: hashed_password
+  - text: ","
+  - code: google_subject
+  - text: and similar by name, so adding a
+  - code: /users.ndjson
+  - text: endpoint later cannot quietly ship credentials.
+  - strong: Log redaction.
+  - text: Provider SDKs put the failing request into exception messages and
+  - code: _call_tool
+  - text: logged those verbatim. Provider-key patterns are now redacted before logging — an un-redacted line is a durable copy of a secret somewhere nobody thinks to scrub.
+  - strong: Credential cache invalidation.
+  - text: Saving or clearing a key clears both the
+  - code: get_settings()
+  - text: cache and the
+  - code: lru_cache
+  - text: d SDK clients, which are keyed on the API key and would otherwise keep serving the old credential until the process restarted.
+- generic: Added — AI usage metering and cost panel (design 006, steps 2-3)
+- list:
+  - strong: "`ai_usage` table"
+  - text: (migration
+  - code: c4d8f26a1b73
+  - text: ) — one row per successful provider call, written from
+  - code: AIEngine._call_tool
+  - text: .
+  - code: response.usage
+  - text: was previously discarded, so nothing measured the AI layer at all. Metering inherits
+  - code: _call_tool
+  - text: "'s contract and can never fail the request: a failed write is logged, rolled back and dropped, because a missing row beats a 500 on a call the provider already answered and already billed."
+  - strong: "`GET /api/ai/usage`"
+  - text: — call counts and token totals per model for a window, plus an estimated cost. Token counts are *measured*; cost is *derived*, preferring the provider's own published per-token prices and falling back to a static table stamped
+  - code: PRICES_AS_OF
+  - text: . A model neither source prices is reported with its usage and no cost, and named in
+  - code: models_missing_price
+  - text: ", so a short total is visible rather than silent."
+  - strong: Settings → AI Usage card
+  - text: rendering both, with the cost provenance stated rather than presented as fact.
+- generic: Changed — the model picker now hides models that cannot work
+- list
+- generic: Added — AI model picker (design 006, step 1)
+- list:
+  - strong: "`GET /api/ai/models`"
+  - text: — lists the models the configured provider currently offers,
+  - strong: fetched from the provider
+  - text: rather than hard-coded, so a retired model drops out of the picker instead of 404-ing at request time. Cached per provider for an hour via the existing
+  - code: CACHE_BACKEND
+  - text: . An unreachable provider degrades to
+  - code: "stale: true"
+  - text: plus the model in effect — never a 500 and never an empty dropdown — and a failed fetch is deliberately *not* cached so the next render retries.
+  - strong: "`user_preferences.ai_model`"
+  - text: (nullable, migration
+  - code: b3c7e15d9a24
+  - text: ) — a per-user model override. NULL means "use the env default", so a deploy that never opens the picker behaves exactly as before.
+  - code: AIEngine
+  - text: resolves the override at construction and falls back to the env model if the preferences read fails, inheriting
+  - code: _call_tool
+  - text: "'s never-break-the-feature contract."
+  - strong: Settings → AI Model card
+  - text: — a picker driven by the endpoint above, with a "use server default" option that clears the override.
+- generic: Fixed — two stale strings on the settings page
+- list:
+  - code: AI Engine
+  - text: claimed
+  - code: Claude (Anthropic) + tool_use
+  - text: unconditionally, which was wrong on any Groq or Typhoon deploy. It now reports the live provider and model from
+  - code: GET /api/ai/models
+  - text: .
+  - code: Version
+  - text: was a hard-coded
+  - code: 1.0.0
+  - text: literal while the repo shipped v1.2.0. It is now injected from
+  - code: package.json
+  - text: at build time via
+  - code: next.config.ts
+  - text: ", and"
+  - code: frontend/package.json
+  - text: is bumped to
+  - code: 1.3.0
+  - text: to match the latest tag.
+- generic: "Added — design doc: AI provider configuration"
+- list:
+  - strong: "[`docs/design/006-ai-provider-configuration.md`](docs/design/006-ai-provider-configuration.md)"
+  - text: "— scopes an in-app AI settings surface: a provider/model picker fed by the provider's own model list (rather than a hard-coded catalog that goes stale), token-usage metering, a cost estimate labelled with the date its prices were captured, and operator storage of the provider key. Records that Aegis's deployment posture is"
+  - strong: single-operator self-host
+  - text: (no subscription tier, no
+  - code: role
+  - text: field, single-instance deploy recipes), which is what makes an in-app key field acceptable. Chooses a general
+  - code: user_secrets
+  - text: store over an
+  - code: api_key
+  - text: column on
+  - code: User
+  - text: so the planned LINE Messaging token reuses the same mechanism. Design only — no implementation.
+- generic: Changed — structural diagrams are now hand-authored SVG
+- list:
+  - strong: The seven C4 diagrams are drawn by hand and no longer generated.
+  - text: Their
+  - code: .svg
+  - text: files are now the source and are edited directly; the matching
+  - code: docs/diagrams/src/*.mmd
+  - text: "files are deleted. Affected: the README at-a-glance view, the container and component views in"
+  - code: docs/architecture.md
+  - text: ", the ROADMAP snapshot, the deployment recipe shape, and the analytics CDC pipeline."
+  - strong: Why.
+  - text: Mermaid's
+  - code: C4Container
+  - text: /
+  - code: C4Component
+  - text: renderer lays shapes on a fixed grid and draws relationships as straight lines between shape centres, so edges cut through boxes and labels collided. Mermaid
+  - code: flowchart
+  - text: fixed the crossings but left placement to dagre, with no way to express which element a diagram is about. Hand-placed coordinates cost more per diagram and buy deliberate composition — the backend view reads top to bottom because that is the order a request travels.
+  - strong: Own theme, derived from the product.
+  - text: Dark canvas (
+  - code: "--void: #050810"
+  - text: ) with the app's cyan accent, matching
+  - code: frontend/src/app/globals.css
+  - text: ". Roles carry colour: cyan containers, green datastores, muted dashed externals. Because the canvas is opaque, the diagrams look the same in GitHub's light and dark themes. Palette and conventions are in"
+  - code: docs/diagrams/THEME.md
+  - text: .
+  - text: Every structural diagram now carries
+  - code: role="img"
+  - text: with
+  - code: <title>
+  - text: and a plain-English
+  - code: <desc>
+  - text: for screen readers.
+  - text: The C4
+  - strong: model
+  - text: is unchanged — same levels, same roles, same boundaries.
+  - code: scripts/render-diagrams.mjs
+  - text: still renders the other 49 diagrams (flows, sequences, state machines, ER) from
+  - code: .mmd
+  - text: . Those keep mermaid's default white canvas, so the two families do not yet match visually.
+- heading "v1.3.0" [level=3]
+- generic: 2026-08-01
+- generic: Changed — UX restraint pass
+- list:
+  - strong: Cosmic backdrop confined to marketing routes
+  - text: — the starfield, grid lattice, constellation and black-hole layers now render only on
+  - code: /landing
+  - text: ","
+  - code: /welcome
+  - text: ","
+  - code: /login
+  - text: and
+  - code: /register
+  - text: . Data screens sit on a plain two-stop gradient with the glow tokens zeroed (
+  - code: body.route-app
+  - text: ), under every theme.
+  - strong: Collapsible sidebar clusters
+  - text: — each nav cluster header toggles its group; state persists, System starts collapsed, and the cluster holding the active route always stays open.
+  - strong: Type scale consolidated
+  - text: — 15 ad-hoc font sizes merged into a documented 9-step scale (see the comment block in
+  - code: globals.css
+  - text: ); chart tick sizes unified at 10px.
+- generic: Added
+- list:
+  - strong: Customizable dashboard widgets
+  - text: — every dashboard section (KPI rail, health, anomalies, spending, trend, insights, cashflow) can be hidden and reordered via the new
+  - strong: Customize
+  - text: popover; layout persists and resets in one click. Widget ids reconcile against the canonical list so future widgets appear automatically.
+- generic: Removed
+- list:
+  - strong: Payments (Stripe) page hidden
+  - text: — sidebar entry and its shortcuts (
+  - code: g>y
+  - text: ","
+  - code: Ctrl+Shift+8
+  - text: ) removed; the
+  - code: /payments
+  - text: route remains for easy restore.
+- generic: Fixed
+- list:
+  - strong: Worker startup
+  - text: — arq reads
+  - code: redis_settings
+  - text: as an attribute, not a callable.
+  - strong: Compose defaults
+  - text: — backend wired to Redis by default; frontend standalone build no longer bakes
+  - code: localhost:8000
+  - text: into the
+  - code: /api
+  - text: proxy.
+- heading "v1.2.0" [level=3]
+- generic: 2026-07-27
+- generic: Added — docs & repo structure
+- list:
+  - strong: C4-model diagrams as committed SVGs
+  - text: — every inline
+  - code
+  - text: "`"
+  - code: mermaid
+  - text: block across the docs (56 diagrams, 25 files) now lives as an editable source in
+  - code: docs/diagrams/src/*.mmd
+  - text: rendered to a committed
+  - code: docs/diagrams/*.svg
+  - text: that the markdown embeds. Structural diagrams (system overview, backend/frontend component views, deployment recipes, CDC pipeline) are rewritten in mermaid C4 syntax (C4Container / C4Component / C4Deployment); flows, sequences and state machines stay in their native form.
+  - code: scripts/render-diagrams.mjs
+  - text: re-renders them (uses
+  - code: npx @mermaid-js/mermaid-cli
+  - text: + a local Chromium-based browser; no repo dependency added).
+  - strong: Branch model
+  - text: — ongoing work lands on
+  - code: develop
+  - text: ;
+  - code: main
+  - text: carries tagged releases. The pre-restructure
+  - code: backend
+  - text: /
+  - code: frontend
+  - text: history is preserved under
+  - code: archive/*
+  - text: tags.
+- generic: Added — features
+- list:
+  - strong: Budget templates (50/30/20, zero-based)
+  - text: —
+  - code: /budgets
+  - text: gains a
+  - strong: Use a template
+  - text: action that creates a full set of category budgets for the current month in one click.
+  - code: GET /api/budgets/templates
+  - text: returns the catalog (each template carries categories + income percentages summing to 100%);
+  - code: "POST /api/budgets/templates/{key}/adopt"
+  - text: takes a
+  - code: monthly_income
+  - text: and inserts one
+  - code: Budget
+  - text: per category sized at
+  - code: round(income × pct, 2)
+  - text: for the current period (1st → month-end). Templates allocate only to
+  - strong: real Aegis spend categories
+  - text: (rent, groceries, dining, transport, utilities, subscriptions, entertainment, health, shopping, savings), so an adopted budget actually tracks spend in
+  - code: GET /api/budgets/comparison
+  - text: instead of reading $0; 50/30/20 maps onto those categories grouped into needs/wants/savings tiers (50/30/20 by tier). Adoption is idempotent at the application layer (re-adopting skips categories already present) with
+  - strong: no schema change
+  - text: — a DB unique constraint was considered and rejected because it regressed the plain create endpoint + MCP tool and isn't NULL-safe across the supported databases (see
+  - code: docs/design/005-budget-templates.md
+  - text: ", Decision 2). Covered by"
+  - code: backend/tests/test_budget_templates.py
+  - text: .
+  - strong: Interactive investments picker
+  - text: —
+  - code: /investments
+  - text: now lets you search and pick a stock or cryptocurrency instead of hand-typing
+  - code: EXCHANGE:TICKER
+  - text: strings. New
+  - code: "GET /api/market/{search,quote,status}"
+  - text: endpoints proxy a pluggable market-data service (Finnhub primary + keyless Binance fallback, server-side cached); it degrades to crypto-only search + manual entry when no
+  - code: FINNHUB_API_KEY
+  - text: is set. A debounced
+  - code: SymbolSearch
+  - text: combobox auto-fills the symbol, shows a TradingView preview + live-quote chip ("Use this price"), and supports a
+  - code: units=0
+  - strong: watchlist
+  - text: (no migration; excluded from portfolio totals via a
+  - code: units > 0
+  - text: rollup filter and a
+  - code: "?watchlist"
+  - text: list filter).
+  - strong: AI "asking" animation
+  - text: — the advisor panel's three bouncing dots are replaced by a framer-motion
+  - strong: Transmission Orb
+  - text: with idle/listening/thinking/responding states and shimmer skeletons, honoring
+  - code: prefers-reduced-motion
+  - text: . Zero new dependencies.
+  - strong: Design doc
+  - text: —
+  - code: docs/design/004-ai-animation-and-interactive-investments.md
+  - text: captures the research (data-provider comparison, animation tech) and the spec.
+- generic: Added — performance (second audit pass)
+- list:
+  - strong: Recharts code-split on Budgets + Reports
+  - text: — both pages still imported Recharts (and Reports the dashboard chart components) statically. Extracted
+  - code: budget-comparison-chart.tsx
+  - text: /
+  - code: category-comparison-chart.tsx
+  - text: behind
+  - code: next/dynamic
+  - text: ". First Load JS:"
+  - code: /budgets
+  - text: 271→169 kB (−38%),
+  - code: /reports
+  - text: 279→164 kB (−41%).
+  - strong: AI SDK client reuse
+  - text: —
+  - code: AIEngine
+  - text: built a fresh Anthropic/OpenAI client (new connection pool + TLS handshake) per request; now cached per credential set via module-level
+  - code: "@lru_cache"
+  - text: factories.
+  - strong: "SQL aggregation on `trips.trip_summary` and `AIEngine._gather_context`"
+  - text: — both loaded full row sets and summed in Python; now bounded
+  - code: GROUP BY
+  - text: / CASE-bucket aggregate queries, same pattern as the first-pass dashboard rewrites.
+  - strong: "`notifications(user_id, created_at)` index"
+  - text: (v0.9.9 migration) for the list endpoint's
+  - code: ORDER BY created_at DESC
+  - text: .
+  - strong: "`uvicorn[standard]`"
+  - text: — uvloop + httptools.
+  - strong: In-memory rate limiter GC amortized
+  - text: — the O(unique-clients) size probe ran per request; now every 256th hit.
+  - strong: Frontend list polish
+  - text: —
+  - code: "placeholderData: keepPreviousData"
+  - text: on Investments/Plans/Trips/Payments "Load more" queries (no more skeleton flash), Payments migrated from
+  - code: useEffect
+  - text: fetching to React Query, calendar months cached (
+  - code: staleTime
+  - text: 5 min), TradingView embeds lazy-mount via IntersectionObserver instead of one eager script per holding, transactions desktop row memoized against modal-typing re-renders.
+  - strong: Redis bounded
+  - text: "in compose:"
+  - code: "--maxmemory 96mb --maxmemory-policy volatile-lru"
+  - text: (TTL'd cache keys evictable; arq queue keys never). Compose healthchecks moved to 10–30 s steady-state with
+  - code: start_interval
+  - text: keeping boot gating fast.
+- generic: Fixed
+- list:
+  - strong: Frontend CI jobs failed at setup
+  - text: —
+  - code: test.yml
+  - text: and
+  - code: deploy-vercel.yml
+  - text: pointed setup-node's npm cache (and
+  - code: npm ci
+  - text: ) at a
+  - code: package-lock.json
+  - text: that doesn't exist; the repo uses
+  - code: bun.lock
+  - text: . Test job now runs on
+  - code: oven-sh/setup-bun
+  - text: ", deploy job drops the pointless cache."
+  - strong: "`alembic upgrade head` broke on SQLite with alembic ≥1.16"
+  - text: — the v0.9.5 tags migration used
+  - code: if_exists=
+  - text: /try-except guards that don't work under the batch-recreate path; rewritten with inspector-based existence checks (also MySQL-portable).
+  - strong: "`pip install -e backend` failed"
+  - text: ("Multiple top-level packages discovered") — setuptools auto-discovery tripped on
+  - code: app/
+  - text: +
+  - code: alembic/
+  - text: ; package discovery now pinned to
+  - code: app*
+  - text: .
+  - strong: ruff/bandit
+  - text: moved into the
+  - code: "[dev]"
+  - text: extra and installed through the cached env instead of fresh
+  - code: pip install
+  - text: per CI run.
+- generic: Changed — repo layout & default deployment
+- list:
+  - strong: Vercel-first deployment
+  - text: — root [
+  - code: vercel.json
+  - text: "](vercel.json) (already wired for"
+  - code: experimentalServices
+  - text: ) is now the default.
+  - code: vercel deploy
+  - text: from the repo root ships both frontend and backend in one platform. README Quick Start,
+  - code: docs/deployment/README.md
+  - text: ", and the cloud-specific recipes now lead with Vercel; the previous \"Vercel + Render\" recipe remains as the full-features alternative."
+  - strong: Renamed deployment recipes
+  - text: —
+  - code: docs/deployment/vercel-experimental.md
+  - text: →
+  - code: vercel.md
+  - text: (now the default, no longer "experimental" framing), and
+  - code: docs/deployment/vercel-neon.md
+  - text: →
+  - code: vercel-render.md
+  - text: (clearer that Render is what makes this recipe different from the all-Vercel default).
+  - strong: Removed dead files
+  - text: — root
+  - code: main.py
+  - text: (a leftover
+  - code: print("Hello…")
+  - text: stub), root
+  - code: pyproject.toml
+  - text: (out-of-date duplicate;
+  - code: aegis-mcp
+  - text: script registration moved to
+  - code: backend/pyproject.toml
+  - text: ), root
+  - code: uv.lock
+  - text: (was generated from the dead root pyproject),
+  - code: DOCKER_VERIFY_PLAN.md
+  - text: (a one-off Docker setup planning artifact), and
+  - code: plan.md
+  - text: (redundant with ROADMAP / CHANGELOG).
+  - strong: MCP server invocation path updated
+  - text: —
+  - code: uv run --project ./backend aegis-mcp
+  - text: (was
+  - code: "--project ."
+  - text: ). The script registration now lives next to the rest of the backend deps in
+  - code: backend/pyproject.toml
+  - text: .
+- generic: Added — performance
+- list:
+  - strong: Pluggable cache layer
+  - text: (
+  - code: backend/app/cache.py
+  - text: ) —
+  - code: CACHE_BACKEND
+  - text: env var selects
+  - code: memory
+  - text: (per-process TTL dict, default),
+  - code: redis
+  - text: (production, shared across workers), or
+  - code: disabled
+  - text: (incident-response no-op). JSON values serialized via
+  - code: pydantic_core.to_jsonable_python
+  - text: ; SCAN-based prefix delete on Redis; per-user invalidation helper. Now wired on
+  - code: "/api/dashboard/{summary,charts,health-score,cashflow-forecast}"
+  - text: and
+  - code: "/api/ai/{weekly-summary,insights}"
+  - text: ", invalidated on every transaction mutation."
+  - strong: Redis-backed rate limiter
+  - text: — replaces the per-worker in-memory limiter when
+  - code: CACHE_BACKEND=redis
+  - text: is set. Re-attempts Redis every 60 s if unreachable at boot. Strict-prefix list expanded to cover
+  - code: "/api/auth/{login,register,google,logout}"
+  - text: and
+  - code: /api/export/
+  - text: .
+  - strong: Hot-path composite indexes
+  - text: (v0.9.7 + v0.9.8 migrations) on
+  - code: transactions(user_id, date)
+  - text: ","
+  - code: (user_id, type, date)
+  - text: ","
+  - code: (user_id, is_recurring)
+  - text: ","
+  - code: (user_id, category)
+  - text: ","
+  - code: plans(user_id, status)
+  - text: ","
+  - code: plans(user_id, start_date)
+  - text: ","
+  - code: budgets(user_id, period_start)
+  - text: ","
+  - code: ai_recommendations(user_id, created_at)
+  - text: .
+  - strong: "`GZipMiddleware`"
+  - text: registered globally — ~75% wire-size reduction on dashboard JSON payloads (≥ 500 B threshold).
+  - strong: NDJSON export endpoints
+  - text: (
+  - code: "/api/export/{transactions,plans, budgets}.ndjson"
+  - text: ) — stream per-user data with
+  - code: yield_per(100)
+  - text: for warehouse ingestion and GDPR subject-access requests.
+  - strong: "`docs/PERFORMANCE_BACKLOG.md`"
+  - text: — tracks remaining audit findings with impact × effort sequencing.
+  - strong: "`docs/analytics-warehouses.md`"
+  - text: — CDC patterns and per-warehouse target schemas (Redshift, BigQuery, Snowflake, ClickHouse).
+  - strong: "`docs/databases.md`"
+  - text: — multi-DB compatibility matrix for 20 Postgres / MySQL / NewSQL targets.
+- generic: Added — security
+- list:
+  - strong: Google sign-in
+  - text: via Google Identity Services ID-token flow (
+  - code: /api/auth/google
+  - text: + opt-in
+  - code: /api/auth/google/link
+  - text: ). Refuses silent account-link on the unauthenticated endpoint to avoid takeover via recycled Gmail addresses.
+  - strong: httpOnly session cookie
+  - text: — JWT now in
+  - code: aegis_session
+  - text: cookie set on
+  - code: /login
+  - text: and
+  - code: /google
+  - text: . JavaScript can no longer read the token (XSS exfiltration closed).
+  - code: AUTH_COOKIE_SAMESITE
+  - text: env (
+  - code: lax
+  - text: default,
+  - code: none
+  - text: for cross-origin;
+  - code: none
+  - text: force-enables Secure).
+  - strong: App-level request body size cap
+  - text: (default 2 MB,
+  - code: MAX_REQUEST_BODY_BYTES
+  - text: ; CSV imports 5 MB) as pure-ASGI middleware so 413 surfaces cleanly even when the route raised.
+  - strong: "FK `ON DELETE CASCADE`"
+  - text: on every user-owned table (v0.9.6 migration). Deleting a user atomically cascades — GDPR-ready.
+  - strong: Multi-database support
+  - text: —
+  - code: database.py
+  - text: rewritten with per-dialect engine config; pool sizing exposed via
+  - code: DB_POOL_*
+  - text: "env vars. Tested: SQLite, Postgres 13–17, MySQL 8.0+, MariaDB 10.5+, RDS, Aurora, Cloud SQL, AlloyDB, Azure, Neon, Supabase, Yugabyte, CockroachDB, TiDB."
+  - strong: CI workflow
+  - text: (
+  - code: .github/workflows/test.yml
+  - text: ) — matrix runs pytest on (SQLite, Postgres) × (Python 3.11, 3.12) with a Redis service, plus ruff, bandit, Trivy SARIF upload.
+- generic: Added — UX
+- list:
+  - strong: Galaxy theme system
+  - text: — three runtime-switchable themes (Observatory, Constellation, Supernova) replacing the binary dark/light toggle. Persisted per-user via
+  - code: user_preferences
+  - text: .
+  - strong: Server-side pagination
+  - text: with "Load more" footers on transactions, plans, payments, trips, investments pages.
+  - strong: Public landing page
+  - text: (
+  - code: /landing
+  - text: ) with
+  - code: AuthGate
+  - text: bypass.
+  - strong: Tutorials series
+  - text: (
+  - code: docs/tutorials/
+  - text: ) — getting started, CSV import, AI assistant, deploy-production, caching.
+- generic: Changed
+- list:
+  - strong: 8 routes converted from materialize-then-aggregate to SQL aggregation
+  - text: ":"
+  - code: "dashboard.{summary,charts,health-score,cashflow-forecast}"
+  - text: ","
+  - code: transactions.transaction_summary
+  - text: ","
+  - code: ai.weekly_summary
+  - text: ","
+  - code: reports.category_comparison
+  - text: ","
+  - code: notification_service.evaluate_budget_thresholds
+  - text: . Worst-case path on 100k transactions drops from ~250 ms to ~5 ms.
+  - strong: "`detect_anomalies` two-step"
+  - text: ": per-category average via"
+  - code: GROUP BY
+  - text: then a single bounded query for outliers — was loading every expense in the window.
+  - strong: "`list_transactions`, `get_recurring_transactions`, `detect_anomalies`"
+  - text: —
+  - code: selectinload(Transaction.tags)
+  - text: eliminates N+1 lazy loads (was up to 500 extra SQL roundtrips per page at
+  - code: limit=500
+  - text: ).
+  - strong: Dashboard bundle
+  - text: ": 14 kB / 293 kB First Load JS → 8.85 kB / 167 kB (−43%). Recharts dynamic-imported via"
+  - code: next/dynamic
+  - text: .
+  - strong: Stripe return URLs
+  - text: now derived from
+  - code: FRONTEND_URL
+  - text: (was caller-supplied with localhost default — open redirect + broken in production).
+  - strong: React Query
+  - text: ":"
+  - code: "staleTime: 60_000"
+  - text: ","
+  - code: "refetchOnWindowFocus: false"
+  - text: — matches backend cache TTL, cuts redundant refetches.
+  - strong: Lifespan handler
+  - text: replaces deprecated
+  - code: "@app.on_event(\"startup\")"
+  - text: ; engine disposed on SIGTERM for graceful shutdown.
+  - strong: Uvicorn defaults
+  - text: (
+  - code: backend/Dockerfile
+  - text: "):"
+  - code: "--proxy-headers --forwarded-allow-ips=* --timeout-graceful-shutdown=25"
+  - text: .
+- generic: Fixed
+- list:
+  - strong: Account-takeover via silent Google auto-link
+  - text: — was allowing any verified-Google account to attach to an existing email/password user.
+  - strong: Tag uniqueness was global
+  - text: — Alice's "groceries" blocked Bob's own tag. v0.9.5 migration moves to composite
+  - code: (user_id, name)
+  - text: .
+  - strong: "`/api/transactions/import/preview` was unauthenticated"
+  - text: — DoS vector via repeated 5 MB CSV parses.
+  - strong: "`/api/health` logged on every probe"
+  - text: — silenced; was generating thousands of zero-signal log lines per pod per day.
+  - strong: AI provider clients had no HTTP timeout
+  - text: — hung upstream could pin a worker for 10 min (SDK default). Now 30 s.
+  - strong: "CSP allowed `unsafe-eval`"
+  - text: — dropped; HSTS added; Google + Stripe origins allowlisted.
+  - strong: CSV exports were unbounded
+  - text: — capped at 50 000 rows (configurable), PDF capped at 5 000.
+- heading "v1.1.0" [level=3]
+- generic: 2026-05-15
+- generic: Added
+- list:
+  - strong: MCP server
+  - text: (
+  - code: backend/app/mcp/
+  - text: ) — exposes Aegis to MCP clients via
+  - code: uv run --project ./backend aegis-mcp
+  - text: ": tools for transactions, budgets, plans, trips, reports and the AI advisor, with per-user session auth."
+  - strong: Trip entity
+  - text: — trip CRUD with budgets and per-trip transaction linking (
+  - code: /api/trips
+  - text: ", trip summary aggregation, dedicated migration)."
+  - strong: Budget overrun alerts
+  - text: — the notification emitter evaluates budget thresholds on transaction mutations and raises in-app alerts.
+  - strong: Split-schedule salary recurrence
+  - text: — income recurrence supporting split pay schedules.
+  - strong: Investment portfolio
+  - text: — holdings CRUD with TradingView charts (
+  - code: /api/investments
+  - text: ","
+  - code: /investments
+  - text: page).
+  - strong: User preferences
+  - text: entity persisting per-user settings.
+- heading "v1.0.0" [level=3]
+- generic: 2026-04-17
+- generic: Added
+- list:
+  - strong: Demo seed data
+  - text: —
+  - code: backend/app/seeds/demo.py
+  - text: creates a
+  - code: demo@aegis.local
+  - text: "user with 120 days of deterministic transactions, three active budgets, two savings goals, a credit-card debt, and two seed notifications. Idempotent per demo user: re-running wipes only that user's rows. Entry point:"
+  - code: python -m backend.app.seeds.demo
+  - text: .
+  - strong: Makefile
+  - text: with
+  - code: migrate
+  - text: ","
+  - code: seed
+  - text: ","
+  - code: test
+  - text: ","
+  - code: backend
+  - text: ","
+  - code: frontend
+  - text: ","
+  - code: dev
+  - text: targets wrapping the most common commands.
+  - strong: Public landing page
+  - text: at
+  - code: /welcome
+  - text: — chrome-less marketing page with feature grid, live gradient, and CTAs to register / sign in.
+  - code: AuthGate
+  - text: now treats
+  - code: /welcome
+  - text: as a public route alongside
+  - code: /login
+  - text: and
+  - code: /register
+  - text: .
+  - strong: GHCR release workflow
+  - text: —
+  - code: .github/workflows/release.yml
+  - text: builds multi-arch (
+  - code: amd64
+  - text: +
+  - code: arm64
+  - text: ) images of
+  - code: aegis-backend
+  - text: and
+  - code: aegis-frontend
+  - text: and pushes to
+  - code: ghcr.io/<owner>/...
+  - text: on every
+  - code: v*.*.*
+  - text: tag (also dispatchable manually). Uses Docker Buildx + GitHub Actions cache.
+- generic: Changed
+- list:
+  - text: Version bumped to
+  - code: 1.0.0
+  - text: in
+  - code: pyproject.toml
+  - text: ","
+  - code: backend/app/main.py
+  - text: ","
+  - code: frontend/package.json
+  - text: ", Settings → About, and the landing page footer."
+  - code: ROADMAP.md
+  - text: rewritten to reflect GA plus the post-v1 backlog (smart AI & real-time, feature expansion, integrations, ops & SRE).
+  - code: README.md
+  - text: "\"Status\" line updated to GA; feature list references the landing page."
+- heading "v0.9.0" [level=3]
+- generic: 2026-04-17
+- generic: Added
+- list:
+  - strong: Virtual scrolling primitive
+  - text: — new
+  - code: frontend/src/components/ui/virtual-list.tsx
+  - text: (TanStack
+  - code: "@tanstack/react-virtual"
+  - text: v3) for rendering long transaction / payment lists without frame drops. Uses dynamic
+  - code: measureElement
+  - text: so variable row heights work out of the box.
+  - strong: PDF export of reports
+  - text: — new
+  - code: GET /api/reports/export.pdf?start_date=&end_date=
+  - text: rendered server-side via
+  - strong: WeasyPrint
+  - text: . HTML + print CSS template at
+  - code: backend/app/templates/report.html
+  - text: ; server-side matplotlib chart inlined as base64 PNG. "PDF" button sits beside the existing CSV export on
+  - code: /reports
+  - text: .
+  - strong: Mobile polish
+  - text: —
+  - code: .gantt-scroll
+  - text: helper (
+  - code: "touch-action: pan-x"
+  - text: ","
+  - code: "overscroll-behavior-x: contain"
+  - text: ) prevents swipe-back conflict on horizontally-scrolling timelines;
+  - code: .chart-responsive
+  - text: helper clamps Recharts containers on narrow viewports;
+  - code: prefers-reduced-motion
+  - text: is now honored globally.
+  - strong: Empty-state / skeleton / 404 polish
+  - text: —
+  - code: EmptyState
+  - text: now accepts an
+  - code: illustration
+  - text: slot;
+  - code: Skeleton
+  - text: ships with
+  - code: SkeletonRows
+  - text: and
+  - code: SkeletonCard
+  - text: helpers. Every app route now has a dedicated
+  - code: loading.tsx
+  - text: (
+  - code: budgets
+  - text: ","
+  - code: debts
+  - text: ","
+  - code: savings
+  - text: ","
+  - code: plans
+  - text: ","
+  - code: payments
+  - text: ","
+  - code: calendar
+  - text: ","
+  - code: gantt
+  - text: ","
+  - code: settings
+  - text: ","
+  - code: reports
+  - text: ","
+  - code: transactions
+  - text: ).
+- generic: Changed
+- list:
+  - text: Version bumped to
+  - code: 0.9.0
+  - text: in
+  - code: pyproject.toml
+  - text: ","
+  - code: backend/app/main.py
+  - text: ","
+  - code: frontend/package.json
+  - text: ", and the in-app Settings → About panel."
+  - text: Backend dependencies add
+  - code: jinja2
+  - text: ","
+  - code: matplotlib
+  - text: ","
+  - code: weasyprint
+  - text: ","
+  - code: python-multipart
+  - text: .
+- heading "v0.8.0" [level=3]
+- generic: 2026-04-17
+- generic: Added
+- list:
+  - strong: Onboarding tour
+  - text: (
+  - code: driver.js
+  - text: ) — first-run walkthrough of Dashboard → Transactions → Budgets → AI Advisor. Skippable, replayable from Settings → Preferences → "Restart tour". Server-persisted via new
+  - code: users.onboarded_at
+  - text: column (Alembic migration
+  - code: a1c8f3b4e501
+  - text: ) with a local zustand fallback (
+  - code: hasSeenTour
+  - text: ).
+  - code: data-tour-id
+  - text: anchors added to the sidebar and AI Advisor trigger.
+  - strong: Keyboard shortcuts
+  - text: (
+  - code: react-hotkeys-hook
+  - text: ) —
+  - code: "N"
+  - text: new transaction,
+  - code: /
+  - text: command palette,
+  - code: "?"
+  - text: cheatsheet,
+  - code: g d
+  - text: /
+  - code: g t
+  - text: /
+  - code: g b
+  - text: /
+  - code: g c
+  - text: /
+  - code: g r
+  - text: navigation,
+  - code: Esc
+  - text: to close. Scoped to non-editable focus so it never fights form inputs.
+  - strong: Command palette
+  - text: — global
+  - code: /
+  - text: spotlight composed from shadcn primitives (
+  - code: ScrollArea
+  - text: ", popover surface, plain input). Page jumps plus live transaction search ("
+  - code: GET /api/transactions/?q=
+  - text: ", 250 ms debounce via"
+  - code: useDeferredValue
+  - text: and React Query caching).
+  - strong: Transaction full-text search
+  - text: —
+  - code: "?q="
+  - text: query parameter added to
+  - code: GET /api/transactions
+  - text: . Server-side
+  - code: ILIKE
+  - text: match across
+  - code: description
+  - text: and
+  - code: category
+  - text: . (Postgres
+  - code: tsvector
+  - text: upgrade path documented for a future release.)
+  - strong: Server-backed notification center
+  - text: — new
+  - code: notifications
+  - text: table with
+  - code: (user_id, dedupe_key)
+  - text: unique index, endpoints under
+  - code: /api/notifications/
+  - text: (
+  - code: GET
+  - text: ","
+  - code: "POST /{id}/read"
+  - text: ","
+  - code: POST /read-all
+  - text: ","
+  - code: DELETE /
+  - text: ), and a
+  - code: notification_service.py
+  - text: emitter for budget overruns, bill reminders, goal milestones, and anomalies. The existing
+  - code: NotificationCenter
+  - text: component now polls every 60 s and syncs state via the rewritten
+  - code: notification-store.ts
+  - text: .
+  - strong: New endpoint
+  - code: POST /api/auth/onboarded
+  - text: stamps
+  - code: users.onboarded_at
+  - text: idempotently.
+  - strong: Cheatsheet dialog
+  - text: (
+  - code: "?"
+  - text: ) listing every shortcut.
+- generic: Changed
+- list:
+  - code: NotificationCenter
+  - text: +
+  - code: notification-store
+  - text: switched from client-only persistence to server-authoritative state (
+  - code: read_at
+  - text: replaces boolean
+  - code: read
+  - text: ;
+  - code: bill_reminder
+  - text: added to
+  - code: NotificationType
+  - text: ).
+  - code: Providers
+  - text: now mounts
+  - code: GlobalShortcuts
+  - text: and
+  - code: OnboardingTour
+  - text: alongside the existing React Query + theme providers.
+  - code: app-store
+  - text: persists
+  - code: hasSeenTour
+  - text: and exposes
+  - code: restartTour()
+  - text: .
+  - text: Version bumped to
+  - code: 0.8.0
+  - text: in the relevant surfaces.
+- generic: Migrations
+- list:
+  - code: a1c8f3b4e501_v080_onboarded_and_notifications.py
+  - text: — adds
+  - code: users.onboarded_at
+  - text: and the
+  - code: notifications
+  - text: table with indexes and a unique
+  - code: (user_id, dedupe_key)
+  - text: constraint. Safe on SQLite (batch mode) and PostgreSQL.
+- heading "v0.7.0" [level=3]
+- generic: 2026-04-17
+- generic: Added
+- list:
+  - strong: Frontend shadcn/ui design-token migration
+  - text: across all 12 pages (payments, calendar, savings, gantt, reports, budgets, debts, plans, settings, docs, transactions) plus the error-boundary component. Legacy
+  - code: var(--*)
+  - text: CSS variables replaced with Tailwind tokens (
+  - code: primary
+  - text: ","
+  - code: destructive
+  - text: ","
+  - code: muted
+  - text: ","
+  - code: foreground
+  - text: ","
+  - code: input
+  - text: ","
+  - code: border
+  - text: ","
+  - code: card
+  - text: ).
+  - code: CardBody
+  - text: →
+  - code: CardContent
+  - text: ","
+  - code: variant="cancel"
+  - text: →
+  - code: variant="outline"
+  - text: ","
+  - code: variant="danger"
+  - text: →
+  - code: variant="destructive"
+  - text: .
+  - strong: Backend smoke-test harness
+  - text: under
+  - code: backend/tests/
+  - text: using pytest + httpx with an in-memory SQLite. Covers
+  - code: /api/health
+  - text: and the register → login → authorized
+  - code: /api/auth/me
+  - text: flow plus the 401-without-token contract.
+  - code: test
+  - text: optional-dependency group and
+  - code: "[tool.pytest.ini_options]"
+  - text: in
+  - code: pyproject.toml
+  - text: .
+- generic: Changed
+- list:
+  - code: .env.example
+  - text: now covers every setting declared in
+  - code: backend/app/config.py
+  - text: ": added"
+  - code: JWT_SECRET_KEY
+  - text: ","
+  - code: JWT_ALGORITHM
+  - text: ","
+  - code: JWT_EXPIRE_MINUTES
+  - text: ", and"
+  - code: AI_MODEL
+  - text: .
+  - code: README.md
+  - text: "rewritten: SQLite-first quickstart, JWT auth flow,"
+  - code: /docs
+  - text: in-app page, Stripe test-key onboarding, link to CHANGELOG.
+  - text: Version bumped to
+  - code: 0.7.0
+  - text: in
+  - code: pyproject.toml
+  - text: ","
+  - code: backend/app/main.py
+  - text: ","
+  - code: frontend/package.json
+  - text: ", and the in-app Settings page."
+  - code: docker-compose.dev.yml
+  - text: top comment clarifies how to use the override.
+- generic: Fixed
+- list:
+  - code: JWT_SECRET_KEY
+  - text: was absent from
+  - code: .env.example
+  - text: ", so a fresh clone silently ran with the config default"
+  - code: CHANGE-ME-IN-PRODUCTION
+  - text: . Now explicit.
+- heading "v0.6.0" [level=3]
+- generic: 2026-04-12
+- generic: Added
+- list:
+  - strong: JWT authentication & multi-user support
+  - text: "-"
+  - code: User
+  - text: model with email, username, bcrypt-hashed password. -
+  - code: POST /api/auth/register
+  - text: ","
+  - code: POST /api/auth/login
+  - text: ","
+  - code: GET /api/auth/me
+  - text: . -
+  - code: get_current_user
+  - text: dependency protects all resource routers. -
+  - code: user_id
+  - text: foreign key on Plan, Transaction, Budget, SavingsGoal, Debt, Payment, AIRecommendation, and Tag for per-user isolation. - Frontend
+  - code: /login
+  - text: and
+  - code: /register
+  - text: pages, auth-store (Zustand), AuthGate component, JWT attached to every API call.
+  - strong: Alembic database migrations
+  - text: replacing
+  - code: create_all()
+  - text: at startup. Initial migration
+  - code: 686549b8431b_initial_schema_with_user_auth.py
+  - text: captures all tables, indices, and foreign keys; SQLite batch mode enabled.
+  - strong: "Claude `tool_use` AI integration"
+  - text: — AI advisor, analysis, recommendations, forecast, and weekly summary use native
+  - code: tools
+  - text: +
+  - code: tool_choice
+  - text: for guaranteed structured output (no more
+  - code: text.find("[")
+  - text: parsing).
+  - strong: Multi-database support
+  - text: —
+  - code: DATABASE_URL
+  - text: switches between PostgreSQL, MySQL, and SQLite via a dialect-aware engine factory in
+  - code: backend/app/database.py
+  - text: . SQLite gets
+  - code: check_same_thread=False
+  - text: and
+  - code: PRAGMA foreign_keys=ON
+  - text: ; PG/MySQL use
+  - code: pool_pre_ping
+  - text: . Drivers
+  - code: psycopg2-binary
+  - text: and
+  - code: pymysql
+  - text: added.
+  - strong: "Frontend `/docs` page"
+  - text: with API reference, user guide, and setup instructions.
+  - strong: CHANGELOG.md
+  - text: bootstrapped.
+- generic: Changed
+- list:
+  - text: API
+  - code: version
+  - text: bumped to
+  - code: 0.6.0
+  - text: in the FastAPI constructor and
+  - code: /api/health
+  - text: .
+  - listitem: Settings page About section reflects v0.6.0, shadcn/ui, and PostgreSQL.
+- heading "v0.5.0" [level=3]
+- generic: 2026-04-05
+- generic: Added
+- list:
+  - strong: Security Hardening
+  - text: "- Security headers middleware (X-Content-Type-Options, X-Frame-Options, CSP, Referrer-Policy, Permissions-Policy) - In-memory rate limiting middleware (100 req/min default, 20 req/min for sensitive endpoints) - Request logging with loguru (method, path, status code, response time) - CSV import file size limit (5MB) and content type validation - API documentation hidden in production mode (only accessible when DEBUG=true)"
+  - strong: Stripe Test Mode Integration
+  - text: "- Stripe checkout session creation ("
+  - code: POST /api/payments/create-checkout-session
+  - text: ) - Payment listing and detail endpoints (
+  - code: GET /api/payments/
+  - text: ) - Stripe webhook handler with signature verification (
+  - code: POST /api/payments/webhook
+  - text: ) - Stripe configuration endpoint (
+  - code: GET /api/payments/config
+  - text: ) - Payment model with status tracking (pending, succeeded, failed, refunded, cancelled) - Payments page in frontend with test card info, checkout flow, and payment history - Test mode banner with clear visual indicator
+  - strong: User Experience
+  - text: "- Custom 404 page with navigation options - Global error boundary page with retry button - Global loading skeleton state - Payments link in sidebar navigation"
+- generic: Changed
+- list:
+  - listitem: CORS configuration restricted to specific HTTP methods and headers (was wildcard)
+  - listitem: API version updated to 0.5.0
+  - listitem: Settings page version updated to 0.5.0
+  - listitem: Default DEBUG changed to false in .env.example
+- generic: Security
+- list:
+  - text: "Fixed overly permissive CORS: restricted"
+  - code: allow_methods
+  - text: and
+  - code: allow_headers
+  - text: from wildcard
+  - listitem: Added security headers to all API responses
+  - listitem: Added rate limiting to prevent abuse
+  - listitem: CSV upload hardened with size and content-type validation
+  - listitem: Stripe webhook signature verification prevents forged events
+- heading "v0.4.0" [level=3]
+- generic: 2026-03-30
+- generic: Added
+- list:
+  - strong: Transaction Tags/Labels
+  - text: — flexible multi-tag categorization for transactions
+  - strong: Recurring Transactions & Subscription Tracker
+  - strong: CSV/Bank Statement Import
+  - text: with auto-detect and preview
+  - strong: Savings Goals with Progress Tracking
+  - strong: Debt Payoff Tracker
+  - text: with avalanche and snowball strategies
+  - strong: Financial Insights & Weekly Summary
+  - listitem: Added Savings Goals and Debt Tracker to sidebar navigation
+- generic: Changed
+- list:
+  - listitem: Updated API version to 0.4.0
+  - listitem: Enhanced transaction creation form with tag picker and recurring toggle
+  - listitem: Expanded TypeScript types for all new features
+- heading "v0.3.0" [level=3]
+- generic: 2026-03-14
+- generic: Added
+- list:
+  - listitem: Complete Aegis frontend overhaul with modern UI component library
+  - listitem: Reusable UI primitives, toast notification system, error boundary, progress ring
+  - listitem: Transactions, Plans & Goals, and Settings pages
+  - listitem: Framer Motion animations throughout
+  - listitem: Mobile-responsive sidebar and notification center
+  - listitem: Dark mode fix (theme syncs to DOM and persists)
+- generic: Changed
+- list:
+  - listitem: Renamed application from "MoneyAI" to "Aegis"
+  - listitem: Enhanced Dashboard, Budgets, Calendar, Gantt, Reports, AI Panel
+- generic: Fixed
+- list:
+  - listitem: "Docker best practices: multi-stage builds, non-root users, restart policies, resource limits, standalone Next.js output."
+- heading "v0.2.0" [level=3]
+- generic: 2026-03-14
+- generic: Added
+- list:
+  - listitem: Financial analysis and reporting features (budget vs actual, monthly category comparison, CSV export, spending anomaly detection, financial health score, cash flow forecast).
+  - listitem: Budget management and Reports & Analytics frontend pages.
+  - listitem: Dashboard KPI cards, spending charts, and trend charts.
+- generic: Fixed
+- list:
+  - listitem: "Docker Compose verification: reliable container startup and healthchecks."
+- heading "v0.1.0" [level=3]
+- generic: 2026-03-14
+- generic: Added
+- list:
+  - listitem: "Initial full-stack scaffold: FastAPI backend, Next.js 15 + React 19 frontend, PostgreSQL with SQLAlchemy, Claude AI analysis, Docker Compose infra."
+- alert

@@ -6,7 +6,89 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Horizon and develop integration — 2026-10-25
+
+- Integrated the Horizon ivory/evergreen frontend, updated public guides, brand assets and tracked-money views with the exact-money LINE backend.
+- Fixed same-origin budget collection redirects; load failures now offer a retry instead of showing a false empty state. Reviewed tracked limits and comparison tooltips use THB, while unreviewed limits do not inherit an unrelated display currency.
+- Added reusable Robot Framework API/proxy acceptance and PostgreSQL budget-review contention coverage; wired the genuine ledger checks into CI. See the dated integration report for executed results and remaining release/security checks.
+
+### LINE setup and budget shortcuts — 2026-10-25 (local implementation)
+
+- New one-use setup codes default to 24 hours, with local QR/Open LINE linking, expiry countdown and renewal. Established LINE links remain active until disconnected; web login and transaction confirmation keep separate lifetimes.
+- Added inline owner-scoped budget spending/remaining replies and help/pending shortcuts, preserving exact ledger reports and financial review. Updated the inactive six-action menu asset; no live menu or workflow activation is implied.
+
+### Exact-money LINE workflow — 2026-10-22 (inactive local implementation)
+
+- Added THB accounts with reviewed cutoff openings, BIGINT balanced journals, versioned drafts, card/refund/correction lineage and owner-scoped idempotency. PostgreSQL commit constraints and append-only history protect the posting boundary.
+- Added private LINE identity/inbox/media, fenced jobs, independent notification delivery and configured vision adapter. Added three sanitized inactive n8n workflows and a six-action rich-menu setup asset.
+- Added exact account/review/statement screens, canonical reporting and post-cutover legacy writer guards. Existing unverified history stays separate; accountless callers receive an explicit canonical workflow instruction.
+- Recorded SQLite/PostgreSQL migration, concurrency, backup/restore and local browser evidence. Real accounts, channel/provider credentials, live acceptance and production activation remain pending. See [workflow and acceptance](docs/line-money-workflow.md).
+
+### Workspace LINE capture (M4 local implementation) — 2026-10-02
+
+- Added explicit reviewed THB workspace/account linking, frozen connection/revision drafts and legacy reconnect guidance without guessing a destination.
+- Routed confirmed capture and undo through the shared cash writer/reversal; authenticated event receipts, cash/audit changes and durable replies commit together. Added duplicate/concurrent/interrupted confirmation and stable-delivery-retry checks.
+- Added truthful setup/delivery status, mobile destination controls, populated SQLite/PostgreSQL migration preservation and restored-backup checks. M4.3 real delivery, M4.4 connector decision, independent review, owner comprehension, remote CI and release remain open. See [pilot runbook](docs/releases/2026-10-02-m4-line-capture.md).
+
+### Business cash review (M3) — 2026-10-02
+
+- Added business receivables/bills with one linked plan, explicit existing-plan adoption, partial shared settlements, reasoned credits/cancellation and overdue date review.
+- Added thirteen calendar weeks with daily lows/sources and immutable saved forecasts with scoped amount/timing/anchor/residual comparison.
+- Verified combined cash tests on SQLite/PostgreSQL, populated migration/restore and desktop/mobile tasks; the repeatable local workflow records source hashes and results. Independent review and production rollout remain open. See [M3 scope](docs/releases/2026-10-02-m3-business-cash-review.md).
+
+### Everyday cash review (M2) — 2026-10-02
+
+- Added server-held CSV reviews, duplicate/match suggestions and atomic, retry-safe selected-row posting.
+- Added biweekly/quarterly/yearly/split recurrence, interval multipliers, payment exceptions and bounded extensions that preserve matches.
+- Added explicit reservations or existing-transfer goal links, entered installments with optional reviewed debt links, and persisted source-based cash alerts with acknowledgment/resolution.
+- Added mobile/reload checks, populated SQLite/PostgreSQL migration rehearsals, exact backup/restore verification and expanded genuine PostgreSQL CI coverage. Available in the local owner pilot; production rollout remains pending. See [M2 scope](docs/releases/2026-10-02-m2-everyday-cash-review.md).
+
+### Cash planning owner pilot — 2026-10-02
+
+- Added personal/business workspaces, reviewed dated opening cash, manual cash movements, paired transfers, daily forecasts/history/calendar, one-time/weekly/monthly commitments, isolated saved scenarios and full/partial payment matching with audited corrections.
+- Kept legacy records explicitly unassigned; reviewed adoption preserves IDs/links/currency confirmation. Legacy HTTP/MCP/LINE writers cannot bypass cash correction rules.
+- Added genuine PostgreSQL acceptance/concurrency coverage, additive migration and backup/restore rehearsals, mobile/browser task evidence and a practical cash-planning guide. The rollout flag defaults to disabled; this is locally verified and not production-deployed. See [release scope](docs/releases/2026-10-02-first-cashflow-release.md).
+
+### Changed
+
+- Reworked Documentation after owner feedback that the mixed guide served
+  neither everyday users nor developers clearly. Added a searchable docs home,
+  separate guide collections, nine focused articles, concrete field examples,
+  expected results, troubleshooting, API authentication/request/response details
+  and a downloadable sample CSV. Preserved earlier documentation hash links.
+
+- Clarified the Meridian landing introduction and added a first-month walkthrough.
+  Added Documentation to the shared desktop/mobile header and rebuilt `/docs`
+  as a public, server-rendered getting-started guide with native topic links,
+  practical examples, export scope, self-hosting instructions and API reference.
+  Corrected the legacy Claude-only wording and backend documentation paths.
+
+- Redesigned sign-in after inspecting six dedicated login references: a centered
+  Aegis Focus form, the unchanged original icon, static amber/teal orbital
+  decoration and a focused mobile layout. Preserved cookie-based email and
+  optional Google sign-in; added password visibility, autofill hints, announced
+  error/loading feedback and native account help. Removed fabricated account
+  activity, testimonial copy and the misleading recovery link to registration.
+  Added a local reference board with source captures, three ideas and adaptations.
+- Developed the owner-selected Meridian landing direction: Aegis's amber/teal
+  identity, a shared interactive calendar/timeline example, the Record/Arrange/
+  Review workflow, and selectable savings, trip and debt examples. Clarified
+  plan status, optional AI setup, and data export scope. Preserved Aegis's icon
+  and removed unsupported marketing metrics and the unverified zero-price offer.
+- Render public marketing content before authentication hydration so its core
+  content and native FAQ remain usable without JavaScript. Scope the dashboard
+  loading boundary to its own route group, preserving the root `/` URL.
+  The landing uses
+  static HTML/SVG visuals and no longer loads the decorative comet or backdrop
+  animation; the existing comet components remain available.
+
 ### Added
+
+- Public interactive `/demo` with fictional personal and Business X stories,
+  sample expense entry, delayed-income comparisons, transparent calculations,
+  recorded/planned views, budget updates and independent story reset. Added
+  demo links to the public header, landing and documentation. Clearly separated
+  the proposed hosted offering from supported self-hosting.
 
 - Landing-page WebGL comet Phase 1: a dependency-free WebGL2 renderer with a
   transparent canvas, moving comet core, responsive DPR, hidden-tab pause,

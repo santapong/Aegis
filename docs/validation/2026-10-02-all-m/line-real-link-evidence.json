@@ -1,0 +1,37 @@
+{
+  "checked_at": "2026-10-05T03:02:49.885193+00:00",
+  "real_link": {
+    "linked": true,
+    "destination": {
+      "workspace": "LINE personal pilot · fictional",
+      "account": "Personal test cash",
+      "currency": "THB"
+    },
+    "link_observed_at": "2026-10-05T02:56:59Z"
+  },
+  "connection_reply": {
+    "provider_status_codes": [
+      200,
+      200
+    ],
+    "provider_accepted_count": 2,
+    "scope": "only the actually linked personal fictional participant; generic worker disabled",
+    "handset_receipt": "owner explicitly reported receiving Connected reply; text report, no screenshot"
+  },
+  "cash_before_confirmation": {
+    "checked_at": "2026-10-05T02:59:16Z",
+    "cash_today": "1000.00",
+    "actual_count": 0,
+    "pending_drafts": 0,
+    "scope": "actual reviewed forecast service on isolated personal fixture; no expense event received at this check"
+  },
+  "latest_inbound_check": {
+    "checked_at": "2026-10-05T03:00:20Z",
+    "event_count": 2,
+    "latest_event_at": "2026-10-05T02:56:42.470862",
+    "draft_count": 0,
+    "scope": "link events only; reported expense send is not yet database evidence"
+  },
+  "next_action": "Owner sends expense 1 Aegis pilot fictional in the one-to-one LINE chat; then inspect draft/cash and send only this participant reply",
+  "limits": "Handshake/connection receipt only. Expense capture, confirm/once-only cash, correction, duplicate/interruption and disconnect criteria still open. No app source/image/schema change, independent operational review, release or customer migration."
+}

@@ -1,0 +1,144 @@
+
+:root {
+ --h-canvas:#f6f5ef; --h-surface:#fff; --h-panel:#f0f2eb; --h-text:#192e26;
+ --h-muted:#5f7065; --h-line:#dce2d8; --h-line-strong:#b6c6b9;
+ --h-action:#123d32; --h-action-hover:#245543; --h-action-text:#fff; --h-link:#1b5745;
+ --h-soft:#e7efdd; --h-ink-soft:#416448; --h-sidebar:#edf0e7; --h-selected:#dce8ce;
+ --h-glass:#f6f5eff5; --h-warning:#93611a; --h-warning-bg:#fbf0e3;
+ --h-danger:#b14141; --h-danger-bg:#fcf0ed; --h-code:#334d3e; --h-scheme:light;
+}
+/* Aegis Horizon. Shared primitives, including old screens and portal content. */
+:is(.theme-horizon, .theme-horizon-dark) {
+  color-scheme: light;
+  --void: #f6f5ef;
+  --void-2: #ffffff;
+  --void-3: #edf0e7;
+  --pane: #ffffff;
+  --pane-2: #f0f2eb;
+  --pane-edge: #dce2d8;
+  --pane-edge-2: #b6c6b9;
+  --fg: #192e26;
+  --fg-2: #42594d;
+  --dim: #5f7065;
+  --dim-2: #6c7b70;
+  --accent: #1b5745;
+  --accent-2: #64805b;
+  --accent-soft: #e7efdd;
+  --accent-glow: transparent;
+  --ok: #267453;
+  --warn: #93611a;
+  --bad: #b14141;
+  --grid: #e5e9df;
+  --background: var(--void);
+  --foreground: var(--fg);
+  --card: var(--pane);
+  --card-foreground: var(--fg);
+  --popover: var(--pane);
+  --popover-foreground: var(--fg);
+  --primary: var(--accent);
+  --primary-foreground: var(--h-action-text);
+  --secondary: var(--pane-2);
+  --secondary-foreground: var(--fg);
+  --muted: var(--pane-2);
+  --muted-foreground: var(--dim);
+  --accent-foreground: var(--h-action-text);
+  --destructive: var(--bad);
+  --destructive-foreground: #ffffff;
+  --border: var(--pane-edge);
+  --input: var(--pane-edge-2);
+  --ring: var(--accent);
+  --chart-1: var(--accent);
+  --chart-2: #7f9869;
+  --chart-3: #b8a56d;
+  --chart-4: #8e809d;
+  --chart-5: #bc7760;
+  --success: var(--ok);
+  --warning: var(--warn);
+  --aegis-panel: var(--pane);
+  --aegis-panel-2: var(--pane-2);
+  --aegis-line: var(--pane-edge);
+  --aegis-line-2: var(--pane-edge-2);
+  --aegis-fg-2: var(--fg-2);
+  --aegis-dim: var(--dim);
+  --aegis-dim-2: var(--dim-2);
+  --aegis-ok: var(--ok);
+  --aegis-warn: var(--warn);
+  --aegis-bad: var(--bad);
+  --aegis-grid: var(--grid);
+  --display-font: var(--font-sans), sans-serif;
+  --display-style: normal;
+  --display-weight: 600;
+  --display-tracking: -0.035em;
+  --card-blur: 0px;
+  --card-radius: 16px;
+  --kpi-radius: 16px;
+  --hero-glow: none;
+  --line-glow: none;
+  --ring-glow: none;
+  --star-opacity: 0;
+}
+.aegis-brand { display: inline-flex; align-items: center; gap: 9px; color: inherit; white-space: nowrap; font: 600 27px/1 var(--font-sans), sans-serif; letter-spacing: -.065em; }
+.aegis-brand-dot { color: var(--h-ink-soft); }
+:is(.theme-horizon, .theme-horizon-dark) .backdrop { background: var(--void); }
+:is(.theme-horizon, .theme-horizon-dark) .bd-base { background: var(--void); }
+:is(.theme-horizon, .theme-horizon-dark) .btn-galaxy { min-height: 44px; border-radius: 9px; font-family: var(--font-sans), sans-serif; font-size: 13px; letter-spacing: 0; text-transform: none; }
+:is(.theme-horizon, .theme-horizon-dark) .btn-galaxy:not(.ghost) { background: var(--accent); color: var(--h-action-text); }
+:is(.theme-horizon, .theme-horizon-dark) .btn-galaxy.ghost { background: var(--pane); color: var(--fg); }
+:is(.theme-horizon, .theme-horizon-dark) .font-mono:not(pre):not(code):not(.tabular-nums) { font-family: var(--font-sans), sans-serif; }
+:is(.theme-horizon, .theme-horizon-dark) .aegis-sidebar { background: var(--h-sidebar) !important; backdrop-filter: none !important; }
+:is(.theme-horizon, .theme-horizon-dark) .aegis-sidebar nav a { min-height: 42px; border-radius: 8px !important; font-size: 13px !important; }
+:is(.theme-horizon, .theme-horizon-dark) .aegis-sidebar nav a[aria-current="page"] { background: var(--h-selected) !important; box-shadow: none !important; }
+:is(.theme-horizon, .theme-horizon-dark) .aegis-sidebar nav .kbd { opacity: .55; font-size: 9px; }
+:is(.theme-horizon, .theme-horizon-dark) .aegis-sidebar button { min-height: 36px; }
+:is(.theme-horizon, .theme-horizon-dark) .aegis-status { border-top: 1px solid var(--pane-edge); background: var(--void); font-family: var(--font-sans), sans-serif; letter-spacing: 0; }
+:is(.theme-horizon, .theme-horizon-dark) [data-slot="card"] { box-shadow: 0 2px 8px #123d3203; border-radius: 16px; }
+:is(.theme-horizon, .theme-horizon-dark) :is(input, select, textarea) { color-scheme: light; }
+:is(.theme-horizon, .theme-horizon-dark) :is(button, a, input, select, textarea):focus-visible { outline: 2px solid var(--h-link); outline-offset: 3px; }
+:is(.theme-horizon, .theme-horizon-dark) .recharts-cartesian-grid line { stroke: var(--pane-edge); }
+:is(.theme-horizon, .theme-horizon-dark) .recharts-text { fill: var(--dim); }
+@media (prefers-reduced-motion: reduce) { :is(.theme-horizon, .theme-horizon-dark) *, :is(.theme-horizon, .theme-horizon-dark) *::before, :is(.theme-horizon, .theme-horizon-dark) *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+:is(.theme-horizon, .theme-horizon-dark) .aegis-opener-title { font-family:var(--font-serif),Georgia,serif; font-size:clamp(34px,3.2vw,46px); font-weight:400; line-height:1.1; letter-spacing:-.025em; }
+:is(.theme-horizon, .theme-horizon-dark) .aegis-opener-eyebrow { font-family:var(--font-sans),sans-serif; font-size:10px; letter-spacing:.12em; }
+:is(.theme-horizon, .theme-horizon-dark) .aegis-opener-sub { font-size:13px; line-height:1.8; }
+:is(.theme-horizon, .theme-horizon-dark) .aegis-code { border-radius:5px; font-family:var(--font-sans),sans-serif; background:var(--h-soft); color:var(--h-link); }
+
+:is(.theme-horizon, .theme-horizon-dark) .aegis-sidebar .aegis-brand { font-size:26px; }
+
+
+.theme-horizon-dark {
+ color-scheme:dark;
+ --h-canvas:#0d1b17; --h-surface:#14271f; --h-panel:#1c3227; --h-text:#edf2e6;
+ --h-muted:#b1c1b2; --h-line:#31493a; --h-line-strong:#5b7761;
+ --h-action:#dce9af; --h-action-hover:#e8f1cf; --h-action-text:#14271f; --h-link:#c5dda4;
+ --h-soft:#283d2c; --h-ink-soft:#b6ce9a; --h-sidebar:#102219; --h-selected:#2a412e;
+ --h-glass:#0d1b17f5; --h-warning:#e6c286; --h-warning-bg:#3b3020;
+ --h-danger:#f5ada3; --h-danger-bg:#3b2522; --h-code:#d5e8c5; --h-scheme:dark;
+ --void:var(--h-canvas); --void-2:var(--h-surface); --void-3:var(--h-panel);
+ --pane:var(--h-surface); --pane-2:var(--h-panel); --pane-edge:var(--h-line); --pane-edge-2:var(--h-line-strong);
+ --fg:var(--h-text); --fg-2:#c6d4c4; --dim:var(--h-muted); --dim-2:#9db19e;
+ --accent:var(--h-action); --accent-2:#99b983; --accent-soft:var(--h-soft);
+ --ok:#b2dba1; --warn:var(--h-warning); --bad:var(--h-danger); --grid:var(--h-line);
+ --chart-1:#c5dda4; --chart-2:#a9c6bd; --chart-3:#ddc58b; --chart-4:#c8b9d3; --chart-5:#e7a58b;
+ --primary-foreground:var(--h-action-text); --accent-foreground:var(--h-action-text);
+}
+.aegis-theme-toggle { width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid var(--h-line); background:var(--h-surface); color:var(--h-text); border-radius:50%; cursor:pointer; transition:background .15s; }
+.aegis-theme-toggle:hover { background:var(--h-soft); }
+.aegis-theme-toggle:focus-visible { outline:2px solid var(--h-link); outline-offset:4px; }
+:is(.theme-horizon,.theme-horizon-dark) :is(input,select,textarea) { color-scheme:var(--h-scheme); }
+.aegis-access-actions { display:flex; align-items:center; gap:22px; }
+@media(max-width:480px){ .aegis-access-actions { gap:10px; } }
+.aegis-access-story { display:none; }
+@media(min-width:1100px){
+ .aegis-access-story { display:block; max-width:510px; }
+ .aegis-access-art { border-radius:120px 120px 16px 16px; overflow:hidden; position:relative; margin-bottom:28px; }
+ .aegis-access-art img { width:100%; height:290px; object-fit:cover; }
+ .aegis-access-art span { position:absolute; bottom:18px; left:22px; padding:9px 12px; background:#f6f5efeb; color:#123d32; font-size:8px; letter-spacing:.15em; border-radius:20px; }
+ .aegis-access-kicker { color:var(--h-link); font-size:9px; letter-spacing:.18em; margin-bottom:15px!important; }
+ .aegis-access-story h2 { font:400 54px/1.03 var(--font-serif),Georgia,serif; letter-spacing:-.025em; color:var(--h-text); }
+ .aegis-access-story h2 em { color:var(--h-ink-soft); }
+ .aegis-access-story>p:last-child { max-width:350px; font-size:13px; line-height:1.9; color:var(--h-muted); margin-top:20px!important; }
+}
+.aegis-logo-dark{display:none}.theme-horizon-dark .aegis-logo-dark{display:block}.theme-horizon-dark .aegis-logo-light{display:none}
+
+.theme-horizon-dark { --destructive-foreground:#14271f; }

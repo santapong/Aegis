@@ -1,0 +1,20 @@
+{
+  "CHANGELOG.md": "33d6ec9b0e68abeca4bd0c9d48244e1c9d40c382b4e76e953caeaeae9dc31e27",
+  "backend/.env.example": "6fe03b9d371192733611ecf9ae8930bdb774b6440493c7ac678d34f473ad7bd1",
+  "backend/pyproject.toml": "de80fc61c06854e797bc41503f938ead07594730e98223dccb226348a2c665d9",
+  "backend/uv.lock": "4b3cb0ab7ff2d280129d45714faba0db1d88e88c12bde3aade6799d309cff120",
+  "scripts/build-line-rich-menu.py": "b0ed425464507a20eca662c6d53eae124fdb5adb77ba61690adc74f9918f2e6f",
+  "frontend/src/lib/finance-api.ts": "be34549042c38a171ed484cb3e6a17f8ecc0111767b44a57daf32364134084f5",
+  "frontend/src/app/budgets/page.tsx": "9f70dc5dee0a98d12dbab3a2e0a0bfcaa8bf4abfbe5375fa650b7801e366101f",
+  "frontend/src/components/finance/finance.module.css": "d849e8e49a12179590cf52f5cc55b7e86c35eade3d0e117bc4e9e3969c2bf05c",
+  "frontend/src/components/finance/line-connection.tsx": "37ee1e6b56b8ef8012e223a4715a1c4b3279c9b8a7053115ef3a70a55db2dcdc",
+  "workflows/line/aegis-rich-menu.template.json": "c0c946f9b8ac291b3d2e70e88ad96e8415416ae8ada2d2fa617c6776121122ab",
+  "backend/app/config.py": "edafb46356689fd05ae475a94a84c9fec9a2b447e06345d6059dca90ea098402",
+  "backend/app/services/finance_integration.py": "6910fa58b1e7bf8fb6b86db10dc63ac2cc04f052671f2e9207d6529901097b56",
+  "backend/app/services/finance_reads.py": "c483b2a63eeda1245a76af600213ecce102198249744afd5b18d2c4c75699b4f",
+  "backend/app/routers/finance_reconciliation.py": "1c172c8be4db536bc6d4094e69b545d409528aa53af534e48dac39becb4533a7",
+  "backend/app/routers/finance_integration.py": "20d8d612c4a1260322223fab6ca41e0b3277e0fff2435cfe9b9a291d1dfd5a67",
+  "frontend/src/components/finance/budget-currency-review.tsx": "f7d50df8e173ce43ec2ddcad0fd6ef6284a419b86c883db0d3fbcc73529716b7",
+  "backend/tests/test_line_onboarding_tools.py": "ff23c59f88b7fbc8b5bba00a363ab8b379f9ccdbcfb505291cddf3d1f4c9a6f2",
+  "docs/design/018-line-onboarding-and-budget-tools.md": "e959e9500af2a9a3e9267d5d02a8e84d06c3f3e45a2f6b59e502658e45832ec6"
+}

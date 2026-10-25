@@ -1,0 +1,367 @@
+[
+  {
+    "slug": "lunch-money",
+    "name": "Lunch Money",
+    "url": "https://lunchmoney.app/",
+    "checked": "2026-09-28",
+    "status": 403,
+    "title": "Just a moment...",
+    "finalUrl": "https://lunchmoney.app/",
+    "headings": [
+      {
+        "text": "lunchmoney.app",
+        "y": 128
+      },
+      {
+        "text": "Performing security verification",
+        "y": 186
+      }
+    ],
+    "error": "page.screenshot: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m    - disabled all CSS animations\u001b[22m\n\u001b[2m  - waiting for fonts to",
+    "captured": false
+  },
+  {
+    "slug": "ynab",
+    "name": "YNAB",
+    "url": "https://www.ynab.com/",
+    "checked": "2026-09-28",
+    "status": 200,
+    "title": "YNAB",
+    "finalUrl": "https://www.ynab.com/",
+    "headings": [
+      {
+        "text": "Do you worry about money?",
+        "y": 240
+      },
+      {
+        "text": "Tired of worrying about money? You’re not alone.",
+        "y": 1212
+      },
+      {
+        "text": "It takes 20 minutes to start getting good.",
+        "y": 2282
+      },
+      {
+        "text": "The average user saves $600 their first month, $6,000 their first year.",
+        "y": 3037
+      },
+      {
+        "text": "Get YNAB. Get good at money.",
+        "y": 4240
+      }
+    ],
+    "sectionScroll": 1072,
+    "captured": true
+  },
+  {
+    "slug": "actual-budget",
+    "name": "Actual Budget",
+    "url": "https://actualbudget.org/",
+    "checked": "2026-09-28",
+    "status": 200,
+    "title": "Your Finances — made simple | Actual Budget",
+    "finalUrl": "https://actualbudget.org/",
+    "headings": [
+      {
+        "text": "Your Finances — made simple",
+        "y": 180
+      },
+      {
+        "text": "Be involved in your financial decisions",
+        "y": 1258
+      },
+      {
+        "text": "Meticulously designed for speed",
+        "y": 1680
+      },
+      {
+        "text": "Unabashedly local-first software",
+        "y": 2040
+      },
+      {
+        "text": "Powerful budgeting made simple",
+        "y": 2448
+      },
+      {
+        "text": "The fastest way to manage transactions",
+        "y": 3155
+      },
+      {
+        "text": "Oh my, the reports",
+        "y": 3848
+      },
+      {
+        "text": "So many features!",
+        "y": 4557
+      }
+    ],
+    "error": "page.screenshot: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m    - disabled all CSS animations\u001b[22m\n\u001b[2m  - waiting for fonts to",
+    "captured": false
+  },
+  {
+    "slug": "mercury",
+    "name": "Mercury",
+    "url": "https://mercury.com/",
+    "checked": "2026-09-28",
+    "status": 200,
+    "title": "Online Business Banking For Startups, Small Businesses & Scaling Companies",
+    "finalUrl": "https://mercury.com/",
+    "headings": [
+      {
+        "text": "Radically different banking",
+        "y": 144
+      },
+      {
+        "text": "Loved by 300K+ of the most ambitious entrepreneurs on the planet",
+        "y": 3473
+      },
+      {
+        "text": "You’re creating something to stand the test of time. So are we.",
+        "y": 8111
+      },
+      {
+        "text": "Mercury hits $5.2B valuation",
+        "y": 9543
+      },
+      {
+        "text": "$650M in annual revenue and profitable",
+        "y": 9543
+      },
+      {
+        "text": "Mercury lands $300M Series C",
+        "y": 9543
+      },
+      {
+        "text": "Banking – redesigned from the ground up.",
+        "y": 9908
+      },
+      {
+        "text": "Mercury for business",
+        "y": 10189
+      }
+    ],
+    "error": "page.screenshot: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m    - disabled all CSS animations\u001b[22m\n\u001b[2m  - waiting for fonts to",
+    "captured": false
+  },
+  {
+    "slug": "wealthfront",
+    "name": "Wealthfront",
+    "url": "https://www.wealthfront.com/",
+    "checked": "2026-09-28",
+    "status": 200,
+    "title": "Money works better here | Wealthfront",
+    "finalUrl": "https://www.wealthfront.com/",
+    "headings": [
+      {
+        "text": "Earn up to 4.45% APY",
+        "y": 230
+      },
+      {
+        "text": "Better than a bank",
+        "y": 395
+      },
+      {
+        "text": "Raise your APY even higher",
+        "y": 1044
+      },
+      {
+        "text": "Turn savings into wealth at one of the best places for long-term investing",
+        "y": 1678
+      },
+      {
+        "text": "Built and managed for you",
+        "y": 2178
+      },
+      {
+        "text": "Build your own",
+        "y": 2178
+      },
+      {
+        "text": "Make the most of your money, wherever you’re at.",
+        "y": 3134
+      },
+      {
+        "text": "“ Wealthfront beats out Fidelity, Schwab and Vanguard when it comes to direct indexing and tax-loss harvesting.",
+        "y": 3830
+      }
+    ],
+    "sectionScroll": 904,
+    "captured": true
+  },
+  {
+    "slug": "ramp",
+    "name": "Ramp",
+    "url": "https://ramp.com/",
+    "checked": "2026-09-28",
+    "status": 200,
+    "title": "Spend Management, Corporate Cards & Accounts Payable Solutions | Ramp",
+    "finalUrl": "https://ramp.com/",
+    "headings": [
+      {
+        "text": "Time is money. Save both.",
+        "y": 229
+      },
+      {
+        "text": "Join 70,000 of the world’s most ambitious companies growing 3.2x faster than the average American business.",
+        "y": 1157
+      },
+      {
+        "text": "One platform for all of finance. Agents for every workflow, working 24/7.",
+        "y": 2036
+      },
+      {
+        "text": "See recommendations for your business",
+        "y": 3539
+      },
+      {
+        "text": "Systems that never spoke",
+        "y": 4239
+      },
+      {
+        "text": "Built on the intelligence of 70k+ finance teams. One platform for the agentic era.",
+        "y": 7003
+      },
+      {
+        "text": "Introducing Stack by Ramp. The AI operating system built for today’s top finance teams.",
+        "y": 7306
+      },
+      {
+        "text": "Keep your finance team focused on strategy. Let agents handle the busywork.",
+        "y": 8019
+      }
+    ],
+    "sectionScroll": 1017,
+    "captured": true
+  },
+  {
+    "slug": "sunsama",
+    "name": "Sunsama",
+    "url": "https://www.sunsama.com/",
+    "checked": "2026-09-28",
+    "status": 200,
+    "title": "Sunsama - Make work-life balance a reality.",
+    "finalUrl": "https://www.sunsama.com/",
+    "headings": [],
+    "sectionScroll": 710,
+    "captured": true
+  },
+  {
+    "slug": "daybridge",
+    "name": "Daybridge",
+    "url": "https://daybridge.com/",
+    "checked": "2026-09-28",
+    "status": 200,
+    "title": "Daybridge: One calendar for work and life",
+    "finalUrl": "https://daybridge.com/",
+    "headings": [
+      {
+        "text": "Bring work and life together in one calendar",
+        "y": 240
+      },
+      {
+        "text": "Organise your calendars into one useful home",
+        "y": 945
+      },
+      {
+        "text": "Not everything in your calendar is a meeting.",
+        "y": 1851
+      },
+      {
+        "text": "See what matters right now",
+        "y": 2555
+      },
+      {
+        "text": "Add anything in seconds",
+        "y": 3657
+      },
+      {
+        "text": "Most calendars put travel features in economy. On Daybridge, they're first class.",
+        "y": 4661
+      },
+      {
+        "text": "Fly through your calendar.",
+        "y": 5523
+      },
+      {
+        "text": "Keep planning, even when you're offline",
+        "y": 6495
+      }
+    ],
+    "error": "page.screenshot: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - taking page screenshot\u001b[22m\n\u001b[2m    - disabled all CSS animations\u001b[22m\n\u001b[2m  - waiting for fonts to",
+    "captured": false
+  },
+  {
+    "slug": "chronicle",
+    "name": "Chronicle",
+    "url": "https://chroniclehq.com/",
+    "checked": "2026-09-28",
+    "status": 200,
+    "title": "Chronicle: AI Presentation Maker for Professional Slides & AI PPT",
+    "finalUrl": "https://chroniclehq.com/",
+    "headings": [
+      {
+        "text": "Credible decks at the speed of AI",
+        "y": 279
+      },
+      {
+        "text": "Built for serious business.",
+        "y": 1764
+      },
+      {
+        "text": "Hundreds of templates by the world’s top designers",
+        "y": 2768
+      },
+      {
+        "text": "Your reputation is on the slide.",
+        "y": 3682
+      }
+    ],
+    "sectionScroll": 1624,
+    "captured": true
+  },
+  {
+    "slug": "raycast",
+    "name": "Raycast",
+    "url": "https://www.raycast.com/",
+    "checked": "2026-09-28",
+    "status": 200,
+    "title": "Raycast - Your shortcut to everything",
+    "finalUrl": "https://www.raycast.com/",
+    "headings": [
+      {
+        "text": "Your shortcut to everything.",
+        "y": 370
+      },
+      {
+        "text": "Take shortcuts, not detours.",
+        "y": 1415
+      },
+      {
+        "text": "It’s not about saving time.",
+        "y": 2848
+      },
+      {
+        "text": "There’s an extension for that.",
+        "y": 3510
+      },
+      {
+        "text": "Meet your new virtual assistant",
+        "y": 4817
+      },
+      {
+        "text": "Built for professionals like you.",
+        "y": 6516
+      },
+      {
+        "text": "Don't repeat yourself.",
+        "y": 7616
+      },
+      {
+        "text": "Stay in the loop.",
+        "y": 9522
+      }
+    ],
+    "sectionScroll": 1275,
+    "captured": true
+  }
+]

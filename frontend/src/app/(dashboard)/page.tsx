@@ -437,7 +437,7 @@ export default function DashboardPage() {
       return (
         <Card>
           <CardContent className="p-6">
-            <CardHead code="CFL" title="Cash flow forecast" />
+            <CardHead code="CFL" title="Historical trend · unassigned records" />
             <QueryErrorCard
               message={bundleError.message || "Failed to load cash flow forecast."}
               onRetry={() => refetchBundle()}
@@ -452,10 +452,10 @@ export default function DashboardPage() {
         <CardContent className="p-6">
           <CardHead
             code="CFL"
-            title="Cash flow forecast"
+            title="Historical trend · unassigned records"
             action={
               <>
-                current balance ·{" "}
+                recorded net movement ·{" "}
                 <span style={{ color: "var(--foreground)" }} className="tabular-nums">
                   {formatCurrency(cashflow.current_balance)}
                 </span>
@@ -493,11 +493,11 @@ export default function DashboardPage() {
           subtitle={
             summary ? (
               <>
-                Net worth <b>{formatCurrency(summary.total_balance)}</b> · monthly net{" "}
+                Unassigned recorded net <b>{formatCurrency(summary.total_balance)}</b> · monthly net{" "}
                 <b style={{ color: "var(--aegis-ok)" }}>
                   {formatCurrency(summary.monthly_income - summary.monthly_expenses)}
                 </b>{" "}
-                · all systems nominal.
+                · workspace cash is shown in Cash planning.
               </>
             ) : (
               <>Loading the latest read on your finances…</>

@@ -1,0 +1,30 @@
+# Draft PR preparation
+
+Proposed title: **Add owner-scoped personal and business cash planning**
+
+This is reviewable text for the cash extension, not an opened pull request or permission to publish. The implementation currently lives in a dirty working tree alongside earlier accepted public-design changes. Before committing, reconcile the integration branch and package the reviewed feature files without unrelated skill/config changes. Use plain Git. GitHub-only PR creation can use the [repository compare page](https://github.com/santapong/Aegis/compare); no authenticated GitHub action was performed here.
+
+## Proposed description
+
+Aegis can record income and expenses, but those records alone do not tell an owner whether upcoming money and bills fit on their expected dates. This adds separate personal/business cash workspaces with reviewed opening balances, exact dated forecasts and once-only payment matching. A partial payment changes cash once and reduces only its linked unpaid amount; an invoice, reservation or scenario never becomes an actual movement by itself.
+
+The extension includes reviewed CSV intake, stable recurring occurrences, goal reservations/entered installments and explained cash alerts; business receivables/bills, reasoned credits/cancellation, thirteen-week daily-low review and immutable forecast snapshots; and a bounded LINE adapter with explicit THB workspace/account linking, frozen draft revisions and shared confirmation/reversal rules. LINE event receipt, cash/audit changes, draft state and durable reply commit together. Old account-only links cannot guess a cash destination.
+
+Schema changes are additive with SQLite batch-mode parity. Populated SQLite/PostgreSQL migration rehearsals preserve prior values/IDs/links/history; repeat upgrades and unused downgrade/reupgrade pass. Populated cash/history refuses destructive downgrade, so application rollback retains schema and recorded money. Feature exposure remains disabled by default outside the fictional owner pilot.
+
+Validation: 209 full backend tests pass with 13 actual PostgreSQL only cases skipped in that SQLite run; the dedicated PostgreSQL cash suite passes all 84 cases, including actual row contention and both serial orders across assignment/legacy writers. Cash SQLite passes 71 with 13 skips. Scoped cash/LINE/script lint passes. Frontend/migration sources are unchanged by the review repairs, retaining the earlier type/session/41-page build and populated migration checks. Current-code restored fictional rows, forecasts, weeks and saved comparisons match. Visible API-backed browser tasks cover personal/business cash and LINE destination selection at 320 / 390px and desktop. See [execution evidence](../validation/2026-10-02-all-m/README.md) and [criterion audit](../validation/2026-10-02-all-m/completion-audit.md).
+
+Independent code review requested and then verified four repairs: shared historical row claims prevent concurrent reassignment/legacy correction bypass, resource-target retries reject a different record, saved variance uses frozen opening anchors, and LINE owner locking avoids foreign-key lock inversion. Old target-less audit hashes remain immutable; ambiguous retries return 409 and require a new key after review. See [review evidence](../validation/2026-10-02-all-m/independent-review.md). The current-source combined gates passed with the inspected source unchanged.
+
+Open gates: uncoached personal/business owner task feedback, actual separate-channel LINE delivery/correction, next-connector decision based on that use, remote CI/security/image checks and authorized application rollout. Local mocks do not prove handset delivery; a local build does not establish a release. MySQL, bank connections, FX, payroll, tax, company roles, automatic payments, hosted provisioning and other chat connectors are outside this verified feature scope.
+
+Local image validation also passed on Linux/amd64: include canonical `CHANGELOG.md` through the repository-root frontend build context, and install backend/CI requirements from `uv.lock` with hashes. The same independent reviewer inspected both packaging repairs. A fresh PostgreSQL installation reached M4 migration head, API/Redis and ordinary ARQ worker started, and the standalone frontend proxy passed fictional imports/matching/documents/snapshots/mock capture checks. [Evidence and retained failures](../validation/2026-10-02-all-m/container-rehearsal/README.md). Full Compose/TLS, ARM64 and remote publishing remain unverified.
+
+The Compose worker also has its own ARQ Redis heartbeat probe, replacing the API-only image healthcheck. A separate disposable check proved absent/running/gracefully stopped states; the same reviewer approved the override. It verifies the heartbeat rather than job completion or immediate abrupt-failure detection.
+
+## Packaging boundary
+
+Use the final source manifests and reviewed file list to identify code, migration, tests, CI and documentation. Include all imported cash components and prerequisite shared-writer changes. Keep environment files, test databases/dumps, dependencies, build output, unrelated local skill installations and private LINE details out of Git. Do not stage the entire dirty checkout by assumption. The current base HEAD and manifests are recorded in the evidence; remote state still needs a fresh reconciliation before a commit/push/PR.
+
+
+Actual base/prod Compose first boot was also rehearsed on fresh volumes. Simultaneous API/worker Alembic startup caused one API restart; worker now waits for backend health. The same reviewer approved the fix, and a second empty-volume startup had zero restarts. Local Caddy TLS with hostname/certificate validation, Secure/HttpOnly cookie and fictional cash behavior passed; exact fixture resources were removed. [Execution and scope](../validation/2026-10-02-all-m/compose-local-tls/README.md). Public ACME, replica migration locking, real LINE, remote CI and owner comprehension are not established by this local check.

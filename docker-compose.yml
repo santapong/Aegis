@@ -111,10 +111,23 @@ services:
       CACHE_REDIS_URL: redis://redis:6379/0
       LOG_FORMAT: ${LOG_FORMAT:-json}
     depends_on:
+      # Both entrypoints run Alembic. Let the API finish migrations before
+      # this worker starts, including the first boot of an empty database.
+      backend:
+        condition: service_healthy
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+    # This process has no HTTP API. Check its ARQ Redis heartbeat instead
+    # of inheriting the backend image's localhost:8000 health probe.
+    healthcheck:
+      test: ["CMD", "arq", "--check", "app.worker.WorkerSettings"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+      start_interval: 3s
     deploy:
       resources:
         limits:
@@ -122,8 +135,8 @@ services:
 
   frontend:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: frontend/Dockerfile
       args:
         # Baked into the standalone build's rewrite config (rewrites()
         # is evaluated at build time with output:standalone). Same-origin

@@ -4,6 +4,8 @@ package-lock.json
 
 # Next.js build output
 .next/
+.next-*/
+.next-cashflow-*/
 out/
 
 # Production / build artifacts

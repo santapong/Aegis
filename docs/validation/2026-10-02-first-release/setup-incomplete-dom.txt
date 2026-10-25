@@ -1,0 +1,105 @@
+- button "Open navigation":
+- generic: AEGIS
+- button "Open AI advisor":
+- complementary:
+  - button "Expand sidebar":
+  - navigation:
+    - link "Cash planning":
+      - /url: /cashflow
+    - link "Dashboard":
+      - /url: /
+    - link "Unassigned records":
+      - /url: /transactions
+    - link "Reports":
+      - /url: /reports
+    - link "Budgets":
+      - /url: /budgets
+    - link "Savings":
+      - /url: /savings
+    - link "Investments":
+      - /url: /investments
+    - link "Debts":
+      - /url: /debts
+    - link "Calendar":
+      - /url: /calendar
+    - link "Gantt":
+      - /url: /gantt
+    - link "Trips":
+      - /url: /trips
+    - link "Scenarios":
+      - /url: /plans
+    - link "Docs":
+      - /url: /docs
+    - link "Settings":
+      - /url: /settings
+    - link "Onboarding":
+      - /url: /welcome
+  - button "AI advisor":
+  - generic: A
+  - button "Sign out":
+- main:
+  - region "Cash planning":
+    - text: AEGIS / CASH PLANNING
+    - heading "See the dates behind your money." [level=1]
+    - button "New workspace" [active]
+    - paragraph: Record what moved. Plan what comes next. See whether the dates and amounts fit.
+    - region "Forecast scope":
+      - text: Workspace
+      - combobox "Workspace":
+        - option "Business X · fictional example · business · THB"
+        - option "Mina · fictional example · personal · THB"
+        - option "Setup check · fictional · business · THB" [selected]
+      - text: Cash as of
+      - textbox "Cash as of": 2026-10-02
+      - text: Plan through
+      - textbox "Plan through": 2026-11-01
+      - text: Comparison
+      - combobox "Comparison":
+        - option "Base plan" [selected]
+    - text: THB · Asia/Bangkok · All active cash accounts
+    - generic "Choose included accounts"
+    - navigation "Cash workspace views":
+      - button "Overview" [pressed]
+      - button "Money calendar"
+      - button "Scenarios"
+      - button "Review & match"
+      - button "Accounts"
+    - status: Workspace created. Add a cash account and its reviewed opening balance.
+    - button "Record money" [disabled]
+    - button "Add upcoming money" [disabled]
+    - button "Add cash account"
+    - strong: Incomplete forecast · review these inputs
+    - list:
+      - listitem: Choose at least one cash account.
+    - region "Cash summary":
+      - article:
+        - generic: Cash as of 2026-10-02 · THB
+        - strong: —
+      - article:
+        - generic: Closing cash · 2026-11-01 · THB
+        - strong: —
+      - article:
+        - generic: Lowest cash · — · THB
+        - strong: —
+      - article:
+        - generic: Closing above buffer · THB
+        - strong: —
+    - text: DATED CASH FORECAST
+    - heading "Will your next plans fit?" [level=2]
+    - button "Compare a change"
+    - paragraph: Add reviewed opening balances before relying on a cash forecast. These amounts cover the known inputs; resolve the warnings before relying on the plan.
+    - paragraph: Add reviewed opening balances to see dated cash.
+    - paragraph:
+      - text: Expected receipts THB 0.00 · remaining costs THB 0.00 · buffer THB 100.00
+      - button "Edit buffer"
+    - paragraph: End-of-day amounts; same-day income may arrive after same-day bills. Expected receipts are assumptions, not cash held.
+    - generic "Inspect daily values and their sources"
+    - heading "Upcoming commitments" [level=2]
+    - paragraph: No unpaid upcoming items in this period.
+    - paragraph:
+      - text: Cash accounts are an entered record of money, not a bank connection. Completing a task does not record a payment.
+      - link "Read the Aegis guides":
+        - /url: /docs
+- button "Open Next.js Dev Tools":
+- alert
+- generic: 10-09

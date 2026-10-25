@@ -3,4 +3,4 @@ export const SITE_URL =
 
 export const SITE_NAME = "Aegis";
 export const SITE_DESCRIPTION =
-  "Aegis is an AI-powered personal finance app that plans money on a calendar and Gantt timeline, with an AI advisor that explains its reasoning. Self-hosted, open source.";
+  "A clearer today. A bigger tomorrow. Aegis helps you understand everyday money, plan upcoming costs, and make room for what matters. Open source and self-hostable.";

@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-25",
+  "timezone": "Asia/Bangkok",
+  "status": "locally_verified_selected_scope",
+  "source_match_files": 10,
+  "backend": {
+    "passed": 31,
+    "skipped": 2,
+    "duration_seconds": 44.44,
+    "database": "SQLite",
+    "skips": "Genuine PostgreSQL row-lock cases",
+    "new_cases": 6,
+    "lint": "passed"
+  },
+  "frontend": {
+    "types": "passed",
+    "lockfile": "frozen Bun lock; qrcode-only backend lock change validated offline",
+    "browser": "actual components with fictional HTTP data",
+    "cases": [
+      "QR and Open LINE presentation",
+      "copy success with isolated clipboard stub",
+      "24-hour countdown",
+      "new-code renewal",
+      "linked-state removes QR",
+      "owner switch clears old QR",
+      "THB budget confirmation",
+      "2-second fixture expiry recovery",
+      "clipboard failure and keyboard selection",
+      "320px requested viewport without horizontal overflow"
+    ],
+    "console_errors_or_warnings": 0,
+    "phone_scan": "not_executed",
+    "full_app_uat": "not_executed",
+    "type_check_delta": "After full type check, only the copy-fallback wording changed; final Bun bundle and browser fallback were rechecked."
+  },
+  "resources": {
+    "host": "Pi ARM64; backend Python3.11, frontend Node22 image",
+    "cpu_quota_container_max_cores": 1,
+    "subsequent_job_cores": 0.5,
+    "preview_cores": 0.1,
+    "pid_limit_per_container": 128,
+    "sampled_peak_rss_bytes": 591511552,
+    "hard_aggregate_memory_cap": false,
+    "watchdog_rss_threshold_bytes": 1610612736,
+    "temporary_bytes_before_cleanup": 521759690,
+    "monitoring_gap": "One Docker inspect call timed out during dependency preparation; run stopped. Direct owned-cid systemd cgroup monitoring was then verified in subsequent phases. No complete continuous peak is claimed.",
+    "temporary_local_checks": "25% CPU, 192MiB hard memory, swap0, PID32; menu and syntax only"
+  },
+  "cleanup": {
+    "task_containers_remaining": 0,
+    "guard_terminated": true,
+    "removed_temporary_dependencies": [
+      "deps",
+      "node-tools",
+      "frontend/node_modules"
+    ],
+    "bytes_before_cleanup": 521759690,
+    "source_and_logs_retained": true,
+    "no_test_database_volume_created": true,
+    "watchdog_process_present": false,
+    "preview_tab_closed": true,
+    "preview_viewport_reset": true,
+    "ssh_forward_closed": true
+  },
+  "release": {
+    "deployed": false,
+    "menu_provisioned": false,
+    "pilot_workflows_active": false,
+    "independent_review_and_ci": "pending"
+  },
+  "learning": {
+    "mechanism": "Separate setup challenge, persistent LINE identity, web session and financial action capabilities. Read active worktree checkpoint before choosing source.",
+    "working_case": "20-hour setup and 7-day identity state supported by clock-advanced tests.",
+    "boundary": "24-hour setup expiry, renewal and revoked identity rejection supported by tests.",
+    "benefit": "unmeasured; passing checks do not establish learning benefit."
+  }
+}

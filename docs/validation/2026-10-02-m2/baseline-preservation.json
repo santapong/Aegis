@@ -1,0 +1,21 @@
+{
+  "baseline_files_compared": 318,
+  "changed": [
+    "CHANGELOG.md",
+    "ROADMAP.md",
+    "frontend/src/lib/cashflow.ts",
+    "frontend/src/components/cashflow/forecast-chart.tsx",
+    "frontend/src/components/cashflow/workspace.module.css",
+    "frontend/src/components/cashflow/workspace.tsx",
+    "frontend/src/app/docs/catalog.ts",
+    "frontend/src/app/docs/content.tsx",
+    "docs/plans/2026-10-02-cashflow-implementation.md",
+    "backend/app/models/cashflow.py",
+    "backend/app/routers/cashflow.py",
+    "backend/app/schemas/cashflow.py",
+    "backend/app/services/cashflow/engine.py",
+    "backend/app/services/cashflow/__init__.py",
+    ".github/workflows/test.yml"
+  ],
+  "unexpected_changes": []
+}

@@ -1,0 +1,379 @@
+--- a/frontend/src/components/finance/line-connection.tsx
++++ b/frontend/src/components/finance/line-connection.tsx
+@@ -1,25 +1,55 @@
+ "use client";
+ 
+-import { useState } from "react";
++import { useEffect, useState } from "react";
+ import { useQuery, useQueryClient } from "@tanstack/react-query";
+ import { financeAPI } from "@/lib/finance-api";
+ import { FinanceError } from "./shared";
+ import s from "./finance.module.css";
+ 
+ export function LedgerLineConnection({ owner }: { owner: string }) {
++  // A new owner gets fresh setup state, including in-flight request completions.
++  return <LineConnection key={owner} owner={owner} />;
++}
++
++function LineConnection({ owner }: { owner: string }) {
+   const client = useQueryClient();
++  const [command, setCommand] = useState<
++    (Awaited<ReturnType<typeof financeAPI.createLineChallenge>> & { deadline: number }) | null
++  >(null);
++  const [now, setNow] = useState(() => Date.now());
++  const [expired, setExpired] = useState(false);
++  const [copied, setCopied] = useState(false);
+   const query = useQuery({
+     queryKey: ["finance", owner, "line"],
+     queryFn: financeAPI.lineStatus,
+     retry: false,
++    refetchInterval: command ? 5000 : false,
+   });
+-  const [command, setCommand] = useState<{
+-    command: string;
+-    expires_in_seconds: number;
+-  } | null>(null);
+   const [error, setError] = useState<unknown>(null);
+   const [busy, setBusy] = useState(false);
+   const [disconnectReview, setDisconnectReview] = useState(false);
++  useEffect(() => {
++    if (!command) return;
++    const tick = () => {
++      const value = Date.now();
++      setNow(value);
++      if (value >= command.deadline) {
++        setCommand(null);
++        setExpired(true);
++        setCopied(false);
++      }
++    };
++    tick();
++    const timer = window.setInterval(tick, 1000);
++    return () => window.clearInterval(timer);
++  }, [command]);
++  useEffect(() => {
++    if (query.data?.linked) {
++      setCommand(null);
++      setExpired(false);
++      setCopied(false);
++    }
++  }, [query.data?.linked]);
+   async function connect(disconnect = false) {
+     setBusy(true);
+     setError(null);
+@@ -28,7 +58,14 @@
+         await financeAPI.disconnectLine();
+         setCommand(null);
+         setDisconnectReview(false);
+-      } else setCommand(await financeAPI.createLineChallenge());
++      } else {
++        const result = await financeAPI.createLineChallenge();
++        const received = Date.now();
++        setNow(received);
++        setCommand({ ...result, deadline: received + result.expires_in_seconds * 1000 });
++      }
++      setExpired(false);
++      setCopied(false);
+       await client.invalidateQueries({ queryKey: ["finance", owner, "line"] });
+     } catch (e) {
+       setError(e);
+@@ -36,7 +73,18 @@
+       setBusy(false);
+     }
+   }
++  async function copy() {
++    if (!command || Date.now() >= command.deadline) return;
++    try {
++      await navigator.clipboard.writeText(command.command);
++      setCopied(true);
++    } catch {
++      setError(new Error("Copy is unavailable. Select the private command and copy it manually."));
++    }
++  }
+   const status = query.data;
++  const remaining = command ? Math.max(0, Math.ceil((command.deadline - now) / 1000)) : 0;
++  const timeLeft = `${Math.floor(remaining / 3600)}h ${Math.floor((remaining % 3600) / 60)}m ${remaining % 60}s`;
+   return (
+     <section
+       className={`${s.panel} ${s.stack}`}
+@@ -45,8 +93,8 @@
+       <div>
+         <h2 id="ledger-line-title">LINE account tracking</h2>
+         <p className={s.muted}>
+-          This connection uses the account ledger. The existing cash-workspace
+-          bot remains in Settings.
++          Connect once to check budgets, track balances and review entries in LINE.
++          Your connection stays active until you disconnect it.
+         </p>
+       </div>
+       {query.isPending && <p role="status">Checking LINE setup…</p>}
+@@ -57,8 +105,13 @@
+         <>
+           <p>
+             {status.linked
+-              ? "Your LINE identity is linked."
++              ? "LINE is connected. You do not need a new QR code each day."
+               : "No LINE identity is linked to these accounts."}
++          </p>
++          <p className={s.muted}>
++            New setup codes last {status.setup_lifetime_seconds / 3600} hours.
++            Your web login lasts {status.web_session_lifetime_seconds / 3600} hours;
++            signing in again does not disconnect LINE.
+           </p>
+           {(!status.enabled || !status.configured) && (
+             <p className={s.notice}>
+@@ -93,7 +146,7 @@
+                 disabled={busy || !status.enabled || !status.configured}
+                 onClick={() => void connect()}
+               >
+-                Create one-use link command
++                {command || expired ? "Create a new setup code" : "Connect LINE / show QR"}
+               </button>
+             )}
+             {status.linked && (
+@@ -107,6 +160,13 @@
+               </button>
+             )}
+           </div>
++          {status.linked && (
++            <p className={s.muted}>
++              Send <strong>budgets</strong>, <strong>balances</strong>,{" "}
++              <strong>pending</strong> or <strong>help</strong> in LINE.
++              If replies stop, check service availability before reconnecting.
++            </p>
++          )}
+           {disconnectReview && (
+             <div className={s.notice}>
+               <p>
+@@ -135,14 +195,50 @@
+           )}
+         </>
+       )}
+-      {command && !status?.linked && (
++      {expired && !status?.linked && (
++        <p className={s.notice} role="status">
++          This setup code has expired. Create a new setup code above; the old QR
++          and command will no longer connect your account.
++        </p>
++      )}
++      {command && remaining > 0 && !status?.linked && (
+         <div className={s.notice}>
+           <p>
+-            Send this command in a private chat with your configured
+-            account-tracking bot within{" "}
+-            {Math.floor(command.expires_in_seconds / 60)} minutes, then check
+-            the connection. It can be used once.
+-          </p>
++            {command.bot_basic_id
++              ? `Scan the QR or open LINE, check that the bot is ${command.bot_basic_id}, then press Send.`
++              : "Copy the command and send it in a private chat with your configured Aegis bot."}{" "}
++            This setup code can be used once. Creating a new code replaces this one.
++          </p>
++          {command.qr_image_data_url && (
++            // The API generates this QR locally; its private contents never go to an image service.
++            // eslint-disable-next-line @next/next/no-img-element
++            <img
++              src={command.qr_image_data_url}
++              alt="Private QR code to open your Aegis bot in LINE with the setup command"
++              width={256}
++              height={256}
++              className={s.lineQr}
++              referrerPolicy="no-referrer"
++            />
++          )}
++          <p>Setup time remaining: <strong>{timeLeft}</strong></p>
++          <div className={s.actions}>
++            {command.line_url && (
++              <a href={command.line_url} target="_blank" rel="noopener noreferrer"
++                referrerPolicy="no-referrer" className={s.button}>
++                Open LINE
++              </a>
++            )}
++            <button type="button" className={`${s.button} ${s.secondary}`} onClick={() => void copy()}>
++              {copied ? "Copied" : "Copy setup command"}
++            </button>
++          </div>
++          {!command.line_url && (
++            <p className={s.muted}>
++              QR and Open LINE need this bot&apos;s public @ID configured. You can
++              still connect using the private command below.
++            </p>
++          )}
+           <label className={s.field}>
+             Private link command
+             <input
+--- /dev/null
++++ b/frontend/src/components/finance/budget-currency-review.tsx
+@@ -0,0 +1,77 @@
++"use client";
++
++import { useState } from "react";
++import { useQuery, useQueryClient } from "@tanstack/react-query";
++import { financeAPI } from "@/lib/finance-api";
++import { useAuthStore } from "@/stores/auth-store";
++import { FinanceError } from "./shared";
++import s from "./finance.module.css";
++
++export function BudgetCurrencyReview({ budgets }: {
++  budgets: { id: string; name: string }[];
++}) {
++  const owner = useAuthStore((state) => state.user?.id);
++  return <CurrencyReview key={owner} owner={owner} budgets={budgets} />;
++}
++
++function CurrencyReview({ owner, budgets }: {
++  owner?: string;
++  budgets: { id: string; name: string }[];
++}) {
++  const cache = useQueryClient();
++  const [busy, setBusy] = useState(false);
++  const [error, setError] = useState<unknown>(null);
++  const status = useQuery({
++    queryKey: ["finance", owner, "status"], queryFn: financeAPI.status,
++    enabled: !!owner, retry: false,
++  });
++  const enabled = !!status.data?.enabled && !!status.data?.cutover_active;
++  const reports = useQuery({
++    queryKey: ["finance", owner, "budgets"], queryFn: financeAPI.budgets,
++    enabled, retry: false,
++  });
++  if (!enabled) return null;
++  const active = new Map(budgets.map((budget) => [budget.id, budget.name]));
++  const pending = reports.data?.filter((row) => active.has(row.id) && !row.budget_currency_confirmed) || [];
++  async function confirm(id: string, factsHash: string) {
++    setBusy(true);
++    setError(null);
++    try {
++      await financeAPI.confirmBudgetCurrency(id, factsHash);
++      await Promise.all([
++        cache.invalidateQueries({ queryKey: ["finance", owner, "budgets"] }),
++        cache.invalidateQueries({ queryKey: ["budget-comparison"] }),
++      ]);
++    } catch (e) { setError(e); }
++    finally { setBusy(false); }
++  }
++  if (!reports.isPending && !reports.isError && !pending.length) {
++    return <p className={s.muted}>In LINE, send <strong>budgets</strong> or tap My budgets to check your spending and remaining limits.</p>;
++  }
++  return (
++    <section className={`${s.panel} ${s.stack}`} aria-labelledby="budget-currency-title">
++      <h2 id="budget-currency-title">Review budget currency</h2>
++      <p className={s.muted}>
++        Confirm each limit is in Thai baht before comparing it with tracked THB
++        spending. This records the limit&apos;s currency; it does not move money.
++      </p>
++      {reports.isPending && <p role="status">Checking budget currencies…</p>}
++      {reports.isError && <FinanceError error={reports.error} retry={() => void reports.refetch()} />}
++      {pending.map((row) => (
++        <div className={s.notice} key={row.id}>
++          <p><strong>{active.get(row.id)}</strong> · {row.category}</p>
++          <p>{row.period_start} to {row.period_end}</p>
++          <p>Entered limit: <strong>{row.unverified_legacy_budget_amount}</strong></p>
++          <button type="button" disabled={busy}
++            className={s.button} onClick={() => void confirm(row.id, row.facts_hash)}>
++            Confirm this limit is THB
++          </button>
++        </div>
++      ))}
++      {error != null && <FinanceError error={error} retry={() => {
++        setError(null);
++        void reports.refetch();
++      }} />}
++    </section>
++  );
++}
+--- a/frontend/src/lib/finance-api.ts
++++ b/frontend/src/lib/finance-api.ts
+@@ -26,6 +26,21 @@
+   liability_balance_minor: string;
+   net_position_minor: string;
+   last_reconciled_at: string | null;
++}
++export interface FinanceBudget {
++  id: string;
++  facts_hash: string;
++  category: string;
++  trip_id: string | null;
++  period_start: string;
++  period_end: string;
++  currency: "THB";
++  budget_currency_confirmed: boolean;
++  budget_minor: string | null;
++  spent_minor: string;
++  remaining_minor: string | null;
++  unverified_legacy_budget_amount: string | null;
++  unverified_legacy_count: number;
+ }
+ export interface DraftPayload {
+   type: Operation;
+@@ -213,6 +228,12 @@
+       canonical_transactions_url: string;
+     }>("/api/finance/status"),
+   balances: () => request<AccountBalances>("/api/accounts/balances"),
++  budgets: () => request<FinanceBudget[]>("/api/finance/budgets"),
++  confirmBudgetCurrency: (id: string, factsHash: string) =>
++    command<{ confirmed: boolean }>(
++      `/api/finance/budgets/${encodeURIComponent(id)}/confirm-currency`,
++      { currency: "THB", reviewed: true, expected_facts_hash: factsHash },
++    ),
+   createAccount: (
+     body: { name: string; subtype: FinanceAccount["subtype"]; currency: "THB" },
+     key: string,
+@@ -285,11 +306,21 @@
+       configured: boolean;
+       delivery_enabled: boolean;
+       linked: boolean;
++      linked_at: string | null;
++      setup_lifetime_seconds: number;
++      web_session_lifetime_seconds: number;
+       pending_jobs: number;
+       delivery: Record<string, number>;
+     }>("/api/integrations/line/status"),
+   createLineChallenge: () =>
+-    command<{ command: string; expires_in_seconds: number }>(
++    command<{
++      command: string;
++      expires_in_seconds: number;
++      expires_at: string;
++      bot_basic_id: string | null;
++      line_url: string | null;
++      qr_image_data_url: string | null;
++    }>(
+       "/api/integrations/line/link-challenges",
+       {},
+     ),
+--- a/frontend/src/app/budgets/page.tsx
++++ b/frontend/src/app/budgets/page.tsx
+@@ -15,6 +15,7 @@
+ import { Card, CardHeader, CardContent } from "@/components/ui/card";
+ import { EmptyState } from "@/components/ui/empty-state";
+ import { Skeleton } from "@/components/ui/skeleton";
++import { BudgetCurrencyReview } from "@/components/finance/budget-currency-review";
+ import { Plus, Trash2, AlertTriangle, Pencil, Wallet, LayoutTemplate } from "lucide-react";
+ import type { Budget, BudgetComparisonResponse, BudgetTemplate } from "@/types";
+ 
+@@ -123,6 +124,7 @@
+   });
+ 
+   const invalidateAll = () => {
++    queryClient.invalidateQueries({ queryKey: ["finance"], predicate: (query) => query.queryKey[2] === "budgets" });
+     queryClient.invalidateQueries({ queryKey: ["budgets"] });
+     queryClient.invalidateQueries({ queryKey: ["budget-comparison"] });
+   };
+@@ -291,6 +293,8 @@
+           </Card>
+         </motion.div>
+       )}
++
++      <BudgetCurrencyReview budgets={budgets || []} />
+ 
+       {/* Budget Details with Progress */}
+       {comparison && comparison.comparisons.length > 0 && (
+--- a/frontend/src/components/finance/finance.module.css
++++ b/frontend/src/components/finance/finance.module.css
+@@ -289,3 +289,5 @@
+ }
+ 
+ .title { font-family:var(--font-serif),Georgia,serif; font-weight:400; font-size:clamp(34px,3.2vw,46px); letter-spacing:-.025em; }
++
++.lineQr { display: block; width: 256px; max-width: 100%; height: auto; margin: 1rem 0; background: #fff; border-radius: .5rem; }

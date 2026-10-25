@@ -1,0 +1,12 @@
+{
+  "robot": {
+    "pass": "16",
+    "fail": "4",
+    "skip": "0"
+  },
+  "robot-rerun": {
+    "pass": "20",
+    "fail": "0",
+    "skip": "0"
+  }
+}

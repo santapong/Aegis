@@ -1,0 +1,360 @@
+{
+  "checked": "2026-09-28",
+  "browser": "152.0.7977.83",
+  "checks": [
+    {
+      "name": "Selected headline and metadata",
+      "ok": true
+    },
+    {
+      "name": "Layout 320 Calendar",
+      "ok": true,
+      "detail": {
+        "width": 320,
+        "scroll": 314,
+        "headings": []
+      }
+    },
+    {
+      "name": "Buttons 44px 320 Calendar",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Layout 320 Timeline",
+      "ok": true,
+      "detail": {
+        "width": 320,
+        "scroll": 314,
+        "headings": []
+      }
+    },
+    {
+      "name": "Buttons 44px 320 Timeline",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Goal layout 320 Something to look forward to",
+      "ok": true
+    },
+    {
+      "name": "Goal layout 320 One step at a time",
+      "ok": true
+    },
+    {
+      "name": "Goal layout 320 A little breathing room",
+      "ok": true
+    },
+    {
+      "name": "Layout 390 Calendar",
+      "ok": true,
+      "detail": {
+        "width": 390,
+        "scroll": 384,
+        "headings": []
+      }
+    },
+    {
+      "name": "Buttons 44px 390 Calendar",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Layout 390 Timeline",
+      "ok": true,
+      "detail": {
+        "width": 390,
+        "scroll": 384,
+        "headings": []
+      }
+    },
+    {
+      "name": "Buttons 44px 390 Timeline",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Goal layout 390 Something to look forward to",
+      "ok": true
+    },
+    {
+      "name": "Goal layout 390 One step at a time",
+      "ok": true
+    },
+    {
+      "name": "Goal layout 390 A little breathing room",
+      "ok": true
+    },
+    {
+      "name": "Layout 768 Calendar",
+      "ok": true,
+      "detail": {
+        "width": 768,
+        "scroll": 762,
+        "headings": []
+      }
+    },
+    {
+      "name": "Buttons 44px 768 Calendar",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Layout 768 Timeline",
+      "ok": true,
+      "detail": {
+        "width": 768,
+        "scroll": 762,
+        "headings": []
+      }
+    },
+    {
+      "name": "Buttons 44px 768 Timeline",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Goal layout 768 Something to look forward to",
+      "ok": true
+    },
+    {
+      "name": "Goal layout 768 One step at a time",
+      "ok": true
+    },
+    {
+      "name": "Goal layout 768 A little breathing room",
+      "ok": true
+    },
+    {
+      "name": "Layout 1024 Calendar",
+      "ok": true,
+      "detail": {
+        "width": 1024,
+        "scroll": 1018,
+        "headings": []
+      }
+    },
+    {
+      "name": "Buttons 44px 1024 Calendar",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Layout 1024 Timeline",
+      "ok": true,
+      "detail": {
+        "width": 1024,
+        "scroll": 1018,
+        "headings": []
+      }
+    },
+    {
+      "name": "Buttons 44px 1024 Timeline",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Goal layout 1024 Something to look forward to",
+      "ok": true
+    },
+    {
+      "name": "Goal layout 1024 One step at a time",
+      "ok": true
+    },
+    {
+      "name": "Goal layout 1024 A little breathing room",
+      "ok": true
+    },
+    {
+      "name": "Layout 1440 Calendar",
+      "ok": true,
+      "detail": {
+        "width": 1440,
+        "scroll": 1434,
+        "headings": []
+      }
+    },
+    {
+      "name": "Buttons 44px 1440 Calendar",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Layout 1440 Timeline",
+      "ok": true,
+      "detail": {
+        "width": 1440,
+        "scroll": 1434,
+        "headings": []
+      }
+    },
+    {
+      "name": "Buttons 44px 1440 Timeline",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Goal layout 1440 Something to look forward to",
+      "ok": true
+    },
+    {
+      "name": "Goal layout 1440 One step at a time",
+      "ok": true
+    },
+    {
+      "name": "Goal layout 1440 A little breathing room",
+      "ok": true
+    },
+    {
+      "name": "Layout 1920 Calendar",
+      "ok": true,
+      "detail": {
+        "width": 1920,
+        "scroll": 1914,
+        "headings": []
+      }
+    },
+    {
+      "name": "Buttons 44px 1920 Calendar",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Layout 1920 Timeline",
+      "ok": true,
+      "detail": {
+        "width": 1920,
+        "scroll": 1914,
+        "headings": []
+      }
+    },
+    {
+      "name": "Buttons 44px 1920 Timeline",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "Goal layout 1920 Something to look forward to",
+      "ok": true
+    },
+    {
+      "name": "Goal layout 1920 One step at a time",
+      "ok": true
+    },
+    {
+      "name": "Goal layout 1920 A little breathing room",
+      "ok": true
+    },
+    {
+      "name": "Rent detail selected",
+      "ok": true
+    },
+    {
+      "name": "Selected plan persists across views",
+      "ok": true
+    },
+    {
+      "name": "Planned savings detail",
+      "ok": true
+    },
+    {
+      "name": "Home selects Calendar",
+      "ok": true
+    },
+    {
+      "name": "Arrow selects Timeline",
+      "ok": true
+    },
+    {
+      "name": "Goal Something to look forward to",
+      "ok": true
+    },
+    {
+      "name": "Goal One step at a time",
+      "ok": true
+    },
+    {
+      "name": "Goal A little breathing room",
+      "ok": true
+    },
+    {
+      "name": "Native FAQ What can I do with Aegis?",
+      "ok": true
+    },
+    {
+      "name": "Native FAQ Does Aegis connect to my bank or move money?",
+      "ok": true
+    },
+    {
+      "name": "Native FAQ Do I need AI to use Aegis?",
+      "ok": true
+    },
+    {
+      "name": "Native FAQ Can I run Aegis myself?",
+      "ok": true
+    },
+    {
+      "name": "Native FAQ Can I take my data with me?",
+      "ok": true
+    },
+    {
+      "name": "Mobile menu open",
+      "ok": true
+    },
+    {
+      "name": "Escape restores mobile trigger",
+      "ok": true
+    },
+    {
+      "name": "Mobile menu closes on destination",
+      "ok": true
+    },
+    {
+      "name": "Destination /register",
+      "ok": true
+    },
+    {
+      "name": "Destination /login",
+      "ok": true
+    },
+    {
+      "name": "Destination /docs",
+      "ok": true
+    },
+    {
+      "name": "Destination /changelog",
+      "ok": true
+    },
+    {
+      "name": "Signed-out root returns to landing",
+      "ok": true
+    },
+    {
+      "name": "Sample anchor reachable",
+      "ok": true
+    },
+    {
+      "name": "Images loaded after entering viewport",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "No client runtime errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "name": "No decorative canvas or running animation",
+      "ok": true
+    },
+    {
+      "name": "Production visible without JS or external requests",
+      "ok": true
+    },
+    {
+      "name": "Native FAQ without JS",
+      "ok": true
+    }
+  ]
+}

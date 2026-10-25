@@ -1,0 +1,68 @@
+{
+  "started_at": "2026-10-02T07:42:17.533936+00:00",
+  "source_hash": "051bf5226284e658ec2bf96979ab09f247960f5f7cf7255f57ffa188001973a1",
+  "stages": [
+    {
+      "stage": "backend",
+      "command": [
+        ".venv/bin/pytest",
+        "-q"
+      ],
+      "started_at": "2026-10-02T07:42:18.011957+00:00",
+      "pid": 2711161,
+      "exit_code": 0,
+      "finished_at": "2026-10-02T07:44:42.543639+00:00",
+      "source_unchanged": true
+    },
+    {
+      "stage": "cash_lint",
+      "command": [
+        "ruff",
+        "check",
+        "app/services/cashflow",
+        "app/routers/cashflow.py",
+        "app/models/cashflow.py",
+        "app/schemas/cashflow.py",
+        "tests/test_cashflow.py",
+        "tests/test_cashflow_m2.py",
+        "tests/test_cashflow_m3.py"
+      ],
+      "started_at": "2026-10-02T07:44:42.800762+00:00",
+      "pid": 2714038,
+      "exit_code": 0,
+      "finished_at": "2026-10-02T07:44:42.840135+00:00",
+      "source_unchanged": true
+    },
+    {
+      "stage": "frontend_session",
+      "command": [
+        "node",
+        "../scripts/verify-cash-client-session.mjs"
+      ],
+      "started_at": "2026-10-02T07:44:43.123237+00:00",
+      "pid": 2714058,
+      "exit_code": 0,
+      "finished_at": "2026-10-02T07:44:43.574094+00:00",
+      "source_unchanged": true
+    },
+    {
+      "stage": "frontend_build",
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "started_at": "2026-10-02T07:44:43.898125+00:00",
+      "pid": 2714068,
+      "exit_code": 0,
+      "finished_at": "2026-10-02T07:46:26.751247+00:00",
+      "source_unchanged": true
+    }
+  ],
+  "independent_review": "pending",
+  "real_line_pilot": "pending",
+  "remote_ci": "pending",
+  "release": "pending",
+  "finished_at": "2026-10-02T07:46:27.077812+00:00",
+  "selected_stages_passed": true
+}

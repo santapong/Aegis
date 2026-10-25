@@ -1,0 +1,41 @@
+{
+  "hash": "065ef3bff9393784514598575d3f2b575011a99d83f19a13b121130cfbc73049",
+  "delta": {
+    ".github/workflows/build-and-push.yml": {
+      "before": null,
+      "after": "0a1e45b5ced156509a9626b289f48d9b679f291ea08d197301a2965097c52db4"
+    },
+    ".github/workflows/release.yml": {
+      "before": null,
+      "after": "67ebc290250e1fece33d4fc097235901ca609dc2c7441888a9d2857801599ed8"
+    },
+    "CHANGELOG.md": {
+      "before": null,
+      "after": "9c012a5d09180d0045388dd63dae4f6d4fa2d67dcb8e8d0dc9afb4c0ff3da338"
+    },
+    "Makefile": {
+      "before": null,
+      "after": "ec8f4b3811fe91969c9d8d521fa22f1386f0bb2378fa38c256fa6ff1efe0241b"
+    },
+    "docker-compose.dev.yml": {
+      "before": null,
+      "after": "e8b10b71afcc5741e0006fbdc153217686278055ade3413492c0b213c2a13c83"
+    },
+    "docker-compose.prod.yml": {
+      "before": null,
+      "after": "69fee93ce11b936912b651317d047527b235e2124b09a432972b8a7e9359a886"
+    },
+    "docker-compose.yml": {
+      "before": null,
+      "after": "7a29d5ab52c424b31efc4ab7c44017c0a425abb74d7f421253479e658690ac94"
+    },
+    "frontend/Dockerfile": {
+      "before": "6761ea06dc83f88c023f41a15164ea3a06862c06d3cdeb63e0b5c2a61bd690fe",
+      "after": "080ded9b50dd3c059ba0cce6789148c42fb9bf8e96e4e002aae713e8676bf7f9"
+    },
+    "frontend/Dockerfile.dockerignore": {
+      "before": null,
+      "after": "a1bb12f8acc4cf7ab9e48b4d586b911f218fd26ae2a6fde51003396890b8a4a3"
+    }
+  }
+}

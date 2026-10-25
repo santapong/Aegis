@@ -21,6 +21,12 @@ from ..schemas.budget import (
 )
 from ..auth import get_current_user
 from ..cache import invalidate_user_all
+from ..services.finance_reads import (
+    financial_today,
+    cutover_active,
+    report,
+    budget_report,
+)
 
 router = APIRouter(prefix="/api/budgets", tags=["budgets"])
 
@@ -29,16 +35,18 @@ def _validate_trip_ownership(db: Session, trip_id: str | None, user_id: str) -> 
     if not trip_id:
         return
     exists = (
-        db.query(Trip.id)
-        .filter(Trip.id == trip_id, Trip.user_id == user_id)
-        .first()
+        db.query(Trip.id).filter(Trip.id == trip_id, Trip.user_id == user_id).first()
     )
     if not exists:
         raise HTTPException(status_code=404, detail="Trip not found")
 
 
 @router.post("/", response_model=BudgetResponse, status_code=201)
-def create_budget(budget: BudgetCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+def create_budget(
+    budget: BudgetCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
     _validate_trip_ownership(db, budget.trip_id, current_user.id)
     db_budget = Budget(**budget.model_dump(), user_id=current_user.id)
     db.add(db_budget)
@@ -61,14 +69,9 @@ def list_budgets(
     if category:
         query = query.filter(Budget.category == category)
     if active is True:
-        today = date.today()
+        today = financial_today(db, current_user.id)
         query = query.filter(Budget.period_start <= today, Budget.period_end >= today)
-    return (
-        query.order_by(Budget.period_start.desc())
-        .offset(offset)
-        .limit(limit)
-        .all()
-    )
+    return query.order_by(Budget.period_start.desc()).offset(offset).limit(limit).all()
 
 
 @router.get("/comparison", response_model=BudgetComparisonResponse)
@@ -78,7 +81,7 @@ def budget_comparison(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    today = date.today()
+    today = financial_today(db, current_user.id)
     if not period_start:
         period_start = today.replace(day=1)
     if not period_end:
@@ -91,6 +94,49 @@ def budget_comparison(
         .all()
     )
 
+    if cutover_active(db, current_user.id):
+        exact = [budget_report(db, current_user.id, b) for b in budgets]
+        if any(b["budget_minor"] is None for b in exact):
+            raise HTTPException(
+                409,
+                "Historical budget currencies need explicit review at /api/finance/budgets before comparing THB spending",
+            )
+        comparisons = [
+            BudgetComparison(
+                category=b["category"],
+                budget_amount=int(b["budget_minor"]) / 100,
+                actual_spent=int(b["spent_minor"]) / 100,
+                remaining=int(b["remaining_minor"]) / 100,
+                usage_percent=round(
+                    int(b["spent_minor"]) / int(b["budget_minor"]) * 100, 1
+                )
+                if int(b["budget_minor"])
+                else 0,
+                over_budget=int(b["spent_minor"]) > int(b["budget_minor"]),
+            )
+            for b in exact
+        ]
+        covered = report(db, current_user.id, period_start, period_end)["transactions"]
+        spent = sum(
+            int(r["expense_effect_minor"])
+            for r in covered
+            if any(
+                b.category == r["category"]
+                and (b.trip_id is None or b.trip_id == r["trip_id"])
+                and b.period_start.isoformat()
+                <= r["occurred_on"]
+                <= b.period_end.isoformat()
+                for b in budgets
+            )
+        )
+        return BudgetComparisonResponse(
+            period_start=period_start,
+            period_end=period_end,
+            comparisons=comparisons,
+            total_budgeted=sum(int(b["budget_minor"]) for b in exact) / 100,
+            total_spent=spent / 100,
+        )
+
     # Aggregate expense totals per category in a single GROUP BY query
     # instead of loading every expense row into Python and summing.
     # Rows returned: ≤ number-of-distinct-categories (typically 4-30),
@@ -102,7 +148,8 @@ def budget_comparison(
             sa_func.coalesce(sa_func.sum(Transaction.amount), 0).label("total"),
         )
         .filter(
-            Transaction.user_id == current_user.id,
+            (Transaction.user_id == current_user.id)
+            & Transaction.workspace_id.is_(None),
             Transaction.type == TransactionType.expense,
             Transaction.date >= period_start,
             Transaction.date <= period_end,
@@ -152,7 +199,9 @@ def list_budget_templates(current_user: User = Depends(get_current_user)):
     return BudgetTemplateListResponse(templates=BUDGET_TEMPLATES)
 
 
-@router.post("/templates/{key}/adopt", response_model=list[BudgetResponse], status_code=201)
+@router.post(
+    "/templates/{key}/adopt", response_model=list[BudgetResponse], status_code=201
+)
 def adopt_budget_template(
     key: str,
     body: AdoptTemplateRequest,
@@ -182,7 +231,7 @@ def adopt_budget_template(
     if template is None:
         raise HTTPException(status_code=404, detail="Template not found")
 
-    today = date.today()
+    today = financial_today(db, current_user.id)
     period_start = today.replace(day=1)
     # Last day of the current month: jump to the 1st of next month, step back.
     if today.month == 12:
@@ -237,16 +286,33 @@ def adopt_budget_template(
 
 
 @router.get("/{budget_id}", response_model=BudgetResponse)
-def get_budget(budget_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    budget = db.query(Budget).filter(Budget.id == budget_id, Budget.user_id == current_user.id).first()
+def get_budget(
+    budget_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    budget = (
+        db.query(Budget)
+        .filter(Budget.id == budget_id, Budget.user_id == current_user.id)
+        .first()
+    )
     if not budget:
         raise HTTPException(status_code=404, detail="Budget not found")
     return budget
 
 
 @router.put("/{budget_id}", response_model=BudgetResponse)
-def update_budget(budget_id: str, data: BudgetUpdate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    budget = db.query(Budget).filter(Budget.id == budget_id, Budget.user_id == current_user.id).first()
+def update_budget(
+    budget_id: str,
+    data: BudgetUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    budget = (
+        db.query(Budget)
+        .filter(Budget.id == budget_id, Budget.user_id == current_user.id)
+        .first()
+    )
     if not budget:
         raise HTTPException(status_code=404, detail="Budget not found")
     update_data = data.model_dump(exclude_unset=True)
@@ -261,8 +327,16 @@ def update_budget(budget_id: str, data: BudgetUpdate, db: Session = Depends(get_
 
 
 @router.delete("/{budget_id}", status_code=204)
-def delete_budget(budget_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    budget = db.query(Budget).filter(Budget.id == budget_id, Budget.user_id == current_user.id).first()
+def delete_budget(
+    budget_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    budget = (
+        db.query(Budget)
+        .filter(Budget.id == budget_id, Budget.user_id == current_user.id)
+        .first()
+    )
     if not budget:
         raise HTTPException(status_code=404, detail="Budget not found")
     db.delete(budget)

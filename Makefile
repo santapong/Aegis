@@ -75,7 +75,7 @@ image-backend:
 	docker build -t aegis-backend:$(TAG) ./backend
 
 image-frontend:
-	docker build -t aegis-frontend:$(TAG) ./frontend
+	docker build -t aegis-frontend:$(TAG) -f frontend/Dockerfile .
 
 images: image-backend image-frontend
 	@echo "Built aegis-backend:$(TAG) and aegis-frontend:$(TAG)"

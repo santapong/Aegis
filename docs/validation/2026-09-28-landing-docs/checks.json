@@ -1,0 +1,230 @@
+{
+  "date": "2026-09-28",
+  "browser": "visible Codex in-app Chromium",
+  "checks": [
+    {
+      "name": "Docs semantic structure and active header",
+      "passed": true,
+      "detail": "{\"active\":\"Documentation\",\"badImages\":0,\"h1\":1,\"main\":1,\"missingAnchors\":[],\"overflow\":false}"
+    },
+    {
+      "name": "Docs anchor destinations exist",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Docs desktop has no overflow or broken images",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Docs FAQ opens with keyboard",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Docs FAQ closes with keyboard",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Landing states product category and exposes docs",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Landing anchors exist and desktop fits",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Sample timeline remains functional",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Sample plan selection updates detail",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Changing view preserves selected plan",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Landing guide link opens the first-month section",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Mobile menu opens with Documentation",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Escape closes menu and restores trigger focus",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Mobile native contents opens with keyboard",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Mobile contents link reaches an unobscured API heading",
+      "passed": true,
+      "detail": "{\"hash\":\"#api-reference\",\"headerBottom\":77,\"tableWidth\":336,\"top\":116.375,\"viewport\":390}"
+    },
+    {
+      "name": "Docs responsive width 320",
+      "passed": true,
+      "detail": "{\"overflow\":[],\"scrollWidth\":314,\"width\":320}"
+    },
+    {
+      "name": "Docs responsive width 390",
+      "passed": true,
+      "detail": "{\"overflow\":[],\"scrollWidth\":384,\"width\":390}"
+    },
+    {
+      "name": "Docs responsive width 768",
+      "passed": true,
+      "detail": "{\"overflow\":[],\"scrollWidth\":762,\"width\":768}"
+    },
+    {
+      "name": "Docs responsive width 1024",
+      "passed": true,
+      "detail": "{\"overflow\":[],\"scrollWidth\":1018,\"width\":1024}"
+    },
+    {
+      "name": "Docs responsive width 1440",
+      "passed": true,
+      "detail": "{\"overflow\":[],\"scrollWidth\":1434,\"width\":1440}"
+    },
+    {
+      "name": "Docs responsive width 1920",
+      "passed": true,
+      "detail": "{\"overflow\":[],\"scrollWidth\":1914,\"width\":1920}"
+    },
+    {
+      "name": "Mobile docs header navigates back to landing and closes",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Landing responsive width 320",
+      "passed": true,
+      "detail": "{\"overflow\":[],\"scrollWidth\":314,\"width\":320}"
+    },
+    {
+      "name": "Landing responsive width 390",
+      "passed": true,
+      "detail": "{\"overflow\":[],\"scrollWidth\":384,\"width\":390}"
+    },
+    {
+      "name": "Landing responsive width 768",
+      "passed": true,
+      "detail": "{\"overflow\":[],\"scrollWidth\":762,\"width\":768}"
+    },
+    {
+      "name": "Landing responsive width 1024",
+      "passed": true,
+      "detail": "{\"overflow\":[],\"scrollWidth\":1018,\"width\":1024}"
+    },
+    {
+      "name": "Landing responsive width 1440",
+      "passed": true,
+      "detail": "{\"overflow\":[],\"scrollWidth\":1434,\"width\":1440}"
+    },
+    {
+      "name": "Landing responsive width 1920",
+      "passed": true,
+      "detail": "{\"overflow\":[],\"scrollWidth\":1914,\"width\":1920}"
+    },
+    {
+      "name": "Goal selector still changes the visible example",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "AI explainer points to the relevant guide section",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Header sign-in reaches the approved login form",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "name": "Login Documentation link reaches public guide",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "docsSizes": [
+    {
+      "overflow": [],
+      "scrollWidth": 314,
+      "width": 320
+    },
+    {
+      "overflow": [],
+      "scrollWidth": 384,
+      "width": 390
+    },
+    {
+      "overflow": [],
+      "scrollWidth": 762,
+      "width": 768
+    },
+    {
+      "overflow": [],
+      "scrollWidth": 1018,
+      "width": 1024
+    },
+    {
+      "overflow": [],
+      "scrollWidth": 1434,
+      "width": 1440
+    },
+    {
+      "overflow": [],
+      "scrollWidth": 1914,
+      "width": 1920
+    }
+  ],
+  "landingSizes": [
+    {
+      "overflow": [],
+      "scrollWidth": 314,
+      "width": 320
+    },
+    {
+      "overflow": [],
+      "scrollWidth": 384,
+      "width": 390
+    },
+    {
+      "overflow": [],
+      "scrollWidth": 762,
+      "width": 768
+    },
+    {
+      "overflow": [],
+      "scrollWidth": 1018,
+      "width": 1024
+    },
+    {
+      "overflow": [],
+      "scrollWidth": 1434,
+      "width": 1440
+    },
+    {
+      "overflow": [],
+      "scrollWidth": 1914,
+      "width": 1920
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "checked_at": "2026-10-02T13:29:10.803515+00:00",
+  "status": "passed",
+  "cleanup": "six exact task Compose containers, three fresh volumes and two task networks removed",
+  "remaining_task_resources": {
+    "containers": [],
+    "volumes": [],
+    "networks": []
+  },
+  "original_pilot_database_preserved": "exited",
+  "system_trust_store_modified": false,
+  "real_line_or_public_deployment": false,
+  "post_auth_diagnostic": "trapped Passlib/bcrypt version warning; retained and separated from actual successful auth; no warning-free claim"
+}

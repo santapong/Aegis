@@ -1,0 +1,197 @@
+{
+  "name": "Aegis \u2014 operational checks (inactive)",
+  "active": false,
+  "nodes": [
+    {
+      "id": "cdb45fc3-49e8-5c1d-b913-d49d40b67060",
+      "name": "Manual start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "c409e3ce-cc47-5756-ae7a-a2d51d07dc37",
+      "name": "Settings",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{fixture_mode:true,api_base:'https://aegis.example.invalid'}}];"
+      }
+    },
+    {
+      "id": "e9355dd5-9fc4-5f40-9439-297eae0b37f3",
+      "name": "Operator setup",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        100,
+        -330
+      ],
+      "parameters": {
+        "content": "## INACTIVE \u2014 fictional fixture by default\nTarget: n8n 2.33.3. Manual trigger only. Set Settings.fixture_mode=false only after G1/G2 review. Select separate Header Auth credentials for ingestion claim, delivery claim and LINE push. Lease headers are server issued. Never add direct ledger/database writes. Save execution data: none. Do not pin real financial data.",
+        "height": 250,
+        "width": 650
+      }
+    },
+    {
+      "id": "d39168b8-e10a-5841-a715-0da8ad4b8ede",
+      "name": "Fixture operations?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d59e4863-1991-5686-ac94-a280aea072c9",
+              "leftValue": "={{ $json.fixture_mode === true }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "e13c86ea-9fa5-55a3-94a8-84997a1b691b",
+      "name": "Fixture safe counts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        -150
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{jobs:{queued:2,failed:1},outbox:{pending:1},reconciliation:{unresolved:1},fixture:true}}];"
+      }
+    },
+    {
+      "id": "51eefbb5-2913-5a31-9234-6d7748a8b929",
+      "name": "Read safe operations",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        660,
+        150
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $('Settings').first().json.api_base + '/api/integrations/operations' }}",
+        "options": {
+          "timeout": 45000
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
+      },
+      "continueOnFail": true
+    },
+    {
+      "id": "f155c8c3-122b-56cd-b80f-4c43d3c869a4",
+      "name": "Safe operational report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        0
+      ],
+      "parameters": {
+        "jsCode": "if($json.error)return [{json:{state:'operations_unavailable',notify:false}}];return [{json:{state:'review_operations',counts:$json,notify:false,note:'Manual report only. Scheduling or owner notification needs deliberate setup.'}}];"
+      }
+    }
+  ],
+  "connections": {
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Fixture operations?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixture operations?": {
+      "main": [
+        [
+          {
+            "node": "Fixture safe counts",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Read safe operations",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fixture safe counts": {
+      "main": [
+        [
+          {
+            "node": "Safe operational report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read safe operations": {
+      "main": [
+        [
+          {
+            "node": "Safe operational report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual start": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Asia/Bangkok",
+    "executionOrder": "v1",
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "saveExecutionProgress": false
+  },
+  "pinData": {}
+}

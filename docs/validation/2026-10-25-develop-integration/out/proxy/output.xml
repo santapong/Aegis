@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.5 (Python 3.11.17 on linux)" generated="2026-10-25T08:08:55.595066" rpa="false" schemaversion="5">
+<suite id="s1" name="Aegis same-origin proxy" source="/candidate/backend/tests/robot/frontend_proxy.robot">
+<test id="s1-t1" name="Authenticated Budget Collection Reaches Its Data Through The Frontend" line="12">
+<kw name="Start Fresh Owner" owner="AegisApi" type="SETUP">
+<status status="PASS" start="2026-10-25T08:09:02.785377" elapsed="1.617777"/>
+</kw>
+<kw name="Frontend Budget Collection Round Trip Stays On Origin" owner="AegisApi">
+<msg time="2026-10-25T08:09:04.515990" level="FAIL">The collection redirect escapes the frontend origin</msg>
+<doc>Separate topology regression; requires the integrated frontend.</doc>
+<status status="FAIL" start="2026-10-25T08:09:04.403438" elapsed="0.113307">The collection redirect escapes the frontend origin</status>
+</kw>
+<kw name="Close Test Client" owner="AegisApi" type="TEARDOWN">
+<status status="PASS" start="2026-10-25T08:09:04.517189" elapsed="0.000349"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="FAIL" start="2026-10-25T08:09:02.784310" elapsed="1.733302">The collection redirect escapes the frontend origin</status>
+</test>
+<doc>Same-origin topology regression against the integrated frontend and real backend. Initial failure evidence is preserved in the October 25 Robot report.</doc>
+<status status="FAIL" start="2026-10-25T08:08:55.596163" elapsed="8.922007"/>
+</suite>
+<statistics>
+<total>
+<stat pass="0" fail="1" skip="0">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat name="Aegis same-origin proxy" id="s1" pass="0" fail="1" skip="0">Aegis same-origin proxy</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>

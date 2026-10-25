@@ -1,0 +1,6 @@
+{
+  "checked_at": "2026-10-02T13:25:34.018204+00:00",
+  "status": "failed before any HTTP request or fixture write",
+  "cause": "default python lacks httpx",
+  "recovery": "use existing backend/.venv/bin/python; no dependency installed or changed"
+}

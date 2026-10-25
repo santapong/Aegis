@@ -1,0 +1,175 @@
+{
+  "checked_at": "2026-10-01T20:17:16.910328+00:00",
+  "status": "implemented and locally verified owner pilot; no production deployment",
+  "backend": {
+    "passed": 157,
+    "skipped": 1,
+    "warnings": 2
+  },
+  "cash_postgresql": {
+    "passed": 20,
+    "skipped": 0,
+    "warnings": 2
+  },
+  "cash_sqlite": {
+    "passed": 19,
+    "skipped": 1,
+    "warnings": 2
+  },
+  "mcp": {
+    "passed": 7,
+    "warnings": 2
+  },
+  "frontend": {
+    "types_exit": 0,
+    "build_exit": 0,
+    "static_pages_generated": 41
+  },
+  "client_session": {
+    "node": "pass",
+    "bun": "pass"
+  },
+  "migration": {
+    "sqlite": "pass",
+    "postgresql": "pass",
+    "populated_cash_downgrade": "refused"
+  },
+  "backup_restore": {
+    "all_table_counts_equal": true,
+    "all_base_forecasts_equal": true,
+    "workspaces": 3,
+    "cash_table_counts": {
+      "cash_workspaces": 3,
+      "cash_accounts": 3,
+      "cash_audit": 44,
+      "cash_scenarios": 4,
+      "cash_balance_anchors": 3,
+      "cash_commitments": 9,
+      "cash_transfers": 2,
+      "cash_occurrences": 9,
+      "cash_settlements": 3
+    }
+  },
+  "fresh_browser_warning_error_count": 0,
+  "lock_check_exit": 0,
+  "git_diff_check_exit": 0,
+  "source_file_count": 332,
+  "artifacts": {
+    "README.md": {
+      "sha256": "d5a37bbae5363be470856f9654e58d7a0c1ce10f750a1f49a6730f72f9c78d04",
+      "bytes": 12389
+    },
+    "backend-regression.log": {
+      "sha256": "9f82c37114f45535ee1812d72226519e523394f3e147503e578aa413e600b00e",
+      "bytes": 990
+    },
+    "backup-restore.log": {
+      "sha256": "2bfd5af11e722188fa757fc3d994bef191bbfbe0fab62819fc58faa1ad90efc9",
+      "bytes": 305
+    },
+    "browser-console.json": {
+      "sha256": "737e718531a738ba2a54a2f93f3bd2289fd93caf199cfe6d03566f2939b4205d",
+      "bytes": 58
+    },
+    "business-contractor-dom.txt": {
+      "sha256": "bb597a1a102e33c1ee0efd9c963d3cd895add10b8861050f06c9ec1757355cf7",
+      "bytes": 4104
+    },
+    "business-mobile-390.png": {
+      "sha256": "13199e5f1628fb750d4b2b2eab22e9989f2d4f488e418111468f209a568d8603",
+      "bytes": 33041
+    },
+    "business-partial-receipt-dom.txt": {
+      "sha256": "f80b2d70619990fbb0824f3ec9ca33bb52f2715dfa3d6a298434589a0b29c5d0",
+      "bytes": 4311
+    },
+    "business-scenario-desktop.png": {
+      "sha256": "232be4d6433ca6b75409e6a86b1c57436f0bf1f2721f740c67da79258e6202c0",
+      "bytes": 75960
+    },
+    "business-two-date-dom.txt": {
+      "sha256": "dd617e1db779b931388a2cbcfef4cef6c3ba9c6bca04b78219d14ca1e4eef015",
+      "bytes": 4100
+    },
+    "cash-guide-dom.txt": {
+      "sha256": "038e9721d376f736a803964d81a1df9ef5762723b088e49e63d354c94d5e2b62",
+      "bytes": 8784
+    },
+    "cash-lint.log": {
+      "sha256": "82b3e6a6c090a57601d22943bd23fca9218d1031dbe5a7b754092f9a156b4f18",
+      "bytes": 19
+    },
+    "cash-postgres-tests.log": {
+      "sha256": "6871b1229c0e121b5710f1c7936e7ec3ef4c1c6e09ce98be615f2c7878e4c57a",
+      "bytes": 808
+    },
+    "cash-sqlite-tests.log": {
+      "sha256": "65f75b970b2d493f57ea7df792aebf83071c4a250807ab73c775ab86079c13ac",
+      "bytes": 819
+    },
+    "client-session-bun.log": {
+      "sha256": "7205a2cbbadc3630fdaaec24b885aed6f42e8f1ab17594b7702b66af75033b32",
+      "bytes": 142
+    },
+    "client-session-checks.log": {
+      "sha256": "7205a2cbbadc3630fdaaec24b885aed6f42e8f1ab17594b7702b66af75033b32",
+      "bytes": 142
+    },
+    "frontend-build.log": {
+      "sha256": "276105a32a8e48bcc1dabb55d88192fa6ba779e11004c06d05cd1742ce15bcd7",
+      "bytes": 3113
+    },
+    "frontend-types.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "lock-check.log": {
+      "sha256": "31e9e4d77587d0df96013e948cdf176809c07b5cf95e285e379ff7f5b6f00a1c",
+      "bytes": 29
+    },
+    "match-preview.png": {
+      "sha256": "d81e27c4e90b2e28459dc261422a1db91f0b32ade9362793014bb559b364b461",
+      "bytes": 46753
+    },
+    "mcp-regression.log": {
+      "sha256": "be45c0f3b342ff42160f7de83e475e164e404391ce787c9bd2af6dccd3ba9f65",
+      "bytes": 806
+    },
+    "migration-postgres.log": {
+      "sha256": "ea790cd103bb84392ca411ff771e5c1c9f3136a0edfd1f160bc4a9dba7ba8ee9",
+      "bytes": 3572
+    },
+    "migration-sqlite.log": {
+      "sha256": "b6b474ab7e1051c7a0efaa25f0b2949d2c2f5531447940cd210e2b0f34014a7c",
+      "bytes": 5250
+    },
+    "mobile-320-dialog.png": {
+      "sha256": "d7e445db096bcfb206d969cf294e3dbff84d32083dd756668a090e42d77dc9a9",
+      "bytes": 24743
+    },
+    "mobile-setup-dialog.png": {
+      "sha256": "4155da4f095e8ded3702e6d2aee3b4c1414973e81ab0987e3c82b0571e7dfa5e",
+      "bytes": 26084
+    },
+    "personal-calendar-dom.txt": {
+      "sha256": "3ed7530d1f6947eee55ac5a623169b5344ee9e06ab8fbb7522e42155465c332f",
+      "bytes": 8732
+    },
+    "personal-laptop-desktop.png": {
+      "sha256": "570829a08c33fa26dc5a12e23914df097d444faf783eec38b365e3ed68f0d629",
+      "bytes": 74227
+    },
+    "personal-laptop-dom.txt": {
+      "sha256": "a66419bfc14791898d09b600d1a4190bcbcc5bd94d5d7bd99d84b1e094a35731",
+      "bytes": 4298
+    },
+    "setup-incomplete-dom.txt": {
+      "sha256": "bc1d4a6e782be2e7fd466049693182342476f0f7332414145a1dde06e7c2255d",
+      "bytes": 3720
+    },
+    "source-manifest.json": {
+      "sha256": "5accf2946463ea31d9f05ea24b08de23082c869447abd3b9bf631a5f707fc2cb",
+      "bytes": 68071
+    }
+  }
+}

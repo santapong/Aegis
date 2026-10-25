@@ -1,0 +1,295 @@
+{
+  "checked": "2026-09-28",
+  "browser": "152.0.7977.83",
+  "checks": [
+    {
+      "label": "Structure contains seven content chapters plus header",
+      "ok": true
+    },
+    {
+      "label": "Ten reference cards",
+      "ok": true
+    },
+    {
+      "label": "Direction a visible at 1440",
+      "ok": true
+    },
+    {
+      "label": "No document overflow a at 1440",
+      "ok": true,
+      "detail": {
+        "width": 1440,
+        "scroll": 1425
+      }
+    },
+    {
+      "label": "Headline fits its container a at 1440",
+      "ok": true
+    },
+    {
+      "label": "Direction b visible at 1440",
+      "ok": true
+    },
+    {
+      "label": "No document overflow b at 1440",
+      "ok": true,
+      "detail": {
+        "width": 1440,
+        "scroll": 1425
+      }
+    },
+    {
+      "label": "Headline fits its container b at 1440",
+      "ok": true
+    },
+    {
+      "label": "Direction c visible at 1440",
+      "ok": true
+    },
+    {
+      "label": "No document overflow c at 1440",
+      "ok": true,
+      "detail": {
+        "width": 1440,
+        "scroll": 1425
+      }
+    },
+    {
+      "label": "Headline fits its container c at 1440",
+      "ok": true
+    },
+    {
+      "label": "Direction a visible at 768",
+      "ok": true
+    },
+    {
+      "label": "No document overflow a at 768",
+      "ok": true,
+      "detail": {
+        "width": 768,
+        "scroll": 753
+      }
+    },
+    {
+      "label": "Headline fits its container a at 768",
+      "ok": true
+    },
+    {
+      "label": "Direction b visible at 768",
+      "ok": true
+    },
+    {
+      "label": "No document overflow b at 768",
+      "ok": true,
+      "detail": {
+        "width": 768,
+        "scroll": 753
+      }
+    },
+    {
+      "label": "Headline fits its container b at 768",
+      "ok": true
+    },
+    {
+      "label": "Direction c visible at 768",
+      "ok": true
+    },
+    {
+      "label": "No document overflow c at 768",
+      "ok": true,
+      "detail": {
+        "width": 768,
+        "scroll": 753
+      }
+    },
+    {
+      "label": "Headline fits its container c at 768",
+      "ok": true
+    },
+    {
+      "label": "Direction a visible at 390",
+      "ok": true
+    },
+    {
+      "label": "No document overflow a at 390",
+      "ok": true,
+      "detail": {
+        "width": 390,
+        "scroll": 375
+      }
+    },
+    {
+      "label": "Headline fits its container a at 390",
+      "ok": true
+    },
+    {
+      "label": "Direction b visible at 390",
+      "ok": true
+    },
+    {
+      "label": "No document overflow b at 390",
+      "ok": true,
+      "detail": {
+        "width": 390,
+        "scroll": 375
+      }
+    },
+    {
+      "label": "Headline fits its container b at 390",
+      "ok": true
+    },
+    {
+      "label": "Direction c visible at 390",
+      "ok": true
+    },
+    {
+      "label": "No document overflow c at 390",
+      "ok": true,
+      "detail": {
+        "width": 390,
+        "scroll": 375
+      }
+    },
+    {
+      "label": "Headline fits its container c at 390",
+      "ok": true
+    },
+    {
+      "label": "Direction a visible at 320",
+      "ok": true
+    },
+    {
+      "label": "No document overflow a at 320",
+      "ok": true,
+      "detail": {
+        "width": 320,
+        "scroll": 305
+      }
+    },
+    {
+      "label": "Headline fits its container a at 320",
+      "ok": true
+    },
+    {
+      "label": "Direction b visible at 320",
+      "ok": true
+    },
+    {
+      "label": "No document overflow b at 320",
+      "ok": true,
+      "detail": {
+        "width": 320,
+        "scroll": 305
+      }
+    },
+    {
+      "label": "Headline fits its container b at 320",
+      "ok": true
+    },
+    {
+      "label": "Direction c visible at 320",
+      "ok": true
+    },
+    {
+      "label": "No document overflow c at 320",
+      "ok": true,
+      "detail": {
+        "width": 320,
+        "scroll": 305
+      }
+    },
+    {
+      "label": "Headline fits its container c at 320",
+      "ok": true
+    },
+    {
+      "label": "Rent selection updates date and copy",
+      "ok": true
+    },
+    {
+      "label": "Savings distinguished as planned",
+      "ok": true
+    },
+    {
+      "label": "Next horizon updates sample",
+      "ok": true
+    },
+    {
+      "label": "Later horizon updates sample",
+      "ok": true
+    },
+    {
+      "label": "Buffer choice updates goal",
+      "ok": true
+    },
+    {
+      "label": "Debt choice updates goal and payment",
+      "ok": true
+    },
+    {
+      "label": "Tab keyboard End selects C",
+      "ok": true
+    },
+    {
+      "label": "Tab keyboard wraps to A",
+      "ok": true
+    },
+    {
+      "label": "Reference details disclose",
+      "ok": true
+    },
+    {
+      "label": "Local asset assets/aegis-icon.png",
+      "ok": true
+    },
+    {
+      "label": "Local asset board.css",
+      "ok": true
+    },
+    {
+      "label": "Local asset board.js",
+      "ok": true
+    },
+    {
+      "label": "Local asset references/sunsama-hero.jpg",
+      "ok": true
+    },
+    {
+      "label": "Local asset references/daybridge-hero.jpg",
+      "ok": true
+    },
+    {
+      "label": "Local asset references/ynab-hero.jpg",
+      "ok": true
+    },
+    {
+      "label": "Local asset references/wealthfront-hero.jpg",
+      "ok": true
+    },
+    {
+      "label": "Local asset references/ramp-hero.jpg",
+      "ok": true
+    },
+    {
+      "label": "Local asset references/chronicle-hero.jpg",
+      "ok": true
+    },
+    {
+      "label": "Local asset references/raycast-hero.jpg",
+      "ok": true
+    },
+    {
+      "label": "No runtime errors",
+      "ok": true,
+      "detail": []
+    },
+    {
+      "label": "Without JavaScript all directions remain readable",
+      "ok": true
+    },
+    {
+      "label": "Without JavaScript all references present",
+      "ok": true
+    }
+  ]
+}

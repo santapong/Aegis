@@ -1,0 +1,5 @@
+{
+  "checked_at": "2026-10-02T13:22:10.502644+00:00",
+  "cleanup": "six exact task Compose containers, three fresh volumes and two task networks removed",
+  "preserved": "original pilot database and reviewed images"
+}

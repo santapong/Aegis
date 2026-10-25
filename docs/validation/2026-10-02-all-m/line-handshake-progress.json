@@ -1,0 +1,29 @@
+{
+  "incoming_event_received": true,
+  "linked": true,
+  "latest_reply_class": "connected; accepted replies scrubbed, owner reported handset receipt",
+  "no_outbound_reply_sent": false,
+  "single_line_private_file": "line-command-only-20261005-095541.txt",
+  "existing_code_retained": true,
+  "expires_bangkok": "10:05",
+  "raw_message_not_stored_or_inspected": true,
+  "checked_at": "2026-10-05T03:02:49.885193+00:00",
+  "latest_owner_reply": "Owner reported Connected receipt and expense sent; actual expense callback not yet received",
+  "current_code": "consumed by actual successful link; do not regenerate",
+  "actual_delivery": "Two own-participant queued replies accepted200; Connected handset receipt reported by owner",
+  "pre_link_historical": {
+    "incoming_event_received": true,
+    "linked": false,
+    "latest_reply_class": "needs_link_prefix",
+    "no_outbound_reply_sent": true,
+    "single_line_private_file": "line-command-only-20261005-095541.txt",
+    "existing_code_retained": true,
+    "expires_bangkok": "10:05",
+    "raw_message_not_stored_or_inspected": true,
+    "checked_at": "2026-10-05T02:55:41.394947+00:00",
+    "latest_owner_reply": "Owner forgot to send; requested fresh one-line command",
+    "current_code": "previous expired code replaced; same reviewed personal destination",
+    "actual_delivery": "not attempted; owner phone link required"
+  },
+  "next_step": "Send actual expense message in the one-to-one LINE chat; no draft/expense event yet"
+}

@@ -1,0 +1,33 @@
+{
+  "compose_config_parsed": true,
+  "overlay_services_started": false,
+  "finance_enabled_default": false,
+  "delivery_gate": false,
+  "validation_only_env_files_removed": true,
+  "operator_dotenv_not_read": true,
+  "only_path_home_lang_forwarded_to_config_command": true,
+  "all_profiles_rendered_for_static_validation": true,
+  "profiles": {
+    "ledger-text": [
+      "line-ledger"
+    ],
+    "ledger-capture": [
+      "line-ledger"
+    ],
+    "ledger-extract": [
+      "line-ledger"
+    ],
+    "ledger-deliver": [
+      "line-ledger-delivery"
+    ]
+  },
+  "workers_skip_migrations_and_wait_for_healthy_backend": true,
+  "evidence_init_completes_before_workers": true,
+  "backend_evidence_read_only": true,
+  "worker_http_healthcheck_disabled": true,
+  "delivery_restart_policy": "no",
+  "source_sha256": {
+    "docker-compose.yml": "e602fc50d1f2d077c86606993cdd55741d7051370926fa0a5f45aabf07e8d43a",
+    "docker-compose.line-ledger.yml": "9540a06d3ae1d39a97c0faf85a339b12bbbe1adf025816765683d5cee94551f6"
+  }
+}

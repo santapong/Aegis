@@ -1,0 +1,56 @@
+{
+  "started_at": "2026-10-02T10:14:24.626248+00:00",
+  "scope": "fresh local container installation; fictional users only; provider delivery disabled",
+  "checks": {
+    "same_origin_api_health": {
+      "status": "ok",
+      "version": "1.0.0",
+      "db": "ok",
+      "features": {
+        "ai": "not_configured",
+        "ai_provider": "anthropic",
+        "stripe": "not_configured"
+      },
+      "stripe_mode": "not_configured"
+    },
+    "public_and_app_routes": {
+      "/landing": {
+        "status": 200,
+        "bytes": 79729
+      },
+      "/login": {
+        "status": 200,
+        "bytes": 24108
+      },
+      "/docs": {
+        "status": 200,
+        "bytes": 38906
+      },
+      "/docs/developers/local-setup": {
+        "status": 200,
+        "bytes": 45103
+      },
+      "/demo": {
+        "status": 200,
+        "bytes": 40000
+      },
+      "/changelog": {
+        "status": 200,
+        "bytes": 179156
+      },
+      "/cashflow": {
+        "status": 200,
+        "bytes": 11940
+      }
+    },
+    "static_assets_fetched": 23,
+    "partial_matching": {
+      "cash_before": "5100.00",
+      "cash_after": "5100.00",
+      "closing_after": "5200.00"
+    }
+  },
+  "status": "failed",
+  "error": "",
+  "finished_at": "2026-10-02T10:15:38.987233+00:00"
+}

@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-25",
+  "timezone": "Asia/Bangkok",
+  "direction": "Horizon",
+  "palette_selected_by_owner": true,
+  "rendered_frontend_owner_acceptance": "pending",
+  "board": "01-direction-board.png",
+  "prompts": "prompts.json",
+  "sources": {
+    "frontend_baseline": "/home/santapong/worktrees/aegis-line-ledger-20261022/frontend",
+    "base_commit": "e2c4a9c",
+    "feature_branch": "feature/aegis-horizon-20261025"
+  },
+  "images": [
+    {
+      "path": "docs/design/2026-10-25-horizon/01-direction-board.png",
+      "sha256": "5370e79618a51bff6db7ddee549442c02589d031fd2fa36069be8039895d7dcc",
+      "format": "PNG",
+      "width": 1536,
+      "height": 1024
+    },
+    {
+      "path": "frontend/public/brand/horizon-landscape.png",
+      "sha256": "a17d74987d6fb8ffd731968186771e32b834909adc2febecc3efbacf6c7cae42",
+      "format": "PNG",
+      "width": 1536,
+      "height": 1024
+    }
+  ]
+}

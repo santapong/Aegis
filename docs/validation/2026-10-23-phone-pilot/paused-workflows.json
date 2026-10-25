@@ -1,0 +1,50 @@
+[
+  {
+    "kind": "ingestion",
+    "active": false,
+    "executions": [
+      {
+        "id": "17355",
+        "status": "success",
+        "finished": true,
+        "startedAt": "2026-10-22T18:34:15.027Z"
+      },
+      {
+        "id": "17353",
+        "status": "success",
+        "finished": true,
+        "startedAt": "2026-10-22T18:34:10.035Z"
+      },
+      {
+        "id": "17351",
+        "status": "success",
+        "finished": true,
+        "startedAt": "2026-10-22T18:34:05.025Z"
+      }
+    ]
+  },
+  {
+    "kind": "delivery",
+    "active": false,
+    "executions": [
+      {
+        "id": "17356",
+        "status": "success",
+        "finished": true,
+        "startedAt": "2026-10-22T18:34:15.029Z"
+      },
+      {
+        "id": "17354",
+        "status": "success",
+        "finished": true,
+        "startedAt": "2026-10-22T18:34:10.035Z"
+      },
+      {
+        "id": "17352",
+        "status": "success",
+        "finished": true,
+        "startedAt": "2026-10-22T18:34:05.027Z"
+      }
+    ]
+  }
+]

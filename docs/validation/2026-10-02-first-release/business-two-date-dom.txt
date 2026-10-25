@@ -1,0 +1,114 @@
+- complementary:
+  - button "Expand sidebar":
+  - navigation:
+    - link "Cash planning":
+      - /url: /cashflow
+    - link "Dashboard":
+      - /url: /
+    - link "Unassigned records":
+      - /url: /transactions
+    - link "Reports":
+      - /url: /reports
+    - link "Budgets":
+      - /url: /budgets
+    - link "Savings":
+      - /url: /savings
+    - link "Investments":
+      - /url: /investments
+    - link "Debts":
+      - /url: /debts
+    - link "Calendar":
+      - /url: /calendar
+    - link "Gantt":
+      - /url: /gantt
+    - link "Trips":
+      - /url: /trips
+    - link "Scenarios":
+      - /url: /plans
+    - link "Docs":
+      - /url: /docs
+    - link "Settings":
+      - /url: /settings
+    - link "Onboarding":
+      - /url: /welcome
+  - button "AI advisor":
+  - generic: A
+  - button "Sign out":
+- main:
+  - region "Cash planning":
+    - text: AEGIS / CASH PLANNING
+    - heading "See the dates behind your money." [level=1]
+    - button "New workspace"
+    - paragraph: Record what moved. Plan what comes next. See whether the dates and amounts fit.
+    - region "Forecast scope":
+      - text: Workspace
+      - combobox "Workspace":
+        - option "Business X · fictional example · business · THB" [selected]
+        - option "Mina · fictional example · personal · THB"
+        - option "Setup check · fictional · business · THB"
+      - text: Cash as of
+      - textbox "Cash as of": 2026-10-02
+      - text: Plan through
+      - textbox "Plan through": 2026-10-31
+      - text: Comparison
+      - combobox "Comparison":
+        - option "Base plan"
+        - option "Late receipt · verified"
+        - option "Late client + later equipment" [selected]
+        - option "Client pays in November · no changes"
+    - text: THB · Asia/Bangkok · All active cash accounts
+    - generic "Choose included accounts"
+    - navigation "Cash workspace views":
+      - button "Overview" [pressed]
+      - button "Money calendar"
+      - button "Scenarios"
+      - button "Review & match"
+      - button "Accounts"
+    - status: Scenario saved. Recorded cash and base commitments are unchanged.
+    - button "Record money"
+    - button "Add upcoming money"
+    - button "Add cash account"
+    - region "Cash summary":
+      - article:
+        - generic: Cash as of 2026-10-02 · THB
+        - strong: 89,000.00
+      - article:
+        - generic: Closing cash · 2026-10-31 · THB
+        - strong: 20,000.00
+      - article:
+        - generic: Lowest cash · 2026-10-23 · THB
+        - strong: 20,000.00
+      - article:
+        - generic: Closing above buffer · THB
+        - strong: 10,000.00
+    - text: BASE / SCENARIO
+    - heading "Late client + later equipment" [level=2]
+    - button "Compare a change"
+    - paragraph: The entered plan stays above your buffer within this period.
+    - list:
+      - text: Recorded cash
+      - text: Base plan · end of day
+      - text: Scenario · end of day
+    - paragraph:
+      - text: Expected receipts THB 0.00 · remaining costs THB 69,000.00 · buffer THB 10,000.00
+      - button "Edit buffer"
+    - paragraph: End-of-day amounts; same-day income may arrive after same-day bills. Expected receipts are assumptions, not cash held.
+    - generic "Inspect daily values and their sources"
+    - heading "Upcoming commitments" [level=2]
+    - article:
+      - strong: Contractor bill BX-201
+      - paragraph: Remaining cost THB 65,000.00 · expected 2026-10-20 · due 2026-10-20
+    - article:
+      - strong: Hosting & tools
+      - paragraph: Remaining cost THB 4,000.00 · expected 2026-10-23 · due 2026-10-23
+    - heading "Outside the visible plan" [level=2]
+    - generic "Later obligations and receipts (2)" [active]
+    - paragraph: Equipment · 2026-11-02 · THB 12,000.00
+    - paragraph: Client invoice BX-104 · 2026-11-05 · THB 90,000.00
+    - paragraph:
+      - text: Cash accounts are an entered record of money, not a bank connection. Completing a task does not record a payment.
+      - link "Read the Aegis guides":
+        - /url: /docs
+- button "Open Next.js Dev Tools":
+- alert
+- generic: THB 30,000

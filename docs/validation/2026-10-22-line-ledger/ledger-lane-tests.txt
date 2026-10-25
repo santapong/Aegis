@@ -1,0 +1,28 @@
+Command (from backend):
+ruff check [ledger lane files] && /mnt/data/company/apps/Aegis/backend/.venv/bin/python -m pytest tests/test_finance_reads.py tests/test_finance_reconciliation.py tests/test_transaction_update.py -q --tb=short
+
+Ruff: All checks passed.
+
+Final pytest output:
+.......s..........                                                       [100%]
+=============================== warnings summary ===============================
+../../../../../mnt/data/company/apps/Aegis/backend/.venv/lib/python3.11/site-packages/passlib/utils/__init__.py:854
+  /mnt/data/company/apps/Aegis/backend/.venv/lib/python3.11/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+app/routers/debts.py:38
+  /home/santapong/worktrees/aegis-line-ledger-20261022/backend/app/routers/debts.py:38: FastAPIDeprecationWarning: `regex` has been deprecated, please use `pattern` instead
+    strategy: str = Query(default="avalanche", regex="^(avalanche|snowball)$"),
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+17 passed, 1 skipped, 2 warnings in 8.55s
+
+Exit code: 0
+
+Separate actual PostgreSQL execution:
+AEGIS_LEDGER_TEST_DATABASE_URL pointed to the dedicated synthetic localhost:56422/aegis_ledger_test database.
+Command: python -m pytest tests/test_finance_reads.py::test_postgres_opening_and_legacy_writer_share_one_cutover_boundary -q --tb=short
+Observed result: 1 passed, 2 pre-existing dependency/deprecation warnings in 8.00s.
+This test used actual Alembic migrations, held the opening transaction owner lock, observed the legacy writer enter SELECT FOR UPDATE, and proved its eventual 409 with zero legacy inserts.
+No production database, LINE account, or provider was used.
+

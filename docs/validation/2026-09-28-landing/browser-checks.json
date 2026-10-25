@@ -1,0 +1,136 @@
+{
+  "date": "2026-09-28",
+  "browser": "152.0.7977.83",
+  "mode": "Visible Brave / Chromium via CDP. HTML, CSS and SVG; no WebGL.",
+  "results": [
+    {
+      "name": "Production route renders",
+      "pass": true
+    },
+    {
+      "name": "Responsive views and calendar targets: 320",
+      "pass": true,
+      "detail": {
+        "width": 320,
+        "scroll": 314,
+        "animations": 0,
+        "canvases": 0
+      }
+    },
+    {
+      "name": "Responsive views and calendar targets: 390",
+      "pass": true,
+      "detail": {
+        "width": 390,
+        "scroll": 384,
+        "animations": 0,
+        "canvases": 0
+      }
+    },
+    {
+      "name": "Responsive views and calendar targets: 768",
+      "pass": true,
+      "detail": {
+        "width": 768,
+        "scroll": 762,
+        "animations": 0,
+        "canvases": 0
+      }
+    },
+    {
+      "name": "Responsive views and calendar targets: 1024",
+      "pass": true,
+      "detail": {
+        "width": 1024,
+        "scroll": 1018,
+        "animations": 0,
+        "canvases": 0
+      }
+    },
+    {
+      "name": "Responsive views and calendar targets: 1440",
+      "pass": true,
+      "detail": {
+        "width": 1440,
+        "scroll": 1434,
+        "animations": 0,
+        "canvases": 0
+      }
+    },
+    {
+      "name": "Responsive views and calendar targets: 1920",
+      "pass": true,
+      "detail": {
+        "width": 1920,
+        "scroll": 1914,
+        "animations": 0,
+        "canvases": 0
+      }
+    },
+    {
+      "name": "Calendar keyboard navigation and empty day",
+      "pass": true
+    },
+    {
+      "name": "Tab keyboard navigation and three savings goals",
+      "pass": true
+    },
+    {
+      "name": "All four FAQ disclosures work with keyboard",
+      "pass": true
+    },
+    {
+      "name": "Mobile menu, Escape focus restoration, anchor close",
+      "pass": true
+    },
+    {
+      "name": "Hero preview anchor",
+      "pass": true
+    },
+    {
+      "name": "Reduced motion, including runtime change",
+      "pass": true
+    },
+    {
+      "name": "Destination /register",
+      "pass": true,
+      "detail": "Map your finances in 90 seconds."
+    },
+    {
+      "name": "Destination /login",
+      "pass": true,
+      "detail": "Welcome back."
+    },
+    {
+      "name": "Destination /docs",
+      "pass": true,
+      "detail": "Documents"
+    },
+    {
+      "name": "Destination /changelog",
+      "pass": true,
+      "detail": "Changelog"
+    },
+    {
+      "name": "Signed-out root still redirects to landing",
+      "pass": true
+    },
+    {
+      "name": "No-JavaScript rendering and native FAQ, external requests blocked",
+      "pass": true
+    },
+    {
+      "name": "No uncaught browser errors",
+      "pass": true
+    }
+  ],
+  "errors": [],
+  "notTested": [
+    "Safari",
+    "Firefox",
+    "Physical mobile device",
+    "Native 200% text zoom and 400% browser zoom",
+    "Authenticated backend account operations",
+    "Hosted origin"
+  ]
+}

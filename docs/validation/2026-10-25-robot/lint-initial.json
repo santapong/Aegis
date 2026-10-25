@@ -1,0 +1,104 @@
+[
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 43,
+      "row": 12
+    },
+    "filename": "/home/santapong/worktrees/aegis-line-ledger-20261022/backend/tests/robot/robot_server.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 12
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 12,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 25,
+      "row": 13
+    },
+    "filename": "/home/santapong/worktrees/aegis-line-ledger-20261022/backend/tests/robot/robot_server.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 13
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 13,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 36,
+      "row": 14
+    },
+    "filename": "/home/santapong/worktrees/aegis-line-ledger-20261022/backend/tests/robot/robot_server.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 14
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 14,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 32,
+      "row": 15
+    },
+    "filename": "/home/santapong/worktrees/aegis-line-ledger-20261022/backend/tests/robot/robot_server.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 15
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 15,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 58,
+      "row": 16
+    },
+    "filename": "/home/santapong/worktrees/aegis-line-ledger-20261022/backend/tests/robot/robot_server.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 16
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 16,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  },
+  {
+    "cell": null,
+    "code": "E402",
+    "end_location": {
+      "column": 45,
+      "row": 17
+    },
+    "filename": "/home/santapong/worktrees/aegis-line-ledger-20261022/backend/tests/robot/robot_server.py",
+    "fix": null,
+    "location": {
+      "column": 1,
+      "row": 17
+    },
+    "message": "Module level import not at top of file",
+    "noqa_row": 17,
+    "url": "https://docs.astral.sh/ruff/rules/module-import-not-at-top-of-file"
+  }
+]

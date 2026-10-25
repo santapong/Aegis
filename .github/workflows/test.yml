@@ -2,9 +2,9 @@ name: test
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, develop]
   push:
-    branches: [main]
+    branches: [main, develop]
   workflow_dispatch:
 
 # Cancel in-progress runs when a new push lands on the same branch —
@@ -63,14 +63,17 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           cache: pip
-          cache-dependency-path: backend/pyproject.toml
+          cache-dependency-path: backend/uv.lock
 
       - name: Install uv
         run: pip install uv
 
       - name: Install backend deps
         working-directory: backend
-        run: uv pip install --system -e ".[test,dev]"
+        run: |
+          uv export --locked --extra test --extra dev --no-emit-project -o /tmp/aegis-test-requirements.txt
+          uv pip install --system --require-hashes -r /tmp/aegis-test-requirements.txt
+          uv pip install --system --no-deps -e .
 
       - name: Lint (ruff)
         working-directory: backend
@@ -87,6 +90,25 @@ jobs:
       - name: Run alembic migrations
         working-directory: backend
         run: alembic upgrade head
+
+      - name: Verify cash API on actual PostgreSQL
+        if: matrix.db == 'postgres'
+        working-directory: backend
+        env:
+          AEGIS_CASH_TEST_DATABASE_URL: postgresql://postgres:test@localhost:5432/aegis_cash_test
+        run: |
+          PGPASSWORD=test psql -h localhost -U postgres -d aegis_test -c "CREATE DATABASE aegis_cash_test"
+          pytest -q tests/test_cashflow.py tests/test_cashflow_m2.py tests/test_cashflow_m3.py tests/test_cashflow_m4.py tests/test_cashflow_review.py
+
+      - name: Verify exact-money ledger on actual PostgreSQL
+        if: matrix.db == 'postgres'
+        working-directory: backend
+        env:
+          AEGIS_CASH_TEST_DATABASE_URL: postgresql://postgres:test@localhost:5432/aegis_cash_test
+          AEGIS_LEDGER_TEST_DATABASE_URL: postgresql://postgres:test@localhost:5432/aegis_ledger_test
+        run: |
+          PGPASSWORD=test psql -h localhost -U postgres -d aegis_test -c "CREATE DATABASE aegis_ledger_test"
+          pytest -q tests/test_money_ledger.py tests/test_finance_integration.py tests/test_finance_reads.py tests/test_finance_reconciliation.py tests/test_line_onboarding_tools.py tests/test_budget_currency_postgres.py
 
       - name: Run pytest
         working-directory: backend
@@ -109,6 +131,9 @@ jobs:
       - name: Type-check
         working-directory: frontend
         run: bunx tsc --noEmit
+      - name: Verify API session boundaries
+        working-directory: frontend
+        run: bun ../scripts/verify-cash-client-session.mjs
       - name: Build
         working-directory: frontend
         env:

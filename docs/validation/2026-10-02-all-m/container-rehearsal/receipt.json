@@ -1,0 +1,39 @@
+{
+  "captured_at": "2026-10-02T09:50:38.199032+00:00",
+  "input_manifest_hash": "ad80c20243d3e608c1c95e0818465a5aaad7381e1316f0ca938174f657f9427a",
+  "scope": "runtime application/assets, migration source, dependency declarations/locks and container build config; image runtime dependency resolution is recorded separately",
+  "runtime_application_hash": "c96f75fc359be021ede5b04b864fc3a703bd7e306cb7b2d94e966aab2f2f3cca",
+  "changed_runtime_application": false,
+  "dockerignore_change": "exclude .next-* and TypeScript incremental cache; observed preview+release folders about582 MB",
+  "backend_build": "passed",
+  "frontend_first_build": "interrupted; exit130; no compiler result; cause unknown",
+  "frontend_retry": "failed /changelog ENOENT /CHANGELOG.md with frontend-only context",
+  "real_line_or_remote_release": "not performed",
+  "final_input_manifest_hash": "0855752f343c865fb21a092896dbee73b4f6ad4be2e10fcc89b3ac410dd41a41",
+  "backend_first_start": "failed: unbounded resolution chose SQLAlchemy2.1.2/psycopg3 absent driver",
+  "backend_second_build": "passed; locked/hashes; SQLAlchemy2.0.49/psycopg2",
+  "frontend_repaired_build": "R3 passed; repository-root context and canonical changelog",
+  "fresh_migration_head": "a1002cf00004",
+  "installation_checks": "passed through same-origin web proxy; see install-probe-final.json and retained failed harness logs",
+  "independent_packaging_review": "same single authorized reviewer; no actionable findings; runtime84/CI103 pinned hashed requirements independently exported",
+  "runtime_application_unchanged": true,
+  "prior_runner_delta": "only .github/workflows/test.yml; application/tests/migrations unchanged",
+  "final_checked_at": "2026-10-02T13:31:16.014504+00:00",
+  "current_operational_input_hash": "46523a93f9b03c24e5c24a5cdba0b8d118a3ed7beebdfada3aaec3cf040eac56",
+  "final_delta": "only docker-compose.yml worker heartbeat override since successful image build; image source unchanged",
+  "worker_heartbeat": {
+    "status": "passed",
+    "evidence": "worker-health.json",
+    "scope": "disposable empty Redis/SQLite; no queued jobs/provider tokens",
+    "review": "same single authorized reviewer; no actionable findings",
+    "expiry_limit": "existing heartbeat can remain about an hour after abrupt failure"
+  },
+  "final_cleanup": {
+    "status": "complete",
+    "installation_evidence": "cleanup.json",
+    "worker_evidence": "worker-health.json",
+    "preserved": "reviewed images, original stopped pilot database and evidence"
+  },
+  "current_preview_availability": "stopped after interruption; not restarted",
+  "latest_compose_receipt": "../compose-local-tls/receipt.json"
+}

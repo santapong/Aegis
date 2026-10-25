@@ -1,0 +1,22 @@
+{
+  "checked_at": "2026-10-02T13:31:16.014504+00:00",
+  "scope": "local actual base/prod Compose, fixture-only env and isolation overrides, existing reviewed amd64 images; local Caddy CA",
+  "first_fresh_start": "up exited0 after API migration race/restart; not a clean-start pass",
+  "repair": "worker depends on backend service_healthy; single-backend Compose startup order only",
+  "second_fresh_start": "passed; all six services running; four probed services healthy; all restart counts0; backend migrations before worker",
+  "tls_probe": "passed; verified TLS1.3 hostname/certificate; seven routes/39 assets; Secure/HttpOnly/Lax cookie; once-only cash, reserve, matching, documents, snapshot attribution,13weeks, owner isolation and logout",
+  "current_operational_input_hash": "46523a93f9b03c24e5c24a5cdba0b8d118a3ed7beebdfada3aaec3cf040eac56",
+  "compose_sha256": "e602fc50d1f2d077c86606993cdd55741d7051370926fa0a5f45aabf07e8d43a",
+  "application_tests_migrations_image_source_unchanged": true,
+  "review": "same single authorized reviewer; no actionable findings in startup-order change",
+  "cleanup": "passed; six exact task containers/three fresh volumes/two task networks removed",
+  "original_preview": "still stopped; original pilot data and images preserved",
+  "diagnostic": "trapped Passlib/bcrypt version inspection warning during auth; executed registration/login successful; not warning-free auth",
+  "limits": [
+    "fixture-only environment/ports/networks and prebuilt images; no new prod-image build",
+    "no global trust-store modification or public-domain ACME",
+    "no multi-replica/independent-container migration locking",
+    "no real LINE/provider messages",
+    "no remote CI/Git release/customer rollout/owner comprehension"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "task_containers_remaining": 0,
+  "guard_terminated": true,
+  "removed_temporary_dependencies": [
+    "deps",
+    "node-tools",
+    "frontend/node_modules"
+  ],
+  "bytes_before_cleanup": 521759690,
+  "source_and_logs_retained": true,
+  "no_test_database_volume_created": true
+}

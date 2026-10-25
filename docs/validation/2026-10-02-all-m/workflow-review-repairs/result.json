@@ -1,0 +1,100 @@
+{
+  "started_at": "2026-10-02T09:23:58.146319+00:00",
+  "source_hash": "c96f75fc359be021ede5b04b864fc3a703bd7e306cb7b2d94e966aab2f2f3cca",
+  "stages": [
+    {
+      "stage": "cash_sqlite",
+      "command": [
+        ".venv/bin/pytest",
+        "-q",
+        "tests/test_cashflow.py",
+        "tests/test_cashflow_m2.py",
+        "tests/test_cashflow_m3.py",
+        "tests/test_cashflow_m4.py",
+        "tests/test_cashflow_review.py"
+      ],
+      "started_at": "2026-10-02T09:24:00.813456+00:00",
+      "pid": 2908380,
+      "exit_code": 0,
+      "finished_at": "2026-10-02T09:25:48.220187+00:00",
+      "source_unchanged": true
+    },
+    {
+      "stage": "cash_postgres",
+      "command": [
+        ".venv/bin/pytest",
+        "-q",
+        "tests/test_cashflow.py",
+        "tests/test_cashflow_m2.py",
+        "tests/test_cashflow_m3.py",
+        "tests/test_cashflow_m4.py",
+        "tests/test_cashflow_review.py"
+      ],
+      "started_at": "2026-10-02T09:25:56.322466+00:00",
+      "pid": 2917165,
+      "exit_code": 0,
+      "finished_at": "2026-10-02T09:29:04.199226+00:00",
+      "source_unchanged": true
+    },
+    {
+      "stage": "backend",
+      "command": [
+        ".venv/bin/pytest",
+        "-q"
+      ],
+      "started_at": "2026-10-02T09:29:09.327537+00:00",
+      "pid": 2922308,
+      "exit_code": 0,
+      "finished_at": "2026-10-02T09:32:01.824291+00:00",
+      "source_unchanged": true
+    },
+    {
+      "stage": "cash_lint",
+      "command": [
+        "ruff",
+        "check",
+        "app/services/cashflow",
+        "app/services/transaction_scope.py",
+        "app/routers/cashflow.py",
+        "app/models/cashflow.py",
+        "app/schemas/cashflow.py",
+        "tests/test_cashflow.py",
+        "tests/test_cashflow_m2.py",
+        "tests/test_cashflow_m3.py",
+        "tests/test_cashflow_m4.py",
+        "tests/test_cashflow_review.py"
+      ],
+      "started_at": "2026-10-02T09:32:08.356744+00:00",
+      "pid": 2933270,
+      "exit_code": 0,
+      "finished_at": "2026-10-02T09:32:08.689649+00:00",
+      "source_unchanged": true
+    },
+    {
+      "stage": "line_lint",
+      "command": [
+        "ruff",
+        "check",
+        "app/routers/line_finance.py",
+        "app/services/line_finance.py",
+        "app/services/line_finance_worker.py",
+        "app/models/line_finance.py",
+        "app/schemas/line_finance.py",
+        "tests/test_line_finance.py",
+        "tests/test_cashflow_m4.py",
+        "tests/test_cashflow_review.py"
+      ],
+      "started_at": "2026-10-02T09:32:09.034521+00:00",
+      "pid": 2933287,
+      "exit_code": 0,
+      "finished_at": "2026-10-02T09:32:09.062462+00:00",
+      "source_unchanged": true
+    }
+  ],
+  "independent_review": "pending",
+  "real_line_pilot": "pending",
+  "remote_ci": "pending",
+  "release": "pending",
+  "finished_at": "2026-10-02T09:32:09.191995+00:00",
+  "selected_stages_passed": true
+}

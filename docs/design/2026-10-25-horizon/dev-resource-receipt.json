@@ -1,0 +1,517 @@
+{
+  "peak_rss": 1588772864,
+  "reason": "cleanup requested",
+  "samples": [
+    {
+      "elapsed": 0,
+      "rss": 2785280,
+      "available": 13046480896,
+      "temperature": 61.15,
+      "disk": 4366567
+    },
+    {
+      "elapsed": 5,
+      "rss": 416645120,
+      "available": 12719423488,
+      "temperature": 60.05,
+      "disk": 4562940
+    },
+    {
+      "elapsed": 10,
+      "rss": 400310272,
+      "available": 12730630144,
+      "temperature": 58.95,
+      "disk": 4563081
+    },
+    {
+      "elapsed": 15,
+      "rss": 400310272,
+      "available": 12771442688,
+      "temperature": 60.05,
+      "disk": 4563221
+    },
+    {
+      "elapsed": 20,
+      "rss": 448397312,
+      "available": 12756893696,
+      "temperature": 60.05,
+      "disk": 4589418
+    },
+    {
+      "elapsed": 25,
+      "rss": 517390336,
+      "available": 12654018560,
+      "temperature": 61.7,
+      "disk": 4675220
+    },
+    {
+      "elapsed": 30,
+      "rss": 658702336,
+      "available": 12511903744,
+      "temperature": 61.15,
+      "disk": 4808946
+    },
+    {
+      "elapsed": 35,
+      "rss": 744472576,
+      "available": 12349734912,
+      "temperature": 62.25,
+      "disk": 16542206
+    },
+    {
+      "elapsed": 40,
+      "rss": 825475072,
+      "available": 12309823488,
+      "temperature": 62.8,
+      "disk": 16711144
+    },
+    {
+      "elapsed": 45,
+      "rss": 1007566848,
+      "available": 12125257728,
+      "temperature": 61.7,
+      "disk": 35237845
+    },
+    {
+      "elapsed": 50,
+      "rss": 1038270464,
+      "available": 12072239104,
+      "temperature": 64.45,
+      "disk": 73257005
+    },
+    {
+      "elapsed": 55,
+      "rss": 1038270464,
+      "available": 12100272128,
+      "temperature": 61.15,
+      "disk": 73257147
+    },
+    {
+      "elapsed": 60,
+      "rss": 1059602432,
+      "available": 12105596928,
+      "temperature": 62.8,
+      "disk": 73257231
+    },
+    {
+      "elapsed": 65,
+      "rss": 1099513856,
+      "available": 12057739264,
+      "temperature": 61.15,
+      "disk": 74176591
+    },
+    {
+      "elapsed": 70,
+      "rss": 1099612160,
+      "available": 12068061184,
+      "temperature": 58.95,
+      "disk": 74177024
+    },
+    {
+      "elapsed": 75,
+      "rss": 1099612160,
+      "available": 12080824320,
+      "temperature": 58.95,
+      "disk": 74177166
+    },
+    {
+      "elapsed": 80,
+      "rss": 1099644928,
+      "available": 12074188800,
+      "temperature": 60.6,
+      "disk": 74177308
+    },
+    {
+      "elapsed": 85,
+      "rss": 1099644928,
+      "available": 12046630912,
+      "temperature": 60.05,
+      "disk": 74177449
+    },
+    {
+      "elapsed": 91,
+      "rss": 1099661312,
+      "available": 12033474560,
+      "temperature": 60.6,
+      "disk": 74177591
+    },
+    {
+      "elapsed": 96,
+      "rss": 1157775360,
+      "available": 11957747712,
+      "temperature": 61.15,
+      "disk": 74219666
+    },
+    {
+      "elapsed": 101,
+      "rss": 1157169152,
+      "available": 11731156992,
+      "temperature": 61.7,
+      "disk": 74250030
+    },
+    {
+      "elapsed": 106,
+      "rss": 1157169152,
+      "available": 11717181440,
+      "temperature": 60.05,
+      "disk": 74250172
+    },
+    {
+      "elapsed": 111,
+      "rss": 1157169152,
+      "available": 11414831104,
+      "temperature": 62.25,
+      "disk": 74250315
+    },
+    {
+      "elapsed": 116,
+      "rss": 1157169152,
+      "available": 11537448960,
+      "temperature": 60.05,
+      "disk": 74250458
+    },
+    {
+      "elapsed": 121,
+      "rss": 1063829504,
+      "available": 11768283136,
+      "temperature": 61.7,
+      "disk": 74250601
+    },
+    {
+      "elapsed": 126,
+      "rss": 1063845888,
+      "available": 11828625408,
+      "temperature": 60.05,
+      "disk": 74250743
+    },
+    {
+      "elapsed": 131,
+      "rss": 1063862272,
+      "available": 11842846720,
+      "temperature": 60.6,
+      "disk": 74250886
+    },
+    {
+      "elapsed": 136,
+      "rss": 1254998016,
+      "available": 11619827712,
+      "temperature": 62.8,
+      "disk": 74251054
+    },
+    {
+      "elapsed": 141,
+      "rss": 1255276544,
+      "available": 11698913280,
+      "temperature": 62.25,
+      "disk": 76677229
+    },
+    {
+      "elapsed": 146,
+      "rss": 1430257664,
+      "available": 11506745344,
+      "temperature": 61.7,
+      "disk": 77243987
+    },
+    {
+      "elapsed": 151,
+      "rss": 1500790784,
+      "available": 11374133248,
+      "temperature": 61.7,
+      "disk": 77318519
+    },
+    {
+      "elapsed": 156,
+      "rss": 1476820992,
+      "available": 11397595136,
+      "temperature": 62.8,
+      "disk": 77346657
+    },
+    {
+      "elapsed": 161,
+      "rss": 1532641280,
+      "available": 11323686912,
+      "temperature": 62.25,
+      "disk": 93811419
+    },
+    {
+      "elapsed": 166,
+      "rss": 1483948032,
+      "available": 11450302464,
+      "temperature": 61.7,
+      "disk": 93870322
+    },
+    {
+      "elapsed": 171,
+      "rss": 1571094528,
+      "available": 11406360576,
+      "temperature": 63.9,
+      "disk": 94518561
+    },
+    {
+      "elapsed": 176,
+      "rss": 1588772864,
+      "available": 11413487616,
+      "temperature": 63.35,
+      "disk": 96041064
+    },
+    {
+      "elapsed": 181,
+      "rss": 449839104,
+      "available": 12599115776,
+      "temperature": 63.35,
+      "disk": 46922197
+    },
+    {
+      "elapsed": 186,
+      "rss": 513310720,
+      "available": 12514787328,
+      "temperature": 64.45,
+      "disk": 46719933
+    },
+    {
+      "elapsed": 191,
+      "rss": 619855872,
+      "available": 12426936320,
+      "temperature": 63.9,
+      "disk": 46852318
+    },
+    {
+      "elapsed": 196,
+      "rss": 700235776,
+      "available": 12299419648,
+      "temperature": 63.9,
+      "disk": 46909724
+    },
+    {
+      "elapsed": 201,
+      "rss": 740704256,
+      "available": 12171526144,
+      "temperature": 65.55,
+      "disk": 47107314
+    },
+    {
+      "elapsed": 206,
+      "rss": 809009152,
+      "available": 12082561024,
+      "temperature": 65.0,
+      "disk": 39539886
+    },
+    {
+      "elapsed": 211,
+      "rss": 841809920,
+      "available": 11940970496,
+      "temperature": 65.0,
+      "disk": 29517042
+    },
+    {
+      "elapsed": 216,
+      "rss": 1004060672,
+      "available": 11802214400,
+      "temperature": 66.65,
+      "disk": 29600781
+    },
+    {
+      "elapsed": 221,
+      "rss": 1089388544,
+      "available": 11698552832,
+      "temperature": 66.65,
+      "disk": 44431042
+    },
+    {
+      "elapsed": 226,
+      "rss": 1314832384,
+      "available": 11521359872,
+      "temperature": 66.65,
+      "disk": 45055571
+    },
+    {
+      "elapsed": 231,
+      "rss": 1321680896,
+      "available": 11427315712,
+      "temperature": 66.65,
+      "disk": 61420773
+    },
+    {
+      "elapsed": 236,
+      "rss": 1331118080,
+      "available": 11673714688,
+      "temperature": 63.9,
+      "disk": 71274361
+    },
+    {
+      "elapsed": 241,
+      "rss": 1331118080,
+      "available": 11748900864,
+      "temperature": 63.9,
+      "disk": 71274503
+    },
+    {
+      "elapsed": 246,
+      "rss": 1331150848,
+      "available": 11767037952,
+      "temperature": 63.35,
+      "disk": 71274645
+    },
+    {
+      "elapsed": 252,
+      "rss": 1331150848,
+      "available": 11759386624,
+      "temperature": 61.15,
+      "disk": 71274788
+    },
+    {
+      "elapsed": 257,
+      "rss": 1331150848,
+      "available": 11777851392,
+      "temperature": 63.9,
+      "disk": 71274931
+    },
+    {
+      "elapsed": 262,
+      "rss": 1331150848,
+      "available": 11745656832,
+      "temperature": 61.7,
+      "disk": 71275073
+    },
+    {
+      "elapsed": 267,
+      "rss": 1105838080,
+      "available": 11973050368,
+      "temperature": 63.35,
+      "disk": 71275215
+    },
+    {
+      "elapsed": 272,
+      "rss": 1105854464,
+      "available": 11978096640,
+      "temperature": 61.15,
+      "disk": 71275358
+    },
+    {
+      "elapsed": 277,
+      "rss": 1139687424,
+      "available": 11946377216,
+      "temperature": 62.25,
+      "disk": 86122962
+    },
+    {
+      "elapsed": 282,
+      "rss": 1269907456,
+      "available": 11781816320,
+      "temperature": 63.35,
+      "disk": 113461948
+    },
+    {
+      "elapsed": 287,
+      "rss": 1271414784,
+      "available": 11787010048,
+      "temperature": 62.25,
+      "disk": 113462092
+    },
+    {
+      "elapsed": 292,
+      "rss": 1357824000,
+      "available": 11714936832,
+      "temperature": 65.0,
+      "disk": 113462285
+    },
+    {
+      "elapsed": 297,
+      "rss": 1367195648,
+      "available": 11510775808,
+      "temperature": 64.45,
+      "disk": 114618601
+    },
+    {
+      "elapsed": 302,
+      "rss": 1460944896,
+      "available": 11298226176,
+      "temperature": 66.1,
+      "disk": 118286286
+    },
+    {
+      "elapsed": 307,
+      "rss": 1510866944,
+      "available": 11385110528,
+      "temperature": 66.1,
+      "disk": 126083836
+    },
+    {
+      "elapsed": 312,
+      "rss": 1572290560,
+      "available": 10847911936,
+      "temperature": 65.55,
+      "disk": 127365899
+    },
+    {
+      "elapsed": 317,
+      "rss": 1517486080,
+      "available": 11214503936,
+      "temperature": 64.45,
+      "disk": 127366209
+    },
+    {
+      "elapsed": 322,
+      "rss": 1516797952,
+      "available": 10928816128,
+      "temperature": 64.45,
+      "disk": 127366353
+    },
+    {
+      "elapsed": 327,
+      "rss": 1555578880,
+      "available": 11137351680,
+      "temperature": 67.2,
+      "disk": 128326023
+    },
+    {
+      "elapsed": 332,
+      "rss": 449642496,
+      "available": 12328271872,
+      "temperature": 65.55,
+      "disk": 64955833
+    },
+    {
+      "elapsed": 337,
+      "rss": 505233408,
+      "available": 12196036608,
+      "temperature": 66.65,
+      "disk": 64783183
+    },
+    {
+      "elapsed": 342,
+      "rss": 627425280,
+      "available": 11970936832,
+      "temperature": 67.2,
+      "disk": 64888930
+    },
+    {
+      "elapsed": 347,
+      "rss": 720257024,
+      "available": 11952537600,
+      "temperature": 65.55,
+      "disk": 76301425
+    },
+    {
+      "elapsed": 352,
+      "rss": 752844800,
+      "available": 11838750720,
+      "temperature": 66.1,
+      "disk": 76470210
+    },
+    {
+      "elapsed": 357,
+      "rss": 889028608,
+      "available": 11710316544,
+      "temperature": 64.45,
+      "disk": 94002927
+    },
+    {
+      "elapsed": 362,
+      "rss": 1000177664,
+      "available": 11487739904,
+      "temperature": 67.2,
+      "disk": 97204559
+    }
+  ]
+}

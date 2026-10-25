@@ -1,297 +1,131 @@
-"use client";
-
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
+import type { Metadata } from "next";
+import { AegisBrand } from "@/components/brand";
 import Link from "next/link";
-import { Mail, Lock } from "lucide-react";
-import { authAPI } from "@/lib/api";
-import { useAuthStore } from "@/stores/auth-store";
-import { CodeChip } from "@/components/shell/code-chip";
-import { GoogleSignInButton } from "@/components/auth/google-sign-in";
-import { CometGL } from "@/components/shell/comet-gl";
+import { AccessStory } from "@/components/access-story";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { Syne } from "next/font/google";
+import { ArrowLeft, ArrowUpRight, ChevronDown } from "lucide-react";
+import { LoginForm } from "./login-form";
+import s from "./login.module.css";
+
+export const metadata: Metadata = {
+  title: "Sign in",
+  description:
+    "Sign in to your Aegis workspace. Your everyday money and what comes next.",
+};
+const syne = Syne({
+  subsets: ["latin"],
+  weight: ["500", "600", "700", "800"],
+  display: "swap",
+  variable: "--font-syne",
+});
 
 export default function LoginPage() {
-  const router = useRouter();
-  const login = useAuthStore((s) => s.login);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      // The backend sets an httpOnly cookie on this call — we
-      // deliberately do NOT persist the returned access_token to
-      // localStorage. Subsequent requests use the cookie.
-      await authAPI.login({ email, password });
-      const userRes = await authAPI.me();
-      login(userRes);
-      router.push("/");
-    } catch (err: unknown) {
-      const e = err as { detail?: string; message?: string };
-      setError(e.detail || e.message || "Login failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleCredential = useCallback(
-    async (credential: string) => {
-      setError("");
-      try {
-        await authAPI.googleSignIn(credential);
-        const userRes = await authAPI.me();
-        login(userRes);
-        router.push("/");
-      } catch (err: unknown) {
-        const e = err as { detail?: string; message?: string };
-        setError(e.detail || e.message || "Google sign-in failed");
-      }
-    },
-    [router, login]
-  );
-
   return (
-    <div className="auth-split">
-      <aside className="auth-aside">
-        <CometGL className="auth-gl" />
-        <div>
-          <div
-            className="flex items-center gap-2 font-mono text-[10px] tracking-[1.8px] uppercase mb-8"
-            style={{ color: "var(--dim)" }}
-          >
-            <span
-              className="inline-block w-1.5 h-1.5 rounded-full"
-              style={{ background: "var(--accent)", boxShadow: "var(--hero-glow)" }}
-            />
-            <span>sign in · session</span>
-          </div>
-          <h1
-            className="text-[42px] leading-[1.05] mb-5"
-            style={{
-              fontFamily: "var(--display-font)",
-              fontStyle: "var(--display-style)",
-              fontWeight: "var(--display-weight)",
-              letterSpacing: "var(--display-tracking)",
-              color: "var(--fg)",
-            }}
-          >
-            Welcome back.
-          </h1>
-          <p
-            className="font-mono text-sm leading-[1.65] max-w-[44ch]"
-            style={{ color: "var(--fg-2)" }}
-          >
-            Pick up where you left off. Your last sync was{" "}
-            <b style={{ color: "var(--fg)" }}>just now</b> — net worth is up{" "}
-            <b style={{ color: "var(--ok)" }}>2.4%</b> this week.
-          </p>
-        </div>
-        <figure className="max-w-[44ch]">
-          <p className="auth-quote">
-            &ldquo;Finally, money software that doesn&rsquo;t shout at me. It just shows
-            the work and lets me think.&rdquo;
-          </p>
-          <figcaption
-            className="mt-4 font-mono text-[11px] tracking-[1.4px] uppercase"
-            style={{ color: "var(--dim)" }}
-          >
-            — Anya K. · member since 2025
-          </figcaption>
-        </figure>
-        <div
-          className="font-mono text-[10px] tracking-[1.6px] uppercase"
-          style={{ color: "var(--dim-2)" }}
+    <div className={`${s.page} ${syne.variable}`} data-theme="horizon-login">
+      <div className={s.orbits} aria-hidden="true">
+        <svg
+          viewBox="0 0 1440 1000"
+          fill="none"
+          preserveAspectRatio="xMidYMid slice"
         >
-          aegis · secure session · httponly cookie
-        </div>
-      </aside>
-
-      <main className="auth-main">
-        <div className="auth-card">
-          <div className="mb-8 flex items-center gap-2.5">
-            <span
-              aria-hidden
-              style={{
-                width: 22,
-                height: 22,
-                borderRadius: "50%",
-                background:
-                  "radial-gradient(circle at 30% 30%, #fff 0%, transparent 25%), radial-gradient(circle at 60% 60%, var(--accent) 0%, var(--accent-2) 60%, transparent 100%)",
-                boxShadow: "0 0 0 1px var(--pane-edge-2) inset, var(--hero-glow)",
-              }}
-            />
-            <span
-              className="text-base"
-              style={{
-                fontFamily: "var(--display-font)",
-                fontStyle: "var(--display-style)",
-                color: "var(--fg)",
-              }}
-            >
-              AEG<span style={{ color: "var(--accent)" }}>IS</span>
-            </span>
-          </div>
-
-          <div
-            className="font-mono text-[10px] tracking-[1.6px] uppercase mb-3 flex items-center gap-2"
-            style={{ color: "var(--dim)" }}
-          >
-            <CodeChip>LOG</CodeChip>
-            <span>access · existing account</span>
-          </div>
-          <h2
-            className="text-[34px] leading-[1.05] mb-7"
-            style={{
-              fontFamily: "var(--display-font)",
-              fontStyle: "var(--display-style)",
-              fontWeight: "var(--display-weight)",
-              letterSpacing: "var(--display-tracking)",
-              color: "var(--fg)",
-            }}
-          >
-            Sign in
-          </h2>
-
-          <GoogleSignInButton onCredential={handleGoogleCredential} label="signin_with" />
-
-          {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID && (
-            <div
-              className="my-5 flex items-center gap-3 font-mono text-[10px] tracking-[1.6px] uppercase"
-              style={{ color: "var(--dim-2)" }}
-            >
-              <span style={{ flex: 1, height: 1, background: "var(--pane-edge)" }} />
-              <span>or email</span>
-              <span style={{ flex: 1, height: 1, background: "var(--pane-edge)" }} />
+          <ellipse
+            cx="720"
+            cy="530"
+            rx="640"
+            ry="275"
+            transform="rotate(-29 720 530)"
+            stroke="#90a67d"
+            strokeOpacity=".45"
+          />
+          <ellipse
+            cx="720"
+            cy="530"
+            rx="675"
+            ry="310"
+            transform="rotate(-29 720 530)"
+            stroke="#90a67d"
+            strokeOpacity=".17"
+          />
+          <ellipse
+            cx="720"
+            cy="530"
+            rx="590"
+            ry="225"
+            transform="rotate(-29 720 530)"
+            stroke="#6f8b4c"
+            strokeOpacity=".17"
+          />
+          <path
+            d="M 193 627 C 120 734 155 814 287 820"
+            stroke="#6f8b4c"
+            strokeOpacity=".54"
+          />
+          <circle cx="193" cy="627" r="4" fill="#6f8b4c" fillOpacity=".78" />
+          <circle cx="1249" cy="408" r="4" fill="#5A979A" />
+          <path
+            d="M 1267 225 h 12 m -6 -6 v 12 M 186 833 h 12 m -6 -6 v 12"
+            stroke="#627A78"
+            strokeOpacity=".6"
+          />
+        </svg>
+      </div>
+      <header className={s.header}>
+        <Link href="/landing" className={s.backLink}>
+          <ArrowLeft size={16} aria-hidden="true" />
+          Back to home
+        </Link>
+        <div className="aegis-access-actions"><ThemeToggle /><Link href="/docs" className={s.docsLink}>
+          Documentation
+          <ArrowUpRight size={15} aria-hidden="true" />
+        </Link></div>
+      </header>
+      <main className={s.main}><AccessStory />
+        <div className={s.access}>
+          <Link href="/landing" className={s.brand} aria-label="Aegis home">
+            <AegisBrand />
+          </Link>
+          <section className={s.formPanel} aria-labelledby="sign-in-heading">
+            <div className={s.formHeading}>
+              <h1 id="sign-in-heading">Welcome back.</h1>
+              <p>Sign in to your Aegis workspace.</p>
             </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div
-                className="rounded p-3 text-sm font-mono"
-                style={{
-                  background: "color-mix(in oklab, var(--bad) 12%, transparent)",
-                  color: "var(--bad)",
-                  border: "1px solid var(--bad)",
-                }}
-              >
-                {error}
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <label
-                htmlFor="email"
-                className="font-mono text-[10px] tracking-[1.6px] uppercase"
-                style={{ color: "var(--dim)" }}
-              >
-                Email
-              </label>
-              <div className="relative">
-                <Mail
-                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                  style={{ color: "var(--dim)" }}
-                />
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="flex h-11 w-full px-3 pl-10 text-sm focus-visible:outline-none transition-colors"
-                  style={{
-                    background: "var(--pane-2)",
-                    color: "var(--fg)",
-                    border: "1px solid var(--pane-edge)",
-                    borderRadius: "var(--card-radius)",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                />
-              </div>
+            <LoginForm />
+            <p className={s.register}>
+              New to Aegis?{" "}
+              <Link href="/register">
+                Create an account
+                <ArrowUpRight size={14} aria-hidden="true" />
+              </Link>
+            </p>
+          </section>
+          <details className={s.help}>
+            <summary>
+              Need help signing in?
+              <ChevronDown size={14} aria-hidden="true" />
+            </summary>
+            <div>
+              <p>
+                Use the email and password you registered with.
+                {process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+                  ? " If you joined with Google, use the Google sign-in button."
+                  : ""}
+              </p>
+              <p>
+                Email password reset isn’t available in this version. For a
+                self-hosted workspace, contact its administrator for help with
+                account access.
+              </p>
             </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="password"
-                  className="font-mono text-[10px] tracking-[1.6px] uppercase"
-                  style={{ color: "var(--dim)" }}
-                >
-                  Password
-                </label>
-                <Link
-                  href="/register"
-                  className="font-mono text-[10px] tracking-[1.4px]"
-                  style={{ color: "var(--accent)" }}
-                >
-                  forgot? →
-                </Link>
-              </div>
-              <div className="relative">
-                <Lock
-                  className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                  style={{ color: "var(--dim)" }}
-                />
-                <input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  className="flex h-11 w-full px-3 pl-10 text-sm focus-visible:outline-none transition-colors"
-                  style={{
-                    background: "var(--pane-2)",
-                    color: "var(--fg)",
-                    border: "1px solid var(--pane-edge)",
-                    borderRadius: "var(--card-radius)",
-                    fontFamily: "var(--font-mono)",
-                  }}
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-galaxy w-full justify-center"
-              style={{ height: 44 }}
-            >
-              {loading ? "Signing in…" : "Sign in"}
-              <span className="caret" style={{ background: "var(--void)" }} />
-            </button>
-          </form>
-
-          <div
-            className="my-6 flex items-center gap-3 font-mono text-[10px] tracking-[1.6px] uppercase"
-            style={{ color: "var(--dim-2)" }}
-          >
-            <span style={{ flex: 1, height: 1, background: "var(--pane-edge)" }} />
-            <span>or</span>
-            <span style={{ flex: 1, height: 1, background: "var(--pane-edge)" }} />
-          </div>
-
-          <div
-            className="text-center font-mono text-[12px]"
-            style={{ color: "var(--dim)" }}
-          >
-            New here?{" "}
-            <Link
-              href="/register"
-              className="font-medium"
-              style={{ color: "var(--accent)" }}
-            >
-              Create an account →
-            </Link>
-          </div>
+          </details>
         </div>
       </main>
+      <footer className={s.footer}>
+        <p>
+          A clearer today. <span>A bigger tomorrow.</span>
+        </p>
+        <span className={s.footerDetail}>Solid ground. Open horizons.</span>
+      </footer>
     </div>
   );
 }

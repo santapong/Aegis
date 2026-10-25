@@ -14,9 +14,11 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: .
+      dockerfile: frontend/Dockerfile
     volumes:
       - ./frontend:/app
+      - ./CHANGELOG.md:/CHANGELOG.md:ro
       - /app/node_modules
       - /app/.next
     command: bun run dev

@@ -1,0 +1,48 @@
+REVIEW BEFORE RECORDING
+Bring in a CSV, one reviewed batch at a time.
+
+The file is saved for review first. Only selected, confirmed rows become recorded money. Re-uploading a file does not automatically import it.
+
+CSV format and example
+Destination cash account
+Everyday checking · fictional · THB
+Savings cash · fictional · THB
+CSV file
+CSV contents
+I checked that these rows use THB and belong to the selected account.
+Save review batch
+Saved review batch
+review-demo.csv · 1/3 posted · 2026-10-02
+
+Saved destination: Everyday checking · fictional · THB. Changing the upload account does not remap a saved batch.
+
+Possible duplicates and matches are review signals. Unchecked rows are not posted.
+
+Review 0 selected rows
+Row 2:
+Reviewed utilities partial
+
+2026-10-01 · THB 65.25 · expense · Recorded once
+
+Row 3:
+Reviewed utilities partial
+
+2026-10-01 · THB 65.25 · expense · Not recorded
+
+Possible duplicate — review it
+
+Equal details are a signal, not proof. Leave this row unchecked if it is already recorded.
+
+Inspect 2 similar entries
+Keep as a separate record; I checked this is distinct.
+Optional payment match for row 3
+Do not match
+Utilities · entered bill · expected 2026-10-05 · remaining THB 34.75
+Membership exception · fictional · expected 2026-10-11 · remaining THB 12.50
+Device installments · fictional · installment 1 · expected 2026-10-15 · remaining THB 100.00
+Row 4:
+Wrong currency example
+
+2026-10-01 · USD 10.00 · expense · Needs a corrected file
+
+Row currency differs from the confirmed workspace currency

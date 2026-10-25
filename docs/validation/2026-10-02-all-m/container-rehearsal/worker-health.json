@@ -1,0 +1,36 @@
+{
+  "started_at": "2026-10-02T13:05:46.116063+00:00",
+  "scope": "ARQ heartbeat check only; disposable SQLite/Redis; no queued jobs or provider tokens",
+  "compose_sha256": "0477670786f5490d958845c8a4300a3840df26b8267292fcb9f2e7a4d9ef9553",
+  "no_worker_check_exit": 1,
+  "running_worker_health": {
+    "Status": "healthy",
+    "FailingStreak": 0,
+    "Log": [
+      {
+        "Start": "2026-10-02T20:05:53.84131677+07:00",
+        "End": "2026-10-02T20:05:55.562332595+07:00",
+        "ExitCode": 0,
+        "Output": "13:05:55: Health check successful: b'Oct-02 13:05:53 j_complete=0 j_failed=0 j_retried=0 j_ongoing=0 queued=0'\n"
+      }
+    ]
+  },
+  "running_worker_manual_check_exit": 0,
+  "stopped_worker_check_exit": 1,
+  "effective_compose_healthcheck": {
+    "interval": "30s",
+    "retries": 3,
+    "start_interval": "3s",
+    "start_period": "15s",
+    "test": [
+      "CMD",
+      "arq",
+      "--check",
+      "app.worker.WorkerSettings"
+    ],
+    "timeout": "5s"
+  },
+  "status": "passed",
+  "cleanup": "only exact newly created worker/Redis containers and internal network removed",
+  "finished_at": "2026-10-02T13:06:01.069484+00:00"
+}

@@ -1,0 +1,59 @@
+{
+  "execution_id": "17314",
+  "status": "success",
+  "finished": true,
+  "started_at": "2026-10-22T18:32:30.030Z",
+  "nodes": [
+    {
+      "name": "Every 5 seconds \u2014 fictional pilot",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Settings",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Fixture delivery?",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Claim delivery",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Delivery available?",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Frozen LINE request",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Fixture provider?",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "LINE push frozen body",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Network uncertain?",
+      "runs": 1,
+      "error_types": []
+    },
+    {
+      "name": "Record provider outcome",
+      "runs": 1,
+      "error_types": []
+    }
+  ],
+  "has_error": false
+}

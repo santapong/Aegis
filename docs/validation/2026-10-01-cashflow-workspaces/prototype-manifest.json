@@ -1,0 +1,97 @@
+{
+  "checkedAt": "2026-10-01T15:13:05.329118+00:00",
+  "scope": "Local design files and served bytes; not deployment evidence",
+  "files": [
+    {
+      "path": "app.mjs",
+      "bytes": 31455,
+      "sha256": "7002402d5c0461a0f0fcf616c46d6e7919f8f1dd524e403cff18f9dcde9ad4d8",
+      "localStatus": 200,
+      "matchesServedBytes": true
+    },
+    {
+      "path": "assets/aegis-icon.png",
+      "bytes": 37942,
+      "sha256": "7404cc42490179a6b300fbfa1b750b436850f0aa92b188f90e3d61dcd3fa6849",
+      "localStatus": 200,
+      "matchesServedBytes": true
+    },
+    {
+      "path": "assets/fonts/inter-latin.woff2",
+      "bytes": 48432,
+      "sha256": "c940764593d0fe5d596be327ca7558855e018039fb78509aa21921fd3644c3e4",
+      "localStatus": 200,
+      "matchesServedBytes": true
+    },
+    {
+      "path": "assets/fonts/syne-latin.woff2",
+      "bytes": 34560,
+      "sha256": "cfff412005eed2f0152d1c110c78ac564642b943e64322fbd687083177d6fa70",
+      "localStatus": 200,
+      "matchesServedBytes": true
+    },
+    {
+      "path": "assets/licenses/Inter-OFL.txt",
+      "bytes": 4377,
+      "sha256": "5b9321a4298cfeb6b34354164a1c3afc3db114569984c502b9b35d988fd58c57",
+      "localStatus": 200,
+      "matchesServedBytes": true
+    },
+    {
+      "path": "assets/licenses/JetBrains-Mono-OFL.txt",
+      "bytes": 4399,
+      "sha256": "b2fe5e8987594e9ffd1d2ca52a2f5d73eb8335243893c5d6254b5ad69269591d",
+      "localStatus": 200,
+      "matchesServedBytes": true
+    },
+    {
+      "path": "assets/licenses/Syne-OFL.txt",
+      "bytes": 4402,
+      "sha256": "cc43cdce6f91c57989af8459341c276655e34224e954fa69c2ad700831a742d8",
+      "localStatus": 200,
+      "matchesServedBytes": true
+    },
+    {
+      "path": "index.html",
+      "bytes": 2792,
+      "sha256": "f52fd58d65452c427615bd1707c349d2c1e67fd8b59cd3ec8155a69c109db2e0",
+      "localStatus": 200,
+      "matchesServedBytes": true
+    },
+    {
+      "path": "model.mjs",
+      "bytes": 7895,
+      "sha256": "2782777baccb363c1aaffc3a95225c8e280dfe45e6fa6ea7debe1d29d6afa20a",
+      "localStatus": 200,
+      "matchesServedBytes": true
+    },
+    {
+      "path": "model.test.mjs",
+      "bytes": 4098,
+      "sha256": "88d47eaf1f35185f8991015b5ef1487b31db0ccdcbefde4346546fef8fbd739b",
+      "localStatus": 200,
+      "matchesServedBytes": true
+    },
+    {
+      "path": "proposal.md",
+      "bytes": 14796,
+      "sha256": "09d96a3783706e7e1041120fdfb61bc91a23913b83ca63d6c3be8a5e9aadaeea",
+      "localStatus": 200,
+      "matchesServedBytes": true
+    },
+    {
+      "path": "references.md",
+      "bytes": 4209,
+      "sha256": "b7ee8a7f3f84130bb1f3f56a6759eaf2d84dadb920d263d9c7d5089f1e29654e",
+      "localStatus": 200,
+      "matchesServedBytes": true
+    },
+    {
+      "path": "styles.css",
+      "bytes": 16186,
+      "sha256": "367070fccabe1f957a6618acbb0f5bff81637a3d1770744de68be324d5343e8a",
+      "localStatus": 200,
+      "matchesServedBytes": true
+    }
+  ]
+}
