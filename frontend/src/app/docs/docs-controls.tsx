@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Check, Copy, Search, X } from "lucide-react";
 import { articles, audienceLabel, docHref, legacyTopics } from "./catalog";
+import { findDocArticles } from "./search";
 import s from "./docs.module.css";
 
 export function DocsBar() {
@@ -12,13 +13,7 @@ export function DocsBar() {
   const [query, setQuery] = useState("");
   const words = query.trim().toLowerCase().split(/\s+/).filter(Boolean);
   const results = words.length
-    ? articles.filter((a) =>
-        words.every((word) =>
-          `${a.title} ${a.description} ${a.keywords} ${a.sections.map((section) => section.title).join(" ")}`
-            .toLowerCase()
-            .includes(word),
-        ),
-      )
+    ? findDocArticles(articles, query)
     : [];
   useEffect(() => {
     setQuery("");

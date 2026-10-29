@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.5 (Python 3.13.5 on linux)" generated="2026-10-29T22:51:15.724153" rpa="false" schemaversion="5">
+<suite id="s1" name="Public Ux" source="/home/santapong/aegis-ux-robot-20261029/suite/public_ux.robot">
+<kw name="Start Ux Browser" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T22:51:15.817891" elapsed="4.615185"/>
+</kw>
+<test id="s1-t1" name="Personal Preview Explains Delayed Income" line="18">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T22:51:20.434520" elapsed="0.002160"/>
+</kw>
+<kw name="Personal Preview Explains Delayed Income" owner="AegisUX">
+<status status="PASS" start="2026-10-29T22:51:20.436984" elapsed="2.058097"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T22:51:22.495481" elapsed="0.140764"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T22:51:20.433524" elapsed="2.202830"/>
+</test>
+<test id="s1-t2" name="Signup Mismatch Is Explained Before A Request" line="42">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T22:51:22.637124" elapsed="0.000202"/>
+</kw>
+<kw name="Signup Mismatch Is Explained Before Any Request" owner="AegisUX">
+<status status="PASS" start="2026-10-29T22:51:22.637427" elapsed="1.142816"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T22:51:23.780552" elapsed="0.034340"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T22:51:22.636761" elapsed="1.178303"/>
+</test>
+<kw name="Stop Ux Browser" owner="AegisUX" type="TEARDOWN">
+<status status="PASS" start="2026-10-29T22:51:23.815731" elapsed="0.226964"/>
+</kw>
+<doc>Public Aegis UX acceptance. Real browser interactions, read-only network guard, fictional demo only. Does not qualify real sign-in or financial persistence.</doc>
+<status status="PASS" start="2026-10-29T22:51:15.725268" elapsed="8.317505"/>
+</suite>
+<statistics>
+<total>
+<stat pass="2" fail="0" skip="0">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat name="Public Ux" id="s1" pass="2" fail="0" skip="0">Public Ux</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>

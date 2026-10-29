@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.5 (Python 3.13.5 on linux)" generated="2026-10-29T23:02:43.422399" rpa="false" schemaversion="5">
+<suite id="s1" name="Public Ux" source="/home/santapong/aegis-ux-robot-20261029/suite/public_ux.robot">
+<kw name="Start Ux Browser" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T23:02:43.577022" elapsed="6.590040"/>
+</kw>
+<test id="s1-t1" name="Main Identity And Next Actions Are Clear" line="15">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T23:02:50.168026" elapsed="0.001150"/>
+</kw>
+<kw name="Main Identity And Actions Are Clear" owner="AegisUX">
+<status status="PASS" start="2026-10-29T23:02:50.169485" elapsed="2.337917"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T23:02:52.507716" elapsed="0.136231"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T23:02:50.167385" elapsed="2.476687"/>
+</test>
+<test id="s1-t2" name="Personal Preview Explains Delayed Income" line="18">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T23:02:52.644862" elapsed="0.000211"/>
+</kw>
+<kw name="Personal Preview Explains Delayed Income" owner="AegisUX">
+<status status="PASS" start="2026-10-29T23:02:52.645179" elapsed="1.921324"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T23:02:54.567285" elapsed="0.139261"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T23:02:52.644482" elapsed="2.062169"/>
+</test>
+<test id="s1-t3" name="Business Link Preserves The Visitor's Intent" line="21">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T23:02:54.707398" elapsed="0.000205"/>
+</kw>
+<kw name="Business Demo Preserves Landing Intent" owner="AegisUX">
+<status status="PASS" start="2026-10-29T23:02:54.707698" elapsed="2.913292"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T23:02:57.621406" elapsed="0.144053"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T23:02:54.707049" elapsed="3.058520"/>
+</test>
+<test id="s1-t4" name="Mobile Navigation Escape Restores Focus" line="24">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T23:02:57.766236" elapsed="0.000191"/>
+</kw>
+<kw name="Mobile Navigation Escape Restores Focus" owner="AegisUX">
+<status status="PASS" start="2026-10-29T23:02:57.766521" elapsed="1.249440"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T23:02:59.016322" elapsed="0.116300"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T23:02:57.765908" elapsed="1.366811"/>
+</test>
+<test id="s1-t5" name="Keyboard Skip Link Reaches Content" line="27">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T23:02:59.133417" elapsed="0.000213"/>
+</kw>
+<kw name="Keyboard Skip Link Reaches Content" owner="AegisUX">
+<status status="PASS" start="2026-10-29T23:02:59.133744" elapsed="2.159017"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T23:03:01.293256" elapsed="0.162568"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T23:02:59.133060" elapsed="2.322874"/>
+</test>
+<test id="s1-t6" name="Topic Search Understands Multiword Tasks" line="30">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T23:03:01.457064" elapsed="0.000260"/>
+</kw>
+<kw name="Topic Search Understands Task Words" owner="AegisUX">
+<status status="PASS" start="2026-10-29T23:03:01.457434" elapsed="2.770566"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T23:03:04.228289" elapsed="0.146815"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T23:03:01.456423" elapsed="2.918852"/>
+</test>
+<test id="s1-t7" name="Empty Topic Search Has A Clear Recovery" line="33">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T23:03:04.376158" elapsed="0.000248"/>
+</kw>
+<kw name="Documentation Empty Search Has Recovery" owner="AegisUX">
+<status status="PASS" start="2026-10-29T23:03:04.376520" elapsed="2.118550"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T23:03:06.495488" elapsed="0.107876"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T23:03:04.375753" elapsed="2.227776"/>
+</test>
+<test id="s1-t8" name="Guide Search Finds Section Words" line="36">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T23:03:06.606518" elapsed="0.000341"/>
+</kw>
+<kw name="Header Search Finds Section Words" owner="AegisUX">
+<status status="PASS" start="2026-10-29T23:03:06.607917" elapsed="1.684379"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T23:03:08.292735" elapsed="0.382675"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T23:03:06.605894" elapsed="2.069616"/>
+</test>
+<test id="s1-t9" name="Login Preserves Inputs And Password Visibility" line="39">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T23:03:08.676205" elapsed="0.000199"/>
+</kw>
+<kw name="Login Keeps Inputs During Theme Change" owner="AegisUX">
+<status status="PASS" start="2026-10-29T23:03:08.676498" elapsed="1.452559"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T23:03:10.129357" elapsed="0.055020"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T23:03:08.675852" elapsed="1.508639"/>
+</test>
+<test id="s1-t10" name="Signup Mismatch Is Explained Before A Request" line="42">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T23:03:10.185232" elapsed="0.000220"/>
+</kw>
+<kw name="Signup Mismatch Is Explained Before Any Request" owner="AegisUX">
+<status status="PASS" start="2026-10-29T23:03:10.185576" elapsed="1.320520"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T23:03:11.506395" elapsed="0.031815"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T23:03:10.184855" elapsed="1.353462"/>
+</test>
+<test id="s1-t11" name="Protected Links Retain Their Destination" line="45">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T23:03:11.539167" elapsed="0.000249"/>
+</kw>
+<kw name="Protected Links Keep The Sign In Destination" owner="AegisUX">
+<status status="PASS" start="2026-10-29T23:03:11.539542" elapsed="3.979953"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T23:03:15.520078" elapsed="0.399346"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T23:03:11.538709" elapsed="4.380857"/>
+</test>
+<test id="s1-t12" name="Demo Changes Survive Appearance Changes" line="48">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T23:03:15.920821" elapsed="0.000307"/>
+</kw>
+<kw name="Demo Expense And Theme Keep The Same Story" owner="AegisUX">
+<status status="PASS" start="2026-10-29T23:03:15.921293" elapsed="1.772441"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T23:03:17.694143" elapsed="0.049842"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T23:03:15.920145" elapsed="1.823939"/>
+</test>
+<test id="s1-t13" name="Phone Layouts Work In Both Appearances" line="51">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T23:03:17.744786" elapsed="0.000202"/>
+</kw>
+<kw name="Public Layouts Work In Both Modes" owner="AegisUX">
+<status status="PASS" start="2026-10-29T23:03:17.745087" elapsed="5.506279"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T23:03:23.251759" elapsed="0.044617"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T23:03:17.744437" elapsed="5.552050"/>
+</test>
+<kw name="Stop Ux Browser" owner="AegisUX" type="TEARDOWN">
+<status status="PASS" start="2026-10-29T23:03:23.297312" elapsed="0.213005"/>
+</kw>
+<doc>Public Aegis UX acceptance. Real browser interactions, read-only network guard, fictional demo only. Does not qualify real sign-in or financial persistence.</doc>
+<status status="PASS" start="2026-10-29T23:02:43.423570" elapsed="40.086844"/>
+</suite>
+<statistics>
+<total>
+<stat pass="13" fail="0" skip="0">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat name="Public Ux" id="s1" pass="13" fail="0" skip="0">Public Ux</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>

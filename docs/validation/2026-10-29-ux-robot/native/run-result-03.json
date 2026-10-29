@@ -1,0 +1,26 @@
+{
+  "run": "aegis-ux-robot-20261029",
+  "started": 1793289579.2919774,
+  "phases": [
+    {
+      "returncode": 0,
+      "phase": "deps-03",
+      "elapsed": 29.39,
+      "memory_peak": 1008500736
+    },
+    {
+      "returncode": 0,
+      "phase": "build-03",
+      "elapsed": 152.62,
+      "memory_peak": 1181728768
+    },
+    {
+      "returncode": 0,
+      "phase": "run-03",
+      "elapsed": 106.76,
+      "memory_peak": 1074167808
+    }
+  ],
+  "ended": 1793289868.191187,
+  "cleanup": "verified"
+}

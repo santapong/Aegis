@@ -1,0 +1,21 @@
+{
+  "branch": "feature/ux-robot-20261029",
+  "base": "cb22a1d",
+  "source_tar_sha256": "1ed1743c2bd67511da78cba7fd7d497116fe0fa3be83e20e764df128b789dcb5",
+  "ui_changes": [
+    "frontend/src/app/docs/search.ts",
+    "frontend/src/app/docs/topic-browser.tsx",
+    "frontend/src/app/docs/docs-controls.tsx"
+  ],
+  "test_sha256": {
+    "frontend/tests/robot/AegisUX.py": "79f549d1613414205bd02476ac7bed786a722df4f1facb64d2af9296f2dacd8f",
+    "frontend/tests/robot/public_ux.robot": "c7c9b3931175f7c3785e65dfab3c086a361d063d5ffb758cc4f6301f441d4312"
+  },
+  "public_origin": "https://aegis-eight-azure.vercel.app",
+  "production_main": "a28bb9b57e1b5b67464f62120e6d6bd35eb40599",
+  "committed_test_sha256": {
+    "frontend/tests/robot/AegisUX.py": "798be2520682d01137a7ccd3da2c90e850d910c7a4d2d3ba42090b7c71803011",
+    "frontend/tests/robot/public_ux.robot": "3586ada036675159b38f3398c7de2ccb420f4187443f29a234f0b637c782dd02"
+  },
+  "test_formatting_note": "After execution, only the extra final blank line was removed from the two test source files. test_sha256 identifies the executed files; committed_test_sha256 identifies normalized files."
+}

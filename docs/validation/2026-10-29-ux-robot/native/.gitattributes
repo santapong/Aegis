@@ -1,0 +1,2 @@
+# Retain native Robot output byte-for-byte, including whitespace in diagnostics.
+*-output.xml -whitespace

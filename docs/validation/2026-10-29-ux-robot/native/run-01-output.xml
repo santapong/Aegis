@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.5 (Python 3.13.5 on linux)" generated="2026-10-29T22:29:36.590135" rpa="false" schemaversion="5">
+<suite id="s1" name="Public Ux" source="/home/santapong/aegis-ux-robot-20261029/suite/public_ux.robot">
+<kw name="Start Ux Browser" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T22:29:36.690201" elapsed="5.271176"/>
+</kw>
+<test id="s1-t1" name="Main Identity And Next Actions Are Clear" line="15">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T22:29:41.962470" elapsed="0.000866"/>
+</kw>
+<kw name="Main Identity And Actions Are Clear" owner="AegisUX">
+<status status="PASS" start="2026-10-29T22:29:41.963531" elapsed="2.063192"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T22:29:44.028001" elapsed="0.116411"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T22:29:41.961764" elapsed="2.182761"/>
+</test>
+<test id="s1-t2" name="Personal Preview Explains Delayed Income" line="18">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T22:29:44.145271" elapsed="0.000196"/>
+</kw>
+<kw name="Personal Preview Explains Delayed Income" owner="AegisUX">
+<msg time="2026-10-29T22:29:52.465943" level="FAIL">TimeoutError: Locator.click: Timeout 7000ms exceeded.
+Call log:
+  - waiting for get_by_role("button", name="See the numbers behind the plan", exact=True)
+</msg>
+<status status="FAIL" start="2026-10-29T22:29:44.145565" elapsed="8.322468">TimeoutError: Locator.click: Timeout 7000ms exceeded.
+Call log:
+  - waiting for get_by_role("button", name="See the numbers behind the plan", exact=True)
+</status>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T22:29:52.468401" elapsed="0.097287"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="FAIL" start="2026-10-29T22:29:44.144920" elapsed="8.420873">TimeoutError: Locator.click: Timeout 7000ms exceeded.
+Call log:
+  - waiting for get_by_role("button", name="See the numbers behind the plan", exact=True)
+</status>
+</test>
+<test id="s1-t3" name="Business Link Preserves The Visitor's Intent" line="21">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T22:29:52.566573" elapsed="0.000221"/>
+</kw>
+<kw name="Business Demo Preserves Landing Intent" owner="AegisUX">
+<status status="PASS" start="2026-10-29T22:29:52.566911" elapsed="2.957278"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T22:29:55.524482" elapsed="0.163655"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T22:29:52.566208" elapsed="3.122029"/>
+</test>
+<test id="s1-t4" name="Mobile Navigation Escape Restores Focus" line="24">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T22:29:55.688897" elapsed="0.000208"/>
+</kw>
+<kw name="Mobile Navigation Escape Restores Focus" owner="AegisUX">
+<status status="PASS" start="2026-10-29T22:29:55.689199" elapsed="1.168350"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T22:29:56.857880" elapsed="0.112289"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T22:29:55.688571" elapsed="1.281716"/>
+</test>
+<test id="s1-t5" name="Keyboard Skip Link Reaches Content" line="27">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T22:29:56.971154" elapsed="0.000240"/>
+</kw>
+<kw name="Keyboard Skip Link Reaches Content" owner="AegisUX">
+<status status="PASS" start="2026-10-29T22:29:56.971512" elapsed="1.787139"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T22:29:58.823940" elapsed="0.278341"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T22:29:56.970702" elapsed="2.131693"/>
+</test>
+<test id="s1-t6" name="Topic Search Understands Multiword Tasks" line="30">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T22:29:59.103291" elapsed="0.000260"/>
+</kw>
+<kw name="Topic Search Understands Task Words" owner="AegisUX">
+<msg time="2026-10-29T22:30:06.159034" level="FAIL">Locator expected to be visible
+Actual value: None
+Error: element(s) not found 
+Call log:
+  - Expect "to_be_visible" with timeout 5000ms
+  - waiting for locator("#topics a[href=\"/docs/guides/transactions\"]")
+
+Aria snapshot:
+- link "Skip to documentation":
+  - /url: "#docs-main"
+- banner:
+  - link "Aegis home":
+    - /url: /landing
+    - img "Aegis"
+  - navigation "Main navigation":
+    - link "The approach":
+      - /url: /landing#how-it-works
+    - link "Your plans":
+      - /url: /landing#your-plans
+    - link "Your data":
+      - /url: /landing#your-data
+    - link "Demo":
+      - /url: /demo
+    - link "Resources":
+      - /url: /docs
+  - button "Switch to dark mode": Dark mode
+  - link "Sign in":
+    - /url: /login
+  - link "Start planning":
+    - /url: /register
+- navigation "Documentation sections":
+  - link "Library":
+    - /url: /docs
+  - link "User guide":
+    - /url: /docs/guides
+  - link "Developers":
+    - /url: /docs/developers
+  - link "AI &amp; MCP":
+    - /url: /docs/topics/connections
+- search "Search documentation":
+  - searchbox "Search documentation"
+- main:
+  - paragraph: THE AEGIS KNOWLEDGE LIBRARY
+  - heading "Find your footing. Keep moving forward." [level=1]:
+    - text: Find your footing.
+    - emphasis: Keep moving forward.
+  - paragraph: Practical guides for everyday money. Clear answers for what comes next. A little more understanding, whenever you need it.
+  - link "New here? Start with the basics":
+    - /url: /docs/guides/concepts
+    - text: New here? Start with the basics
+    - img
+  - link "Browse all 26 topics":
+    - /url: "#topics"
+  - img "A notebook in a calm, light-filled space with an open view"
+  - text: A LITTLE CLARITY GOES A LONG WAY.
+  - region "Choose a starting point.":
+    - heading "Choose a starting point." [level=2]
+    - text: Organized around what you want to do.
+    - link "3 topics Start with clarity Your first steps, the money model, and making Aegis feel like home. Explore the category":
+      - /url: /docs/topics/start
+      - img
+      - text: 3 topics
+      - heading "Start with clarity" [level=3]
+      - paragraph: Your first steps, the money model, and making Aegis feel like home.
+      - text: Explore the category
+      - img
+    - link "8 topics Everyday money Records, budgets, goals, trips, and the bigger picture. Explore the category":
+      - /url: /docs/topics/everyday
+      - img
+      - text: 8 topics
+      - heading "Everyday money" [level=3]
+      - paragraph: Records, budgets, goals, trips, and the bigger picture.
+      - text: Explore the category
+      - img
+    - link "4 topics Plan ahead Cash workspaces, upcoming dates, scenarios, and business review. Explore the category":
+      - /url: /docs/topics/planning
+      - img
+      - text: 4 topics
+      - heading "Plan ahead" [level=3]
+      - paragraph: Cash workspaces, upcoming dates, scenarios, and business review.
+      - text: Explore the category
+      - img
+    - link "3 topics AI &amp; connections Optional insights, LINE capture, and the local MCP server. Explore the category":
+      - /url: /docs/topics/connections
+      - img
+      - text: 3 topics
+      - heading "AI &amp; connections" [level=3]
+      - paragraph: Optional insights, LINE capture, and the local MCP server.
+      - text: Explore the category
+      - img
+    - link "3 topics Your data &amp; control Privacy, exports, self-hosting, and keeping a recoverable copy. Explore the category":
+      - /url: /docs/topics/ownership
+      - img
+      - text: 3 topics
+      - heading "Your data &amp; control" [level=3]
+      - paragraph: Privacy, exports, self-hosting, and keeping a recoverable copy.
+      - text: Explore the category
+      - img
+    - link "5 topics Build &amp; integrate Local setup, the API, architecture, and machine-readable docs. Explore the category":
+      - /url: /docs/topics/developers
+      - img
+      - text: 5 topics
+      - heading "Build &amp; integrate" [level=3]
+      - paragraph: Local setup, the API, architecture, and machine-readable docs.
+      - text: Explore the category
+      - img
+  - region "Start with one useful step.":
+    - paragraph: A PATH THAT FITS YOU
+    - heading "Start with one useful step." [level=2]
+    - link "01 Understand what you have Review your accounts and their opening positions.":
+      - /url: /docs/guides/accounts
+      - text: "01"
+      - heading "Understand what you have" [level=3]
+      - paragraph: Review your accounts and their opening positions.
+      - img
+    - link "02 See what is coming Look at dates, commitments, and a different month.":
+      - /url: /docs/guides/cash-planning
+      - text: "02"
+      - heading "See what is coming" [level=3]
+      - paragraph: Look at dates, commitments, and a different month.
+      - img
+    - link "03 Connect your own tools Understand the existing local MCP integration.":
+      - /url: /docs/developers/mcp
+      - text: "03"
+      - heading "Connect your own tools" [level=3]
+      - paragraph: Understand the existing local MCP integration.
+      - img
+  - region "Find your next topic.":
+    - paragraph: A QUESTION. A USEFUL NEXT STEP.
+    - heading "Find your next topic." [level=2]
+    - text: Filter topics
+    - searchbox "Filter topics": import csv
+    - button "All topics" [pressed]
+    - button "Start with clarity"
+    - button "Everyday money"
+    - button "Plan ahead"
+    - button "AI &amp; connections"
+    - button "Your data &amp; control"
+    - button "Build &amp; integrate"
+    - status: 0 topics to explore
+    - heading "No topics match that combination." [level=3]
+    - paragraph: Try a shorter phrase, or return to all topics.
+    - button "Show all topics"
+  - region "Bring the right context to your assistant.":
+    - img
+    - paragraph: FOR PEOPLE. READABLE BY TOOLS.
+    - heading "Bring the right context to your assistant." [level=2]
+    - paragraph: Every guide has a Markdown version. Start with a compact index, or inspect the existing local MCP tool catalog.
+    - link "Explore AI-readable docs":
+      - /url: /docs/developers/llm-docs
+      - text: Explore AI-readable docs
+      - img
+- contentinfo:
+  - text: Aegis documentation
+  - navigation "Documentation footer":
+    - link "Back to Aegis":
+      - /url: /landing
+    - link "Changelog":
+      - /url: /changelog
+    - link "Report an issue":
+      - /url: https://github.com/santapong/Aegis/issues
+    - link "Source code":
+      - /url: https://github.com/santapong/Aegis
+- alert</msg>
+<status status="FAIL" start="2026-10-29T22:29:59.103680" elapsed="7.063396">Locator expected to be visible
+Actual value: None
+Error: element(s) not found 
+Call log:
+  - Expect "to_be_visible" with timeout 5000ms
+  - waiting for locator("#topics a[href=\"/docs/guides/transactions\"]")
+
+Aria snapshot:
+- link "Skip to documentation":
+  - /url: "#docs-main"
+- banner:
+  - link "Aegis home":
+    - /url: /landing
+    - img "Aegis"
+  - navigation "Main navigation":
+    - link "The approach":
+      - /url: /landing#how-it-works
+    - link "Your plans":
+      - /url: /landing#your-plans
+    - link "Your data":
+    [ Message content over the limit has been removed. ]
+    - paragraph: FOR PEOPLE. READABLE BY TOOLS.
+    - heading "Bring the right context to your assistant." [level=2]
+    - paragraph: Every guide has a Markdown version. Start with a compact index, or inspect the existing local MCP tool catalog.
+    - link "Explore AI-readable docs":
+      - /url: /docs/developers/llm-docs
+      - text: Explore AI-readable docs
+      - img
+- contentinfo:
+  - text: Aegis documentation
+  - navigation "Documentation footer":
+    - link "Back to Aegis":
+      - /url: /landing
+    - link "Changelog":
+      - /url: /changelog
+    - link "Report an issue":
+      - /url: https://github.com/santapong/Aegis/issues
+    - link "Source code":
+      - /url: https://github.com/santapong/Aegis
+- alert</status>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T22:30:06.167608" elapsed="0.151359"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="FAIL" start="2026-10-29T22:29:59.102842" elapsed="7.216221">Locator expected to be visible
+Actual value: None
+Error: element(s) not found 
+Call log:
+  - Expect "to_be_visible" with timeout 5000ms
+  - waiting for locator("#topics a[href=\"/docs/guides/transactions\"]")
+
+Aria snapshot:
+- link "Skip to documentation":
+  - /url: "#docs-main"
+- banner:
+  - link "Aegis home":
+    - /url: /landing
+    - img "Aegis"
+  - navigation "Main navigation":
+    - link "The approach":
+      - /url: /landing#how-it-works
+    - link "Your plans":
+      - /url: /landing#your-plans
+    - link "Your data":
+    [ Message content over the limit has been removed. ]
+    - paragraph: FOR PEOPLE. READABLE BY TOOLS.
+    - heading "Bring the right context to your assistant." [level=2]
+    - paragraph: Every guide has a Markdown version. Start with a compact index, or inspect the existing local MCP tool catalog.
+    - link "Explore AI-readable docs":
+      - /url: /docs/developers/llm-docs
+      - text: Explore AI-readable docs
+      - img
+- contentinfo:
+  - text: Aegis documentation
+  - navigation "Documentation footer":
+    - link "Back to Aegis":
+      - /url: /landing
+    - link "Changelog":
+      - /url: /changelog
+    - link "Report an issue":
+      - /url: https://github.com/santapong/Aegis/issues
+    - link "Source code":
+      - /url: https://github.com/santapong/Aegis
+- alert</status>
+</test>
+<test id="s1-t7" name="Empty Topic Search Has A Clear Recovery" line="33">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T22:30:06.319748" elapsed="0.000199"/>
+</kw>
+<kw name="Documentation Empty Search Has Recovery" owner="AegisUX">
+<status status="PASS" start="2026-10-29T22:30:06.320040" elapsed="1.510270"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T22:30:07.830589" elapsed="0.063167"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T22:30:06.319422" elapsed="1.574446"/>
+</test>
+<test id="s1-t8" name="Guide Search Finds Section Words" line="36">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T22:30:07.894735" elapsed="0.000332"/>
+</kw>
+<kw name="Header Search Finds Section Words" owner="AegisUX">
+<status status="PASS" start="2026-10-29T22:30:07.895226" elapsed="2.054045"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T22:30:09.949562" elapsed="0.345040"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T22:30:07.894287" elapsed="2.400507"/>
+</test>
+<test id="s1-t9" name="Login Preserves Inputs And Password Visibility" line="39">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T22:30:10.295868" elapsed="0.000278"/>
+</kw>
+<kw name="Login Keeps Inputs During Theme Change" owner="AegisUX">
+<status status="PASS" start="2026-10-29T22:30:10.296311" elapsed="1.576420"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T22:30:11.873011" elapsed="0.041134"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T22:30:10.295392" elapsed="1.618845"/>
+</test>
+<test id="s1-t10" name="Signup Mismatch Is Explained Before A Request" line="42">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T22:30:11.914921" elapsed="0.000267"/>
+</kw>
+<kw name="Signup Mismatch Is Explained Before Any Request" owner="AegisUX">
+<msg time="2026-10-29T22:30:13.595436" level="FAIL">Locator expected to contain text 'don’t match'
+Actual value: None
+Error: strict mode violation: get_by_role("alert") resolved to 2 elements:
+    1) &lt;div role="alert" tabindex="-1" class="login_error__wxSLK"&gt;Your passwords don’t match. Please check them and…&lt;/div&gt; aka get_by_text("Your passwords don’t match.")
+    2) &lt;div role="alert" aria-live="assertive" id="__next-route-announcer__"&gt;&lt;/div&gt; aka locator("[id=\"__next-route-announcer__\"]")
+ 
+Call log:
+  - Expect "to_contain_text" with timeout 5000ms
+  - waiting for get_by_role("alert")
+</msg>
+<status status="FAIL" start="2026-10-29T22:30:11.915300" elapsed="1.681541">Locator expected to contain text 'don’t match'
+Actual value: None
+Error: strict mode violation: get_by_role("alert") resolved to 2 elements:
+    1) &lt;div role="alert" tabindex="-1" class="login_error__wxSLK"&gt;Your passwords don’t match. Please check them and…&lt;/div&gt; aka get_by_text("Your passwords don’t match.")
+    2) &lt;div role="alert" aria-live="assertive" id="__next-route-announcer__"&gt;&lt;/div&gt; aka locator("[id=\"__next-route-announcer__\"]")
+ 
+Call log:
+  - Expect "to_contain_text" with timeout 5000ms
+  - waiting for get_by_role("alert")
+</status>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T22:30:13.597162" elapsed="0.036385"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="FAIL" start="2026-10-29T22:30:11.914582" elapsed="1.719055">Locator expected to contain text 'don’t match'
+Actual value: None
+Error: strict mode violation: get_by_role("alert") resolved to 2 elements:
+    1) &lt;div role="alert" tabindex="-1" class="login_error__wxSLK"&gt;Your passwords don’t match. Please check them and…&lt;/div&gt; aka get_by_text("Your passwords don’t match.")
+    2) &lt;div role="alert" aria-live="assertive" id="__next-route-announcer__"&gt;&lt;/div&gt; aka locator("[id=\"__next-route-announcer__\"]")
+ 
+Call log:
+  - Expect "to_contain_text" with timeout 5000ms
+  - waiting for get_by_role("alert")
+</status>
+</test>
+<test id="s1-t11" name="Protected Links Retain Their Destination" line="45">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T22:30:13.634319" elapsed="0.000202"/>
+</kw>
+<kw name="Protected Links Keep The Sign In Destination" owner="AegisUX">
+<status status="PASS" start="2026-10-29T22:30:13.634649" elapsed="4.698765"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T22:30:18.333799" elapsed="0.308292"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T22:30:13.633989" elapsed="5.008232"/>
+</test>
+<test id="s1-t12" name="Demo Changes Survive Appearance Changes" line="48">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T22:30:18.647143" elapsed="0.000384"/>
+</kw>
+<kw name="Demo Expense And Theme Keep The Same Story" owner="AegisUX">
+<status status="PASS" start="2026-10-29T22:30:18.647918" elapsed="2.095000"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T22:30:20.743414" elapsed="0.061453"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T22:30:18.642692" elapsed="2.162268"/>
+</test>
+<test id="s1-t13" name="Phone Layouts Work In Both Appearances" line="51">
+<kw name="Begin Ux Case" owner="AegisUX" type="SETUP">
+<status status="PASS" start="2026-10-29T22:30:20.805617" elapsed="0.000192"/>
+</kw>
+<kw name="Public Layouts Work In Both Modes" owner="AegisUX">
+<status status="PASS" start="2026-10-29T22:30:20.805899" elapsed="4.842018"/>
+</kw>
+<kw name="Save Ux Evidence" owner="AegisUX" type="TEARDOWN">
+<arg>${TEST NAME}</arg>
+<arg>${TEST STATUS}</arg>
+<status status="PASS" start="2026-10-29T22:30:25.648291" elapsed="0.042813"/>
+</kw>
+<timeout value="1 minute"/>
+<status status="PASS" start="2026-10-29T22:30:20.805288" elapsed="4.885911"/>
+</test>
+<kw name="Stop Ux Browser" owner="AegisUX" type="TEARDOWN">
+<status status="PASS" start="2026-10-29T22:30:25.691906" elapsed="0.144730"/>
+</kw>
+<doc>Public Aegis UX acceptance. Real browser interactions, read-only network guard, fictional demo only. Does not qualify real sign-in or financial persistence.</doc>
+<status status="FAIL" start="2026-10-29T22:29:36.591269" elapsed="49.245445"/>
+</suite>
+<statistics>
+<total>
+<stat pass="10" fail="3" skip="0">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat name="Public Ux" id="s1" pass="10" fail="3" skip="0">Public Ux</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>

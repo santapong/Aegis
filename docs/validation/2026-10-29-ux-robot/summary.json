@@ -1,0 +1,303 @@
+{
+  "date": "2026-10-29",
+  "scope": "public visitor UX and fictional demo; no financial writes or real sign-in",
+  "source": {
+    "branch": "feature/ux-robot-20261029",
+    "base": "cb22a1d",
+    "source_tar_sha256": "1ed1743c2bd67511da78cba7fd7d497116fe0fa3be83e20e764df128b789dcb5",
+    "ui_changes": [
+      "frontend/src/app/docs/search.ts",
+      "frontend/src/app/docs/topic-browser.tsx",
+      "frontend/src/app/docs/docs-controls.tsx"
+    ],
+    "test_sha256": {
+      "frontend/tests/robot/AegisUX.py": "79f549d1613414205bd02476ac7bed786a722df4f1facb64d2af9296f2dacd8f",
+      "frontend/tests/robot/public_ux.robot": "c7c9b3931175f7c3785e65dfab3c086a361d063d5ffb758cc4f6301f441d4312"
+    },
+    "public_origin": "https://aegis-eight-azure.vercel.app",
+    "production_main": "a28bb9b57e1b5b67464f62120e6d6bd35eb40599",
+    "committed_test_sha256": {
+      "frontend/tests/robot/AegisUX.py": "798be2520682d01137a7ccd3da2c90e850d910c7a4d2d3ba42090b7c71803011",
+      "frontend/tests/robot/public_ux.robot": "3586ada036675159b38f3398c7de2ccb420f4187443f29a234f0b637c782dd02"
+    },
+    "test_formatting_note": "After execution, only the extra final blank line was removed from the two test source files. test_sha256 identifies the executed files; committed_test_sha256 identifies normalized files."
+  },
+  "verified_preview_ui_sha256": {
+    "frontend/src/app/docs/search.ts": "19fc1e310d292fe53d6341aeabf0fbb3c0c9ff0a3114f7224910703cb6511045",
+    "frontend/src/app/docs/topic-browser.tsx": "5c42eea3d0c83b30577b1cb8787b1354c9c6e6b8ab831612294a359f9266a056",
+    "frontend/src/app/docs/docs-controls.tsx": "1d28da57c5e779104b7e1f90ba93044b2e4b2b67a24e66b453913f50eece7952"
+  },
+  "runtime": {
+    "python": "3.13.5 (main, Aug 10 2026, 12:06:59) [GCC 14.2.0]",
+    "robot_playwright": [
+      "7.5",
+      "1.62.0"
+    ],
+    "chromium": "Chromium 151.0.7922.34",
+    "browser": "/home/santapong/.cache/ms-playwright/chromium-1234/chrome-linux/chrome"
+  },
+  "runs": [
+    {
+      "attempt": "run-01",
+      "generator": "Robot 7.5 (Python 3.13.5 on linux)",
+      "generated": "2026-10-29T22:29:36.590135",
+      "counts": {
+        "pass": 10,
+        "fail": 3,
+        "skip": 0
+      },
+      "cases": [
+        {
+          "name": "Main Identity And Next Actions Are Clear",
+          "status": "PASS"
+        },
+        {
+          "name": "Personal Preview Explains Delayed Income",
+          "status": "FAIL"
+        },
+        {
+          "name": "Business Link Preserves The Visitor's Intent",
+          "status": "PASS"
+        },
+        {
+          "name": "Mobile Navigation Escape Restores Focus",
+          "status": "PASS"
+        },
+        {
+          "name": "Keyboard Skip Link Reaches Content",
+          "status": "PASS"
+        },
+        {
+          "name": "Topic Search Understands Multiword Tasks",
+          "status": "FAIL"
+        },
+        {
+          "name": "Empty Topic Search Has A Clear Recovery",
+          "status": "PASS"
+        },
+        {
+          "name": "Guide Search Finds Section Words",
+          "status": "PASS"
+        },
+        {
+          "name": "Login Preserves Inputs And Password Visibility",
+          "status": "PASS"
+        },
+        {
+          "name": "Signup Mismatch Is Explained Before A Request",
+          "status": "FAIL"
+        },
+        {
+          "name": "Protected Links Retain Their Destination",
+          "status": "PASS"
+        },
+        {
+          "name": "Demo Changes Survive Appearance Changes",
+          "status": "PASS"
+        },
+        {
+          "name": "Phone Layouts Work In Both Appearances",
+          "status": "PASS"
+        }
+      ],
+      "output_sha256": "6a53255fc197b0279d6b196c3e756a7daf9b6f7b74a8022dfeb7db49d330b5db"
+    },
+    {
+      "attempt": "probe-02",
+      "generator": "Robot 7.5 (Python 3.13.5 on linux)",
+      "generated": "2026-10-29T22:51:15.724153",
+      "counts": {
+        "pass": 2,
+        "fail": 0,
+        "skip": 0
+      },
+      "cases": [
+        {
+          "name": "Personal Preview Explains Delayed Income",
+          "status": "PASS"
+        },
+        {
+          "name": "Signup Mismatch Is Explained Before A Request",
+          "status": "PASS"
+        }
+      ],
+      "output_sha256": "34e8c268966a9261e81a67006b92520cf8e4b61e1d3b56f84992ea078db140f2"
+    },
+    {
+      "attempt": "run-03",
+      "generator": "Robot 7.5 (Python 3.13.5 on linux)",
+      "generated": "2026-10-29T23:02:43.422399",
+      "counts": {
+        "pass": 13,
+        "fail": 0,
+        "skip": 0
+      },
+      "cases": [
+        {
+          "name": "Main Identity And Next Actions Are Clear",
+          "status": "PASS"
+        },
+        {
+          "name": "Personal Preview Explains Delayed Income",
+          "status": "PASS"
+        },
+        {
+          "name": "Business Link Preserves The Visitor's Intent",
+          "status": "PASS"
+        },
+        {
+          "name": "Mobile Navigation Escape Restores Focus",
+          "status": "PASS"
+        },
+        {
+          "name": "Keyboard Skip Link Reaches Content",
+          "status": "PASS"
+        },
+        {
+          "name": "Topic Search Understands Multiword Tasks",
+          "status": "PASS"
+        },
+        {
+          "name": "Empty Topic Search Has A Clear Recovery",
+          "status": "PASS"
+        },
+        {
+          "name": "Guide Search Finds Section Words",
+          "status": "PASS"
+        },
+        {
+          "name": "Login Preserves Inputs And Password Visibility",
+          "status": "PASS"
+        },
+        {
+          "name": "Signup Mismatch Is Explained Before A Request",
+          "status": "PASS"
+        },
+        {
+          "name": "Protected Links Retain Their Destination",
+          "status": "PASS"
+        },
+        {
+          "name": "Demo Changes Survive Appearance Changes",
+          "status": "PASS"
+        },
+        {
+          "name": "Phone Layouts Work In Both Appearances",
+          "status": "PASS"
+        }
+      ],
+      "output_sha256": "b24e48b80d3389b46cb6a705c93262b380e2ce60ac13d0269e6c228e4cfd7a5f"
+    }
+  ],
+  "initial_harness_provenance": "Pre-run source copy not frozen; native initial failures retain the exact failed locators. Corrected final library is hashed in source.json.",
+  "interrupted_attempt_02": {
+    "phase": "dependency installation",
+    "reason": "du traversal returned nonzero during installation; stderr not retained, exact cause unknown; concurrent file changes are a hypothesis",
+    "product_result": "NOT RUN",
+    "cleanup": "owned units inactive; reservation later admitted another owner",
+    "recovery": "bounded non-following stat traversal ignores only vanished entries; other errors fail closed; same resource limits"
+  },
+  "final_execution": {
+    "run": "aegis-ux-robot-20261029",
+    "started": 1793289579.2919774,
+    "phases": [
+      {
+        "returncode": 0,
+        "phase": "deps-03",
+        "elapsed": 29.39,
+        "memory_peak": 1008500736
+      },
+      {
+        "returncode": 0,
+        "phase": "build-03",
+        "elapsed": 152.62,
+        "memory_peak": 1181728768
+      },
+      {
+        "returncode": 0,
+        "phase": "run-03",
+        "elapsed": 106.76,
+        "memory_peak": 1074167808
+      }
+    ],
+    "ended": 1793289868.191187,
+    "cleanup": "verified"
+  },
+  "effective_controls": {
+    "probe-02": {
+      "cpu.max": "100000 100000",
+      "memory.max": "1610612736",
+      "memory.swap.max": "0",
+      "pids.max": "192"
+    },
+    "deps-03": {
+      "cpu.max": "100000 100000",
+      "memory.max": "1610612736",
+      "memory.swap.max": "0",
+      "pids.max": "192"
+    },
+    "build-03": {
+      "cpu.max": "100000 100000",
+      "memory.max": "1610612736",
+      "memory.swap.max": "0",
+      "pids.max": "192"
+    },
+    "run-03": {
+      "cpu.max": "100000 100000",
+      "memory.max": "1610612736",
+      "memory.swap.max": "0",
+      "pids.max": "192"
+    }
+  },
+  "resources": {
+    "temperature_max_c": 65.0,
+    "host_available_min_bytes": 11901108224,
+    "task_logical_bytes_max": 1416313739,
+    "memory_sample_max_bytes": 1099530240,
+    "disk_enforcement": "soft sampled logical-byte guard; not a filesystem quota",
+    "cpu_and_swap_pressure": "not qualified by per-interval utilization telemetry; workload CPU/RAM/swap/PID controls were read back"
+  },
+  "browser": {
+    "request_events": 866,
+    "page_errors": 0,
+    "blocked_writes": 0
+  },
+  "cleanup": {
+    "owned_directory": "/home/santapong/aegis-ux-robot-20261029",
+    "removed": true,
+    "unit_states": {
+      "prepare": "inactive",
+      "run-01": "inactive",
+      "probe-02": "inactive",
+      "deps": "inactive",
+      "build": "inactive",
+      "deps-03": "inactive",
+      "build-03": "inactive",
+      "run-03": "inactive"
+    },
+    "preview_listener": false,
+    "ended": 1793289973.5369384
+  },
+  "post_health": {
+    "docker": "active",
+    "nginx": "active",
+    "tailscaled": "active",
+    "redis": "PONG",
+    "postgres": "accepting connections",
+    "n8n_readiness": 200,
+    "available_ram_approx": "12 GiB",
+    "routes": "tailnet only"
+  },
+  "delivery": {
+    "branch": "feature/ux-robot-20261029",
+    "production_deployment": "not performed",
+    "ci": "not run by this local review"
+  },
+  "diagnostic": {
+    "responsibility": "observation",
+    "signal": "Two native Robot failures contradicted valid rendered disclosure/form behavior; separate topic search returned a false empty list",
+    "evidence": "native/run-01-output.xml, native/probe-02-output.xml and before/after screenshots",
+    "hypothesis": "Locator mismatch in two cases; inconsistent product search semantics in the third",
+    "next_check": "Corrected selectors passed unchanged production 2/2; complete updated-artifact suite passed 13/13 and manual search renders were inspected"
+  }
+}
